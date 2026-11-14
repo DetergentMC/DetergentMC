@@ -1,0 +1,10 @@
+# HelloBubble - the sample Bubble for DetergentMC.
+# A Bubble is one DetergentMC extension (what other servers call a plugin).
+# バブルは DetergentMC の拡張機能1つ分です（他サーバーのプラグインに相当）。
+id: hello-bubble
+name: HelloBubble
+version: 1.0.0
+description: Says hello in the player's language. / 参加者の言語であいさつします。
+authors: [DetergentMC]
+main: io.detergentmc.bubble.hello.HelloBubble
+depends: []

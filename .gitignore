@@ -1,0 +1,33 @@
+# Gradle
+.gradle/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/**/build/
+
+# Runtime server directory (created when the server first runs)
+run/
+run/vanilla/
+server/
+*.log
+
+# Mojang server jars and vanilla data must NEVER be committed.
+# They are fetched from Mojang at build/run time.
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Split-verification test-result copies (per-version verification evidence).
+# Kept on disk only; never committed.
+split-verification-*/

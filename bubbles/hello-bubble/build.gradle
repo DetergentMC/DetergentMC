@@ -1,0 +1,12 @@
+// HelloBubble: the sample Bubble for DetergentMC.
+// A Bubble is packaged as a jar with a bubble.yml at its root.
+// Build it with: ./gradlew :bubbles:hello-bubble:build
+// The jar is then copied into the server's bubbles/ directory.
+dependencies {
+    implementation project(':detergentmc-api')
+}
+
+jar {
+    // bubble.yml is copied from src/main/resources to the jar root.
+    archiveBaseName = 'hello-bubble'
+}

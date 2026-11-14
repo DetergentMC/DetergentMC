@@ -1,0 +1,6 @@
+// Content layer: data models for custom blocks and custom UIs that
+// DetergentMC can show to old clients via textures / resource packs.
+// Rendering on the client is wired through the protocol layer (TODO).
+dependencies {
+    implementation project(':detergentmc-api')
+}

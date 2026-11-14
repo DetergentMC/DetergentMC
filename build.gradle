@@ -1,0 +1,69 @@
+// DetergentMC - root build script.
+// This project contains NO Mojang code and NO Paper code.
+// The vanilla server jar is never committed. It is fetched from Mojang
+// (piston-meta / piston-data) at build/run time - see the
+// `verifyVanillaManifest` task and docs/VERSIONS.md.
+
+plugins {
+    id 'java'
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    group = 'io.detergentmc'
+    version = '0.1.0-1.20.4'
+
+    // DetergentMC targets Java 17 (Minecraft 1.20.4 needs Java 17).
+    // Run Gradle with JDK 17: set JAVA_HOME to a JDK 17 installation.
+    java {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    // Source files (and string literals) are UTF-8: Japanese text appears
+    // in code and comments. Do not rely on the platform default encoding.
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.1'
+    }
+
+    test {
+        useJUnitPlatform()
+        // The test worker talks back to the Gradle daemon over loopback TCP.
+        // Force IPv4 so the connection does not go through IPv6-mapped
+        // loopback (blocked by some sandboxed networks / proxies).
+        jvmArgs '-Djava.net.preferIPv4Stack=true'
+        testLogging {
+            events 'passed', 'failed', 'skipped'
+        }
+    }
+}
+
+// Checks that Mojang still publishes Minecraft 1.20.4, 1.20.1 and 1.20.2,
+// without downloading the server jars themselves.
+// Run with: ./gradlew verifyVanillaManifest
+tasks.register('verifyVanillaManifest') {
+    group = 'verification'
+    description = 'Checks the Mojang version manifest for Minecraft 1.20.4, 1.20.1, 1.20.2, 1.20.5 and 1.20.6 (no jars are downloaded).'
+    doLast {
+        def manifestUrl = new URI('https://piston-meta.mojang.com/mc/game/version_manifest_v2.json').toURL()
+        def text = manifestUrl.text
+        for (version in ['1.20.4', '1.20.1', '1.20.2', '1.20.5', '1.20.6']) {
+            if (!text.contains('"id" : "' + version + '"') && !text.contains('"id":"' + version + '"')) {
+                throw new GradleException('Minecraft ' + version + ' was not found in the Mojang version manifest.')
+            }
+            println 'OK: Minecraft ' + version + ' is published by Mojang (piston-meta).'
+        }
+        println 'The server jars themselves are NOT downloaded by the build and are NOT committed.'
+        println 'See docs/VERSIONS.md for how a version adapter binds to vanilla at runtime.'
+    }
+}

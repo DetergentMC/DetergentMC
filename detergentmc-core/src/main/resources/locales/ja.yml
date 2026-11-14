@@ -1,0 +1,40 @@
+# DetergentMC 日本語メッセージ
+# Placeholders use {0}, {1}, ... / {0}、{1}、... が置き換えられます。
+server:
+  starting: "DetergentMC {0} を起動しています (Minecraft {1})..."
+  started: "DetergentMC を起動しました。読み込んだバブル: {0} 個"
+  stopped: "DetergentMC を停止しました。"
+  console-help: "コマンド: help / bubbles / vanilla <コマンド> / stop (バブルのコマンドも使えます)"
+vanilla:
+  starting: "バニラサーバー (Minecraft {0}) を起動しています..."
+  ready: "バニラサーバーが起動しました (ポート {0})。"
+  ready-simple: "バニラサーバーが起動しました。"
+  failed: "バニラサーバーの起動に失敗しました: {0}"
+  not-running: "バニラサーバーは起動していません。"
+  usage: "使い方: vanilla <コマンド> (例: vanilla list)"
+resource-pack:
+  prompt: "DetergentMC のリソースパックを受け取りますか？泡テクスチャなどが表示されるようになります。"
+  enabled: "リソースパックを配信しています: {0}"
+  external-enabled: "外部リソースパックを使います（ローカル配信なし）: {0}"
+  disabled: "リソースパックは無効です。"
+  failed: "リソースパックの起動に失敗しました（パックなしで続行します）: {0}"
+  config-warning: "リソースパックの設定に問題があります: {0}"
+  required-failed: "リソースパックが必須 (required=true) ですが、用意できませんでした: {0}。サーバーを起動しません。"
+datapack:
+  generated: "データパックを生成しました: {0}"
+  failed: "データパックの生成に失敗しました（/trigger ブリッジなしで続行します）: {0}"
+command:
+  unknown: "不明なコマンドです: {0}"
+  bubbles-empty: "読み込まれているバブルはありません。"
+  bubbles-line: "- {0} v{1}"
+  hello: "こんにちは、{0}さん！ DetergentMCへようこそ。"
+  lang:
+    usage: "使い方: /lang <ja|en>"
+    set: "言語を{0}に設定しました。"
+    unknown: "対応していない言語です: {0}（ja または en を指定してください）"
+bubble:
+  enabled: "バブルを有効化しました: {0} v{1}"
+  disabled: "バブルを無効化しました: {0}"
+player:
+  join: "{0}さんが参加しました。"
+  leave: "{0}さんが退出しました。"
