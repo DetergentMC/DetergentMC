@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DetergentMC — バニラを土台にした独自のMinecraftサーバー</title>
+  <meta name="description" content="DetergentMC は Mojang のバニラサーバーを土台にした独自の Minecraft サーバーソフト。独自APIのみで、プラグインは「バブル」と呼ぶ。1.19 から 26.1 まで、過去のバージョンも積極的に開発する。">
+  <meta property="og:title" content="DetergentMC — バニラを土台にした独自のMinecraftサーバー">
+  <meta property="og:description" content="DetergentMC は Mojang のバニラサーバーを土台にした独自の Minecraft サーバーソフト。独自APIのみで、プラグインは「バブル」と呼ぶ。1.19 から 26.1 まで、過去のバージョンも積極的に開発する。">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="./" aria-label="DetergentMC">
+      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="7" fill="var(--accent)"/><path d="M10 9h6.5a6.5 7 0 0 1 0 14H10z" fill="none" stroke="#0b0f14" stroke-width="3.2"/></svg>
+      <span>DetergentMC</span>
+    </a>
+    <nav>
+      <a href="./" class="active">ホーム</a>
+      <a href="how.html">仕組み</a>
+      <a href="products.html">製品</a>
+      <a href="roadmap.html">ロードマップ</a>
+      <a href="versions.html">対応バージョン</a>
+      <a href="https://github.com/DetergentMC/DetergentMC" rel="noopener">GitHub</a>
+    </nav>
+  </header>
+  <main>
+
+    <section class="hero">
+      <p class="eyebrow">Minecraft Java Edition · Java · 現在 1.19 〜 26.1 対応</p>
+      <h1>古いバージョンも、<br>ちゃんと育てるサーバー。</h1>
+      <p class="lead">
+        DetergentMC は Mojang のバニラサーバーを土台にした、独自の Minecraft サーバーソフトです。<br>
+        API は DetergentMC 独自のものだけ。プラグインは「バブル」と呼びます。<br>
+        新しいバージョンだけでなく、過去のバージョンも積極的に開発します。
+      </p>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/DetergentMC/DetergentMC" rel="noopener">ソースコードを見る<span class="tag">MIT · 公開</span></a>
+        <a class="btn" href="versions.html">対応バージョンを見る</a>
+      </div>
+      <pre class="term" aria-label="起動イメージ"><span class="prompt">$</span> java -jar detergentmc.jar
+<span class="dim">INFO  DetergentMC proxy listening on 0.0.0.0:25565
+INFO  Internal vanilla server on 127.0.0.1:25566</span></pre>
+    </section>
+
+    <section class="section">
+      <div class="stats">
+        <div><span class="num">17<small>プロトコル</small></span><span class="label">Java 759〜775（1.19〜26.1）</span></div>
+        <div><span class="num">289<small>通り</small></span><span class="label">クライアント × サーバー 17 × 17</span></div>
+        <div><span class="num">2,866<small>件</small></span><span class="label">テスト 0失敗・3スキップ</span></div>
+        <div><span class="num">30<small>プロトコル</small></span><span class="label">Bedrock 1.20.0〜26.51</span></div>
+        <div><span class="num">17<small>個</small></span><span class="label">バージョン別リソースパック</span></div>
+      </div>
+      <p class="note">数字は 2026-11-15 時点のものです。テストはプロトコルレベルの検証で、本物のゲームクライアントでの確認はまだ行っていません。詳しくは下の「正直な話」をご覧ください。</p>
+    </section>
+
+    <section class="section">
+      <div class="grid">
+        <a class="card link" href="how.html"><h3>仕組み →</h3><p>プロキシ・内部バニラ・リソースパック配信の3つのポート。バージョン間アダプターと Bedrock 対応の概要。</p></a>
+        <a class="card link" href="products.html"><h3>製品 →</h3><p>DetergentMC 本体と、プラグイン「バブル」について。無料・公開前提のプロジェクトです。</p></a>
+        <a class="card link" href="versions.html"><h3>対応バージョン →</h3><p>1.19 から 26.1 までの対応状況、Java の要件、リソースパック形式の一覧。</p></a>
+        <a class="card link" href="roadmap.html"><h3>ロードマップ →</h3><p>1.20.4 から始めて 1.21.11、1.19 系、26.1 へ。次は 1.18 系か、26.2 か、実機テストか。</p></a>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>目指すところ</h2>
+      <div class="goals">
+        <div class="goal"><span class="num">1</span><div><h3>過去のバージョンも積極的に開発する</h3><p>対応するだけ、維持するだけではありません。古いバージョン向けの開発そのものを DetergentMC の売りにします。</p></div></div>
+        <div class="goal"><span class="num">2</span><div><h3>新しいAPIのプラグインを古いバージョンでも</h3><p>過去のバージョンでも新しいバージョンの API に対応させ、新しいバージョン向けのプラグインを古いバージョンでも使えるようにします。</p></div></div>
+        <div class="goal"><span class="num">3</span><div><h3>古いクライアントでも新しいものが見える</h3><p>新しいサーバーに古いクライアントで入っても、テクスチャやリソースパックでブロックや UI を追加できるようにします。</p></div></div>
+        <div class="goal"><span class="num">4</span><div><h3>日本語から始めて、多言語へ</h3><p>日本語のドキュメント・設定・サポートを土台に、英語をはじめ他の言語にも広げていきます。公開して色んな人に使ってもらうのが目標です。</p></div></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>正直な話</h2>
+      <ul class="facts">
+        <li><strong>本物のゲームクライアントでの確認は、まだどの組み合わせも行っていません。</strong>テストはすべてプロトコルレベルの検証（偽クライアントと本物のバニラサーバー）です。2人同時参加など、実機での確認が必要な項目が残っています。</li>
+        <li><strong>開発段階です。</strong>リソースパックの公開配信場所もまだ決めていません。公開前に改めて決めます。</li>
+        <li><strong>Bedrock には制限があります。</strong>インベントリは未対応で、Xbox 署名の検証や暗号化はまだありません。最新の Bedrock 26.60 / 26.62 には未対応です。</li>
+      </ul>
+    </section>
+  </main>
+  <footer>
+    <div class="footgrid">
+      <div>
+        <strong>DetergentMC</strong>
+        <p>バニラを土台に、独自APIで、すべてのバージョンへ。</p>
+      </div>
+      <div>
+        <a href="how.html">仕組み</a> · <a href="products.html">製品</a> · <a href="roadmap.html">ロードマップ</a> · <a href="versions.html">対応バージョン</a><br>
+        <a href="https://github.com/DetergentMC/DetergentMC" rel="noopener">DetergentMC（ソースコード）</a> · <a href="https://github.com/DetergentMC/DetergentWeb" rel="noopener">このサイトのソース</a>
+      </div>
+    </div>
+    <p class="disclaimer">© 2026 DetergentMC · DetergentMC は Mojang Studios / Microsoft の公式製品ではなく、承認も受けていません。"Minecraft" は Mojang Synergies AB の商標です。</p>
+  </footer>
+</body>
+</html>
