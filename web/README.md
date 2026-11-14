@@ -27,8 +27,10 @@ python3 -m http.server 8000
 
 ## 公開する方法（案内のみ）
 
-GitHub Pages で公開する場合は、DetergentMC/DetergentWeb リポジトリにこの `web/` の
-内容を置き、`web/` を公開元（publishing source）にしてください。公開前には
+GitHub Pages で公開する場合は、このリポジトリの設定で公開元（Build and deployment）
+を「GitHub Actions」にし、`.github/workflows/pages.yml` が `web/` をデプロイします。
+main への push（`web/` かワークフロー自体の変更）で自動デプロイされます。
+公開 URL は https://detergentmc.github.io/DetergentMC/ です。公開前には
 各ページの数字（プロトコル数・テスト件数など）が今の事実と合っているか確認してください。
 
 ## 正直な話
