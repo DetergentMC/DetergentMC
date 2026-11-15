@@ -3,14 +3,14 @@
 今やっていることの全体像を置く場所。コードは置かない。
 コードの合流（マージ）は依頼主が行う。終わったものから順にmainへ入れる。
 
-最終更新：2026-11-15 13:32 JST
+最終更新：2026-11-15 19:46 JST
 
 ---
 
 ## 参加しているAI
 
 - **Muse01（統括）**：依頼主の横にいるAI。全体の調整と合流を担当。名前は依頼主がつけた。
-- **Muse02（777担当）**：2026-11-15に参加。777（26.3）のStage B完了。
+- **Muse02（777担当）**：2026-11-15に参加。777（26.3）のStage D完了。Stage E進行中。
   場所：`~/workspace/detergentmc-777`、ブランチ `work/777`。
 - Muse03〜：空き。手伝いに来たAIは、空いている一番小さい番号を名乗ること
   （Muse03、Muse04、…）。名前が決まったらここに書き足すこと。
@@ -55,14 +55,16 @@
 
 ## 進行中の作業
 
-### 777（26.3）— Stage B完了
+### 777（26.3）— Stage D完了・Stage E進行中
 
 - 担当：Muse02。場所：ブランチ `work/777`（`~/workspace/detergentmc-777`）
 - 状態：**Stage A完了（2026-11-15）**。26.3＝プロトコル777は実バニラjarの version.json で確定（protocol_version: 777、world 5023、pack リソース97.1・データ121.0、Java 25）。
   パケットID差分は変更130件・新規6件・削除2件（PacketIds.java に777列を挿入済み、エントリ273件）。RegistryTables777*.java 61ファイルを生成し、verify-777-tables.py は460件中460件通過。RegistryRemapper.java への777配線も完了。
   作業ノート：`STAGE-A-777-NOTES.md`（AIBranchに置いてある版は§6まで。ローカル版は§12まで進んでいる）
 - **Stage B完了（2026-11-15）**。adapter-v1_26_3を新規作成。ClientAdapter／ClientJoinFlow／ClientProxyへ777配線。PlayTranslatorにJoin Game／Respawn codec（previousGameTypeの±1変換・onlineMode挿入）と新規／削除パケットの変換器、ChunkTranslatorに775⇔777節を追加。PlayTranslator777Test 22/22、ProxySession777Test 4/4、ChunkTranslator777Test 7/7、回帰922件全通過。verify-777-tables.py は460件中460件通過。git diffは24ファイル・11,055行追加・416行削除。
-- 残課題：ChunkTranslatorの777→775変換器がProxySessionにまだつながっていない（Chunk Data等は今も落とされる）。Gradleテスト実行と実ゲームクライアントでの確認は未実施。手動ランナーでprotocolテスト2,282件中112件失敗の報告あり（内訳は未検証）。次はStage Cへ（依頼主の判断待ち）。
+- **Stage D完了（2026-11-15）**。26.3用リソースパック（pack_format 97、pack.mcmetaは  が正解）、Bedrock→777対応、内部サーバー26.3配線。実バニラ26.3の起動確認に成功（Done 10.604s、pack metadataエラー0件）。AI-INSTRUCTIONSの定義上、今回の作業はStage D相当（独立した「Stage C」の節はない）。
+- Stage Bの残課題は片付け済み（ChunkTranslatorのProxySession接続、112件失敗の内訳確認：本物の回帰0件、PlayTranslator 4件の両方向変換器）。
+- **Stage E進行中（2026-11-15〜）**：統合テストと文書。Gradleテスト実行と実ゲームクライアントでの確認は未実施。
 - 土台は main HEAD `c5cc162`（775完了相当）。776の痕跡はなし。
 - **Muse01の決定（2026-11-15、依頼主から「あなたが決めて」と言われて決めた）**：
   - 776問題の方針：**(b) 775を隣接として777表を直接作る**。776の完了時期が読めないため、
