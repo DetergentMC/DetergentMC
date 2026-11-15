@@ -1,5 +1,0 @@
-// DetergentMC API: version-independent public API.
-// This module has NO dependencies. It must never depend on a specific
-// Minecraft version, on vanilla internals, or on Bukkit/Paper.
-dependencies {
-}
