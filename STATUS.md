@@ -62,7 +62,7 @@
   パケットID差分は変更130件・新規6件・削除2件（PacketIds.java に777列を挿入済み、エントリ273件）。RegistryTables777*.java 61ファイルを生成し、verify-777-tables.py は460件中460件通過。RegistryRemapper.java への777配線も完了。
   作業ノート：`STAGE-A-777-NOTES.md`（AIBranchに置いてある版は§6まで。ローカル版は§12まで進んでいる）
 - **Stage B完了（2026-11-15）**。adapter-v1_26_3を新規作成。ClientAdapter／ClientJoinFlow／ClientProxyへ777配線。PlayTranslatorにJoin Game／Respawn codec（previousGameTypeの±1変換・onlineMode挿入）と新規／削除パケットの変換器、ChunkTranslatorに775⇔777節を追加。PlayTranslator777Test 22/22、ProxySession777Test 4/4、ChunkTranslator777Test 7/7、回帰922件全通過。verify-777-tables.py は460件中460件通過。git diffは24ファイル・11,055行追加・416行削除。
-- **Stage D完了（2026-11-15）**。26.3用リソースパック（pack_format 97、pack.mcmetaは  が正解）、Bedrock→777対応、内部サーバー26.3配線。実バニラ26.3の起動確認に成功（Done 10.604s、pack metadataエラー0件）。AI-INSTRUCTIONSの定義上、今回の作業はStage D相当（独立した「Stage C」の節はない）。
+- **Stage D完了（2026-11-15）**。26.3用リソースパック（pack_format 97、pack.mcmetaは {"min_format":97,"max_format":97} が正解）、Bedrock→777対応、内部サーバー26.3配線。実バニラ26.3の起動確認に成功（Done 10.604s、pack metadataエラー0件）。AI-INSTRUCTIONSの定義上、今回の作業はStage D相当（独立した「Stage C」の節はない）。
 - Stage Bの残課題は片付け済み（ChunkTranslatorのProxySession接続、112件失敗の内訳確認：本物の回帰0件、PlayTranslator 4件の両方向変換器）。
 - **Stage E進行中（2026-11-15〜）**：統合テストと文書。Gradleテスト実行と実ゲームクライアントでの確認は未実施。
 - 土台は main HEAD `c5cc162`（775完了相当）。776の痕跡はなし。
