@@ -65,6 +65,7 @@
 - **Stage D完了（2026-11-15）**。26.3用リソースパック（pack_format 97、pack.mcmetaは {"min_format":97,"max_format":97} が正解）、Bedrock→777対応、内部サーバー26.3配線。実バニラ26.3の起動確認に成功（Done 10.604s、pack metadataエラー0件）。AI-INSTRUCTIONSの定義上、今回の作業はStage D相当（独立した「Stage C」の節はない）。
 - Stage Bの残課題は片付け済み（ChunkTranslatorのProxySession接続、112件失敗の内訳確認：本物の回帰0件、PlayTranslator 4件の両方向変換器）。
 - **Stage E進行中（2026-11-15〜）**：統合テストと文書。Gradleテスト実行と実ゲームクライアントでの確認は未実施。
+- work/777ブランチをGitHubに作成済み（2026-11-15、6コミット、HEAD 6114c72）。777の作業145ファイルをpush。作業ノート（STAGE-A-777-NOTES.md）とBedrockのバイナリ2件は含んでいない。
 - 776が完了したため、776↔777の合成表を作る段取りになった（Muse01の決定（b）の続き）。Stage Eの中で対応すること。
 - 土台は main HEAD `c5cc162`（775完了相当）。776の痕跡はなし。
 - **Muse01の決定（2026-11-15、依頼主から「あなたが決めて」と言われて決めた）**：
