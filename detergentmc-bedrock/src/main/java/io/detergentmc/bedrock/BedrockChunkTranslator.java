@@ -84,9 +84,23 @@ public final class BedrockChunkTranslator {
      * Java のブロック状態IDを 765 に正規化する（Bedrock 変換の共通の入口）。
      * 765 はそのまま、764／766 は RegistryRemapper の上向き表、767 は
      * 767→765 表、768 は 768→765 表、769 は 769→765 表、770 は 770→765 表、
-     * 771 は 771→765 表、772 は 772→765 表、773 は 773→765 表、774 は 774→765 表、775 は 775→765 表、763 は
+     * 771 は 771→765 表、772 は 772→765 表、773 は 773→765 表、774 は 774→765 表、775 は 775→765 表、757 は
+     * 757→759→760→761→762→763→765 の連鎖（mapBlockState757To765 は
+     * RegistryRemapper に無いため、このクラスで既存の隣接表と 763→765 の
+     * 逆引き表を繋いで作る。RegistryRemapper には追加しない）、756 は
+     * 756→757→759→760→761→762→763→765 の連鎖（mapBlockState756To765。
+     * 756・757 のブロック状態は 20,342 件・同一順序のため 756→757 は恒等写像。
+     * Stage A §11.1 実測）、755 は
+     * 755→756→757→759→760→761→762→763→765 の連鎖（mapBlockState755To765。
+     * 755・756 のブロック状態は 20,342 件・同一順序のため 755→756 は恒等写像。
+     * Stage A §11.1 実測）、754 は
+     * 754→755→756→757→759→760→761→762→763→765 の連鎖（mapBlockState754To765。
+     * 754・755 のブロック状態は 17,112 件／20,342 件で、754→755 は
+     * RegistryTables754 の表（Stage A §11.1 実測）。オークの丸太は
+     * 754 の axis=y が 74、755 では 77）、763 は
      * 765→763 表の逆引き。
-     * 範囲外は石（765 の 1）。
+     * 範囲外は石（765 の 1）。757 の 20,342 状態は 759 で全件カバーされる
+     * （Stage A §11.1 実測）ため、連鎖で石に落ちるのは範囲外の番号だけ。
      */
     public static int normalizeBlockState(int stateId, int serverProtocol) {
         return switch (serverProtocol) {
@@ -108,8 +122,63 @@ public final class BedrockChunkTranslator {
             case RegistryRemapper.PROTOCOL_773 -> RegistryRemapper.mapBlockState773To765(stateId);
             case RegistryRemapper.PROTOCOL_774 -> RegistryRemapper.mapBlockState774To765(stateId);
             case RegistryRemapper.PROTOCOL_775 -> RegistryRemapper.mapBlockState775To765(stateId);
+            case RegistryRemapper.PROTOCOL_757 -> mapBlockState757To765(stateId);
+            case RegistryRemapper.PROTOCOL_756 -> mapBlockState756To765(stateId);
+            case RegistryRemapper.PROTOCOL_755 -> mapBlockState755To765(stateId);
+            case RegistryRemapper.PROTOCOL_754 -> mapBlockState754To765(stateId);
             default -> stateId;
         };
+    }
+
+    /**
+     * 757 のブロック状態IDを 765 に正規化する。RegistryRemapper に
+     * mapBlockState757To765 は無いため、既存の隣接表の連鎖
+     * 757→759→760→761→762→763 と、763→765 の逆引き表
+     * （{@link #BLOCK_STATE_763_TO_765}）を繋ぐ。各段で範囲外は石に
+     * 落ちる（隣接表の代替）。757 の 20,342 状態は 759 で全件カバーされる
+     * （Stage A §11.1 実測）ため、連鎖で石に落ちるのは範囲外の番号だけ。
+     */
+    static int mapBlockState757To765(int stateId) {
+        int id759 = RegistryRemapper.mapBlockState757To759(stateId);
+        int id760 = RegistryRemapper.mapBlockState759To760(id759);
+        int id761 = RegistryRemapper.mapBlockState760To761(id760);
+        int id762 = RegistryRemapper.mapBlockState761To762(id761);
+        int id763 = RegistryRemapper.mapBlockState762To763(id762);
+        if (id763 < 0 || id763 >= BLOCK_STATE_763_TO_765.length) {
+            return 1;
+        }
+        int mapped = BLOCK_STATE_763_TO_765[id763];
+        return mapped < 0 ? 1 : mapped;
+    }
+
+    /**
+     * 756 のブロック状態IDを 765 に正規化する。756→757 は恒等写像
+     * （20,342 件・同一順序。Stage A §11.1 実測）のため、757 の連鎖
+     * （{@link #mapBlockState757To765}）にそのまま繋ぐ。
+     * RegistryRemapper には追加しない。
+     */
+    static int mapBlockState756To765(int stateId) {
+        return mapBlockState757To765(RegistryRemapper.mapBlockState756To757(stateId));
+    }
+
+    /**
+     * 755 のブロック状態IDを 765 に正規化する。755→756 は恒等写像
+     * （20,342 件・同一順序。Stage A §11.1 実測）のため、756 の連鎖
+     * （{@link #mapBlockState756To765}）にそのまま繋ぐ。
+     * RegistryRemapper には追加しない。
+     */
+    static int mapBlockState755To765(int stateId) {
+        return mapBlockState756To765(RegistryRemapper.mapBlockState755To756(stateId));
+    }
+
+    /**
+     * 754 のブロック状態IDを 765 に正規化する。754→755 は RegistryTables754 の
+     * 表（Stage A §11.1 実測。17,112 件。オークの丸太 axis=y は 754 が 74、
+     * 755 が 77）のため、755 の連鎖（{@link #mapBlockState755To765}）に
+     * そのまま繋ぐ。RegistryRemapper には追加しない。
+     */
+    static int mapBlockState754To765(int stateId) {
+        return mapBlockState755To765(RegistryRemapper.mapBlockState754To755(stateId));
     }
 
     /** Java のブロック状態ID（そのままのプロトコル番号）-> Bedrock のランタイムID。 */
@@ -129,12 +198,99 @@ public final class BedrockChunkTranslator {
      * Java の Chunk Data ペイロードを Bedrock の LevelChunk ペイロードへ翻訳する。
      * Java 側のチャンクは必ず全列（full chunk）であることが前提。読めない場合は
      * IllegalArgumentException を投げる（呼び出し側で落とすか空気で代用する）。
+     *
+     * <p>756 の形式（Stage B §14.4 の実測。protocol.json＋実バニラ 1.17.1
+     * 生キャプチャ＋両 jar の javap）：
+     * {x i32, z i32, bitMap varint[i64], heightmaps 名前付き NBT,
+     * biomes varint[1024], chunkData buffer, blockEntities varint[NBT]}。
+     * セクションは 16 個（y 0〜15）で、chunkData には bitMap に立っている
+     * セクションだけが入る（無いセクションは空気として補完するが、バイオームは
+     * int[1024] の値をそのまま使う）。セクション内部は [blockCount i16]
+     * ＋ブロックのパレット付きコンテナだけで、バイオームコンテナは無い。
+     * バイオームは配列の [64s, 64s+64) がセクション s に対応する。
+     * BitStorage は non-straddling（BPE 5 の Data Array 長は 342。
+     * 実バニラ 1.17.1 の生キャプチャ cap756-chunk-21-17.bin で確認。
+     * straddling 式だと 320）。光は 756 の Chunk Data には無く、別パケットの
+     * Update Light で送られる。Bedrock 側は光をクライアントが計算するため、
+     * ここでは光を送らない（757 のチャンク内包の光も同じく読まずに捨てている）。
+     * ブロックエンティティは読まない（757 と同じく送らない）。
+     *
+     * <p>755 の形式は 756 と完全同一（Stage B §14.4 の実測。packet_map_chunk は
+     * protocol.json で完全一致し、実バニラ 1.17／1.17.1 の Chunk Data クラス
+     * qw はフィールド同一で javap -c の差分は難読化クラス名の付け替えのみ。
+     * レジストリ差分も 0 件）。そのため 755 は下の 756 分岐をそのまま使う。
+     * 1.17.1 の生キャプチャ cap756-chunk-21-17.bin は 755 形式のチャンク
+     * でもある（Stage B §14.4）。
+     *
+     * <p>754 の形式（Stage B §14.4 の実測。mc-1.16-protocol.json（pc/1.16.2）の
+     * packet_map_chunk＋実バニラ 1.16.5 の生キャプチャ
+     * cap754-chunk-x-15-z-7.bin（チャンク -15,-7、10,633 バイト、groundUp=true、
+     * bitMap 0x000f、biomes 1024 件全て 50＝deep_frozen_ocean）＋両 jar の javap）：
+     * {x i32, z i32, groundUp bool, bitMap varint, heightmaps 名前付き NBT,
+     * biomes varint[1024]（groundUp のときだけ）, chunkData buffer,
+     * blockEntities varint[NBT]}。16 セクション（y 0〜15）で、chunkData には
+     * bitMap に立っているセクションだけが入る（無いセクションは空気として補完するが、
+     * バイオームは int[1024] の値をそのまま使う。755／756 と同じ扱い）。
+     * groundUp=false のときバイオーム配列は無く、平原（1）で補う
+     * （ChunkTranslator.translateChunkData754To755 と同じ補完）。
+     * セクション内部は [blockCount i16]＋ブロックのパレット付きコンテナだけで、
+     * バイオームコンテナは無い。バイオームは配列の [64s, 64s+64) がセクション s
+     * に対応する。BitStorage は non-straddling（BPE 5 の Data Array 長は 342。
+     * 実バニラ 1.16.5 の生キャプチャで確認。straddling 式だと 320）。光は
+     * 754 の Chunk Data には無く、別パケットの Update Light で送られる。
+     * ブロックエンティティは読まない（757 と同じく送らない）。
      */
     public static TranslatedChunk translate(ChunkInput input) {
         PacketIO.Reader reader = new PacketIO.Reader(input.javaChunkPayload());
         int chunkX = reader.readInt();
         int chunkZ = reader.readInt();
-        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_763) {
+        long[] bitmask756 = null;
+        int[] biomes756 = null;
+        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_754) {
+            // 754 だけの頭部：groundUp＋bitMap（varint の 16 ビット）＋
+            // heightmaps（名前付き）＋groundUp のときだけバイオーム int[1024]。
+            boolean groundUp = reader.readBoolean();
+            int bitMap = reader.readVarInt();
+            reader.readNamedNbt(); // heightmaps（名前付き。ルート名は空文字）
+            if (groundUp) {
+                int biomeCount = reader.readVarInt();
+                if (biomeCount != 1024) {
+                    throw new IllegalArgumentException(
+                            "754 のバイオーム配列の件数が 1024 ではありません: " + biomeCount);
+                }
+                biomes756 = new int[1024];
+                for (int i = 0; i < 1024; i++) {
+                    biomes756[i] = reader.readVarInt();
+                }
+            } else {
+                // groundUp=false のときバイオーム配列は無い。平原（1）で補う。
+                biomes756 = new int[1024];
+                Arrays.fill(biomes756, 1);
+            }
+            bitmask756 = new long[]{bitMap & 0xFFFFL};
+        } else if (input.serverProtocol() == RegistryRemapper.PROTOCOL_756
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_755) {
+            // 755／756 だけの頭部：bitMap＋heightmaps（名前付き）＋バイオーム int[1024]。
+            int maskCount = reader.readVarInt();
+            if (maskCount < 0 || maskCount > 4) {
+                throw new IllegalArgumentException("755／756 の bitMap の long 数が不正です: "
+                        + maskCount);
+            }
+            bitmask756 = new long[maskCount];
+            for (int i = 0; i < maskCount; i++) {
+                bitmask756[i] = reader.readLong();
+            }
+            reader.readNamedNbt(); // heightmaps（名前付き。ルート名は空文字）
+            int biomeCount = reader.readVarInt();
+            if (biomeCount != 1024) {
+                throw new IllegalArgumentException(
+                        "755／756 のバイオーム配列の件数が 1024 ではありません: " + biomeCount);
+            }
+            biomes756 = new int[1024];
+            for (int i = 0; i < 1024; i++) {
+                biomes756[i] = reader.readVarInt();
+            }
+        } else if (input.serverProtocol() == RegistryRemapper.PROTOCOL_763) {
             reader.readNamedNbt();
         } else if (input.serverProtocol() == RegistryRemapper.PROTOCOL_770
                 || input.serverProtocol() == RegistryRemapper.PROTOCOL_771
@@ -160,6 +316,9 @@ public final class BedrockChunkTranslator {
                 reader.readBytes(dataLength * 8);
             }
         } else {
+            // 757／759／764／765／766／767／768／769 の heightmap は NBT。
+            // 757 は実バニラ 1.18 の ClientboundLevelChunkPacketData.write の
+            // バイトコードで確認（2026-11-15：heightmaps を NBT で書く）。
             reader.readAnonymousNbt();
         }
         int dataLength = reader.readVarInt();
@@ -173,12 +332,44 @@ public final class BedrockChunkTranslator {
         List<int[]> blockSections = new ArrayList<>(sectionCount);
         List<int[]> biomeSections = new ArrayList<>(sectionCount);
         PacketIO.Reader sections = new PacketIO.Reader(sectionBytes);
-        for (int i = 0; i < sectionCount && sections.remaining() > 0; i++) {
-            int blockCount = sections.readShort(); // blockCount（使わない）
-            blockSections.add(readPalettedContainer(sections, true,
-                    input.serverProtocol()));
-            biomeSections.add(readPalettedContainer(sections, false,
-                    input.serverProtocol()));
+        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_754
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_756
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_755) {
+            // 754／755／756：16 セクション（y 0〜15）。chunkData には bitMap に立っている
+            // セクションだけが入る。無いセクションはブロックだけ空気で補完し、
+            // バイオームは int[1024] の値をそのまま使う（Stage B §14.4 の
+            // ChunkTranslator.translateChunkData756To757 と同じ扱い）。
+            // セクション内部は [blockCount i16]＋ブロックコンテナだけで、
+            // バイオームコンテナは無い。バイオームは配列の [64s, 64s+64)。
+            int sectionsToRead = Math.min(sectionCount, 16);
+            for (int s = 0; s < sectionsToRead; s++) {
+                if (bitmaskHas(bitmask756, s) && sections.remaining() > 0) {
+                    sections.readShort(); // blockCount（使わない）
+                    blockSections.add(readPalettedContainer(sections, true,
+                            input.serverProtocol()));
+                } else {
+                    blockSections.add(airBlocks());
+                }
+                int[] sectionBiomes = new int[SECTION_BIOMES];
+                for (int i = 0; i < SECTION_BIOMES; i++) {
+                    sectionBiomes[i] = biomes756[s * 64 + i];
+                }
+                biomeSections.add(sectionBiomes);
+            }
+        } else {
+            for (int i = 0; i < sectionCount && sections.remaining() > 0; i++) {
+                // 757 はセクション先頭の short が 1 個（blockCount）で正しい。
+                // 実バニラ 1.18 の LevelChunkSection.write のバイトコードで確認
+                // （2026-11-15：nonEmptyBlockCount の次に 2 つのコンテナが続く。
+                // fluidCount は 1.18 には無い）。770〜775 もここでは 1 short
+                // しか読まないが、実バニラ 26.1 では fluidCount があるため疑わしい。
+                // 770〜775 はここでは触らない（判断待ち）。
+                int blockCount = sections.readShort(); // blockCount（使わない）
+                blockSections.add(readPalettedContainer(sections, true,
+                        input.serverProtocol()));
+                biomeSections.add(readPalettedContainer(sections, false,
+                        input.serverProtocol()));
+            }
         }
         while (blockSections.size() < sectionCount) {
             blockSections.add(airBlocks());
@@ -202,9 +393,32 @@ public final class BedrockChunkTranslator {
     }
 
     private static int[] airBlocks() {
+        // Java の空気（状態 0）で埋める。writeSubChunk 側が 765 化＋ランタイム ID 化
+        // するため、ここで AIR_RUNTIME_ID（11881）を入れると二重変換になる
+        // （11881 を Java 状態として読むと 4229 になり、waterlogged 扱いで 2 層になる）。
         int[] blocks = new int[SECTION_BLOCKS];
-        Arrays.fill(blocks, BedrockBlockRuntimeIds.AIR_RUNTIME_ID);
+        Arrays.fill(blocks, 0);
         return blocks;
+    }
+
+    /** 755／756 のビットマスク（long 列）のビットが立っているか。754 も bitMap を long[1] に直して同じ判定を使う。 */
+    private static boolean bitmaskHas(long[] bitmask, int section) {
+        if (bitmask == null) {
+            return false;
+        }
+        int index = section / 64;
+        if (index < 0 || index >= bitmask.length) {
+            return false;
+        }
+        return (bitmask[index] & (1L << (section % 64))) != 0;
+    }
+
+    /** BitStorage が long の境界をまたがない詰め（non-straddling）か。754・755・756・757 が該当。 */
+    private static boolean isNonStraddling(int serverProtocol) {
+        return serverProtocol == RegistryRemapper.PROTOCOL_754
+                || serverProtocol == RegistryRemapper.PROTOCOL_755
+                || serverProtocol == RegistryRemapper.PROTOCOL_756
+                || serverProtocol == RegistryRemapper.PROTOCOL_757;
     }
 
     private static int[] plainsBiomes() {
@@ -262,13 +476,30 @@ public final class BedrockChunkTranslator {
         } else {
             palette = null;
         }
-        // バニラの BitStorage はエントリを long の境界をまたいで連続して詰める
-        // ため、long 数は (entryCount * bitsPerEntry + 63) / 64 である。
-        // 旧式の (entryCount + perLong - 1) / perLong（perLong = 64 / bits）は
-        // bits が 64 を割り切らないとき（3・5・6・7・9…）に多めに数えてしまい、
-        // 後続のコンテナがずれて読めなくなる（2026-11-14、26.1のマトリクスで発覚。
-        // バイオーム 3 ビットで 4 long 読んで 1 long 余計に進んでいた）。
-        int expected = (entryCount * bitsPerEntry + 63) / 64;
+        // 【754・755・756・757 のみ例外】実バニラ 1.16.5／1.17／1.17.1／1.18 の SimpleBitStorage の
+        // バイトコードで確認したところ、754・755・756・757 の BitStorage は long の境界を
+        // またがない（1 long あたり floor(64 / bits) 個。long 数は
+        // (entryCount + valuesPerLong - 1) / valuesPerLong）。
+        // Data Array には長さの varint 接頭辞がある（FriendlyByteBuf.writeLongArray
+        // が長さを varint で書く。PalettedContainer$Data.write のバイトコードで確認）。
+        // 756 は実バニラ 1.17.1 の生キャプチャでも裏付ける（2026-11-16：
+        // cap756-chunk-21-17.bin で BPE 5 の dataLen は 342。straddling 式だと 320）。
+        // 755 は 756 と Chunk Data が完全同一のため同じ詰め（Stage B §14.4）。
+        // 754 も実バニラ 1.16.5 の生キャプチャで裏付ける（2026-11-16：
+        // cap754-chunk-x-15-z-7.bin で BPE 5 の dataLen は 342。Stage B §14.4）。
+        // （2026-11-15、server-1.18.jar の javap で確認。生キャプチャでも裏付ける。）
+        int expected;
+        if (isNonStraddling(serverProtocol)) {
+            int valuesPerLong = 64 / bitsPerEntry;
+            expected = (entryCount + valuesPerLong - 1) / valuesPerLong;
+        } else {
+            // 770〜775 以外の既存の前提：エントリを long の境界をまたいで連続して
+            // 詰めるため、long 数は (entryCount * bitsPerEntry + 63) / 64。
+            // （2026-11-14 のコメントの通り。ただし実バニラ 1.18／26.1 の
+            // SimpleBitStorage はまたがないため、この前提は 757 とは別に
+            // 770〜775 についても疑わしい。770〜775 はここでは触らない。）
+            expected = (entryCount * bitsPerEntry + 63) / 64;
+        }
         int dataLength;
         if (serverProtocol == RegistryRemapper.PROTOCOL_770
                 || serverProtocol == RegistryRemapper.PROTOCOL_771
@@ -294,6 +525,21 @@ public final class BedrockChunkTranslator {
         }
         int[] values = new int[entryCount];
         long mask = (1L << bitsPerEntry) - 1;
+        if (isNonStraddling(serverProtocol)) {
+            // 754・755・756・757 の BitStorage は long の境界をまたがない（SimpleBitStorage.get：
+            // cellIndex = index / valuesPerLong、bitIndex = (index % valuesPerLong) * bits）。
+            // 実バニラ 1.16.5／1.17.1／1.18 のバイトコードで確認（2026-11-15／2026-11-16）。
+            // 755 は 756 と Chunk Data が完全同一のため同じ詰め（Stage B §14.4）。
+            // 754 は実バニラ 1.16.5 の生キャプチャで確認（Stage B §14.4）。
+            int valuesPerLong = 64 / bitsPerEntry;
+            for (int index = 0; index < entryCount; index++) {
+                int cellIndex = index / valuesPerLong;
+                int bitIndex = (index % valuesPerLong) * bitsPerEntry;
+                int entry = (int) ((longs[cellIndex] >>> bitIndex) & mask);
+                values[index] = indirect ? palette[entry] : entry;
+            }
+            return values;
+        }
         // エントリは long の境界をまたぐことがある（bits が 64 を割り切らないとき）。
         // BitStorage.get と同じく、またぐ分は次の long の下位ビットから取る。
         // 旧式の「1 long あたり perLong 個を先頭から読む」は、またぐエントリの

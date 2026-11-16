@@ -221,6 +221,102 @@ class DatapackGeneratorTest {
     }
 
     @Test
+    void packFormatFor1165Is6() throws Exception {
+        // 1.16.5 server jar version.json: pack_version 6 (754ノート§7.3実測)。
+        assertEquals(6, DatapackGenerator.PACK_FORMAT_1_16_5, "1.16.5 datapack format");
+        assertEquals(6, DatapackGenerator.packFormatFor("1.16.5"));
+        // 1.16.4も同じプロトコル754・同じpack 6（1.16.4 jar version.json実測。親が統合時に追加）。
+        assertEquals(6, DatapackGenerator.packFormatFor("1.16.4"));
+        Path vanillaDir = tempDir.resolve("vanilla-1-16-5");
+        Path file = new DatapackGenerator()
+                .build(vanillaDir, DatapackGenerator.packFormatFor("1.16.5"));
+        Map<String, String> entries = readZip(file);
+        assertEquals("{\"pack\":{\"pack_format\":6,\"description\":\"DetergentMC\"}}",
+                entries.get("pack.mcmeta"));
+        // 1.16.5は複数形 functions / tags/functions（単数形は1.21から）。
+        assertEquals(DatapackGenerator.TICK_FUNCTION,
+                entries.get("data/detergentmc/functions/tick.mcfunction"));
+        assertNull(entries.get("data/detergentmc/function/tick.mcfunction"),
+                "1.16.5のパックに単数形の関数フォルダが無いこと");
+        assertEquals("{\"values\":[\"detergentmc:tick\"]}",
+                entries.get("data/minecraft/tags/functions/tick.json"));
+        assertNull(entries.get("data/minecraft/tags/function/tick.json"),
+                "1.16.5のパックに単数形のtagsフォルダが無いこと");
+    }
+
+    @Test
+    void packFormatFor117Is7() throws Exception {
+        // 1.17 server jar version.json: pack data 7 (755ノート§7.3実測)。
+        assertEquals(7, DatapackGenerator.PACK_FORMAT_1_17, "1.17 datapack format");
+        assertEquals(7, DatapackGenerator.packFormatFor("1.17"));
+        assertEquals(7, DatapackGenerator.packFormatFor("1.17.1"));
+        Path vanillaDir = tempDir.resolve("vanilla-1-17");
+        Path file = new DatapackGenerator()
+                .build(vanillaDir, DatapackGenerator.packFormatFor("1.17"));
+        Map<String, String> entries = readZip(file);
+        assertEquals("{\"pack\":{\"pack_format\":7,\"description\":\"DetergentMC\"}}",
+                entries.get("pack.mcmeta"));
+        // 1.17は複数形 functions / tags/functions（単数形は1.21から）。
+        assertEquals(DatapackGenerator.TICK_FUNCTION,
+                entries.get("data/detergentmc/functions/tick.mcfunction"));
+        assertNull(entries.get("data/detergentmc/function/tick.mcfunction"),
+                "1.17のパックに単数形の関数フォルダが無いこと");
+        assertEquals("{\"values\":[\"detergentmc:tick\"]}",
+                entries.get("data/minecraft/tags/functions/tick.json"));
+        assertNull(entries.get("data/minecraft/tags/function/tick.json"),
+                "1.17のパックに単数形のtagsフォルダが無いこと");
+    }
+
+    @Test
+    void packFormatFor1171Is7() throws Exception {
+        // 1.17.1 server jar version.json: pack data 7 (756ノート§7.3実測)。
+        assertEquals(7, DatapackGenerator.PACK_FORMAT_1_17_1, "1.17.1 datapack format");
+        assertEquals(7, DatapackGenerator.packFormatFor("1.17.1"));
+        assertEquals(8, DatapackGenerator.packFormatFor("1.18"));
+        Path vanillaDir = tempDir.resolve("vanilla-1-17-1");
+        Path file = new DatapackGenerator()
+                .build(vanillaDir, DatapackGenerator.packFormatFor("1.17.1"));
+        Map<String, String> entries = readZip(file);
+        assertEquals("{\"pack\":{\"pack_format\":7,\"description\":\"DetergentMC\"}}",
+                entries.get("pack.mcmeta"));
+        // 1.17.1は複数形 functions / tags/functions（単数形は1.21から）。
+        assertEquals(DatapackGenerator.TICK_FUNCTION,
+                entries.get("data/detergentmc/functions/tick.mcfunction"));
+        assertNull(entries.get("data/detergentmc/function/tick.mcfunction"),
+                "1.17.1のパックに単数形の関数フォルダが無いこと");
+        assertEquals("{\"values\":[\"detergentmc:tick\"]}",
+                entries.get("data/minecraft/tags/functions/tick.json"));
+        assertNull(entries.get("data/minecraft/tags/function/tick.json"),
+                "1.17.1のパックに単数形のtagsフォルダが無いこと");
+    }
+
+    @Test
+    void packFormatFor118Is8() throws Exception {
+        // 1.18 server jar version.json: pack data 8 (757ノート§7.3実測)。
+        // 1.18 / 1.18.1 share protocol 757 and the format,
+        // the same way 1.21 and 1.21.1 share 48.
+        assertEquals(8, DatapackGenerator.PACK_FORMAT_1_18, "1.18 datapack format");
+        assertEquals(8, DatapackGenerator.packFormatFor("1.18"));
+        assertEquals(8, DatapackGenerator.packFormatFor("1.18.1"));
+        assertEquals(26, DatapackGenerator.packFormatFor("1.20.4"));
+        Path vanillaDir = tempDir.resolve("vanilla-1-18");
+        Path file = new DatapackGenerator()
+                .build(vanillaDir, DatapackGenerator.packFormatFor("1.18"));
+        Map<String, String> entries = readZip(file);
+        assertEquals("{\"pack\":{\"pack_format\":8,\"description\":\"DetergentMC\"}}",
+                entries.get("pack.mcmeta"));
+        // 1.18は複数形 functions / tags/functions（単数形は1.21から）。
+        assertEquals(DatapackGenerator.TICK_FUNCTION,
+                entries.get("data/detergentmc/functions/tick.mcfunction"));
+        assertNull(entries.get("data/detergentmc/function/tick.mcfunction"),
+                "1.18のパックに単数形の関数フォルダが無いこと");
+        assertEquals("{\"values\":[\"detergentmc:tick\"]}",
+                entries.get("data/minecraft/tags/functions/tick.json"));
+        assertNull(entries.get("data/minecraft/tags/function/tick.json"),
+                "1.18のパックに単数形のtagsフォルダが無いこと");
+    }
+
+    @Test
     void buildRejectsNullVanillaDir() {
         assertThrows(IllegalArgumentException.class,
                 () -> new DatapackGenerator().build(null));
