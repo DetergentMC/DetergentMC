@@ -40,7 +40,7 @@ class ResourcePackServer775Test {
         // 763〜775だけを渡す BuiltPack コンストラクタは無いため、
         // フル Path コンストラクタを直接使う。
         ResourcePackServer server = new ResourcePackServer(
-                built.file(), built.sha1(),
+                built.file(), built.sha1(), null, null, null, null, null, null, null, null, null, null, null, null, null, null,
                 built763.file(), built763.sha1(), built764.file(), built764.sha1(),
                 built766.file(), built766.sha1(), built767.file(), built767.sha1(),
                 built768.file(), built768.sha1(), built769.file(), built769.sha1(),

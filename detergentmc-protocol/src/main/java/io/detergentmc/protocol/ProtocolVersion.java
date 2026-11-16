@@ -20,10 +20,20 @@ public final class ProtocolVersion {
     public static final int V1_8 = 47;
     /** Minecraft 1.12 - 1.12.2 */
     public static final int V1_12_2 = 340;
+    /** Minecraft 1.16.1 */
+    public static final int V1_16_1 = 736;
+    /** Minecraft 1.16.2 */
+    public static final int V1_16_2 = 751;
+    /** Minecraft 1.16.3 */
+    public static final int V1_16_3 = 753;
     /** Minecraft 1.16.5 */
     public static final int V1_16_5 = 754;
-    /** Minecraft 1.17 - 1.17.1 */
+    /** Minecraft 1.17 */
     public static final int V1_17 = 755;
+    /** Minecraft 1.17.1 */
+    public static final int V1_17_1 = 756;
+    /** Minecraft 1.18 - 1.18.1 */
+    public static final int V1_18 = 757;
     /** Minecraft 1.19 */
     public static final int V1_19 = 759;
     /** Minecraft 1.19.1 - 1.19.2 */
@@ -87,6 +97,15 @@ public final class ProtocolVersion {
      * assuming 765:
      *
      * <ul>
+     *   <li>{@code "1.16.1"} → {@link #V1_16_1} (736)</li>
+     *   <li>{@code "1.16.2"} → {@link #V1_16_2} (751)</li>
+     *   <li>{@code "1.16.3"} → {@link #V1_16_3} (753)</li>
+     *   <li>{@code "1.16.4"} or {@code "1.16.5"} → {@link #V1_16_5} (754);
+     *       1.16.4 and 1.16.5 share protocol 754</li>
+     *   <li>{@code "1.17"} → {@link #V1_17} (755)</li>
+     *   <li>{@code "1.17.1"} → {@link #V1_17_1} (756)</li>
+     *   <li>{@code "1.18"} or {@code "1.18.1"} → {@link #V1_18} (757);
+     *       1.18 and 1.18.1 share protocol 757</li>
      *   <li>{@code "1.19"} → {@link #V1_19} (759)</li>
      *   <li>{@code "1.19.1"} or {@code "1.19.2"} → {@link #V1_19_1} (760);
      *       1.19.1 and 1.19.2 share protocol 760</li>
@@ -126,9 +145,30 @@ public final class ProtocolVersion {
      * @param minecraftVersion the {@code minecraft-version} value from the
      *                         config, e.g. {@code "1.20.2"} or
      *                         {@code "1.20.4"}
-     * @return the internal server protocol number (759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774 or 775)
+     * @return the internal server protocol number (736, 751, 753, 754, 755, 756, 757, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774 or 775)
      */
     public static int serverProtocolFor(String minecraftVersion) {
+        if ("1.16.1".equals(minecraftVersion)) {
+            return V1_16_1;
+        }
+        if ("1.16.2".equals(minecraftVersion)) {
+            return V1_16_2;
+        }
+        if ("1.16.3".equals(minecraftVersion)) {
+            return V1_16_3;
+        }
+        if ("1.16.4".equals(minecraftVersion) || "1.16.5".equals(minecraftVersion)) {
+            return V1_16_5;
+        }
+        if ("1.17".equals(minecraftVersion)) {
+            return V1_17;
+        }
+        if ("1.17.1".equals(minecraftVersion)) {
+            return V1_17_1;
+        }
+        if ("1.18".equals(minecraftVersion) || "1.18.1".equals(minecraftVersion)) {
+            return V1_18;
+        }
         if ("1.19".equals(minecraftVersion)) {
             return V1_19;
         }
@@ -182,7 +222,7 @@ public final class ProtocolVersion {
         }
         LOG.warning(() -> "Unknown minecraft-version \"" + minecraftVersion
                 + "\"; falling back to the 1.20.4 server protocol (765). "
-                + "Supported server versions: 1.19, 1.19.1, 1.19.2, 1.19.3, 1.19.4, 1.20, 1.20.1, 1.20.2, 1.20.3, 1.20.4, "
+                + "Supported server versions: 1.16.1, 1.16.2, 1.16.3, 1.16.4, 1.16.5, 1.17, 1.17.1, 1.18, 1.18.1, 1.19, 1.19.1, 1.19.2, 1.19.3, 1.19.4, 1.20, 1.20.1, 1.20.2, 1.20.3, 1.20.4, "
                 + "1.20.5, 1.20.6, 1.21, 1.21.1, 1.21.2, 1.21.3, 1.21.4, 1.21.5, 1.21.6, "
                 + "1.21.7, 1.21.8, 1.21.9, 1.21.10, 1.21.11, 26.1, 26.1.1, 26.1.2.");
         return V1_20_4;
