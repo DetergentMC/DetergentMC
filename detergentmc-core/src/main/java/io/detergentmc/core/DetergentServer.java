@@ -71,6 +71,16 @@ public final class DetergentServer {
     private BedrockServer bedrockServer;
     private ResourcePackServer resourcePackServer;
     private ResourcePack resourcePack;
+    /** 753クライアントに送るリソースパック（pack_format 6）。無ければ null。 */
+    private ResourcePack resourcePack753;
+    /** 754クライアントに送るリソースパック（pack_format 6）。無ければ null。1.16.4と1.16.5で共用。 */
+    private ResourcePack resourcePack754;
+    /** 755クライアントに送るリソースパック（pack_format 7）。無ければ null。 */
+    private ResourcePack resourcePack755;
+    /** 756クライアントに送るリソースパック（pack_format 7）。無ければ null。 */
+    private ResourcePack resourcePack756;
+    /** 757クライアントに送るリソースパック（pack_format 8）。無ければ null。1.18と1.18.1で共用。 */
+    private ResourcePack resourcePack757;
     /** 759クライアントに送るリソースパック（pack_format 9）。無ければ null。 */
     private ResourcePack resourcePack759;
     /** 760クライアントに送るリソースパック（pack_format 9）。無ければ null。 */
@@ -296,7 +306,12 @@ public final class DetergentServer {
 
     /**
      * The resource pack the internal vanilla server offers in its own
-     * {@code server.properties}: the 763 pack (pack_format 15) when the
+     * {@code server.properties}: the 753 pack (pack_format 6) when the
+     * internal server is 1.16.3, the 754 pack (pack_format 6) when the
+     * internal server is 1.16.4 / 1.16.5, the 755 pack (pack_format 7) when the
+     * internal server is 1.17, the 756 pack (pack_format 7) when the
+     * internal server is 1.17.1, the 757 pack (pack_format 8) when the
+     * internal server is 1.18 / 1.18.1, the 763 pack (pack_format 15) when the
      * internal server is 1.20/1.20.1, the 764 pack (pack_format 18) when
      * the internal server is 1.20.2, the 766 pack (pack_format 32) when it
      * is 1.20.5 or 1.20.6, the 767 pack (pack_format 34) when it is
@@ -312,11 +327,26 @@ public final class DetergentServer {
      * Native clients reach the vanilla pack untouched (relay mode), so it
      * must match the internal version; translated clients get the proxy's
      * per-client substitution instead. Falls back to the 765 pack when no
-     * 763 / 764 / 766 / 767 / 768 / 769 / 770 / 771 / 772 / 773 / 774 / 775 pack was prepared.
+     * 753 / 754 / 755 / 756 / 757 / 763 / 764 / 766 / 767 / 768 / 769 / 770 / 771 / 772 / 773 / 774 / 775 pack was prepared.
      *
      * <p>Package-private for tests.
      */
     ResourcePack hostResourcePack() {
+        if (serverProtocol == ProtocolVersion.V1_16_3 && resourcePack753 != null) {
+            return resourcePack753;
+        }
+        if (serverProtocol == ProtocolVersion.V1_16_5 && resourcePack754 != null) {
+            return resourcePack754;
+        }
+        if (serverProtocol == ProtocolVersion.V1_17 && resourcePack755 != null) {
+            return resourcePack755;
+        }
+        if (serverProtocol == ProtocolVersion.V1_17_1 && resourcePack756 != null) {
+            return resourcePack756;
+        }
+        if (serverProtocol == ProtocolVersion.V1_18 && resourcePack757 != null) {
+            return resourcePack757;
+        }
         if (serverProtocol == ProtocolVersion.V1_19 && resourcePack759 != null) {
             return resourcePack759;
         }
@@ -370,7 +400,7 @@ public final class DetergentServer {
 
     /**
      * Builds the client proxy for this server: the internal protocol
-     * (763 for 1.20/1.20.1, 764 for 1.20.2, 765 for 1.20.3/1.20.4,
+     * (756 for 1.17.1, 757 for 1.18 / 1.18.1, 763 for 1.20/1.20.1, 764 for 1.20.2, 765 for 1.20.3/1.20.4,
      * 766 for 1.20.5/1.20.6, 767 for 1.21/1.21.1, 768 for 1.21.2/1.21.3,
      *     769 for 1.21.4, 770 for 1.21.5, 771 for 1.21.6, 772 for 1.21.7／1.21.8,
      *     773 for 1.21.9／1.21.10, 774 for 1.21.11, 775 for 26.1 / 26.1.1 / 26.1.2)
@@ -399,7 +429,17 @@ public final class DetergentServer {
      * unless the internal server is 1.21.11, for the same reason
      * (native 774 clients relay the vanilla pack untouched). The 775 pack is passed
      * unless the internal server is 26.1, for the same reason
-     * (native 775 clients relay the vanilla pack untouched).
+     * (native 775 clients relay the vanilla pack untouched). The 757 pack is passed
+     * unless the internal server is 1.18 / 1.18.1, for the same reason
+     * (native 757 clients relay the vanilla pack untouched). The 756 pack is passed
+     * unless the internal server is 1.17.1, for the same reason
+     * (native 756 clients relay the vanilla pack untouched). The 755 pack is passed
+     * unless the internal server is 1.17, for the same reason
+     * (native 755 clients relay the vanilla pack untouched). The 754 pack is passed
+     * unless the internal server is 1.16.4 / 1.16.5, for the same reason
+     * (native 754 clients relay the vanilla pack untouched). The 753 pack is passed
+     * unless the internal server is 1.16.3, for the same reason
+     * (native 753 clients relay the vanilla pack untouched).
      *
      * <p>Package-private for tests (the wiring tests call this directly
      * without starting a vanilla server).
@@ -438,11 +478,21 @@ public final class DetergentServer {
                 serverProtocol == ProtocolVersion.V1_21_11 ? null : resourcePack774;
         ResourcePack packFor775Clients =
                 serverProtocol == ProtocolVersion.V26_1 ? null : resourcePack775;
+        ResourcePack packFor757Clients =
+                serverProtocol == ProtocolVersion.V1_18 ? null : resourcePack757;
+        ResourcePack packFor756Clients =
+                serverProtocol == ProtocolVersion.V1_17_1 ? null : resourcePack756;
+        ResourcePack packFor755Clients =
+                serverProtocol == ProtocolVersion.V1_17 ? null : resourcePack755;
+        ResourcePack packFor754Clients =
+                serverProtocol == ProtocolVersion.V1_16_5 ? null : resourcePack754;
+        ResourcePack packFor753Clients =
+                serverProtocol == ProtocolVersion.V1_16_3 ? null : resourcePack753;
         return new ClientProxy(port, "127.0.0.1", internalPort, onlineMode,
                 packFor759Clients, packFor760Clients, packFor761Clients, packFor762Clients, resourcePack763, resourcePack764, authConfig,
                 packFor765Clients, packFor766Clients, packFor767Clients,
                 packFor768Clients, packFor769Clients, packFor770Clients, packFor771Clients,
-                packFor772Clients, packFor773Clients, packFor774Clients, packFor775Clients, serverProtocol);
+                packFor772Clients, packFor773Clients, packFor774Clients, packFor775Clients, packFor757Clients, packFor756Clients, packFor755Clients, packFor754Clients, packFor753Clients, serverProtocol);
     }
 
     /**
@@ -476,7 +526,10 @@ public final class DetergentServer {
      * <p>A non-HTTPS URL (including {@code http://}) is refused with a
      * warning and falls back to loopback delivery.
      *
-     * <p>Both modes also prepare a 1.19.4 variant of the pack
+     * <p>Both modes also prepare a 1.17 variant of the pack
+     * ({@code pack_format} 7), a 1.17.1 variant of the pack
+     * ({@code pack_format} 7), a 1.18 / 1.18.1 variant of the pack
+     * ({@code pack_format} 8, one pack for both versions), a 1.19.4 variant of the pack
      * ({@code pack_format} 13), a 1.20.1 variant ({@code pack_format} 15),
      * a 1.20.2 variant ({@code pack_format}
      * 18), a 1.20.5 / 1.20.6 variant ({@code pack_format} 32, one
@@ -499,6 +552,7 @@ public final class DetergentServer {
      * {@link #resourcePack770()}, {@link #resourcePack771()},
      * {@link #resourcePack772()} and {@link #resourcePack773()});
      * in external mode they come from
+     * {@code resource-pack.url-757} / {@code resource-pack.sha1-757},
      * {@code resource-pack.url-761} / {@code resource-pack.sha1-761},
      * {@code resource-pack.url-762} / {@code resource-pack.sha1-762},
      * {@code resource-pack.url-763} / {@code resource-pack.sha1-763},
@@ -511,9 +565,14 @@ public final class DetergentServer {
      * {@code resource-pack.url-771} / {@code resource-pack.sha1-771},
      * {@code resource-pack.url-772} / {@code resource-pack.sha1-772},
      * {@code resource-pack.url-773} / {@code resource-pack.sha1-773},
-     * {@code resource-pack.url-774} / {@code resource-pack.sha1-774} and
-     * {@code resource-pack.url-775} / {@code resource-pack.sha1-775}
-     * when both are valid. The proxy offers the 1.19.3 pack to 761
+     * {@code resource-pack.url-774} / {@code resource-pack.sha1-774},
+     * {@code resource-pack.url-775} / {@code resource-pack.sha1-775},
+     * {@code resource-pack.url-756} / {@code resource-pack.sha1-756} and
+     * {@code resource-pack.url-755} / {@code resource-pack.sha1-755}
+     * when both are valid. The proxy offers the 1.17 pack to 755
+     * clients, the 1.17.1 pack to 756
+     * clients, the 1.18 / 1.18.1 pack to 757
+     * clients, the 1.19.3 pack to 761
      * clients, the 1.19.4 pack to 762
      * clients, the 1.20.1 pack to 763
      * clients, the 1.20.2 pack to 764 clients, the 1.20.5 / 1.20.6 pack
@@ -524,7 +583,10 @@ public final class DetergentServer {
      * pack to 773 clients, the 1.21.11 pack to 774 clients, the 26.1 pack
      * to 775 clients, and the 1.20.4 pack to 765
      * clients. The pack written into {@code server.properties} is chosen by
-     * {@link #hostResourcePack()}: the 761 pack when the vanilla server
+     * {@link #hostResourcePack()}: the 755 pack when the vanilla server
+     * itself is 1.17, the 756 pack when the vanilla server
+     * itself is 1.17.1, the 757 pack when the vanilla server
+     * itself is 1.18 / 1.18.1, the 761 pack when the vanilla server
      * itself is 1.19.3, the 762 pack when the vanilla server
      * itself is 1.19.4, the 764 pack when the vanilla server
      * itself is 1.20.2, the 766 pack when it is 1.20.5 or 1.20.6, the
@@ -586,6 +648,16 @@ public final class DetergentServer {
                         config.getString("resource-pack.sha1-760", ""),
                         config.getString("resource-pack.url-759", ""),
                         config.getString("resource-pack.sha1-759", ""),
+                        config.getString("resource-pack.url-757", ""),
+                        config.getString("resource-pack.sha1-757", ""),
+                        config.getString("resource-pack.url-756", ""),
+                        config.getString("resource-pack.sha1-756", ""),
+                        config.getString("resource-pack.url-755", ""),
+                        config.getString("resource-pack.sha1-755", ""),
+                        config.getString("resource-pack.url-754", ""),
+                        config.getString("resource-pack.sha1-754", ""),
+                        config.getString("resource-pack.url-753", ""),
+                        config.getString("resource-pack.sha1-753", ""),
                         required, promptKey);
         if (decision.problem() != null) {
             LOG.warning(() -> translator.translate(
@@ -601,6 +673,11 @@ public final class DetergentServer {
                                 "resource-pack.required-failed", decision.problem()));
                     }
                     resourcePack = null;
+                    resourcePack753 = null;
+                    resourcePack754 = null;
+                    resourcePack755 = null;
+                    resourcePack756 = null;
+                    resourcePack757 = null;
                     resourcePack759 = null;
                     resourcePack760 = null;
                     resourcePack761 = null;
@@ -622,6 +699,31 @@ public final class DetergentServer {
                 LOG.info(() -> translator.translate(
                         "resource-pack.external-enabled", decision.pack().url()));
                 resourcePack = decision.pack();
+                resourcePack753 = decision.pack753();
+                if (resourcePack753 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack753.url()));
+                }
+                resourcePack754 = decision.pack754();
+                if (resourcePack754 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack754.url()));
+                }
+                resourcePack755 = decision.pack755();
+                if (resourcePack755 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack755.url()));
+                }
+                resourcePack756 = decision.pack756();
+                if (resourcePack756 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack756.url()));
+                }
+                resourcePack757 = decision.pack757();
+                if (resourcePack757 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack757.url()));
+                }
                 resourcePack759 = decision.pack759();
                 if (resourcePack759 != null) {
                     LOG.info(() -> translator.translate(
@@ -710,7 +812,8 @@ public final class DetergentServer {
         }
         int port = config.getInt("resource-pack.port", 25567);
         try {
-            // 1.20.4用（pack_format 22）と1.19用（pack_format 9）、
+            // 1.16.3用（pack_format 6）と1.16.4／1.16.5用（pack_format 6、1パックで両バージョン共用）と1.20.4用（pack_format 22）と1.17用（pack_format 7）、1.17.1用（pack_format 7）、1.18／1.18.1用（pack_format 8、1パックで両バージョン共用）、
+            // 1.19用（pack_format 9）、
             // 1.19.1／1.19.2用（pack_format 9）、
             // 1.19.3用（pack_format 12）、1.19.4用（pack_format 13）、
             // 1.20.1用（pack_format 15）、1.20.2用（pack_format 18）、
@@ -721,18 +824,28 @@ public final class DetergentServer {
             // 1.21.6用（pack_format 63）、1.21.7／1.21.8用（pack_format 64）、
             // 1.21.9／1.21.10用（pack_format 69）、1.21.11用（pack_format 75）、
             // 26.1用（pack_format 84、26.1／26.1.1／26.1.2で共用）の
-            // 17つを生成し、同じHTTPサーバー（同じ25567番ポート）で配信する。
-            // 765クライアントには前者、759クライアントには2番目、
-            // 760クライアントには3番目、
-            // 761クライアントには4番目、762クライアントには5番目、
-            // 763クライアントには6番目、764クライアントには7番目、
-            // 766クライアントには8番目、767クライアントには9番目、
-            // 768クライアントには10番目、769クライアントには11番目、
-            // 770クライアントには12番目、771クライアントには13番目、
-            // 772クライアントには14番目、773クライアントには15番目、
-            // 774クライアントには16番目、775クライアントには17番目をプロキシが出し分ける。
+            // 22つを生成し、同じHTTPサーバー（同じ25567番ポート）で配信する。
+            // 765クライアントには前者、753クライアントには1番目、754クライアントには2番目、755クライアントには3番目、756クライアントには4番目、757クライアントには5番目、759クライアントには6番目、
+            // 760クライアントには7番目、
+            // 761クライアントには8番目、762クライアントには9番目、
+            // 763クライアントには10番目、764クライアントには11番目、
+            // 766クライアントには12番目、767クライアントには13番目、
+            // 768クライアントには14番目、769クライアントには15番目、
+            // 770クライアントには16番目、771クライアントには17番目、
+            // 772クライアントには18番目、773クライアントには19番目、
+            // 774クライアントには20番目、775クライアントには21番目をプロキシが出し分ける。
             ResourcePackBuilder.BuiltPack built = new ResourcePackBuilder()
                     .build(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built753 = new ResourcePackBuilder()
+                    .build753(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built754 = new ResourcePackBuilder()
+                    .build754(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built755 = new ResourcePackBuilder()
+                    .build755(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built756 = new ResourcePackBuilder()
+                    .build756(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built757 = new ResourcePackBuilder()
+                    .build757(workingDir.resolve("data").resolve("resource-pack"));
             ResourcePackBuilder.BuiltPack built759 = new ResourcePackBuilder()
                     .build759(workingDir.resolve("data").resolve("resource-pack"));
             ResourcePackBuilder.BuiltPack built760 = new ResourcePackBuilder()
@@ -766,11 +879,16 @@ public final class DetergentServer {
             ResourcePackBuilder.BuiltPack built775 = new ResourcePackBuilder()
                     .build775(workingDir.resolve("data").resolve("resource-pack"));
             resourcePackServer = new ResourcePackServer(
-                    built, built759, built760, built761, built762, built763, built764, built766, built767, built768, built769,
+                    built, built753, built754, built755, built756, built757, built759, built760, built761, built762, built763, built764, built766, built767, built768, built769,
                     built770, built771, built772, built773, built774, built775, port, required,
                     promptKey.isBlank()
                             ? ResourcePackServer.DEFAULT_PROMPT_KEY : promptKey.trim());
             resourcePack = resourcePackServer.start();
+            resourcePack753 = resourcePackServer.pack753();
+            resourcePack754 = resourcePackServer.pack754();
+            resourcePack755 = resourcePackServer.pack755();
+            resourcePack756 = resourcePackServer.pack756();
+            resourcePack757 = resourcePackServer.pack757();
             resourcePack759 = resourcePackServer.pack759();
             resourcePack760 = resourcePackServer.pack760();
             resourcePack761 = resourcePackServer.pack761();
@@ -837,6 +955,11 @@ public final class DetergentServer {
             resourcePackServer = null;
         }
         resourcePack = null;
+        resourcePack753 = null;
+        resourcePack754 = null;
+        resourcePack755 = null;
+        resourcePack756 = null;
+        resourcePack757 = null;
         resourcePack759 = null;
         resourcePack760 = null;
         resourcePack761 = null;
