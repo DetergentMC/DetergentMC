@@ -357,6 +357,15 @@ public final class ProxySession {
     private ResourcePack pack775;
 
     /**
+     * 757クライアントに送るリソースパック（pack_format 8）。
+     * 内部が757でない場合に使う差し替え用。内部が757の場合はバニラが
+     * 送ってきたパックをそのまま出すため null のままでよい。
+     * 出し分けの基準はクライアントのプロトコルである
+     * （{@link #packOverrideForClient()} 参照）。
+     */
+    private ResourcePack pack757;
+
+    /**
      * 770／771／772／773／774／775クライアントへ送る player_chat に付ける globalIndex。
      * 769サーバーは globalIndex を送ってこないため、プロキシが
      * セッションごとに 0 から数える。
@@ -388,7 +397,7 @@ public final class ProxySession {
      *                       通常はハンドシェイクの前に作るので 0 を渡す。
      * @param onlineMode     バニラの online-mode。763クライアントの
      *                       受け入れ可否に使う。
-     * @param serverProtocol 内部バニラのプロトコル（759＝1.19、760＝1.19.1／1.19.2、761＝1.19.3、762＝1.19.4、763＝1.20.1、
+     * @param serverProtocol 内部バニラのプロトコル（757＝1.18／1.18.1、759＝1.19、760＝1.19.1／1.19.2、761＝1.19.3、762＝1.19.4、763＝1.20.1、
      *                       764＝1.20.2、765＝1.20.4、766＝1.20.5／1.20.6、
      *                       767＝1.21／1.21.1、768＝1.21.2／1.21.3、
      *                       769＝1.21.4、770＝1.21.5、771＝1.21.6、772＝1.21.7、773＝1.21.9／1.21.10、774＝1.21.11、775＝26.1）
@@ -410,11 +419,12 @@ public final class ProxySession {
                 && serverProtocol != ProtocolVersion.V1_21_7
                 && serverProtocol != ProtocolVersion.V1_21_9
                 && serverProtocol != ProtocolVersion.V1_21_11
-                && serverProtocol != ProtocolVersion.V26_1) {
+                && serverProtocol != ProtocolVersion.V26_1
+                && serverProtocol != ProtocolVersion.V1_18) {
             throw new IllegalArgumentException(
                     "serverProtocol must be 759 (1.19), 760 (1.19.1/1.19.2), 761 (1.19.3), 762 (1.19.4), 763 (1.20.1), 764 (1.20.2), "
                             + "765 (1.20.4), 766 (1.20.5/1.20.6), 767 (1.21/1.21.1), "
-                            + "768 (1.21.2/1.21.3), 769 (1.21.4), 770 (1.21.5), 771 (1.21.6), 772 (1.21.7), 773 (1.21.9/1.21.10), 774 (1.21.11) or 775 (26.1): "
+                            + "768 (1.21.2/1.21.3), 769 (1.21.4), 770 (1.21.5), 771 (1.21.6), 772 (1.21.7), 773 (1.21.9/1.21.10), 774 (1.21.11), 775 (26.1) or 757 (1.18/1.18.1): "
                             + serverProtocol);
         }
         this.clientProtocol = clientProtocol;
@@ -441,7 +451,7 @@ public final class ProxySession {
         return clientProtocol;
     }
 
-    /** 内部バニラのプロトコル（759＝1.19、763＝1.20.1、764＝1.20.2、765＝1.20.4、766＝1.20.5／1.20.6、767＝1.21／1.21.1、768＝1.21.2／1.21.3、769＝1.21.4、770＝1.21.5、771＝1.21.6、772＝1.21.7、773＝1.21.9／1.21.10、774＝1.21.11、775＝26.1）。 */
+    /** 内部バニラのプロトコル（757＝1.18／1.18.1、759＝1.19、763＝1.20.1、764＝1.20.2、765＝1.20.4、766＝1.20.5／1.20.6、767＝1.21／1.21.1、768＝1.21.2／1.21.3、769＝1.21.4、770＝1.21.5、771＝1.21.6、772＝1.21.7、773＝1.21.9／1.21.10、774＝1.21.11、775＝26.1）。 */
     public int serverProtocol() {
         return serverProtocol;
     }
@@ -517,7 +527,8 @@ public final class ProxySession {
     }
 
     /**
-     * 759／760／761／762／763クライアントに送るリソースパック。
+     * 757／759／760／761／762／763クライアントに送るリソースパック。
+     * 757クライアントには pack757（無ければ pack759。757より古いパックはツリーに無いため、隣接する新しい pack759 に落とす）、
      * 759クライアントには pack759（無ければ pack760、さらに無ければ pack761、さらに無ければ pack762、さらに無ければ pack763）、
      * 760クライアントには pack760（無ければ pack761、さらに無ければ pack762、さらに無ければ pack763）、
      * 761クライアントには pack761（無ければ pack762、さらに無ければ pack763）、
@@ -525,6 +536,12 @@ public final class ProxySession {
      * 旧式オファー（UUIDなし）の buildPlayResourcePack763 の差し替え先として使う。
      */
     public ResourcePack packFor763LikeClient() {
+        if (is757()) {
+            // 757クライアント：pack757（無ければ pack759。757より古い
+            // パックはツリーに無いため、隣接する新しい pack759 に落とす。
+            // 1.18クライアントは新しい形式のパックを警告付きで読み込む）。
+            return pack757 != null ? pack757 : pack759;
+        }
         if (is759()) {
             if (pack759 != null) {
                 return pack759;
@@ -685,6 +702,16 @@ public final class ProxySession {
         return pack775;
     }
 
+    /** 757クライアントに送るリソースパックを設定する（内部757でない場合に使う）。 */
+    public void setPack757(ResourcePack pack757) {
+        this.pack757 = pack757;
+    }
+
+    /** 757クライアントに送るリソースパック（無ければ null）。 */
+    public ResourcePack pack757() {
+        return pack757;
+    }
+
     /**
      * このクライアントに送るリソースパックの差し替え先。
      * 出し分けの基準はクライアントのプロトコルである：775→pack775
@@ -697,7 +724,11 @@ public final class ProxySession {
      * （pack_format 46）、768→pack768
      * （pack_format 42）、767→pack767
      * （pack_format 34）、766→pack766（pack_format 32）、765→pack765
-     * （pack_format 22）、764→pack764（18）、763→pack763（15）、762→pack762（13）。
+     * （pack_format 22）、764→pack764（18）、763→pack763（15）、762→pack762（13）、757→pack757
+     * （pack_format 8）。
+     * pack757 が未設定（{@code null}）の場合は pack759（pack_format 9）を出す
+     * （757より古いパックはツリーに無いため、隣接する新しい pack759 に落とす。
+     * 1.18クライアントは新しい形式のパックを警告付きで読み込む）。
      * pack762 が未設定（{@code null}）の場合は pack763（pack_format 15）を出す
      * （1.19.4クライアントは古い形式のパックを警告付きで読み込む）。
      * pack767 が未設定（{@code null}）の場合は従来通り pack766
@@ -772,6 +803,9 @@ public final class ProxySession {
         }
         if (clientProtocol == ProtocolVersion.V1_19_4) {
             return pack762 != null ? pack762 : pack763;
+        }
+        if (clientProtocol == ProtocolVersion.V1_18) {
+            return pack757 != null ? pack757 : pack759;
         }
         if (clientProtocol == ProtocolVersion.V1_20_1) {
             return pack763;
@@ -1052,6 +1086,16 @@ public final class ProxySession {
         return serverProtocol == ProtocolVersion.V26_1;
     }
 
+    /** クライアントが 1.18／1.18.1（757）か。 */
+    private boolean is757() {
+        return clientProtocol == ProtocolVersion.V1_18;
+    }
+
+    /** 内部が 1.18／1.18.1（757）か。 */
+    private boolean isServer757() {
+        return serverProtocol == ProtocolVersion.V1_18;
+    }
+
     /** 内部が 1.20.3／1.20.4（765）か。 */
     private boolean isServer765() {
         return serverProtocol == ProtocolVersion.V1_20_4;
@@ -1323,6 +1367,15 @@ public final class ProxySession {
                 // Login Start は763形式（bool 付き）に直す。直さないと
                 // 763のサーバーが UUID の先頭バイトを bool と誤読する。
                 byte[] payload;
+                if (is757()) {
+                    // 757クライアント：Login Start は名前のみ（1.18）。759以上は
+                    // 名前＋署名データ／UUID を期待するため、そのまま送ると
+                    // サーバーが誤読する。変換は PlayTranslator 担当
+                    // （translateLoginStart757To759／757To763／757To765）が行う。
+                    // ここでは落とす（ログ＋ドロップの枠組み）。
+                    logUntranslatedOnce("PLAY_LOGIN_START");
+                    yield Outcome.drop();
+                }
                 if (is759()) {
                     payload = isServer759()
                             ? packet.payload()
@@ -1411,10 +1464,10 @@ public final class ProxySession {
                     LOG.warning("759／760／762／763のログイン状態で想定外のパケット（id=0x03）を落とします。");
                     yield Outcome.drop();
                 }
-                if (isServer763Like()) {
-                    // 内部762／763には設定フェーズが無い。クライアントの
+                if (isServer763Like() || isServer757()) {
+                    // 内部757／762／763には設定フェーズが無い。クライアントの
                     // Login Acknowledged はプロキシが消費する
-                    // （内部762／763に送るとプレイ状態のパケットと誤読される）。
+                    // （内部757／762／763に送るとプレイ状態のパケットと誤読される）。
                     // クライアントは設定フェーズに入る。サーバーは既に
                     // プレイ状態である。Join Game が既に届いていれば、
                     // ここで合成した設定フェーズを送る。
@@ -1493,23 +1546,17 @@ public final class ProxySession {
         if (!needsTranslation()) {
             return Outcome.toServer(packet);
         }
+        // 757クライアント：757→759へ変換してから759扱いに任せる。
+        // dispatch（handleClientPlay763Form）の中ではなくここで受ける。
+        // dispatch の中で受けると、759→763への正規化を経て dispatch に
+        // 戻ったときに is757() が再び真になりループするため。
+        // （777は handleClientPlay775 に委譲するため dispatch の中で
+        // 受けてもループしないが、757は759の正規化を経るため違う。）
+        if (is757()) {
+            return handleClientPlay757(packet);
+        }
         if (is759()) {
-            // 759クライアント：パケットIDが760と違うものがある（131件変更）ため、
-            // 先に760形式へ直してから、760クライアントと同じく761→762→763形式へ直し、
-            // 以降の763扱いの分岐に任せる。760形式に変換できないものは落とす。
-            packet = to760ClientPacket759(packet);
-            if (packet == null) {
-                return Outcome.drop();
-            }
-            packet = to761ClientPacket760(packet);
-            if (packet == null) {
-                return Outcome.drop();
-            }
-            packet = to762ClientPacket761(packet);
-            if (packet == null) {
-                return Outcome.drop();
-            }
-            packet = to763ClientPacket(packet);
+            return handleClientPlay759(packet);
         } else if (is760()) {
             // 760クライアント：パケットIDが761と違うものがある（118件変更）ため、
             // 先に761形式へ直してから、761クライアントと同じく762→763形式へ直し、
@@ -1523,6 +1570,7 @@ public final class ProxySession {
                 return Outcome.drop();
             }
             packet = to763ClientPacket(packet);
+            return handleClientPlay763Form(packet);
         } else if (is761()) {
             // 761クライアント：パケットIDが762と違うものがある（132件変更）ため、
             // 先に762形式へ直してから、762クライアントと同じく763形式へ直し、
@@ -1532,12 +1580,27 @@ public final class ProxySession {
                 return Outcome.drop();
             }
             packet = to763ClientPacket(packet);
+            return handleClientPlay763Form(packet);
         } else if (is762()) {
             // 762クライアント：パケットIDは763と同一だが、ペイロードが違うものが
             // ある（Update Sign の isFrontText、スロットのアイテムID）。
             // 先に763形式へ直してから、以降の763扱いの分岐に任せる。
             packet = to763ClientPacket(packet);
+            return handleClientPlay763Form(packet);
         }
+        return handleClientPlay763Form(packet);
+    }
+
+    /**
+     * 763形式になったクライアントパケットの振り分け（内部プロトコル別）。
+     * 759／760／761／762クライアントは呼び出し側のプロローグで763形式に
+     * 直してからここに来る。757クライアントは {@link #handleClientPlay757}
+     * で759形式を経て763形式に直してからここに来る。
+     * ここには is757() の分岐を置かない（757クライアントがここに来たとき
+     * is757() は真のままのため、handleClientPlay757 に戻るとループする。
+     * 757クライアントの受け取りは {@link #handleClientPlay} の先頭で行う）。
+     */
+    private Outcome handleClientPlay763Form(MinecraftPacket packet) {
         // 775クライアント：番号を内部向けに付け替える。内部774向けは
         // 775→774へ変換してから送る。内部768／767向けは775→774→773→772→771→770→769→768→767／766へ
         // 二段で変換する。内部763／764／765向けは766クライアントと
@@ -1548,6 +1611,12 @@ public final class ProxySession {
         // 内部775：763／764／765／766／767／768／769／770／771／772／773／774クライアントの番号を775向けに付け替える。
         if (isServer775()) {
             return handleClientPlayTo775(packet);
+        }
+        // 内部757：763形式のパケットを757向けに付け替える。
+        // 775の直後に置く（775クライアントが handleClientPlayTo757 に
+        // 落ちないようにするため。777の handleClientPlayTo777 と同じ順序）。
+        if (isServer757()) {
+            return handleClientPlayTo757(packet);
         }
         // 774クライアント：番号を内部向けに付け替える。内部773向けは
         // 774→773へ変換してから送る。内部768／767向けは774→773→772→771→770→769→768→767／766へ
@@ -1815,6 +1884,141 @@ public final class ProxySession {
             return Outcome.drop();
         }
         return outcome;
+    }
+
+    /**
+     * 759クライアントのプレイ状態（クライアント→サーバー）。
+     * パケットIDが760と違うものがある（131件変更）ため、先に760形式へ
+     * 直してから、760クライアントと同じく761→762→763形式へ直し、
+     * {@link #handleClientPlay763Form} に任せる。760形式に変換できない
+     * ものは落とす（元は {@link #handleClientPlay} のプロローグ）。
+     */
+    private Outcome handleClientPlay759(MinecraftPacket packet) {
+        packet = to760ClientPacket759(packet);
+        if (packet == null) {
+            return Outcome.drop();
+        }
+        packet = to761ClientPacket760(packet);
+        if (packet == null) {
+            return Outcome.drop();
+        }
+        packet = to762ClientPacket761(packet);
+        if (packet == null) {
+            return Outcome.drop();
+        }
+        packet = to763ClientPacket(packet);
+        return handleClientPlay763Form(packet);
+    }
+
+    /**
+     * 757クライアントのプレイ状態（クライアント→サーバー）。
+     * 757→759へ変換し、内部759ならそのまま送り、それ以外は
+     * {@link #handleClientPlay759} に委譲する（759→760→761→762→763へ
+     * 直してから763扱いの分岐に任せる）。777の
+     * {@code handleClientPlay777} と同じ段取りだが、方向が逆
+     * （757は759より古い）ため、dispatch の中ではなく
+     * {@link #handleClientPlay} の先頭で受ける。
+     */
+    private Outcome handleClientPlay757(MinecraftPacket packet) {
+        MinecraftPacket as759 = to759ClientPacketFrom757(packet);
+        if (as759 == null) {
+            return Outcome.drop();
+        }
+        if (isServer759()) {
+            return Outcome.toServer(as759);
+        }
+        return handleClientPlay759(as759);
+    }
+
+    /**
+     * 757クライアントのパケットを759形式にする。759に相当が無いものは
+     * null を返し、呼び出し元が落とす（ログ済み）。
+     * 757にだけある chat（0x03）は759の chat_message／chat_command に
+     * 分ける必要があり、Block Dig／Block Place／Use Item は759で末尾に
+     * sequence が付くため、PlayTranslator の変換器が要る（ここでは落とす）。
+     * Window Click／Set Creative Slot はスロットのアイテムIDの付け替えが
+     * 要るため ChunkTranslator の変換器が要る（ここでは落とす）。
+     * それ以外は番号だけ759向けに付け替える（ペイロード同形式と仮定。
+     * 未確認。minecraft-data 1.18／1.19 のフィールド比較では
+     * block_dig／block_place／use_item／set_beacon_effect／
+     * update_structure_block 以外の toServer パケットは同フィールド）。
+     */
+    private MinecraftPacket to759ClientPacketFrom757(MinecraftPacket packet) {
+        // chat（757：0x03）：759の chat_message（0x04）／chat_command（0x03）に
+        // 分ける（先頭が / ならコマンド。変換器が null を返す方を試す）。
+        if (packet.id() == 0x03) {
+            byte[] asMessage = PlayTranslator.translateChat757ToChatMessage(packet.payload());
+            if (asMessage != null) {
+                return new MinecraftPacket(0x04, asMessage);
+            }
+            byte[] asCommand = PlayTranslator.translateChat757ToChatCommand(packet.payload());
+            if (asCommand != null) {
+                return new MinecraftPacket(0x03, asCommand);
+            }
+            logUntranslatedOnce("PLAY_CHAT_TO_SERVER");
+            return null;
+        }
+        // Block Dig（757：0x1A）：759は末尾に sequence（varint）が付く（759は 0x1C）。
+        if (packet.id() == 0x1A) {
+            return new MinecraftPacket(0x1C,
+                    PlayTranslator.translateBlockDig757To759(packet.payload()));
+        }
+        // Block Place（757：0x2E）：759は末尾に sequence（varint）が付く（759は 0x30）。
+        if (packet.id() == 0x2E) {
+            return new MinecraftPacket(0x30,
+                    PlayTranslator.translateBlockPlace757To759(packet.payload()));
+        }
+        // Use Item（757：0x2F）：759は末尾に sequence（varint）が付く（759は 0x31）。
+        if (packet.id() == 0x2F) {
+            return new MinecraftPacket(0x31,
+                    PlayTranslator.translateUseItem757To759(packet.payload()));
+        }
+        // Set Beacon Effect（757：0x24）：759は primary／secondary が
+        // option varint になる（759は 0x26）。
+        if (packet.id() == 0x24) {
+            return new MinecraftPacket(0x26,
+                    PlayTranslator.translateSetBeaconEffect757To759(packet.payload()));
+        }
+        // Update Structure Block（757：0x2A）：759は seed が varlong→varint になる（759は 0x2C）。
+        if (packet.id() == 0x2A) {
+            return new MinecraftPacket(0x2C,
+                    PlayTranslator.translateUpdateStructureBlock757To759(packet.payload()));
+        }
+        // Window Click（757：0x08）：スロットのアイテムIDの付け替えが要る（759は 0x0A）。
+        if (packet.id() == 0x08) {
+            return new MinecraftPacket(0x0A,
+                    ChunkTranslator.translateWindowClick757To759(packet.payload()));
+        }
+        // Set Creative Slot（757：0x28）：スロットのアイテムIDの付け替えが要る（759は 0x2A）。
+        if (packet.id() == 0x28) {
+            return new MinecraftPacket(0x2A,
+                    ChunkTranslator.translateSetCreativeSlot757To759(packet.payload()));
+        }
+        // Enchant Item（757：0x07）：759で swift_sneak が12番目に入り、
+        // それ以降のエンチャントIDが1ずれる（759は 0x09）。
+        if (packet.id() == 0x07) {
+            byte[] translated = ChunkTranslator.translateEnchantItem757To759(packet.payload());
+            if (translated == null) {
+                logUntranslatedOnce("PLAY_ENCHANT_ITEM");
+                return null;
+            }
+            return new MinecraftPacket(0x09, translated);
+        }
+        // それ以外：番号だけ759向けに付け替える（ペイロードは同形式と仮定。未確認）。
+        Optional<PacketName> name = PacketIds.nameFor(packet.id(), State.PLAY,
+                Direction.SERVERBOUND, ProtocolVersion.V1_18);
+        if (name.isEmpty()) {
+            LOG.warning("759向けに変換できないプレイ状態のパケット（id=0x"
+                    + Integer.toHexString(packet.id()) + "）を落とします。");
+            return null;
+        }
+        OptionalInt id759 = PacketTranslator.translateId(name.get(),
+                ProtocolVersion.V1_18, ProtocolVersion.V1_19);
+        if (id759.isEmpty()) {
+            LOG.warning("759に無いプレイ状態のパケット " + name.get() + " を落とします。");
+            return null;
+        }
+        return new MinecraftPacket(id759.getAsInt(), packet.payload());
     }
 
     /**
@@ -3467,8 +3671,8 @@ public final class ProxySession {
                     yield Outcome.toClient(success);
                 }
                 if (is764() || is765() || is766() || is767() || is768() || is769() || is770() || is771() || is772() || is773() || is774() || is775()) {
-                    if (isServer763Like()) {
-                        // 内部762／763＋設定フェーズのあるクライアント：内部には
+                    if (isServer763Like() || isServer757()) {
+                        // 内部757／762／763＋設定フェーズのあるクライアント：内部には
                         // 設定フェーズが無いため、プロキシが合成する。
                         // サーバーはこのままプレイ状態に入り、Join Game を
                         // 送ってくる（handleServerPlay の合成処理を参照）。
@@ -3494,10 +3698,10 @@ public final class ProxySession {
                     advanceFlowSafely(() -> joinFlow.loginSucceeded());
                     yield Outcome.toClient(success);
                 }
-                // 759／760／761／762／763クライアント＋内部759／760／761／762／763：
+                // 757／759／760／761／762／763クライアント＋内部757／759／760／761／762／763：
                 // 両方とも設定フェーズが無い。サーバーはこのままプレイ状態に入るため、
                 // Login Acknowledged や Client Information を送ってはいけない。
-                if (is763Like() && (isServer763Like() || isServer760() || isServer759())) {
+                if ((is763Like() || is757()) && (isServer763Like() || isServer760() || isServer759() || isServer757())) {
                     serverState = ServerState.PLAY;
                     clientState = ClientState.PLAY;
                     advanceFlowSafely(() -> joinFlow.loginSucceeded());
@@ -3535,10 +3739,10 @@ public final class ProxySession {
     }
 
     private Outcome handleServerConfiguration(MinecraftPacket packet) {
-        // 763クライアントには設定フェーズが無い。プロキシが消費する。
+        // 763／757クライアントには設定フェーズが無い。プロキシが消費する。
         // 内部765と内部764と内部766でサーバー側のパケット番号・形式が
         // 違うため、消費する側も内部に合わせて分ける。
-        if (is763Like()) {
+        if (is763Like() || is757()) {
             if (isServer775()) {
                 return handleServerConfiguration763From775(packet);
             }
@@ -4019,7 +4223,7 @@ public final class ProxySession {
                 while (!pendingPacks.isEmpty()) {
                     PendingPack pack = pendingPacks.removeFirst();
                     lastSentPack = pack;
-                    toClient.add(new MinecraftPacket(0x40,
+                    toClient.add(new MinecraftPacket(is757() ? 0x3C : 0x40,
                             PlayTranslator.buildPlayResourcePack763(pack)));
                 }
                 yield new Outcome(toServer, toClient, false, false);
@@ -4081,7 +4285,7 @@ public final class ProxySession {
                 while (!pendingPacks.isEmpty()) {
                     PendingPack pack = pendingPacks.removeFirst();
                     lastSentPack = pack;
-                    toClient.add(new MinecraftPacket(0x40,
+                    toClient.add(new MinecraftPacket(is757() ? 0x3C : 0x40,
                             PlayTranslator.buildPlayResourcePack763(pack, packFor763LikeClient())));
                 }
                 yield new Outcome(toServer, toClient, false, false);
@@ -4149,7 +4353,7 @@ public final class ProxySession {
                 while (!pendingPacks.isEmpty()) {
                     PendingPack pack = pendingPacks.removeFirst();
                     lastSentPack = pack;
-                    toClient.add(new MinecraftPacket(0x40,
+                    toClient.add(new MinecraftPacket(is757() ? 0x3C : 0x40,
                             PlayTranslator.buildPlayResourcePack763(pack, packFor763LikeClient())));
                 }
                 yield new Outcome(toServer, toClient, false, false);
@@ -4229,7 +4433,7 @@ public final class ProxySession {
                 while (!pendingPacks.isEmpty()) {
                     PendingPack pack = pendingPacks.removeFirst();
                     lastSentPack = pack;
-                    toClient.add(new MinecraftPacket(0x40,
+                    toClient.add(new MinecraftPacket(is757() ? 0x3C : 0x40,
                             PlayTranslator.buildPlayResourcePack763(pack, packFor763LikeClient())));
                 }
                 yield new Outcome(toServer, toClient, false, false);
@@ -5478,52 +5682,7 @@ public final class ProxySession {
         // 同じ旧式（action VarInt）のため、760→761の展開をそのまま使える。
         // 変換できないもの（ブロックエンティティ種別が範囲外など）は落とす。
         if (isServer759()) {
-            PacketName name759 = PacketIds.nameFor(packet.id(), State.PLAY,
-                    Direction.CLIENTBOUND, 759).orElse(null);
-            if (name759 == PacketName.PLAY_PLAYER_INFO_UPDATE) {
-                List<byte[]> expanded =
-                        PlayTranslator.translatePlayerInfo760To761(packet.payload());
-                List<MinecraftPacket> toClient = new ArrayList<>();
-                List<MinecraftPacket> toServer = new ArrayList<>();
-                boolean relay = false;
-                boolean closeAfterSend = false;
-                for (byte[] payload761 : expanded) {
-                    MinecraftPacket p761 = new MinecraftPacket(PacketIds.id(
-                            PacketName.PLAY_PLAYER_INFO_UPDATE, State.PLAY,
-                            Direction.CLIENTBOUND, 761).orElseThrow(), payload761);
-                    MinecraftPacket to762 = to762ServerPacket(p761);
-                    if (to762 == null) {
-                        continue;
-                    }
-                    MinecraftPacket converted = to763ServerPacket(to762);
-                    if (converted == null) {
-                        continue;
-                    }
-                    Outcome outcome = handleServerPlayFrom763(converted);
-                    toServer.addAll(outcome.toServer());
-                    toClient.addAll(outcome.toClient());
-                    relay |= outcome.relay();
-                    closeAfterSend |= outcome.closeAfterSend();
-                }
-                return new Outcome(toServer, toClient, relay, closeAfterSend);
-            }
-            MinecraftPacket to760 = to760ServerPacket759(packet);
-            if (to760 == null) {
-                return Outcome.drop();
-            }
-            MinecraftPacket to761 = to761ServerPacket(to760);
-            if (to761 == null) {
-                return Outcome.drop();
-            }
-            MinecraftPacket to762 = to762ServerPacket(to761);
-            if (to762 == null) {
-                return Outcome.drop();
-            }
-            MinecraftPacket converted = to763ServerPacket(to762);
-            if (converted == null) {
-                return Outcome.drop();
-            }
-            return handleServerPlayFrom763(converted);
+            return handleServerPlayFrom759(packet);
         }
         // 内部760：プレイ状態のパケットIDは761と違うものがある。ペイロードが
         // 違うものだけ761形式へ直してから、761サーバー扱いで処理する。
@@ -5608,6 +5767,11 @@ public final class ProxySession {
         if (isServer775()) {
             return handleServerPlayFrom775(packet);
         }
+        // 内部757：Join Game は 0x26、Spawn Position は 0x4B。
+        // 設定フェーズは無い。
+        if (isServer757()) {
+            return handleServerPlayFrom757(packet);
+        }
         // 内部774：Join Game は 0x30、Spawn Position は 0x5F、
         // Start Configuration は 0x74（773と同じ）。
         if (isServer774()) {
@@ -5656,7 +5820,7 @@ public final class ProxySession {
         // の 0x02 を参照）。次元移動では送られてこない（Respawn だけ）。
         int startConfigId = isServer764() ? 0x65 : 0x67;
         if (packet.id() == startConfigId) {
-            if (is763Like()) {
+            if (is763Like() || is757()) {
                 serverState = ServerState.CONFIGURATION;
                 reconfiguring = true;
                 LOG.info(() -> "プレイ中の Start Configuration を受けました（" + playerName
@@ -5729,9 +5893,9 @@ public final class ProxySession {
 
     /** Spawn Position のクライアント側ID（766は 0x56 にフォールバック）。 */
     private int spawnPositionClientId() {
-        if (is766() || is767() || is768() || is769() || is770() || is771() || is772() || is773() || is774() || is775()) {
+        if (is766() || is767() || is768() || is769() || is770() || is771() || is772() || is773() || is774() || is775() || is757()) {
             return PacketTranslator.toClientId(PacketName.PLAY_SPAWN_POSITION,
-                    serverProtocol, clientProtocol).orElse(is768() || is769() ? 0x5B : is775() ? 0x61 : is773() || is774() ? 0x5F : is770() || is771() || is772() ? 0x5A : 0x56);
+                    serverProtocol, clientProtocol).orElse(is768() || is769() ? 0x5B : is757() ? 0x4B : is775() ? 0x61 : is773() || is774() ? 0x5F : is770() || is771() || is772() ? 0x5A : 0x56);
         }
         return PacketTranslator.toClientId(PacketName.PLAY_SPAWN_POSITION,
                         clientProtocolForServerPackets())
@@ -5740,9 +5904,9 @@ public final class ProxySession {
 
     /** Keep Alive のクライアント側ID（766は 0x26 にフォールバック）。 */
     private int keepAliveClientId() {
-        if (is766() || is767() || is768() || is769() || is770() || is771() || is772() || is773() || is774() || is775()) {
+        if (is766() || is767() || is768() || is769() || is770() || is771() || is772() || is773() || is774() || is775() || is757()) {
             return PacketTranslator.toClientId(PacketName.PLAY_KEEP_ALIVE,
-                    serverProtocol, clientProtocol).orElse(is775() ? 0x2C : is773() || is774() ? 0x2B : is768() || is769() ? 0x27 : 0x26);
+                    serverProtocol, clientProtocol).orElse(is775() ? 0x2C : is757() ? 0x21 : is773() || is774() ? 0x2B : is768() || is769() ? 0x27 : 0x26);
         }
         return PacketTranslator.toClientId(PacketName.PLAY_KEEP_ALIVE,
                         clientProtocolForServerPackets())
@@ -5751,9 +5915,9 @@ public final class ProxySession {
 
     /** Ping のクライアント側ID（766は 0x35 にフォールバック）。 */
     private int pingClientId() {
-        if (is766() || is767() || is768() || is769() || is770() || is771() || is772() || is773() || is774() || is775()) {
+        if (is766() || is767() || is768() || is769() || is770() || is771() || is772() || is773() || is774() || is775() || is757()) {
             return PacketTranslator.toClientId(PacketName.PLAY_PING,
-                    serverProtocol, clientProtocol).orElse(is768() || is769() ? 0x37 : is775() ? 0x3D : is773() || is774() ? 0x3B : is770() || is771() || is772() ? 0x36 : 0x35);
+                    serverProtocol, clientProtocol).orElse(is768() || is769() ? 0x37 : is757() ? 0x30 : is775() ? 0x3D : is773() || is774() ? 0x3B : is770() || is771() || is772() ? 0x36 : 0x35);
         }
         return PacketTranslator.toClientId(PacketName.PLAY_PING,
                         clientProtocolForServerPackets())
@@ -6236,6 +6400,14 @@ public final class ProxySession {
                 return Outcome.toClient(new MinecraftPacket(0x40,
                         PlayTranslator.buildPlayResourcePack763(pack, packFor763LikeClient())));
             }
+            if (is757()) {
+                // 757クライアント：旧式オファー（UUIDなし）0x3C を送る。
+                // 763形式のペイロード（URL＋SHA-1＋forced＋任意プロンプト）は
+                // 757の Resource Pack と同じフィールドのためそのまま使える。
+                // packFor763LikeClient() で pack757（無ければ pack759）を出す。
+                return Outcome.toClient(new MinecraftPacket(0x3C,
+                        PlayTranslator.buildPlayResourcePack763(pack, packFor763LikeClient())));
+            }
             return Outcome.toClient(new MinecraftPacket(0x44,
                     PlayTranslator.translateConfigAddResourcePack764To765(pack, pack765)));
         }
@@ -6272,8 +6444,8 @@ public final class ProxySession {
                 return new Outcome(List.of(),
                         List.of(new MinecraftPacket(0x1B, packet.payload())), false, true);
             }
-            if (is763Like()) {
-                // 762／763クライアント：Disconnect は763と同じ 0x1A（JSON 文字列）。
+            if (is763Like() || is757()) {
+                // 757／762／763クライアント：Disconnect は763と同じ 0x1A（JSON 文字列）。
                 return new Outcome(List.of(),
                         List.of(new MinecraftPacket(0x1A, packet.payload())), false, true);
             }
@@ -6288,7 +6460,7 @@ public final class ProxySession {
         }
         // Respawn／Advancements は変換する。
         if (name == PacketName.PLAY_RESPAWN) {
-            if (is766() || is767() || is768() || is769() || is770() || is771() || is772() || is773() || is774() || is775()) {
+            if (is766() || is767() || is768() || is769() || is770() || is771() || is772() || is773() || is774() || is775() || is757()) {
                 logUntranslatedOnce(name);
                 return Outcome.drop();
             }
@@ -6304,7 +6476,7 @@ public final class ProxySession {
             return Outcome.toClient(new MinecraftPacket(outId, payload));
         }
         if (name == PacketName.PLAY_ADVANCEMENTS) {
-            if (is766() || is767() || is768() || is769() || is770() || is771() || is772() || is773() || is774() || is775()) {
+            if (is766() || is767() || is768() || is769() || is770() || is771() || is772() || is773() || is774() || is775() || is757()) {
                 logUntranslatedOnce(name);
                 return Outcome.drop();
             }
@@ -6340,7 +6512,9 @@ public final class ProxySession {
         // エンティティも766の変換が要る。Join Game／Spawn Position／
         // Keep Alive／Ping／Respawn 以外は未対応のため落とす
         // （766のプレイ状態の変換は別担当の対応表待ち）。
-        if (is766() || is767() || is768() || is769() || is770() || is771() || is772() || is773() || is774() || is775()) {
+        // 757クライアントもここで落とす（763形式のパケットは757と形式が違うため、
+        // 765向けの経路に落とすと誤読される）。
+        if (is766() || is767() || is768() || is769() || is770() || is771() || is772() || is773() || is774() || is775() || is757()) {
             logUntranslatedOnce(name);
             return Outcome.drop();
         }
@@ -6470,6 +6644,12 @@ public final class ProxySession {
      * 保持したリソースパックも送る。
      */
     private Outcome handleServerJoinGame763(MinecraftPacket packet) {
+        if (is757()) {
+            // 757クライアント：763の Join Game は dimensionType がキー形式で757と違うため落とす
+            // （変換は PlayTranslator 担当。translateJoinGame763To757 が要る）。
+            logUntranslatedOnce(PacketName.PLAY_JOIN_GAME);
+            return Outcome.drop();
+        }
         PlayTranslator.JoinGame763 join = PlayTranslator.parseJoinGame763(packet.payload());
         registries.putAll(PlayTranslator.registriesFromJoinGameCodec(join.codec()));
         List<MinecraftPacket> toClient = new ArrayList<>();
@@ -6800,7 +6980,7 @@ public final class ProxySession {
     private Outcome handleServerPlayFrom766(MinecraftPacket packet) {
         // Start Configuration（766：0x69）。763には設定フェーズもこのパケットも無い。
         if (packet.id() == 0x69) {
-            if (is763Like()) {
+            if (is763Like() || is757()) {
                 serverState = ServerState.CONFIGURATION;
                 reconfiguring = true;
                 LOG.info(() -> "プレイ中の Start Configuration を受けました（" + playerName
@@ -6840,9 +7020,9 @@ public final class ProxySession {
         // Disconnect（766：0x1D、NBT）。
         if (packet.id() == 0x1D) {
             closed = true;
-            if (is763Like() || is764()) {
+            if (is763Like() || is764() || is757()) {
                 byte[] payload = PlayTranslator.translateDisconnect765To763(packet.payload());
-                int outId = is763Like() ? 0x1A : 0x1B;
+                int outId = (is763Like() || is757()) ? 0x1A : 0x1B;
                 return new Outcome(List.of(),
                         List.of(new MinecraftPacket(outId, payload)), false, true);
             }
@@ -6866,6 +7046,12 @@ public final class ProxySession {
         }
         // Respawn（766：0x47）。
         if (packet.id() == 0x47) {
+            if (is757()) {
+                // 757クライアント：766の Respawn は dimensionType がキー形式で757と違うため落とす
+                // （変換は PlayTranslator 担当。translateRespawn766To757 が要る）。
+                logUntranslatedOnce(PacketName.PLAY_RESPAWN);
+                return Outcome.drop();
+            }
             if (is766() || is767()) {
                 // 766／767クライアント：Respawn は766と同一形式のためそのまま通す。
                 return Outcome.toClient(new MinecraftPacket(0x47, packet.payload()));
@@ -6986,6 +7172,12 @@ public final class ProxySession {
      * 文字列に戻す。保持したリソースパックもクライアントの形式で送る。
      */
     private Outcome handleServerJoinGame766(MinecraftPacket packet) {
+        if (is757()) {
+            // 757クライアント：766の Join Game は dimensionType がキー形式で757と違うため落とす
+            // （変換は PlayTranslator 担当。translateJoinGame766To757 が要る）。
+            logUntranslatedOnce(PacketName.PLAY_JOIN_GAME);
+            return Outcome.drop();
+        }
         PlayTranslator.JoinGame766 join = PlayTranslator.parseJoinGame766(packet.payload());
         List<MinecraftPacket> toClient = new ArrayList<>();
         if (is763Like()) {
@@ -7113,6 +7305,12 @@ public final class ProxySession {
      * </ul>
      */
     private Outcome handleServerJoinGame(MinecraftPacket packet) {
+        if (is757()) {
+            // 757クライアント：764／765の Join Game は dimensionType がキー形式で757と違うため落とす
+            // （変換は PlayTranslator 担当。translateJoinGame765To757 が要る）。
+            logUntranslatedOnce(PacketName.PLAY_JOIN_GAME);
+            return Outcome.drop();
+        }
         if (is775()) {
             // 775クライアント：dimension を文字列からレジストリ番号にし、
             // SpawnInfo の末尾に seaLevel を補う（770・771・772は769と同形式だが、
@@ -7303,6 +7501,13 @@ public final class ProxySession {
                         false, true);
             }
             if (name766 == PacketName.PLAY_RESPAWN) {
+                if (is757()) {
+                    // 757クライアント：Respawn は757の codec が要るため、PlayTranslator の
+                    // 変換器ができるまで落とす（素通し禁止）。ここには757は来ない
+                    // （ゲートは766〜773のみ）が、方針を明記しておく（777と同じく防御的）。
+                    logUntranslatedOnce(name766);
+                    return Outcome.drop();
+                }
                 // 770／771／772／773の Respawn は769と同形式（seaLevel 付き）のため二段で変換する。
                 byte[] payload = is768() || is769() || is770() || is771() || is772() || is773()
                         ? PlayTranslator.translateRespawn767To768(
@@ -7404,6 +7609,13 @@ public final class ProxySession {
                 return Outcome.drop();
             }
             return Outcome.toClient(new MinecraftPacket(clientId.getAsInt(), translated));
+        }
+        // 757クライアント：765の Respawn は763形式（dimensionType がキー）に変換されるが、
+        // 757は dimensionType を値（NBT）で送るため素通し禁止。変換は PlayTranslator 担当
+        // （translateRespawn765To757）が行う。ここでは落とす。
+        if (name == PacketName.PLAY_RESPAWN && is757()) {
+            logUntranslatedOnce(name);
+            return Outcome.drop();
         }
         byte[] payload = switch (name) {
             case PLAY_SYSTEM_CHAT -> PlayTranslator.translateSystemChat765To763(packet.payload());
@@ -7690,6 +7902,20 @@ public final class ProxySession {
                 return Outcome.drop();
             }
             return Outcome.toClient(new MinecraftPacket(clientId.getAsInt(), translated));
+        }
+        // 757クライアント：764の Respawn は765形式（dimensionType がキー）に変換されるが、
+        // 757は dimensionType を値（NBT）で送るため素通し禁止。変換は PlayTranslator 担当
+        // （translateRespawn764To757）が行う。ここでは落とす。
+        if (name == PacketName.PLAY_RESPAWN && is757()) {
+            logUntranslatedOnce(name);
+            return Outcome.drop();
+        }
+        // 757クライアント：764の Disconnect は JSON 文字列で、757も JSON 文字列のため、
+        // 765向けの NBT 変換をせずにそのまま 0x1A で送る。
+        if (name == PacketName.PLAY_DISCONNECT && is757()) {
+            closed = true;
+            return new Outcome(List.of(),
+                    List.of(new MinecraftPacket(0x1A, packet.payload())), false, true);
         }
         byte[] payload = switch (name) {
             case PLAY_DISCONNECT -> PlayTranslator.translateDisconnect764To765(packet.payload());
@@ -8069,6 +8295,12 @@ public final class ProxySession {
      * Change Gamemode／Custom Click Action は774に無いため落とす。
      */
     private Outcome handleClientPlay775(MinecraftPacket packet) {
+        // 内部757：775→757へ直接変換する。775→774→…→763の鎖に落とすと、
+        // 既定の763→765スイッチで765形式のパケットが757サーバーへ
+        // 送られてしまう（777の isServer777() ハッチと同じ段取り）。
+        if (isServer757()) {
+            return handleClientPlay775To757(packet);
+        }
         MinecraftPacket as774 = to774ClientPacketFrom775(packet);
         if (as774 == null) {
             return Outcome.drop();
@@ -8137,6 +8369,285 @@ public final class ProxySession {
             return null;
         }
         return new MinecraftPacket(id774.getAsInt(), packet.payload());
+    }
+
+    /**
+     * 759／760／761／762／763／764／765クライアント→内部757のプレイ状態（クライアント→サーバー）。
+     * 名前で分ける。番号だけの付け替えは {@link PacketTranslator#translateId} に任せ、
+     * ペイロード変換が要るものだけ明示する。759／760／761／762クライアントのパケットは
+     * 呼び出し側のプロローグで763形式に直してからここに来るため、名前の解決は
+     * 763形式で行う（759形式で解決すると Window Click（763：0x0B）が
+     * Close Window（759：0x0B）と取り違えられる）。
+     * 764／765クライアントのパケットは764／765形式のまま来るため、その形式で解決する。
+     * Window Click／Set Creative Slot はスロットのアイテムIDの付け替えが要るため落とす。
+     * chat_message／chat_command は署名を剥がして757の chat に直す変換器が要るため落とす。
+     * Block Dig／Block Place／Use Item は763で末尾に sequence が付くため落とす。
+     * Craft Recipe Request／Displayed Recipe はレシピIDが付け替えられないため落とす。
+     * Pick Item は757にもあり同形式のため素通しする（775とは違い、775は位置・対象を
+     * 指定するためスロット番号からは変換できない）。
+     * Steer Vehicle／Vehicle Move は757にもあり同形式のため素通しする
+     * （775とは違い、775は Player Input への改名・onGround 付き）。
+     * Client Information は757も759も763も 8 フィールド形式のため素通しする。
+     */
+    private Outcome handleClientPlayTo757(MinecraftPacket packet) {
+        int formProtocol = is763Like() ? 763 : clientProtocol;
+        PacketName name = PacketIds.nameFor(packet.id(), State.PLAY,
+                Direction.SERVERBOUND, formProtocol).orElse(null);
+        if (name == null) {
+            LOG.warning("757向けに変換できないプレイ状態のパケット（id=0x"
+                    + Integer.toHexString(packet.id()) + "）を落とします。");
+            return Outcome.drop();
+        }
+        switch (name) {
+            case PLAY_WINDOW_CLICK -> {
+                // スロットのアイテムIDの付け替えが要るため落とす。
+                // ChunkTranslator.translateWindowClick763To757 が要る。
+                logUntranslatedOnce("PLAY_WINDOW_CLICK");
+                return Outcome.drop();
+            }
+            case PLAY_SET_CREATIVE_SLOT -> {
+                // スロットのアイテムIDの付け替えが要るため落とす。
+                // ChunkTranslator.translateSetCreativeSlot763To757 が要る。
+                logUntranslatedOnce("PLAY_SET_CREATIVE_SLOT");
+                return Outcome.drop();
+            }
+            case PLAY_CHAT_MESSAGE -> {
+                // 署名・タイムスタンプ・salt を剥がして757の chat（0x03）に直す。
+                // 771以上は checksum（u8）付きのため775版を、763〜770は763版を使う
+                // （checksum は1.21.5（771）から。minecraft-data で確認）。
+                byte[] translated = formProtocol >= 771
+                        ? PlayTranslator.translateChatMessage775To757(packet.payload())
+                        : PlayTranslator.translateChatMessage763To757(packet.payload());
+                return Outcome.toServer(new MinecraftPacket(0x03, translated));
+            }
+            case PLAY_CHAT_COMMAND -> {
+                // 763〜765は署名付きのため剥がす。766以上は {command} のみのため
+                // そのまま757の chat（0x03）に送る
+                // （1.20.5で署名が無くなった。minecraft-data で確認）。
+                if (formProtocol <= 765) {
+                    return Outcome.toServer(new MinecraftPacket(0x03,
+                            PlayTranslator.translateChatCommand763To757(packet.payload())));
+                }
+                return Outcome.toServer(new MinecraftPacket(0x03, packet.payload()));
+            }
+            case PLAY_BLOCK_DIG -> {
+                OptionalInt serverId = PacketTranslator.translateId(
+                        name, formProtocol, ProtocolVersion.V1_18);
+                if (serverId.isEmpty()) {
+                    LOG.warning("757向けに変換できないプレイ状態のパケット（id=0x"
+                            + Integer.toHexString(packet.id()) + "）を落とします。");
+                    return Outcome.drop();
+                }
+                return Outcome.toServer(new MinecraftPacket(serverId.getAsInt(),
+                        PlayTranslator.translateBlockDig763To757(packet.payload())));
+            }
+            case PLAY_BLOCK_PLACE -> {
+                OptionalInt serverId = PacketTranslator.translateId(
+                        name, formProtocol, ProtocolVersion.V1_18);
+                if (serverId.isEmpty()) {
+                    LOG.warning("757向けに変換できないプレイ状態のパケット（id=0x"
+                            + Integer.toHexString(packet.id()) + "）を落とします。");
+                    return Outcome.drop();
+                }
+                return Outcome.toServer(new MinecraftPacket(serverId.getAsInt(),
+                        PlayTranslator.translateBlockPlace763To757(packet.payload())));
+            }
+            case PLAY_USE_ITEM -> {
+                OptionalInt serverId = PacketTranslator.translateId(
+                        name, formProtocol, ProtocolVersion.V1_18);
+                if (serverId.isEmpty()) {
+                    LOG.warning("757向けに変換できないプレイ状態のパケット（id=0x"
+                            + Integer.toHexString(packet.id()) + "）を落とします。");
+                    return Outcome.drop();
+                }
+                return Outcome.toServer(new MinecraftPacket(serverId.getAsInt(),
+                        PlayTranslator.translateUseItem763To757(packet.payload())));
+            }
+            case PLAY_SET_BEACON_EFFECT -> {
+                OptionalInt serverId = PacketTranslator.translateId(
+                        name, formProtocol, ProtocolVersion.V1_18);
+                if (serverId.isEmpty()) {
+                    LOG.warning("757向けに変換できないプレイ状態のパケット（id=0x"
+                            + Integer.toHexString(packet.id()) + "）を落とします。");
+                    return Outcome.drop();
+                }
+                return Outcome.toServer(new MinecraftPacket(serverId.getAsInt(),
+                        PlayTranslator.translateSetBeaconEffect763To757(packet.payload())));
+            }
+            case PLAY_UPDATE_STRUCTURE_BLOCK -> {
+                OptionalInt serverId = PacketTranslator.translateId(
+                        name, formProtocol, ProtocolVersion.V1_18);
+                if (serverId.isEmpty()) {
+                    LOG.warning("757向けに変換できないプレイ状態のパケット（id=0x"
+                            + Integer.toHexString(packet.id()) + "）を落とします。");
+                    return Outcome.drop();
+                }
+                return Outcome.toServer(new MinecraftPacket(serverId.getAsInt(),
+                        PlayTranslator.translateUpdateStructureBlock763To757(packet.payload())));
+            }
+            case PLAY_ENCHANT_ITEM -> {
+                OptionalInt serverId = PacketTranslator.translateId(
+                        name, formProtocol, ProtocolVersion.V1_18);
+                if (serverId.isEmpty()) {
+                    LOG.warning("757向けに変換できないプレイ状態のパケット（id=0x"
+                            + Integer.toHexString(packet.id()) + "）を落とします。");
+                    return Outcome.drop();
+                }
+                // 763〜766は {windowId i8, enchantment i8} で759と同形式のため
+                // translateEnchantItem759To757 を使う（763のエンチャント順は759と同一）。
+                // 767以上は varint 形式のため translateEnchantItem767To757 を使う
+                // （1.21.1で ContainerID 化。minecraft-data で確認）。
+                byte[] translated = formProtocol <= 766
+                        ? ChunkTranslator.translateEnchantItem759To757(packet.payload())
+                        : ChunkTranslator.translateEnchantItem767To757(packet.payload());
+                if (translated == null) {
+                    logUntranslatedOnce(name);
+                    return Outcome.drop();
+                }
+                return Outcome.toServer(new MinecraftPacket(serverId.getAsInt(), translated));
+            }
+            case PLAY_CRAFT_RECIPE_REQUEST, PLAY_DISPLAYED_RECIPE -> {
+                logUntranslatedOnce(name);
+                return Outcome.drop();
+            }
+            case PLAY_RESOURCE_PACK_RESPONSE -> {
+                if (lastSentPack == null) {
+                    LOG.warning("送っていないリソースパックへの応答（id=0x"
+                            + Integer.toHexString(packet.id()) + "）を落とします。");
+                    return Outcome.drop();
+                }
+                // 763の Resource Pack Response は結果のみで、757も結果のみのため
+                // そのまま送る（番号だけ757の 0x21 に付け替える）。
+                OptionalInt serverId = PacketTranslator.translateId(
+                        name, formProtocol, ProtocolVersion.V1_18);
+                if (serverId.isEmpty()) {
+                    LOG.warning("757向けに変換できないプレイ状態のパケット（id=0x"
+                            + Integer.toHexString(packet.id()) + "）を落とします。");
+                    return Outcome.drop();
+                }
+                return Outcome.toServer(new MinecraftPacket(serverId.getAsInt(), packet.payload()));
+            }
+            case PLAY_CONFIGURATION_ACKNOWLEDGED -> {
+                // 757に設定フェーズは無いため落とす。
+                logUntranslatedOnce(name);
+                return Outcome.drop();
+            }
+            case PLAY_CHUNK_BATCH_RECEIVED -> {
+                // 757に Chunk Batch は無いため落とす。
+                logUntranslatedOnce(name);
+                return Outcome.drop();
+            }
+            case PLAY_COOKIE_RESPONSE -> {
+                // 757に Cookie は無いため落とす。
+                logUntranslatedOnce(name);
+                return Outcome.drop();
+            }
+            default -> {
+                OptionalInt serverId = PacketTranslator.translateId(
+                        name, formProtocol, ProtocolVersion.V1_18);
+                if (serverId.isPresent()) {
+                    return Outcome.toServer(new MinecraftPacket(serverId.getAsInt(),
+                            packet.payload()));
+                }
+                LOG.warning("757向けに変換できないプレイ状態のパケット（id=0x"
+                        + Integer.toHexString(packet.id()) + "）を落とします。");
+                return Outcome.drop();
+            }
+        }
+    }
+
+    /**
+     * 775クライアント→内部757のプレイ状態（クライアント→サーバー）。
+     * 775→757へ変換してそのまま送る。775のデータコンポーネント形式の
+     * スロットは757の NBT 形式に直す変換器が要るため、スロットを含む
+     * パケットは落とす。
+     */
+    private Outcome handleClientPlay775To757(MinecraftPacket packet) {
+        MinecraftPacket as757 = to757ClientPacketFrom775(packet);
+        if (as757 == null) {
+            return Outcome.drop();
+        }
+        return Outcome.toServer(as757);
+    }
+
+    /**
+     * 775クライアントのパケットを757形式にする。757に相当が無いものは
+     * null を返し、呼び出し元が落とす（ログ済み）。
+     */
+    private MinecraftPacket to757ClientPacketFrom775(MinecraftPacket packet) {
+        // Window Click（775：0x12）：771・772・773・774・775とも HashedSlot のため
+        // 落とす（ハッシュの計算方法は未確定）。
+        if (packet.id() == 0x12) {
+            logUntranslatedOnce("PLAY_WINDOW_CLICK");
+            return null;
+        }
+        // Set Creative Slot（775：0x38）：データコンポーネント形式のスロットを
+        // 757の NBT 形式に直す変換が要る。
+        // ChunkTranslator.translateSetCreativeSlot775To757 が要る。
+        if (packet.id() == 0x38) {
+            logUntranslatedOnce("PLAY_SET_CREATIVE_SLOT");
+            return null;
+        }
+        // Attack（775：0x01）：757 には attack パケットが無いため、Use Entity（mouse==1）に
+        // 直す（757の use_entity は 0x0D。packet-ids-757.json で確認）。
+        if (packet.id() == 0x01) {
+            return new MinecraftPacket(0x0D,
+                    PlayTranslator.translateAttack775ToUseEntity757(packet.payload()));
+        }
+        // Use Entity（775：0x1A）：hand＋location＋sneaking 形式から
+        // 757の mouse 形式に直す（757の use_entity は 0x0D）。
+        if (packet.id() == 0x1A) {
+            return new MinecraftPacket(0x0D,
+                    PlayTranslator.translateUseEntity775To757(packet.payload()));
+        }
+        // Enchant Item（775：0x11）：enchantment は varint→i8 にし、
+        // swift_sneak（12番目）のずれも直す（757の enchant_item は 0x07）。
+        if (packet.id() == 0x11) {
+            byte[] translated = ChunkTranslator.translateEnchantItem775To757(packet.payload());
+            if (translated == null) {
+                logUntranslatedOnce("PLAY_ENCHANT_ITEM");
+                return null;
+            }
+            return new MinecraftPacket(0x07, translated);
+        }
+        // Client Command（775：0x0C）：action==2（request_gamerule_values）は757に無いため落とす。
+        if (packet.id() == 0x0C
+                && PlayTranslator.isClientCommandRequestGameRuleValues775(packet.payload())) {
+            logUntranslatedOnce("PLAY_CLIENT_COMMAND_REQUEST_GAMERULE_VALUES");
+            return null;
+        }
+        // Chat Command（775：0x07、符号なし）：タイムスタンプ・salt を剥がして
+        // 757の chat（0x03）に直す。
+        if (packet.id() == 0x07) {
+            return new MinecraftPacket(0x03,
+                    PlayTranslator.translateChatCommand775To757(packet.payload()));
+        }
+        // Chat Command Signed（775：0x08）：署名を剥がして757の chat（0x03）に直す。
+        if (packet.id() == 0x08) {
+            return new MinecraftPacket(0x03,
+                    PlayTranslator.translateChatCommandSigned775To757(packet.payload()));
+        }
+        // Chat Message（775：0x09）：署名・タイムスタンプ・salt を剥がして
+        // 757の chat（0x03）に直す。
+        if (packet.id() == 0x09) {
+            return new MinecraftPacket(0x03,
+                    PlayTranslator.translateChatMessage775To757(packet.payload()));
+        }
+        // それ以外：番号だけ757向けに付け替える（ペイロードは同形式と仮定。未確認）。
+        Optional<PacketName> name = PacketIds.nameFor(packet.id(), State.PLAY,
+                Direction.SERVERBOUND, ProtocolVersion.V26_1);
+        if (name.isEmpty()) {
+            LOG.warning("757向けに変換できないプレイ状態のパケット（id=0x"
+                    + Integer.toHexString(packet.id()) + "）を落とします。");
+            return null;
+        }
+        OptionalInt id757 = PacketTranslator.translateId(name.get(),
+                ProtocolVersion.V26_1, ProtocolVersion.V1_18);
+        if (id757.isEmpty()) {
+            LOG.warning("757に無いプレイ状態のパケット " + name.get() + " を落とします。");
+            return null;
+        }
+        return new MinecraftPacket(id757.getAsInt(), packet.payload());
     }
 
     /**
@@ -11444,7 +11955,7 @@ public final class ProxySession {
     private Outcome handleServerPlayFrom775(MinecraftPacket packet) {
         // Start Configuration（775：0x76）。763には設定フェーズもこのパケットも無い。
         if (packet.id() == 0x76) {
-            if (is763()) {
+            if (is763() || is757()) {
                 serverState = ServerState.CONFIGURATION;
                 reconfiguring = true;
                 LOG.info(() -> "プレイ中の Start Configuration を受けました（" + playerName
@@ -11484,9 +11995,9 @@ public final class ProxySession {
         // Disconnect（775：0x20、NBT）。
         if (packet.id() == 0x20) {
             closed = true;
-            if (is763() || is764()) {
+            if (is763() || is764() || is757()) {
                 byte[] payload = PlayTranslator.translateDisconnect765To763(packet.payload());
-                int outId = is763() ? 0x1A : 0x1B;
+                int outId = (is763() || is757()) ? 0x1A : 0x1B;
                 return new Outcome(List.of(),
                         List.of(new MinecraftPacket(outId, payload)), false, true);
             }
@@ -11510,6 +12021,12 @@ public final class ProxySession {
         }
         // Respawn（775：0x52。774（0x50）と同形式のためそのまま送る）。
         if (packet.id() == 0x52) {
+            if (is757()) {
+                // 757クライアント：775の Respawn は dimensionType がキー形式で757と違うため落とす
+                // （変換は PlayTranslator 担当。translateRespawn775To757 が要る）。
+                logUntranslatedOnce(PacketName.PLAY_RESPAWN);
+                return Outcome.drop();
+            }
             if (is774()) {
                 // 774クライアント：Respawn は 0x50（同形式）のまま。
                 return Outcome.toClient(new MinecraftPacket(0x50, packet.payload()));
@@ -11630,6 +12147,12 @@ public final class ProxySession {
      * それ以外は {@link #handleServerJoinGame774} と同じ方針で各クライアントへ送る。
      */
     private Outcome handleServerJoinGame775(MinecraftPacket packet) {
+        if (is757()) {
+            // 757クライアント：775の Join Game は dimensionType がキー形式で757と違うため落とす
+            // （変換は PlayTranslator 担当。translateJoinGame775To757 が要る）。
+            logUntranslatedOnce(PacketName.PLAY_JOIN_GAME);
+            return Outcome.drop();
+        }
         if (is774()) {
             advanceFlowSafely(() -> joinFlow.joinGameReceived());
             List<MinecraftPacket> toClient = new ArrayList<>();
@@ -11754,6 +12277,252 @@ public final class ProxySession {
     }
 
     /**
+     * 内部759のプレイ状態（サーバー→クライアント）。
+     * プレイ状態のパケットIDは760と違うものがある。ペイロードが
+     * 違うものだけ760形式へ直してから、760サーバー扱いで処理する。
+     * Player Info だけは1個の759パケットが複数個の761パケットになるため、
+     * ここで展開してから1個ずつ処理する。759の Player Info は760と
+     * 同じ旧式（action VarInt）のため、760→761の展開をそのまま使える。
+     * 変換できないもの（ブロックエンティティ種別が範囲外など）は落とす。
+     */
+    private Outcome handleServerPlayFrom759(MinecraftPacket packet) {
+        PacketName name759 = PacketIds.nameFor(packet.id(), State.PLAY,
+                Direction.CLIENTBOUND, 759).orElse(null);
+        if (name759 == PacketName.PLAY_PLAYER_INFO_UPDATE) {
+            List<byte[]> expanded =
+                    PlayTranslator.translatePlayerInfo760To761(packet.payload());
+            List<MinecraftPacket> toClient = new ArrayList<>();
+            List<MinecraftPacket> toServer = new ArrayList<>();
+            boolean relay = false;
+            boolean closeAfterSend = false;
+            for (byte[] payload761 : expanded) {
+                MinecraftPacket p761 = new MinecraftPacket(PacketIds.id(
+                        PacketName.PLAY_PLAYER_INFO_UPDATE, State.PLAY,
+                        Direction.CLIENTBOUND, 761).orElseThrow(), payload761);
+                MinecraftPacket to762 = to762ServerPacket(p761);
+                if (to762 == null) {
+                    continue;
+                }
+                MinecraftPacket converted = to763ServerPacket(to762);
+                if (converted == null) {
+                    continue;
+                }
+                Outcome outcome = handleServerPlayFrom763(converted);
+                toServer.addAll(outcome.toServer());
+                toClient.addAll(outcome.toClient());
+                relay |= outcome.relay();
+                closeAfterSend |= outcome.closeAfterSend();
+            }
+            return new Outcome(toServer, toClient, relay, closeAfterSend);
+        }
+        MinecraftPacket to760 = to760ServerPacket759(packet);
+        if (to760 == null) {
+            return Outcome.drop();
+        }
+        MinecraftPacket to761 = to761ServerPacket(to760);
+        if (to761 == null) {
+            return Outcome.drop();
+        }
+        MinecraftPacket to762 = to762ServerPacket(to761);
+        if (to762 == null) {
+            return Outcome.drop();
+        }
+        MinecraftPacket converted = to763ServerPacket(to762);
+        if (converted == null) {
+            return Outcome.drop();
+        }
+        return handleServerPlayFrom763(converted);
+    }
+
+    /**
+     * 内部757のプレイ状態（サーバー→クライアント）。
+     * Join Game（0x26）／Spawn Position（0x4B）／Keep Alive（0x21）／
+     * Ping（0x30）／Disconnect（0x1A、JSON 文字列）はここで処理する。
+     * Respawn（0x3D）は757クライアントにはそのまま送り、それ以外は
+     * dimensionType が値（NBT）で759と違うため落とす（素通し禁止。
+     * 変換は PlayTranslator 担当。translateRespawn757To759 が要る）。
+     * 759以上クライアントには {@link #to759ServerPacketFrom757} で757→759へ変換してから
+     * {@link #handleServerPlayFrom759} に委譲する（二段変換。Join Game／Respawn も同じ）。
+     * 757・759とも設定フェーズは無いため、Start Configuration は無い。
+     * 注意：ここから直接クライアント形式のパケットを返してはいけない。
+     * 呼び出し側 handleServerPlay が結果を763形式とみなして759〜762向けに
+     * 変換し直すため、759形式の ID（Join Game 0x23、Keep Alive 0x1E など）は
+     * 763の別パケットと誤読されて壊れる。
+     */
+    private Outcome handleServerPlayFrom757(MinecraftPacket packet) {
+        // Join Game（757：0x26）。
+        if (packet.id() == 0x26) {
+            return handleServerJoinGame757(packet);
+        }
+        // Spawn Position（757：0x4B）。
+        // 757クライアントにはそのまま送る。759以上は汎用経路に任せる
+        // （直接759形式 0x4A で返すと、呼び出し側 handleServerPlay が
+        // 0x4A を763の World Border Warning Delay と誤読して ID を壊す）。
+        if (packet.id() == 0x4B) {
+            advanceFlowSafely(() -> joinFlow.spawned());
+            if (is757()) {
+                return Outcome.toClient(new MinecraftPacket(0x4B, packet.payload()));
+            }
+        }
+        // Keep Alive（757：0x21）／Ping（757：0x30）／Disconnect（757：0x1A）は
+        // 汎用経路に任せる（to759ServerPacketFrom757 で素通し→
+        // handleServerPlayFrom759 の連鎖→呼び出し側の変換）。
+        // 直接クライアント形式で返すと、呼び出し側 handleServerPlay が
+        // 759形式の ID を763形式と誤読する（Keep Alive 0x1E→Unload Chunk、
+        // Ping 0x2D→Entity Look、Disconnect 0x17→Plugin Message）。
+        // Respawn（757：0x3D）。
+        if (packet.id() == 0x3D) {
+            if (is757()) {
+                // 757クライアント：そのまま送る。
+                return Outcome.toClient(new MinecraftPacket(0x3D, packet.payload()));
+            }
+            // 759形式に変換する（759の Respawn は 0x3B。dimension は NBT の値から名前に直す）。
+            // 759形式にしてから759の処理に任せる（759→760→761→762→763の既存の
+            // 連鎖で763形式になり、呼び出し側 handleServerPlay の変換で
+            // クライアントの形式に戻る）。直接759形式で返すと、呼び出し側が
+            // 0x3B を763形式と誤読して ID を壊すため、直接返してはいけない。
+            byte[] as759 = PlayTranslator.translateRespawn757To759(packet.payload());
+            return handleServerPlayFrom759(new MinecraftPacket(0x3B, as759));
+        }
+        // 759以上クライアント：757→759へ変換してから759の処理に任せる
+        // （759→760→761→762→763の既存の連鎖で763形式になり、呼び出し側
+        // handleServerPlay の変換でクライアントの形式に戻る）。
+        // handleServerPlay757To759 のように直接759形式で返すと、呼び出し側が
+        // パケットを763形式と誤読して ID を壊すため、直接返してはいけない。
+        MinecraftPacket as759 = to759ServerPacketFrom757(packet);
+        if (as759 == null) {
+            return Outcome.drop();
+        }
+        return handleServerPlayFrom759(as759);
+    }
+
+    /**
+     * Join Game（内部757：0x26）のクライアント向け変換。
+     * 757クライアントにはそのまま送る（Join Game 0x26、Resource Pack 0x3C）。
+     * 759以上クライアントには757→759へ変換してから759の処理に任せる
+     * （759→760→761→762→763の既存の連鎖で763形式になり、呼び出し側
+     * handleServerPlay の変換でクライアントの形式に戻る）。
+     * 757の Join Game は dimensionType が値（NBT）で759と違うため素通し禁止。
+     */
+    private Outcome handleServerJoinGame757(MinecraftPacket packet) {
+        if (is757()) {
+            advanceFlowSafely(() -> joinFlow.joinGameReceived());
+            List<MinecraftPacket> toClient = new ArrayList<>();
+            toClient.add(new MinecraftPacket(0x26, packet.payload()));
+            while (!pendingPacks.isEmpty()) {
+                PendingPack pack = pendingPacks.removeFirst();
+                lastSentPack = pack;
+                toClient.add(new MinecraftPacket(0x3C,
+                        PlayTranslator.buildPlayResourcePack763(pack, packOverrideForClient())));
+            }
+            return new Outcome(List.of(), toClient, false, false);
+        }
+        // 759以上クライアント：757→759へ変換してから759の処理に任せる
+        // （759→760→761→762→763の既存の連鎖で763形式になり、呼び出し側
+        // handleServerPlay の変換でクライアントの形式に戻る。Join Game は
+        // 762→763で translateJoinGame762To763 が portalCooldown を補い、
+        // 呼び出し側で763→759へ戻る。直接759形式（0x23）で返すと、
+        // 呼び出し側が 0x23 を763の Keep Alive と誤読して ID を壊すため、
+        // 直接返してはいけない）。
+        byte[] as759 = PlayTranslator.translateJoinGame757To759(packet.payload());
+        return handleServerPlayFrom759(new MinecraftPacket(0x23, as759));
+    }
+
+    /**
+     * 757サーバーのプレイ状態パケットを759形式にする。759に相当が無い／
+     * 変換できないものは null を返す（ログ済み）。
+     * 759クライアントへの送出と、760以上クライアントへの二段変換の
+     * 第一段で共用する。
+     * ペイロード変換が要るものは PlayTranslator／ChunkTranslator の
+     * *757To759 変換器を呼ぶ。同形式のもの（Update Time、Held Item Slot、
+     * Synchronize Player Position、Block Entity Data、Explosion、
+     * Entity Update Attributes）は素通しする（minecraft-data 1.18／1.19で
+     * フィールド一致を確認）。Spawn Entity Living／Painting／Chat は出力IDが
+     * 変わる（spawn_entity 0x00／system_chat 0x5F）ため switch の前で処理する。
+     * Acknowledge Player Digging は再構成できないため落とす。Sculk Vibration
+     * Signal は759に相当が無いため落とす。
+     */
+    private MinecraftPacket to759ServerPacketFrom757(MinecraftPacket packet) {
+        PacketName name = PacketIds.nameFor(packet.id(), State.PLAY,
+                Direction.CLIENTBOUND, ProtocolVersion.V1_18).orElse(null);
+        if (name == null) {
+            logUntranslatedOnce("PLAY_UNKNOWN_0x" + Integer.toHexString(packet.id()));
+            return null;
+        }
+        // 757の新規パケット：759の別パケットへ統合する（出力IDが変わるため switch の前に処理する）。
+        if (name == PacketName.PLAY_SPAWN_ENTITY_LIVING) {
+            // 759の spawn_entity は 0x00（packet-ids-757.json で確認）。
+            return new MinecraftPacket(0x00,
+                    PlayTranslator.translateSpawnEntityLiving757ToSpawnEntity759(packet.payload()));
+        }
+        if (name == PacketName.PLAY_SPAWN_ENTITY_PAINTING) {
+            return new MinecraftPacket(0x00,
+                    PlayTranslator.translateSpawnEntityPainting757ToSpawnEntity759(packet.payload()));
+        }
+        if (name == PacketName.PLAY_CHAT) {
+            // 757の chat（0x0F）→759の system_chat 0x5F（packet-ids-757.json で確認）。
+            return new MinecraftPacket(0x5F,
+                    PlayTranslator.translateChat757ToSystemChat(packet.payload()));
+        }
+        byte[] translated = switch (name) {
+            case PLAY_ENTITY_METADATA -> ChunkTranslator.translateEntityMetadata757To759(packet.payload());
+            case PLAY_SET_SLOT -> ChunkTranslator.translateSetSlot757To759(packet.payload());
+            case PLAY_WINDOW_ITEMS -> ChunkTranslator.translateWindowItems757To759(packet.payload());
+            case PLAY_SET_COOLDOWN -> ChunkTranslator.translateSetCooldown757To759(packet.payload());
+            case PLAY_ENTITY_EQUIPMENT -> ChunkTranslator.translateEntityEquipment757To759(packet.payload());
+            case PLAY_TRADE_LIST -> ChunkTranslator.translateTradeList757To759(packet.payload());
+            case PLAY_OPEN_WINDOW -> ChunkTranslator.translateOpenWindow757To759(packet.payload());
+            case PLAY_BLOCK_ACTION -> ChunkTranslator.translateBlockAction757To759(packet.payload());
+            case PLAY_SPAWN_ENTITY -> ChunkTranslator.translateSpawnEntity757To759(packet.payload());
+            case PLAY_SOUND_EFFECT -> ChunkTranslator.translateSoundEffect757To759(packet.payload());
+            case PLAY_ENTITY_SOUND_EFFECT -> ChunkTranslator.translateEntitySoundEffect757To759(packet.payload());
+            case PLAY_NAMED_SOUND_EFFECT -> ChunkTranslator.translateNamedSoundEffect757To759(packet.payload());
+            case PLAY_STOP_SOUND -> ChunkTranslator.translateStopSound757To759(packet.payload());
+            case PLAY_WORLD_PARTICLES -> ChunkTranslator.translateWorldParticles757To759(packet.payload());
+            case PLAY_ENTITY_EFFECT -> ChunkTranslator.translateEntityEffect757To759(packet.payload());
+            case PLAY_REMOVE_ENTITY_EFFECT -> ChunkTranslator.translateRemoveEntityEffect757To759(packet.payload());
+            case PLAY_ENTITY_UPDATE_ATTRIBUTES ->
+                    // 同形式のため素通しする（minecraft-data 1.18／1.19でフィールド一致を確認。変換器は無い）。
+                    packet.payload();
+            case PLAY_CHUNK_DATA -> ChunkTranslator.translateChunkData757To759(packet.payload());
+            case PLAY_BLOCK_CHANGE -> ChunkTranslator.translateBlockChange757To759(packet.payload());
+            case PLAY_MULTI_BLOCK_CHANGE -> ChunkTranslator.translateMultiBlockChange757To759(packet.payload());
+            case PLAY_BLOCK_ENTITY_DATA ->
+                    // 同形式のため素通しする（minecraft-data 1.18／1.19でフィールド一致を確認。変換器は無い）。
+                    packet.payload();
+            case PLAY_EXPLOSION ->
+                    // 同形式のため素通しする（minecraft-data 1.18／1.19でフィールド一致を確認。変換器は無い）。
+                    packet.payload();
+            case PLAY_ACKNOWLEDGE_PLAYER_DIGGING ->
+                    // 757は location＋block＋status＋successful、759は sequenceId のみのため再構成できず落とす。
+                    null;
+            case PLAY_INITIALIZE_WORLD_BORDER -> ChunkTranslator.translateInitializeWorldBorder757To759(packet.payload());
+            case PLAY_WORLD_BORDER_LERP_SIZE -> ChunkTranslator.translateWorldBorderLerpSize757To759(packet.payload());
+            case PLAY_PLAYER_INFO_UPDATE -> PlayTranslator.translatePlayerInfo757To759(packet.payload());
+            // 同形式のため素通しする（minecraft-data 1.18／1.19でフィールド一致を確認）。
+            case PLAY_UPDATE_TIME, PLAY_HELD_ITEM_SLOT, PLAY_SYNCHRONIZE_PLAYER_POSITION,
+                    PLAY_SPAWN_POSITION, PLAY_KEEP_ALIVE, PLAY_PING, PLAY_DISCONNECT ->
+                    packet.payload();
+            // 757の新規パケット：759に相当が無いため落とす。
+            case PLAY_SCULK_VIBRATION_SIGNAL ->
+                    // 759に相当が無いため落とす（sculk は1.19で別形式になった）。
+                    null;
+            default -> null;
+        };
+        if (translated == null) {
+            logUntranslatedOnce(name);
+            return null;
+        }
+        OptionalInt id759 = PacketTranslator.translateId(name,
+                ProtocolVersion.V1_18, ProtocolVersion.V1_19);
+        if (id759.isEmpty()) {
+            logUntranslatedOnce(name);
+            return null;
+        }
+        return new MinecraftPacket(id759.getAsInt(), translated);
+    }
+
+    /**
      * 内部774→クライアントのプレイ状態（サーバー→クライアント）。
      * Join Game／Respawn／Spawn Position／Keep Alive／Ping／Disconnect／
      * Start Configuration は773と同形式（ID も同じ）のため、773の処理を使い回す。
@@ -11766,7 +12535,7 @@ public final class ProxySession {
     private Outcome handleServerPlayFrom774(MinecraftPacket packet) {
         // Start Configuration（774：0x74）。763には設定フェーズもこのパケットも無い。
         if (packet.id() == 0x74) {
-            if (is763Like()) {
+            if (is763Like() || is757()) {
                 serverState = ServerState.CONFIGURATION;
                 reconfiguring = true;
                 LOG.info(() -> "プレイ中の Start Configuration を受けました（" + playerName
@@ -11806,9 +12575,9 @@ public final class ProxySession {
         // Disconnect（774：0x20、NBT）。
         if (packet.id() == 0x20) {
             closed = true;
-            if (is763Like() || is764()) {
+            if (is763Like() || is764() || is757()) {
                 byte[] payload = PlayTranslator.translateDisconnect765To763(packet.payload());
-                int outId = is763Like() ? 0x1A : 0x1B;
+                int outId = (is763Like() || is757()) ? 0x1A : 0x1B;
                 return new Outcome(List.of(),
                         List.of(new MinecraftPacket(outId, payload)), false, true);
             }
@@ -11832,6 +12601,12 @@ public final class ProxySession {
         }
         // Respawn（774：0x50。773（0x50）と同形式のためそのまま送る）。
         if (packet.id() == 0x50) {
+            if (is757()) {
+                // 757クライアント：774の Respawn は dimensionType がキー形式で757と違うため落とす
+                // （変換は PlayTranslator 担当。translateRespawn774To757 が要る）。
+                logUntranslatedOnce(PacketName.PLAY_RESPAWN);
+                return Outcome.drop();
+            }
             if (is775()) {
                 // 775クライアント：Respawn は 0x52（同形式）のまま。
                 return Outcome.toClient(new MinecraftPacket(0x52, packet.payload()));
@@ -12018,6 +12793,12 @@ public final class ProxySession {
      * それ以外は {@link #handleServerJoinGame773} と同じ方針で各クライアントへ送る。
      */
     private Outcome handleServerJoinGame774(MinecraftPacket packet) {
+        if (is757()) {
+            // 757クライアント：774の Join Game は dimensionType がキー形式で757と違うため落とす
+            // （変換は PlayTranslator 担当。translateJoinGame774To757 が要る）。
+            logUntranslatedOnce(PacketName.PLAY_JOIN_GAME);
+            return Outcome.drop();
+        }
         if (is775()) {
             advanceFlowSafely(() -> joinFlow.joinGameReceived());
             List<MinecraftPacket> toClient = new ArrayList<>();
@@ -12168,7 +12949,7 @@ public final class ProxySession {
     private Outcome handleServerPlayFrom773(MinecraftPacket packet) {
         // Start Configuration（773：0x74）。763には設定フェーズもこのパケットも無い。
         if (packet.id() == 0x74) {
-            if (is763Like()) {
+            if (is763Like() || is757()) {
                 serverState = ServerState.CONFIGURATION;
                 reconfiguring = true;
                 LOG.info(() -> "プレイ中の Start Configuration を受けました（" + playerName
@@ -12208,9 +12989,9 @@ public final class ProxySession {
         // Disconnect（773：0x20、NBT）。
         if (packet.id() == 0x20) {
             closed = true;
-            if (is763Like() || is764()) {
+            if (is763Like() || is764() || is757()) {
                 byte[] payload = PlayTranslator.translateDisconnect765To763(packet.payload());
-                int outId = is763Like() ? 0x1A : 0x1B;
+                int outId = (is763Like() || is757()) ? 0x1A : 0x1B;
                 return new Outcome(List.of(),
                         List.of(new MinecraftPacket(outId, payload)), false, true);
             }
@@ -12239,6 +13020,12 @@ public final class ProxySession {
         }
         // Respawn（774：0x50。772（0x4B）と同形式のためそのまま送る）。
         if (packet.id() == 0x50) {
+            if (is757()) {
+                // 757クライアント：773の Respawn は dimensionType がキー形式で757と違うため落とす
+                // （変換は PlayTranslator 担当。translateRespawn773To757 が要る）。
+                logUntranslatedOnce(PacketName.PLAY_RESPAWN);
+                return Outcome.drop();
+            }
             if (is775()) {
                 // 775クライアント：Respawn は 0x52（同形式）のまま。
                 return Outcome.toClient(new MinecraftPacket(0x52, packet.payload()));
@@ -12405,6 +13192,12 @@ public final class ProxySession {
      * それ以外は {@link #handleServerJoinGame772} と同じ方針で各クライアントへ送る。
      */
     private Outcome handleServerJoinGame773(MinecraftPacket packet) {
+        if (is757()) {
+            // 757クライアント：773の Join Game は dimensionType がキー形式で757と違うため落とす
+            // （変換は PlayTranslator 担当。translateJoinGame773To757 が要る）。
+            logUntranslatedOnce(PacketName.PLAY_JOIN_GAME);
+            return Outcome.drop();
+        }
         if (is772()) {
             advanceFlowSafely(() -> joinFlow.joinGameReceived());
             List<MinecraftPacket> toClient = new ArrayList<>();
@@ -12539,7 +13332,7 @@ public final class ProxySession {
     private Outcome handleServerPlayFrom772(MinecraftPacket packet) {
         // Start Configuration（772：0x6F）。763には設定フェーズもこのパケットも無い。
         if (packet.id() == 0x6F) {
-            if (is763Like()) {
+            if (is763Like() || is757()) {
                 serverState = ServerState.CONFIGURATION;
                 reconfiguring = true;
                 LOG.info(() -> "プレイ中の Start Configuration を受けました（" + playerName
@@ -12579,9 +13372,9 @@ public final class ProxySession {
         // Disconnect（772：0x1C、NBT）。
         if (packet.id() == 0x1C) {
             closed = true;
-            if (is763Like() || is764()) {
+            if (is763Like() || is764() || is757()) {
                 byte[] payload = PlayTranslator.translateDisconnect765To763(packet.payload());
-                int outId = is763Like() ? 0x1A : 0x1B;
+                int outId = (is763Like() || is757()) ? 0x1A : 0x1B;
                 return new Outcome(List.of(),
                         List.of(new MinecraftPacket(outId, payload)), false, true);
             }
@@ -12610,6 +13403,12 @@ public final class ProxySession {
         }
         // Respawn（772：0x4B。771（0x4B）と同形式のためそのまま送る）。
         if (packet.id() == 0x4B) {
+            if (is757()) {
+                // 757クライアント：772の Respawn は dimensionType がキー形式で757と違うため落とす
+                // （変換は PlayTranslator 担当。translateRespawn772To757 が要る）。
+                logUntranslatedOnce(PacketName.PLAY_RESPAWN);
+                return Outcome.drop();
+            }
             if (is771()) {
                 // 771クライアント：Respawn は 0x4B（同形式）のまま。
                 return Outcome.toClient(new MinecraftPacket(0x4B, packet.payload()));
@@ -12753,6 +13552,12 @@ public final class ProxySession {
      * それ以外は {@link #handleServerJoinGame771} と同じ方針で各クライアントへ送る。
      */
     private Outcome handleServerJoinGame772(MinecraftPacket packet) {
+        if (is757()) {
+            // 757クライアント：772の Join Game は dimensionType がキー形式で757と違うため落とす
+            // （変換は PlayTranslator 担当。translateJoinGame772To757 が要る）。
+            logUntranslatedOnce(PacketName.PLAY_JOIN_GAME);
+            return Outcome.drop();
+        }
         if (is775()) {
             advanceFlowSafely(() -> joinFlow.joinGameReceived());
             List<MinecraftPacket> toClient = new ArrayList<>();
@@ -12926,7 +13731,7 @@ public final class ProxySession {
     private Outcome handleServerPlayFrom771(MinecraftPacket packet) {
         // Start Configuration（771：0x6F）。763には設定フェーズもこのパケットも無い。
         if (packet.id() == 0x6F) {
-            if (is763Like()) {
+            if (is763Like() || is757()) {
                 serverState = ServerState.CONFIGURATION;
                 reconfiguring = true;
                 LOG.info(() -> "プレイ中の Start Configuration を受けました（" + playerName
@@ -12966,9 +13771,9 @@ public final class ProxySession {
         // Disconnect（771：0x1C、NBT）。
         if (packet.id() == 0x1C) {
             closed = true;
-            if (is763Like() || is764()) {
+            if (is763Like() || is764() || is757()) {
                 byte[] payload = PlayTranslator.translateDisconnect765To763(packet.payload());
-                int outId = is763Like() ? 0x1A : 0x1B;
+                int outId = (is763Like() || is757()) ? 0x1A : 0x1B;
                 return new Outcome(List.of(),
                         List.of(new MinecraftPacket(outId, payload)), false, true);
             }
@@ -13002,6 +13807,12 @@ public final class ProxySession {
         }
         // Respawn（771：0x4B。770（0x4B）と同形式のため770の変換を使い回す）。
         if (packet.id() == 0x4B) {
+            if (is757()) {
+                // 757クライアント：771の Respawn は dimensionType がキー形式で757と違うため落とす
+                // （変換は PlayTranslator 担当。translateRespawn771To757 が要る）。
+                logUntranslatedOnce(PacketName.PLAY_RESPAWN);
+                return Outcome.drop();
+            }
             if (is775()) {
                 // 775クライアント：Respawn は 0x52（同形式）のまま。
                 return Outcome.toClient(new MinecraftPacket(0x52, packet.payload()));
@@ -13123,6 +13934,12 @@ public final class ProxySession {
      * それ以外は {@link #handleServerJoinGame770} と同じ方針で各クライアントへ送る。
      */
     private Outcome handleServerJoinGame771(MinecraftPacket packet) {
+        if (is757()) {
+            // 757クライアント：771の Join Game は dimensionType がキー形式で757と違うため落とす
+            // （変換は PlayTranslator 担当。translateJoinGame771To757 が要る）。
+            logUntranslatedOnce(PacketName.PLAY_JOIN_GAME);
+            return Outcome.drop();
+        }
         if (is775()) {
             advanceFlowSafely(() -> joinFlow.joinGameReceived());
             List<MinecraftPacket> toClient = new ArrayList<>();
@@ -13336,7 +14153,7 @@ public final class ProxySession {
     private Outcome handleServerPlayFrom770(MinecraftPacket packet) {
         // Start Configuration（770：0x6F）。763には設定フェーズもこのパケットも無い。
         if (packet.id() == 0x6F) {
-            if (is763Like()) {
+            if (is763Like() || is757()) {
                 serverState = ServerState.CONFIGURATION;
                 reconfiguring = true;
                 LOG.info(() -> "プレイ中の Start Configuration を受けました（" + playerName
@@ -13376,9 +14193,9 @@ public final class ProxySession {
         // Disconnect（770：0x1C、NBT）。
         if (packet.id() == 0x1C) {
             closed = true;
-            if (is763Like() || is764()) {
+            if (is763Like() || is764() || is757()) {
                 byte[] payload = PlayTranslator.translateDisconnect765To763(packet.payload());
-                int outId = is763Like() ? 0x1A : 0x1B;
+                int outId = (is763Like() || is757()) ? 0x1A : 0x1B;
                 return new Outcome(List.of(),
                         List.of(new MinecraftPacket(outId, payload)), false, true);
             }
@@ -13412,6 +14229,12 @@ public final class ProxySession {
         }
         // Respawn（770：0x4B。769（0x4C）と同形式のため769の変換を使い回す）。
         if (packet.id() == 0x4B) {
+            if (is757()) {
+                // 757クライアント：770の Respawn は dimensionType がキー形式で757と違うため落とす
+                // （変換は PlayTranslator 担当。translateRespawn770To757 が要る）。
+                logUntranslatedOnce(PacketName.PLAY_RESPAWN);
+                return Outcome.drop();
+            }
             if (is775()) {
                 // 775クライアント：Respawn は 0x52（同形式）のまま。
                 return Outcome.toClient(new MinecraftPacket(0x52, packet.payload()));
@@ -13526,6 +14349,12 @@ public final class ProxySession {
      * それ以外は {@link #handleServerJoinGame769} と同じ方針で各クライアントへ送る。
      */
     private Outcome handleServerJoinGame770(MinecraftPacket packet) {
+        if (is757()) {
+            // 757クライアント：770の Join Game は dimensionType がキー形式で757と違うため落とす
+            // （変換は PlayTranslator 担当。translateJoinGame770To757 が要る）。
+            logUntranslatedOnce(PacketName.PLAY_JOIN_GAME);
+            return Outcome.drop();
+        }
         if (is775()) {
             advanceFlowSafely(() -> joinFlow.joinGameReceived());
             List<MinecraftPacket> toClient = new ArrayList<>();
@@ -13733,7 +14562,7 @@ public final class ProxySession {
     private Outcome handleServerPlayFrom769(MinecraftPacket packet) {
         // Start Configuration（769：0x70）。763には設定フェーズもこのパケットも無い。
         if (packet.id() == 0x70) {
-            if (is763Like()) {
+            if (is763Like() || is757()) {
                 serverState = ServerState.CONFIGURATION;
                 reconfiguring = true;
                 LOG.info(() -> "プレイ中の Start Configuration を受けました（" + playerName
@@ -13773,9 +14602,9 @@ public final class ProxySession {
         // Disconnect（769：0x1D、NBT）。
         if (packet.id() == 0x1D) {
             closed = true;
-            if (is763Like() || is764()) {
+            if (is763Like() || is764() || is757()) {
                 byte[] payload = PlayTranslator.translateDisconnect765To763(packet.payload());
-                int outId = is763Like() ? 0x1A : 0x1B;
+                int outId = (is763Like() || is757()) ? 0x1A : 0x1B;
                 return new Outcome(List.of(),
                         List.of(new MinecraftPacket(outId, payload)), false, true);
             }
@@ -13809,6 +14638,12 @@ public final class ProxySession {
         }
         // Respawn（769：0x4C。768と同形式のため768の変換を使い回す）。
         if (packet.id() == 0x4C) {
+            if (is757()) {
+                // 757クライアント：769の Respawn は dimensionType がキー形式で757と違うため落とす
+                // （変換は PlayTranslator 担当。translateRespawn769To757 が要る）。
+                logUntranslatedOnce(PacketName.PLAY_RESPAWN);
+                return Outcome.drop();
+            }
             if (is775()) {
                 // 775クライアント：Respawn は 0x52（同形式）のまま。
                 return Outcome.toClient(new MinecraftPacket(0x52, packet.payload()));
@@ -13917,6 +14752,12 @@ public final class ProxySession {
      * それ以外は {@link #handleServerJoinGame768} と同じ方針で各クライアントへ送る。
      */
     private Outcome handleServerJoinGame769(MinecraftPacket packet) {
+        if (is757()) {
+            // 757クライアント：769の Join Game は dimensionType がキー形式で757と違うため落とす
+            // （変換は PlayTranslator 担当。translateJoinGame769To757 が要る）。
+            logUntranslatedOnce(PacketName.PLAY_JOIN_GAME);
+            return Outcome.drop();
+        }
         if (is775()) {
             advanceFlowSafely(() -> joinFlow.joinGameReceived());
             List<MinecraftPacket> toClient = new ArrayList<>();
@@ -14214,7 +15055,7 @@ public final class ProxySession {
     private Outcome handleServerPlayFrom768(MinecraftPacket packet) {
         // Start Configuration（768：0x70）。763には設定フェーズもこのパケットも無い。
         if (packet.id() == 0x70) {
-            if (is763Like()) {
+            if (is763Like() || is757()) {
                 serverState = ServerState.CONFIGURATION;
                 reconfiguring = true;
                 LOG.info(() -> "プレイ中の Start Configuration を受けました（" + playerName
@@ -14254,9 +15095,9 @@ public final class ProxySession {
         // Disconnect（768：0x1D、NBT）。
         if (packet.id() == 0x1D) {
             closed = true;
-            if (is763Like() || is764()) {
+            if (is763Like() || is764() || is757()) {
                 byte[] payload = PlayTranslator.translateDisconnect765To763(packet.payload());
-                int outId = is763Like() ? 0x1A : 0x1B;
+                int outId = (is763Like() || is757()) ? 0x1A : 0x1B;
                 return new Outcome(List.of(),
                         List.of(new MinecraftPacket(outId, payload)), false, true);
             }
@@ -14290,6 +15131,12 @@ public final class ProxySession {
         }
         // Respawn（768：0x4C）。
         if (packet.id() == 0x4C) {
+            if (is757()) {
+                // 757クライアント：768の Respawn は dimensionType がキー形式で757と違うため落とす
+                // （変換は PlayTranslator 担当。translateRespawn768To757 が要る）。
+                logUntranslatedOnce(PacketName.PLAY_RESPAWN);
+                return Outcome.drop();
+            }
             if (is775()) {
                 // 775クライアント：Respawn は 0x52（同形式）のまま。
                 return Outcome.toClient(new MinecraftPacket(0x52, packet.payload()));
@@ -14390,6 +15237,12 @@ public final class ProxySession {
      * {@link #handleServerJoinGame766} と同じ方針で各クライアントへ送る。
      */
     private Outcome handleServerJoinGame768(MinecraftPacket packet) {
+        if (is757()) {
+            // 757クライアント：768の Join Game は dimensionType がキー形式で757と違うため落とす
+            // （変換は PlayTranslator 担当。translateJoinGame768To757 が要る）。
+            logUntranslatedOnce(PacketName.PLAY_JOIN_GAME);
+            return Outcome.drop();
+        }
         if (is775()) {
             // 775クライアント：Join Game は 0x31、Add Resource Pack は 0x51。
             advanceFlowSafely(() -> joinFlow.joinGameReceived());
@@ -15237,7 +16090,7 @@ public final class ProxySession {
                 while (!pendingPacks.isEmpty()) {
                     PendingPack pack = pendingPacks.removeFirst();
                     lastSentPack = pack;
-                    toClient.add(new MinecraftPacket(0x40,
+                    toClient.add(new MinecraftPacket(is757() ? 0x3C : 0x40,
                             PlayTranslator.buildPlayResourcePack763(pack, packFor763LikeClient())));
                 }
                 yield new Outcome(toServer, toClient, false, false);
@@ -15890,7 +16743,7 @@ public final class ProxySession {
                 while (!pendingPacks.isEmpty()) {
                     PendingPack pack = pendingPacks.removeFirst();
                     lastSentPack = pack;
-                    toClient.add(new MinecraftPacket(0x40,
+                    toClient.add(new MinecraftPacket(is757() ? 0x3C : 0x40,
                             PlayTranslator.buildPlayResourcePack763(pack, packFor763LikeClient())));
                 }
                 yield new Outcome(toServer, toClient, false, false);
@@ -16534,7 +17387,7 @@ public final class ProxySession {
                 while (!pendingPacks.isEmpty()) {
                     PendingPack pack = pendingPacks.removeFirst();
                     lastSentPack = pack;
-                    toClient.add(new MinecraftPacket(0x40,
+                    toClient.add(new MinecraftPacket(is757() ? 0x3C : 0x40,
                             PlayTranslator.buildPlayResourcePack763(pack, packFor763LikeClient())));
                 }
                 yield new Outcome(toServer, toClient, false, false);
@@ -17197,7 +18050,7 @@ public final class ProxySession {
                 while (!pendingPacks.isEmpty()) {
                     PendingPack pack = pendingPacks.removeFirst();
                     lastSentPack = pack;
-                    toClient.add(new MinecraftPacket(0x40,
+                    toClient.add(new MinecraftPacket(is757() ? 0x3C : 0x40,
                             PlayTranslator.buildPlayResourcePack763(pack, packFor763LikeClient())));
                 }
                 yield new Outcome(toServer, toClient, false, false);
@@ -18165,7 +19018,7 @@ public final class ProxySession {
                 while (!pendingPacks.isEmpty()) {
                     PendingPack pack = pendingPacks.removeFirst();
                     lastSentPack = pack;
-                    toClient.add(new MinecraftPacket(0x40,
+                    toClient.add(new MinecraftPacket(is757() ? 0x3C : 0x40,
                             PlayTranslator.buildPlayResourcePack763(pack, packFor763LikeClient())));
                 }
                 yield new Outcome(toServer, toClient, false, false);
@@ -19277,7 +20130,7 @@ public final class ProxySession {
                 while (!pendingPacks.isEmpty()) {
                     PendingPack pack = pendingPacks.removeFirst();
                     lastSentPack = pack;
-                    toClient.add(new MinecraftPacket(0x40,
+                    toClient.add(new MinecraftPacket(is757() ? 0x3C : 0x40,
                             PlayTranslator.buildPlayResourcePack763(pack, packFor763LikeClient())));
                 }
                 yield new Outcome(toServer, toClient, false, false);
@@ -20707,7 +21560,7 @@ public final class ProxySession {
                 while (!pendingPacks.isEmpty()) {
                     PendingPack pack = pendingPacks.removeFirst();
                     lastSentPack = pack;
-                    toClient.add(new MinecraftPacket(0x40,
+                    toClient.add(new MinecraftPacket(is757() ? 0x3C : 0x40,
                             PlayTranslator.buildPlayResourcePack763(pack, packFor763LikeClient())));
                 }
                 yield new Outcome(toServer, toClient, false, false);
