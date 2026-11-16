@@ -119,10 +119,103 @@ public final class BedrockEntityTranslator {
                     RegistryRemapper.mapEntityType774To765(typeId);
             case RegistryRemapper.PROTOCOL_775 ->
                     RegistryRemapper.mapEntityType775To765(typeId);
+            case RegistryRemapper.PROTOCOL_757 -> mapEntityType757To765(typeId);
+            case RegistryRemapper.PROTOCOL_756 -> mapEntityType756To765(typeId);
+            case RegistryRemapper.PROTOCOL_755 -> mapEntityType755To765(typeId);
+            case RegistryRemapper.PROTOCOL_751 -> mapEntityType751To765(typeId);
+            case RegistryRemapper.PROTOCOL_736 -> mapEntityType736To765(typeId);
+            case RegistryRemapper.PROTOCOL_753 -> mapEntityType753To765(typeId);
+            case RegistryRemapper.PROTOCOL_754 -> mapEntityType754To765(typeId);
             default -> (typeId < 0 || typeId > RegistryRemapper.MAX_ENTITY_TYPE_765)
                     ? PIG_TYPE_765 : typeId;
         };
     }
+
+    /**
+     * 757 のエンティティ種別IDを 765 に正規化する。RegistryRemapper に
+     * mapEntityType757To765 は無いため、既存の隣接表の連鎖
+     * 757→759→760→761→762→763 と、763→765 の逆引き表を繋ぐ。
+     * 757 にあって 759 に無い種別は無い（759 は 757 の 113 種を全て含み、
+     * 5 種を追加。Stage A §11.1 実測）ため、連鎖でブタに落ちるのは
+     * 範囲外の番号だけ。RegistryRemapper には追加しない。
+     */
+    static int mapEntityType757To765(int typeId) {
+        int id759 = RegistryRemapper.mapEntityType757To759(typeId);
+        int id760 = RegistryRemapper.mapEntityType759To760(id759);
+        int id761 = RegistryRemapper.mapEntityType760To761(id760);
+        int id762 = RegistryRemapper.mapEntityType761To762(id761);
+        int id763 = RegistryRemapper.mapEntityType762To763(id762);
+        if (id763 < 0 || id763 >= ENTITY_TYPE_763_TO_765.length) {
+            return PIG_TYPE_765;
+        }
+        int mapped = ENTITY_TYPE_763_TO_765[id763];
+        return mapped < 0 ? PIG_TYPE_765 : mapped;
+    }
+
+    /**
+     * 756 のエンティティ種別IDを 765 に正規化する。756→757 は恒等写像
+     * （113 件・同一順序。Stage A §11.1 実測）のため、757 の連鎖
+     * （{@link #mapEntityType757To765}）にそのまま繋ぐ。
+     * RegistryRemapper には追加しない。
+     */
+    static int mapEntityType756To765(int typeId) {
+        return mapEntityType757To765(RegistryRemapper.mapEntityType756To757(typeId));
+    }
+
+    /**
+     * 755 のエンティティ種別IDを 765 に正規化する。755→756 は恒等写像
+     * （113 件・同一順序。Stage A §11.1 実測）のため、756 の連鎖
+     * （{@link #mapEntityType756To765}）にそのまま繋ぐ。
+     * RegistryRemapper には追加しない。
+     */
+    static int mapEntityType755To765(int typeId) {
+        return mapEntityType756To765(RegistryRemapper.mapEntityType755To756(typeId));
+    }
+
+    /**
+     * 754 のエンティティ種別IDを 765 に正規化する。754→755 は RegistryTables754 の
+     * 表（Stage A §11.1 実測。108 件。ブタは 754 が 59、755 が 64。755 にだけある
+     * axolotl・glow_item_frame・glow_squid・goat・marker の 5 種は無い）のため、
+     * 755 の連鎖（{@link #mapEntityType755To765}）にそのまま繋ぐ。
+     * RegistryRemapper には追加しない。
+     */
+    static int mapEntityType754To765(int typeId) {
+        return mapEntityType755To765(RegistryRemapper.mapEntityType754To755(typeId));
+    }
+
+    /**
+     * 753 のエンティティ種別IDを 765 に正規化する。753→754 は恒等写像
+     * （RegistryTables753。108 件・全件同一順序。Stage A §11.1・Stage B §14.4 実測。
+     * 実バニラ 1.16.3 の registries.json（272,499 バイト）は 1.16.5 版とバイト同一）のため、
+     * 754 の連鎖（{@link #mapEntityType754To765}）にそのまま繋ぐ。
+     * RegistryRemapper には追加しない。
+     */
+    static int mapEntityType753To765(int typeId) {
+        return mapEntityType754To765(RegistryRemapper.mapEntityType753To754(typeId));
+    }
+
+    /**
+     * 751 のエンティティ種別IDを 765 に正規化する。751→753 は恒等写像
+     * （RegistryTables751。108 件・全件同一順序。Stage A §11.1・Stage B §14.4 実測。
+     * 実バニラ 1.16.2 の registries.json（272,499 バイト）は 1.16.3 版とバイト同一）のため、
+     * 753 の連鎖（{@link #mapEntityType753To765}）にそのまま繋ぐ。
+     * RegistryRemapper には追加しない。
+     */
+    static int mapEntityType751To765(int typeId) {
+        return mapEntityType753To765(RegistryRemapper.mapEntityType751To753(typeId));
+    }
+
+    /**
+     * 736 のエンティティ種別IDを 765 に正規化する。736→751 は非恒等写像
+     * （RegistryTables736。107 件。736→751 の順向き非恒等 46 件。Stage A §11.1・Stage B §14.4 実測。
+     * piglin_brute（751 の 61）は 736 には無く 736 の 61 は 751 の 62。
+     * 736 の piglin（60）は 751 の piglin（60）と同一）のため、751 の連鎖
+     * （{@link #mapEntityType751To765}）に表で繋ぐ。RegistryRemapper には追加しない。
+     */
+    static int mapEntityType736To765(int typeId) {
+        return mapEntityType751To765(RegistryRemapper.mapEntityType736To751(typeId));
+    }
+
 
     /**
      * サーバーのプロトコル番号のアイテムIDを 765 に正規化する。
@@ -148,6 +241,157 @@ public final class BedrockEntityTranslator {
             case RegistryRemapper.PROTOCOL_773 -> RegistryRemapper.mapItem773To765(itemId);
             case RegistryRemapper.PROTOCOL_774 -> RegistryRemapper.mapItem774To765(itemId);
             case RegistryRemapper.PROTOCOL_775 -> RegistryRemapper.mapItem775To765(itemId);
+            case RegistryRemapper.PROTOCOL_757 -> {
+                // 763 側の逆引き表（ITEM_763_TO_765）を使う。ブロック・
+                // エンティティ・パーティクルと同じパターン。汎用の
+                // mapItemReverse（ITEM_REVERSE_MAP）は 763→765 の写像が
+                // Bedrock 側の表と食い違っており、ボート（oak_boat 736→779
+                // になる。正しくは 773）・レコード・絵画がずれるため使わない。
+                // 連鎖の終端（763）は 1.20.2 の実測値と一致することを確認済み
+                // （2026-11-15：oak_boat 736、music_disc_cat 1123、painting 843）。
+                int id763 = RegistryRemapper.mapItem762To763(
+                        RegistryRemapper.mapItem761To762(
+                                RegistryRemapper.mapItem760To761(
+                                        RegistryRemapper.mapItem759To760(
+                                                RegistryRemapper.mapItem757To759(itemId)))));
+                if (id763 < 0 || id763 >= ITEM_763_TO_765.length) {
+                    yield STONE_ITEM_765;
+                }
+                int mapped = ITEM_763_TO_765[id763];
+                yield mapped < 0 ? STONE_ITEM_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_756 -> {
+                // 757 と同じく汎用の mapItemReverse は使わない（ITEM_REVERSE_MAP
+                // と ITEM_763_TO_765 の食い違いは RegistryRemapper の判断待ちで、
+                // Bedrock 側は 756 分岐だけ正しい写像で書く。757 の柱 2 と同じ対処）。
+                // 連鎖は 756→757→759→760→761→762→763（756→757 は
+                // music_disc_otherside（757 の 1027）1 件のずれだけ。
+                // Stage A §11.1 実測）。
+                int id763 = RegistryRemapper.mapItem762To763(
+                        RegistryRemapper.mapItem761To762(
+                                RegistryRemapper.mapItem760To761(
+                                        RegistryRemapper.mapItem759To760(
+                                                RegistryRemapper.mapItem757To759(
+                                                        RegistryRemapper.mapItem756To757(itemId))))));
+                if (id763 < 0 || id763 >= ITEM_763_TO_765.length) {
+                    yield STONE_ITEM_765;
+                }
+                int mapped = ITEM_763_TO_765[id763];
+                yield mapped < 0 ? STONE_ITEM_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_755 -> {
+                // 756 と同じく汎用の mapItemReverse は使わない（ITEM_REVERSE_MAP
+                // と ITEM_763_TO_765 の食い違いは RegistryRemapper の判断待ちで、
+                // Bedrock 側は 755 分岐だけ正しい写像で書く。756 の柱 2 と同じ対処）。
+                // 連鎖は 755→756→757→759→760→761→762→763（755→756 は
+                // 恒等写像。1,100 件・同一順序。Stage A §11.1 実測）。
+                int id763 = RegistryRemapper.mapItem762To763(
+                        RegistryRemapper.mapItem761To762(
+                                RegistryRemapper.mapItem760To761(
+                                        RegistryRemapper.mapItem759To760(
+                                                RegistryRemapper.mapItem757To759(
+                                                        RegistryRemapper.mapItem756To757(
+                                                                RegistryRemapper.mapItem755To756(itemId)))))));
+                if (id763 < 0 || id763 >= ITEM_763_TO_765.length) {
+                    yield STONE_ITEM_765;
+                }
+                int mapped = ITEM_763_TO_765[id763];
+                yield mapped < 0 ? STONE_ITEM_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_736 -> {
+                // 751 と同じく汎用の mapItemReverse は使わない（ITEM_REVERSE_MAP
+                // と ITEM_763_TO_765 の食い違いは RegistryRemapper の判断待ちで、
+                // Bedrock 側は 736 分岐だけ正しい写像で書く。751 の柱 2 と同じ対処）。
+                // 連鎖は 736→751→753→754→755→756→757→759→760→761→762→763（736→751 は
+                // 非恒等写像。RegistryTables736。975 件。736→751 の順向き非恒等 248 件。Stage A §11.1 実測。
+                // piglin_brute_spawn_egg（751 の 791）は 736 には無い。736 の 791 は 751 の 792。
+                // 736 の piglin_spawn_egg（790）は 751 の piglin_spawn_egg（790）と同一。
+                // turtle_spawn_egg は 736 が 809、751 が 810（RegistryRemapper736Test 実測）。
+                // grass_path（736 の 372）は 751 でも grass_path（372）で、755 で dirt_path（393）に改名）。
+                int id763 = RegistryRemapper.mapItem762To763(
+                        RegistryRemapper.mapItem761To762(
+                                RegistryRemapper.mapItem760To761(
+                                        RegistryRemapper.mapItem759To760(
+                                                RegistryRemapper.mapItem757To759(
+                                                        RegistryRemapper.mapItem756To757(
+                                                                RegistryRemapper.mapItem755To756(
+                                                                        RegistryRemapper.mapItem754To755(
+                                                                                RegistryRemapper.mapItem753To754(
+                                                                                        RegistryRemapper.mapItem751To753(
+                                                                                                RegistryRemapper.mapItem736To751(itemId)))))))))));
+                if (id763 < 0 || id763 >= ITEM_763_TO_765.length) {
+                    yield STONE_ITEM_765;
+                }
+                int mapped = ITEM_763_TO_765[id763];
+                yield mapped < 0 ? STONE_ITEM_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_751 -> {
+                // 753 と同じく汎用の mapItemReverse は使わない（ITEM_REVERSE_MAP
+                // と ITEM_763_TO_765 の食い違いは RegistryRemapper の判断待ちで、
+                // Bedrock 側は 751 分岐だけ正しい写像で書く。753 の柱 2 と同じ対処）。
+                // 連鎖は 751→753→754→755→756→757→759→760→761→762→763（751→753 は
+                // 恒等写像。RegistryTables751。976 件。Stage A §11.1 実測。
+                // grass_path（372）は 753 でも grass_path（372）で、755 で dirt_path（393）に改名）。
+                int id763 = RegistryRemapper.mapItem762To763(
+                        RegistryRemapper.mapItem761To762(
+                                RegistryRemapper.mapItem760To761(
+                                        RegistryRemapper.mapItem759To760(
+                                                RegistryRemapper.mapItem757To759(
+                                                        RegistryRemapper.mapItem756To757(
+                                                                RegistryRemapper.mapItem755To756(
+                                                                        RegistryRemapper.mapItem754To755(
+                                                                                RegistryRemapper.mapItem753To754(
+                                                                                        RegistryRemapper.mapItem751To753(itemId))))))))));
+                if (id763 < 0 || id763 >= ITEM_763_TO_765.length) {
+                    yield STONE_ITEM_765;
+                }
+                int mapped = ITEM_763_TO_765[id763];
+                yield mapped < 0 ? STONE_ITEM_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_753 -> {
+                // 754 と同じく汎用の mapItemReverse は使わない（ITEM_REVERSE_MAP
+                // と ITEM_763_TO_765 の食い違いは RegistryRemapper の判断待ちで、
+                // Bedrock 側は 753 分岐だけ正しい写像で書く。754 の柱 2 と同じ対処）。
+                // 連鎖は 753→754→755→756→757→759→760→761→762→763（753→754 は
+                // 恒等写像。RegistryTables753。976 件。Stage A §11.1 実測。
+                // grass_path（372）は 754 でも grass_path（372）で、755 で dirt_path（393）に改名）。
+                int id763 = RegistryRemapper.mapItem762To763(
+                        RegistryRemapper.mapItem761To762(
+                                RegistryRemapper.mapItem760To761(
+                                        RegistryRemapper.mapItem759To760(
+                                                RegistryRemapper.mapItem757To759(
+                                                        RegistryRemapper.mapItem756To757(
+                                                                RegistryRemapper.mapItem755To756(
+                                                                        RegistryRemapper.mapItem754To755(
+                                                                                RegistryRemapper.mapItem753To754(itemId)))))))));
+                if (id763 < 0 || id763 >= ITEM_763_TO_765.length) {
+                    yield STONE_ITEM_765;
+                }
+                int mapped = ITEM_763_TO_765[id763];
+                yield mapped < 0 ? STONE_ITEM_765 : mapped;
+            }
+
+            case RegistryRemapper.PROTOCOL_754 -> {
+                // 755 と同じく汎用の mapItemReverse は使わない（ITEM_REVERSE_MAP
+                // と ITEM_763_TO_765 の食い違いは RegistryRemapper の判断待ちで、
+                // Bedrock 側は 754 分岐だけ正しい写像で書く。755 の柱 2 と同じ対処）。
+                // 連鎖は 754→755→756→757→759→760→761→762→763（754→755 は
+                // RegistryTables754 の表。976 件。Stage A §11.1 実測。
+                // grass_path（372）は 755 の dirt_path（393）への改名）。
+                int id763 = RegistryRemapper.mapItem762To763(
+                        RegistryRemapper.mapItem761To762(
+                                RegistryRemapper.mapItem760To761(
+                                        RegistryRemapper.mapItem759To760(
+                                                RegistryRemapper.mapItem757To759(
+                                                        RegistryRemapper.mapItem756To757(
+                                                                RegistryRemapper.mapItem755To756(
+                                                                        RegistryRemapper.mapItem754To755(itemId))))))));
+                if (id763 < 0 || id763 >= ITEM_763_TO_765.length) {
+                    yield STONE_ITEM_765;
+                }
+                int mapped = ITEM_763_TO_765[id763];
+                yield mapped < 0 ? STONE_ITEM_765 : mapped;
+            }
             default -> (itemId < 0 || itemId > RegistryRemapper.MAX_ITEM_765)
                     ? STONE_ITEM_765 : itemId;
         };
@@ -155,11 +399,25 @@ public final class BedrockEntityTranslator {
 
     /**
      * サーバーのプロトコル番号のエフェクトIDを 765 に正規化する。
-     * 763 のエフェクトは 1 ベース（Speed=1）のため 1 引く。
+     * 763／757／756／755／754／753／751／736 のエフェクトは 1 ベース（Speed=1）のため 1 引く。
      * 766 で増えた 33〜38 は Speed（0）へ。
+     * 757／756／755／754／753／751／736 のエフェクトは 1〜32（darkness は無い。Stage A §11.1 実測。
+     * 756・757・755・754・753・751・736 は同一順序）。
      */
     public static int normalizeEffectTo765(int effectId, int serverProtocol) {
         return switch (serverProtocol) {
+            case RegistryRemapper.PROTOCOL_736, RegistryRemapper.PROTOCOL_751, RegistryRemapper.PROTOCOL_753,
+                    RegistryRemapper.PROTOCOL_754, RegistryRemapper.PROTOCOL_755,
+                    RegistryRemapper.PROTOCOL_756,
+                    RegistryRemapper.PROTOCOL_757 -> {
+                // 736・751・753・754・755・756・757 のエフェクトは 1〜32（darkness は無い。Stage A §11.1 実測）。
+                // 33 以上は範囲外のため Speed に落とす（763 と同じ id−1 の
+                // 形だけでは 33→32＝darkness になってしまうため、736・751・753・754・755・756・757 の範囲で切る）。
+                if (effectId < 1 || effectId > 32) {
+                    yield RegistryRemapper.SPEED_EFFECT_765;
+                }
+                yield effectId - 1;
+            }
             case RegistryRemapper.PROTOCOL_763 -> {
                 int mapped = effectId - 1;
                 yield (mapped < 0 || mapped > RegistryRemapper.MAX_EFFECT_765)
@@ -229,10 +487,120 @@ public final class BedrockEntityTranslator {
                     RegistryRemapper.mapParticle774To765(particleId);
             case RegistryRemapper.PROTOCOL_775 ->
                     RegistryRemapper.mapParticle775To765(particleId);
+            case RegistryRemapper.PROTOCOL_757 -> mapParticle757To765(particleId);
+            case RegistryRemapper.PROTOCOL_756 -> mapParticle756To765(particleId);
+            case RegistryRemapper.PROTOCOL_755 -> mapParticle755To765(particleId);
+            case RegistryRemapper.PROTOCOL_751 -> mapParticle751To765(particleId);
+            case RegistryRemapper.PROTOCOL_736 -> mapParticle736To765(particleId);
+            case RegistryRemapper.PROTOCOL_753 -> mapParticle753To765(particleId);
+            case RegistryRemapper.PROTOCOL_754 -> mapParticle754To765(particleId);
             default -> (particleId < 0 || particleId > RegistryRemapper.MAX_PARTICLE_765)
                     ? 0 : particleId;
         };
     }
+
+    /**
+     * 757 のパーティクルIDを 765 に正規化する。RegistryRemapper に
+     * mapParticle757To765 は無いため、既存の隣接表の連鎖
+     * 757→759→760→761→762→763 と、763→765 の逆引き表を繋ぐ。
+     * 757 の 88 粒子は 759 で全件カバーされる（Stage A §11.1 実測。
+     * 759 の新規 5 粒子は 757 には無い）ため、連鎖で 0 に落ちるのは
+     * 範囲外の番号だけ。RegistryRemapper には追加しない。
+     */
+    static int mapParticle757To765(int particleId) {
+        int id759 = RegistryRemapper.mapParticle757To759(particleId);
+        int id760 = RegistryRemapper.mapParticle759To760(id759);
+        int id761 = RegistryRemapper.mapParticle760To761(id760);
+        int id762 = RegistryRemapper.mapParticle761To762(id761);
+        int id763 = RegistryRemapper.mapParticle762To763(id762);
+        if (id763 < 0 || id763 >= PARTICLE_763_TO_765.length) {
+            return 0;
+        }
+        int mapped = PARTICLE_763_TO_765[id763];
+        return mapped < 0 ? 0 : mapped;
+    }
+
+    /**
+     * 756 のパーティクルIDを 765 に正規化する。756→757 の写像
+     * （barrier（2）／light（3）は 757 の block_marker（3）に統合。
+     * Stage A §11.1／§11.3 実測）のあと、757 の連鎖
+     * （{@link #mapParticle757To765}）に繋ぐ。RegistryRemapper には追加しない。
+     * 注意：756 の barrier／light はデータ無し（SimpleParticleType）のため、
+     * メタデータ内の読み飛ばし（{@link #skipParticle}）では 765 の
+     * block_marker のブロック状態 varint を読んではいけない。
+     */
+    static int mapParticle756To765(int particleId) {
+        return mapParticle757To765(RegistryRemapper.mapParticle756To757(particleId));
+    }
+
+    /**
+     * 755 のパーティクルIDを 765 に正規化する。755→756 は恒等写像
+     * （89 件・同一順序。Stage A §11.1 実測）のため、756 の連鎖
+     * （{@link #mapParticle756To765}）にそのまま繋ぐ。RegistryRemapper には追加しない。
+     * 注意：755 の barrier／light は 756 と同じくデータ無し（SimpleParticleType）のため、
+     * メタデータ内の読み飛ばし（{@link #skipParticle}）では 765 の
+     * block_marker のブロック状態 varint を読んではいけない。
+     */
+    static int mapParticle755To765(int particleId) {
+        return mapParticle756To765(RegistryRemapper.mapParticle755To756(particleId));
+    }
+
+    /**
+     * 754 のパーティクルIDを 765 に正規化する。754→755 は RegistryTables754 の
+     * 表（Stage A §11.1 実測。72 件）のため、755 の連鎖
+     * （{@link #mapParticle755To765}）にそのまま繋ぐ。RegistryRemapper には追加しない。
+     * 注意：754 の barrier（2）は 755 の barrier（2）と同じくデータ無し
+     * （SimpleParticleType）のため、メタデータ内の読み飛ばし（{@link #skipParticle}）では
+     * 765 の block_marker のブロック状態 varint を読んではいけない。
+     * 754 に light は無い（1.17 で追加）。754 の 3 は block（ブロック状態 varint 付き）
+     * で、755 の block（4）に写るため読み飛ばしではデータを読む。
+     */
+    static int mapParticle754To765(int particleId) {
+        return mapParticle755To765(RegistryRemapper.mapParticle754To755(particleId));
+    }
+
+    /**
+     * 753 のパーティクルIDを 765 に正規化する。753→754 は恒等写像
+     * （RegistryTables753。72 件・全件同一順序。Stage A §11.1・Stage B §14.4 実測）のため、
+     * 754 の連鎖（{@link #mapParticle754To765}）にそのまま繋ぐ。RegistryRemapper には追加しない。
+     * 注意：753 の barrier（2）は 754 の barrier（2）と同じくデータ無し
+     * （SimpleParticleType）のため、メタデータ内の読み飛ばし（{@link #skipParticle}）では
+     * 765 の block_marker のブロック状態 varint を読んではいけない。
+     * 753 に light は無い（1.17 で追加）。753 の 3 は block（ブロック状態 varint 付き）
+     * で、755 の block（4）に写るため読み飛ばしではデータを読む。
+     */
+    static int mapParticle753To765(int particleId) {
+        return mapParticle754To765(RegistryRemapper.mapParticle753To754(particleId));
+    }
+
+    /**
+     * 751 のパーティクルIDを 765 に正規化する。751→753 は恒等写像
+     * （RegistryTables751。72 件・全件同一順序。Stage A §11.1・Stage B §14.4 実測）のため、
+     * 753 の連鎖（{@link #mapParticle753To765}）にそのまま繋ぐ。RegistryRemapper には追加しない。
+     * 注意：751 の barrier（2）は 753 の barrier（2）と同じくデータ無し
+     * （SimpleParticleType）のため、メタデータ内の読み飛ばし（{@link #skipParticle}）では
+     * 765 の block_marker のブロック状態 varint を読んではいけない。
+     * 751 に light は無い（1.17 で追加）。751 の 3 は block（ブロック状態 varint 付き）
+     * で、755 の block（4）に写るため読み飛ばしではデータを読む。
+     */
+    static int mapParticle751To765(int particleId) {
+        return mapParticle753To765(RegistryRemapper.mapParticle751To753(particleId));
+    }
+
+    /**
+     * 736 のパーティクルIDを 765 に正規化する。736→751 は恒等写像
+     * （RegistryTables736。72 件・全件同一順序。Stage A §11.1 実測）のため、
+     * 751 の連鎖（{@link #mapParticle751To765}）にそのまま繋ぐ。RegistryRemapper には追加しない。
+     * 注意：736 の barrier（2）は 751 の barrier（2）と同じくデータ無し
+     * （SimpleParticleType）のため、メタデータ内の読み飛ばし（{@link #skipParticle}）では
+     * 765 の block_marker のブロック状態 varint を読んではいけない。
+     * 736 に light は無い（1.17 で追加）。736 の 3 は block（ブロック状態 varint 付き）
+     * で、755 の block（4）に写るため読み飛ばしではデータを読む。
+     */
+    static int mapParticle736To765(int particleId) {
+        return mapParticle751To765(RegistryRemapper.mapParticle736To751(particleId));
+    }
+
 
     // ---- 角度・速度 ----
 
@@ -274,10 +642,31 @@ public final class BedrockEntityTranslator {
         double x = reader.readDouble();
         double y = reader.readDouble();
         double z = reader.readDouble();
-        int pitch = reader.readByte();
-        int yaw = reader.readByte();
-        int headPitch = reader.readByte();
-        int objectData = reader.readVarInt();
+        int pitch;
+        int yaw;
+        int headPitch;
+        int objectData;
+        if (serverProtocol == RegistryRemapper.PROTOCOL_736
+                || serverProtocol == RegistryRemapper.PROTOCOL_751
+                || serverProtocol == RegistryRemapper.PROTOCOL_753
+                || serverProtocol == RegistryRemapper.PROTOCOL_754
+                || serverProtocol == RegistryRemapper.PROTOCOL_755
+                || serverProtocol == RegistryRemapper.PROTOCOL_756
+                || serverProtocol == RegistryRemapper.PROTOCOL_757) {
+            // 1.16.1／1.16.2／1.16.3／1.16.5／1.17／1.17.1／1.18 の Spawn Entity（汎用。0x00）には headPitch が無く、
+            // objectData は i32（1.19 では headPitch＋varint）。
+            // minecraft-data mc-1.16／mc-1.17／mc-1.17.1／mc-1.18-protocol.json で確認
+            // （Stage B §13.5／§14.4 も同じ。754 は 755 と packet_spawn_entity が同一）。
+            pitch = reader.readByte();
+            yaw = reader.readByte();
+            headPitch = yaw;
+            objectData = reader.readInt();
+        } else {
+            pitch = reader.readByte();
+            yaw = reader.readByte();
+            headPitch = reader.readByte();
+            objectData = reader.readVarInt();
+        }
         int velX = reader.readShort();
         int velY = reader.readShort();
         int velZ = reader.readShort();
@@ -289,6 +678,150 @@ public final class BedrockEntityTranslator {
                 type, x, y, z, byteToAngle(pitch), byteToAngle(yaw), byteToAngle(headPitch),
                 objectData, shortVelocityToFloat(velX), shortVelocityToFloat(velY),
                 shortVelocityToFloat(velZ));
+    }
+
+    /**
+     * Spawn Entity Living（736／751／753／754／755／756／757 の 0x02）を読む。1.19 で Spawn Entity（0x00）に
+     * 統合されたため、736／751／753／754／755／756／757 専用。
+     * 統合されたため、754／755／756／757 専用。{entityId varint, uuid, type varint, x/y/z f64,
+     * yaw i8, pitch i8, headPitch i8, velocity 3×short}。yaw と pitch の順番が
+     * 汎用 Spawn Entity と逆（yaw が先）な点に注意。objectData は無いため 0。
+     * minecraft-data mc-1.16／mc-1.17／mc-1.17.1／mc-1.18-protocol.json で確認。
+     */
+    public static SpawnEntity parseSpawnEntityLiving(byte[] payload, int serverProtocol) {
+        PacketIO.Reader reader = new PacketIO.Reader(payload);
+        int entityId = reader.readVarInt();
+        byte[] uuidBytes = reader.readBytes(16);
+        int type = normalizeEntityType(reader.readVarInt(), serverProtocol);
+        double x = reader.readDouble();
+        double y = reader.readDouble();
+        double z = reader.readDouble();
+        int yaw = reader.readByte();
+        int pitch = reader.readByte();
+        int headPitch = reader.readByte();
+        int velX = reader.readShort();
+        int velY = reader.readShort();
+        int velZ = reader.readShort();
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException("Spawn Entity Living の余りがあります。");
+        }
+        return new SpawnEntity(entityId,
+                new UUID(bytesToLong(uuidBytes, 0), bytesToLong(uuidBytes, 8)),
+                type, x, y, z, byteToAngle(pitch), byteToAngle(yaw), byteToAngle(headPitch),
+                0, shortVelocityToFloat(velX), shortVelocityToFloat(velY),
+                shortVelocityToFloat(velZ));
+    }
+
+    /** Spawn Entity Painting（736／751／753／754／755／756／757 の 0x03）の内容（題名は 736／751／753／754／755／756／757 の絵画レジストリ番号）。 */
+    public record SpawnPainting(int entityId, UUID uuid, int title757, long positionRaw,
+            int direction) {
+    }
+
+    /**
+     * Spawn Entity Painting（736／751／753／754／755／756／757 の 0x03）を読む。1.19 で Spawn Entity（0x00）に
+     * 統合されたため、736／751／753／754／755／756／757 専用。
+     * 統合されたため、754／755／756／757 専用。{entityId varint, uuid, title varint,
+     * location position, direction u8}。minecraft-data mc-1.16／mc-1.17／mc-1.17.1／
+     * mc-1.18-protocol.json で確認。
+     * 1.16.2／1.16.3／1.16.5／1.17／1.17.1／1.18 の絵画にはメタデータの variant が無い（Painting に EntityDataAccessor が無い。
+     * server-1.18.jar の mappings で確認）ため、題名はこのパケットからしか取れない。
+     */
+    public static SpawnPainting parseSpawnEntityPainting(byte[] payload) {
+        PacketIO.Reader reader = new PacketIO.Reader(payload);
+        int entityId = reader.readVarInt();
+        byte[] uuidBytes = reader.readBytes(16);
+        int title = reader.readVarInt();
+        long positionRaw = reader.readPositionRaw();
+        int direction = reader.readUnsignedByte();
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException("Spawn Entity Painting の余りがあります。");
+        }
+        return new SpawnPainting(entityId,
+                new UUID(bytesToLong(uuidBytes, 0), bytesToLong(uuidBytes, 8)),
+                title, positionRaw, direction);
+    }
+
+    /**
+     * 757 の絵画題名（レジストリ番号）を 765 の絵画バリエーション番号に直す。
+     * 0〜24 は同一。25 は 757 では donkey_kong だが、765 では earth／wind／
+     * water／fire（1.20.5 追加）が 25〜28 に挿入されたため donkey_kong は 29。
+     * 範囲外は kebab（0）。
+     */
+    public static int paintingId757To765(int title757) {
+        if (title757 < 0 || title757 > 25) {
+            return 0;
+        }
+        return title757 == 25 ? 29 : title757;
+    }
+
+    /**
+     * 756 の絵画題名（レジストリ番号）を 765 の絵画バリエーション番号に直す。
+     * 756・757 の絵画は 26 件・同一順序（Stage A §11.1 実測）のため
+     * 757 と同じ写像（0〜24 は同一、25 の donkey_kong は 29）。
+     */
+    public static int paintingId756To765(int title756) {
+        return paintingId757To765(title756);
+    }
+
+    /**
+     * 755 の絵画題名（レジストリ番号）を 765 の絵画バリエーション番号に直す。
+     * 755・756・757 の絵画は 26 件・同一順序（Stage A §11.1 実測）のため
+     * 757 と同じ写像（0〜24 は同一、25 の donkey_kong は 29）。
+     */
+    public static int paintingId755To765(int title755) {
+        return paintingId757To765(title755);
+    }
+
+    /**
+     * 754 の絵画題名（レジストリ番号）を 765 の絵画バリエーション番号に直す。
+     * 754・755・756・757 の絵画は 26 件・同一順序（Stage A §11.1 実測。
+     * 実バニラ registries-1.16.5.json の minecraft:motive で確認。25 は donkey_kong）のため
+     * 757 と同じ写像（0〜24 は同一、25 の donkey_kong は 29）。
+     */
+    public static int paintingId754To765(int title754) {
+        return paintingId757To765(title754);
+    }
+
+    /**
+     * 753 の絵画題名（レジストリ番号）を 765 の絵画バリエーション番号に直す。
+     * 753・754・755・756・757 の絵画は 26 件・同一順序（Stage A §11.1 実測。
+     * 実バニラ registries-1.16.3.json の minecraft:motive で確認。25 は donkey_kong）のため
+     * 757 と同じ写像（0〜24 は同一、25 の donkey_kong は 29）。
+     */
+    public static int paintingId753To765(int title753) {
+        return paintingId757To765(title753);
+    }
+
+    /**
+     * 751 の絵画題名（レジストリ番号）を 765 の絵画バリエーション番号に直す。
+     * 751・753・754・755・756・757 の絵画は 26 件・同一順序（Stage A §11.1 実測。
+     * 実バニラ registries-1.16.2.json の minecraft:motive で確認。25 は donkey_kong）のため
+     * 757 と同じ写像（0〜24 は同一、25 の donkey_kong は 29）。
+     */
+    public static int paintingId751To765(int title751) {
+        return paintingId757To765(title751);
+    }
+
+    /**
+     * 736 の絵画題名（レジストリ番号）を 765 の絵画バリエーション番号に直す。
+     * 736・751・753・754・755・756・757 の絵画は 26 件・同一順序（Stage A §11.1 実測。
+     * 実バニラ registries-1.16.1.json の minecraft:motive で確認。25 は donkey_kong）のため
+     * 757 と同じ写像（0〜24 は同一、25 の donkey_kong は 29）。
+     */
+    public static int paintingId736To765(int title736) {
+        return paintingId757To765(title736);
+    }
+
+
+    /**
+     * 757 の絵画スポーン用の合成メタデータ（題名だけ入ったもの）。
+     * 1.18 の絵画には variant のメタデータが無いため、スポーン直後に
+     * これを送って Bedrock 側に題名を伝える（そうしないと絵画が送られない）。
+     */
+    public static JavaMetadata paintingMetadata(int entityId, int title765) {
+        MetadataBuilder builder = new MetadataBuilder();
+        builder.paintingVariant = paintingName(title765);
+        return builder.build(entityId);
     }
 
     private static long bytesToLong(byte[] bytes, int offset) {
@@ -443,6 +976,92 @@ public final class BedrockEntityTranslator {
         return ids;
     }
 
+    /**
+     * 755 の Entity Destroy（destroy_entity、0x3a）を読む。755 は
+     * [entityId varint] 1 体だけで、756 の [count varint][entityIds] とは
+     * 違う（Stage B §14.4 実測。ChunkTranslator.translateEntityDestroy755To756
+     * と同じ）。戻り値は 1 件のリスト（呼び出し側と同じ形にするため）。
+     */
+    public static List<Integer> parseRemoveEntity755(byte[] payload) {
+        PacketIO.Reader reader = new PacketIO.Reader(payload);
+        int entityId = reader.readVarInt();
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException("Remove Entity の余りがあります。");
+        }
+        return List.of(entityId);
+    }
+
+    /**
+     * 754 の Entity Destroy（entity_destroy、0x36）を読む。754 は
+     * [count varint][entityIds] の配列で、755 の [entityId varint] 1 体だけとは
+     * 違う（Stage B §14.4 実測。ChunkTranslator.translateEntityDestroy754To755
+     * と同じ。756 の [count][entityIds] と同じ形）。
+     * 755 の単体読みで読むと、count が entityId になって後続が足りず壊れる。
+     */
+    public static List<Integer> parseRemoveEntity754(byte[] payload) {
+        PacketIO.Reader reader = new PacketIO.Reader(payload);
+        int count = reader.readVarInt();
+        if (count < 0 || count > 1024) {
+            throw new IllegalArgumentException("Remove Entity の件数が異常です: " + count);
+        }
+        List<Integer> ids = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            ids.add(reader.readVarInt());
+        }
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException("Remove Entity の余りがあります。");
+        }
+        return ids;
+    }
+
+    /**
+     * 753 の Entity Destroy（entity_destroy、0x36）を読む。753 は 754 と同じ
+     * [count varint][entityIds] の配列。根拠は実測：mc-1.16.3-protocol.json の
+     * packet_entity_destroy は {entityIds: array[varint] countType varint} で、
+     * mc-1.16.3-protocol.json は mc-1.16-protocol.json とバイト同一（152,123 バイト）。
+     * パケットID差分も 0 件（packet-ids-753.json。全 272 件で id753 == id754）。
+     * 755 の [entityId varint] 単体として読むと壊れるため、754 と同じ配列読みを使う。
+     */
+    public static List<Integer> parseRemoveEntity753(byte[] payload) {
+        PacketIO.Reader reader = new PacketIO.Reader(payload);
+        int count = reader.readVarInt();
+        if (count < 0 || count > 1024) {
+            throw new IllegalArgumentException("Remove Entity の件数が異常です: " + count);
+        }
+        List<Integer> ids = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            ids.add(reader.readVarInt());
+        }
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException("Remove Entity の余りがあります。");
+        }
+        return ids;
+    }
+
+    /**
+     * 751 の Entity Destroy（entity_destroy、0x36）を読む。751 は 753 と同じ
+     * [count varint][entityIds] の配列。根拠は実測：mc-1.16.2-protocol.json の
+     * packet_entity_destroy は {entityIds: array[varint] countType varint} で、
+     * mc-1.16.2-protocol.json は mc-1.16.3-protocol.json とバイト同一（152,123 バイト）。
+     * パケットID差分も 0 件（packet-ids-751.json。全 272 件で id751 == id753）。
+     * 755 の [entityId varint] 単体として読むと壊れるため、753 と同じ配列読みを使う。
+     */
+    public static List<Integer> parseRemoveEntity751(byte[] payload) {
+        return parseRemoveEntity753(payload);
+    }
+
+    /**
+     * 736 の Entity Destroy（entity_destroy、0x37）を読む。736 は 751 と同じ
+     * [count varint][entityIds] の配列。根拠は実測：mc-1.16.1-protocol.json の
+     * packet_entity_destroy は {entityIds: array[varint] countType varint} で、
+     * packet-ids-736.json でも PLAY_ENTITY_DESTROY は 0x37（751 の 0x36 と番号だけ違う）。
+     * 755 の [entityId varint] 単体として読むと壊れるため、751 と同じ配列読みを使う。
+     */
+    public static List<Integer> parseRemoveEntity736(byte[] payload) {
+        return parseRemoveEntity753(payload);
+    }
+
+
     // ---- スロット（Java ItemStack）----
 
     /** Java のスロット 1 個。{@code clean} が false なら 766 の成分付きで、後ろが読めない。 */
@@ -469,8 +1088,31 @@ public final class BedrockEntityTranslator {
     }
 
     /**
-     * Java のスロット 1 個を読む。765 までは NBT（763 は名前付き、764／765 は
-     * 名前なし）を読み飛ばす。766／767／768／769／770／771／772／773／774／775 はデータコンポーネント形式で、
+     * Java のスロット 1 個を読む。765 までは NBT を読み飛ばす。763・756・755・754 は
+     * 名前付き、757・759〜762・764／765 は名前なし（下の既定の分岐）。
+     * 756 の NBT が名前付きなのは、実バニラの FriendlyByteBuf.writeNbt が
+     * NbtIo.write（型＋空名＋ペイロード）で書くため（1.18 の server jar の
+     * javap で確認。ChunkTranslator の「763 は名前付き、764 は名前なし」と同じ）。
+     * 755 も 756 と同じく名前付き（ChunkTranslator.translateSlot755To756 が
+     * readOptionalNamedNbt で読む。Stage B §14.4）。
+     * 754 も 755 と同じく名前付き（ChunkTranslator.translateSlot754To755 が
+     * readOptionalNamedNbt で読む。Stage B §14.4。スロット型は両版で
+     * [present bool][id varint][個数 i8][任意の名前付きNBT] で同一）。
+     * 753 も 754 と同じく名前付き（ChunkTranslator.translateSlot753To754 が
+     * readOptionalNamedNbt で読む。Stage B §14.4。753⇔754 は恒等写像）。
+     * 751 も 753 と同じく名前付き（ChunkTranslator.translateSlot751To753 が
+     * readOptionalNamedNbt で読む。Stage B §14.4。751⇔753 は恒等写像）。
+     * 736 も 751 と同じく名前付き（ChunkTranslator.translateSlot736To751 が
+     * readOptionalNamedNbt で読む。Stage B §14.4。736⇔751 はスロット外形が同一で
+     * アイテムIDだけ付け替える。mc-1.16.1-protocol.json の slot 型は
+     * mc-1.16.2-protocol.json と同一）。
+     * 757 は既存の匿名読みのままにする（実バニラ 1.18 も名前付きのため
+     * 757 の読みは非空 NBT でずれる疑いがあるが、判断待ちのため触らない）。
+     * 757 のスロットは 759 と同一の
+     * [present bool][id varint][count i8][optionalNbt]（minecraft-data
+     * mc-1.18-protocol.json の slot 型で確認。Stage B §13.5 も同じ）で、
+     * 756 も同一の外形（mc-1.17.1-protocol.json で確認。Stage B §14.4）。
+     * 766／767／768／769／770／771／772／773／774／775 はデータコンポーネント形式で、
      * 中身は読まずに個数だけ確認する（成分付きだと後ろは読めないため
      * {@code clean=false} を返す）。768／769／770／771／772／773／774／775 のスロットの外形（個数・added・removed
      * の varint 3 個）は 767 と同じため、同じ読み方でよい。
@@ -503,7 +1145,13 @@ public final class BedrockEntityTranslator {
             return new JavaSlot(true, item, count, true, false);
         }
         count = reader.readByte();
-        if (serverProtocol == RegistryRemapper.PROTOCOL_763) {
+        if (serverProtocol == RegistryRemapper.PROTOCOL_763
+                || serverProtocol == RegistryRemapper.PROTOCOL_756
+                || serverProtocol == RegistryRemapper.PROTOCOL_755
+                || serverProtocol == RegistryRemapper.PROTOCOL_754
+                || serverProtocol == RegistryRemapper.PROTOCOL_753
+                || serverProtocol == RegistryRemapper.PROTOCOL_751
+                || serverProtocol == RegistryRemapper.PROTOCOL_736) {
             reader.readNamedNbt();
         } else {
             reader.readAnonymousNbt();
@@ -574,6 +1222,27 @@ public final class BedrockEntityTranslator {
     public static EntityEffect parseEntityEffect(byte[] payload, int serverProtocol) {
         PacketIO.Reader reader = new PacketIO.Reader(payload);
         int entityId = reader.readVarInt();
+        if (serverProtocol == RegistryRemapper.PROTOCOL_736
+                || serverProtocol == RegistryRemapper.PROTOCOL_751
+                || serverProtocol == RegistryRemapper.PROTOCOL_753
+                || serverProtocol == RegistryRemapper.PROTOCOL_754
+                || serverProtocol == RegistryRemapper.PROTOCOL_755
+                || serverProtocol == RegistryRemapper.PROTOCOL_756
+                || serverProtocol == RegistryRemapper.PROTOCOL_757) {
+            // 1.16.1／1.16.2／1.16.3／1.16.5／1.17／1.17.1／1.18 の Entity Effect：{entityId varint, effectId i8, amplifier i8,
+            // duration varint, hideParticles i8}。1.19 では effectId が varint になり、
+            // 末尾に factorCodec（option NBT）が付く（Stage B §13.5）。
+            // minecraft-data mc-1.16／mc-1.17／mc-1.17.1／mc-1.18-protocol.json で確認。
+            int effect = normalizeEffectTo765(reader.readByte(), serverProtocol);
+            int amplifier = reader.readByte();
+            int duration = reader.readVarInt();
+            int hideParticles = reader.readByte();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException("Entity Effect の余りがあります。");
+            }
+            return new EntityEffect(entityId, effect, amplifier, duration,
+                    hideParticles == 0);
+        }
         int effect = normalizeEffectTo765(reader.readVarInt(), serverProtocol);
         int amplifier = reader.readByte();
         int duration = reader.readVarInt();
@@ -600,7 +1269,18 @@ public final class BedrockEntityTranslator {
     public static RemoveEntityEffect parseRemoveEntityEffect(byte[] payload, int serverProtocol) {
         PacketIO.Reader reader = new PacketIO.Reader(payload);
         int entityId = reader.readVarInt();
-        int effect = normalizeEffectTo765(reader.readVarInt(), serverProtocol);
+        // 1.16.1／1.16.2／1.16.3／1.16.5／1.17／1.17.1／1.18 の effectId は i8（1.19 では varint。Stage B §13.5）。
+        // 値は 1〜32 のため varint で読んでも同じバイトになるが、形式通り i8 で読む。
+        int effect = serverProtocol == RegistryRemapper.PROTOCOL_736
+                || serverProtocol == RegistryRemapper.PROTOCOL_751
+                || serverProtocol == RegistryRemapper.PROTOCOL_753
+                || serverProtocol == RegistryRemapper.PROTOCOL_754
+                || serverProtocol == RegistryRemapper.PROTOCOL_755
+                || serverProtocol == RegistryRemapper.PROTOCOL_755
+                || serverProtocol == RegistryRemapper.PROTOCOL_756
+                || serverProtocol == RegistryRemapper.PROTOCOL_757
+                ? normalizeEffectTo765(reader.readByte(), serverProtocol)
+                : normalizeEffectTo765(reader.readVarInt(), serverProtocol);
         if (reader.remaining() != 0) {
             throw new IllegalArgumentException("Remove Entity Effect の余りがあります。");
         }
@@ -626,6 +1306,10 @@ public final class BedrockEntityTranslator {
      * （attributeName772／attributeName773 は771と同じ内容）。
      * 774 の属性名は 773 と同一（attributeName774 は773と同じ内容）。
      * 775 の属性名は 774 と同一（attributeName775 は774と同じ内容）。
+     * 757 は 759 と同じく属性キーが識別子文字列、modifier UUID は 16 バイトのため、
+     * 既定の分岐（readString＋readBytes(16)）で読める（minecraft-data
+     * mc-1.18／mc-1.19-protocol.json の packet_entity_update_attributes で確認。
+     * 757 専用の分岐は不要）。
      */
     public static UpdateAttributes parseUpdateAttributes(byte[] payload, int serverProtocol) {
         PacketIO.Reader reader = new PacketIO.Reader(payload);
@@ -1118,6 +1802,95 @@ public final class BedrockEntityTranslator {
 
     /** メタデータの値 1 個を読む（型番号は wiki.vg の Entity Metadata による）。 */
     private static Object readMetadataValue(PacketIO.Reader reader, int type, int protocol) {
+        if (protocol == RegistryRemapper.PROTOCOL_736
+                || protocol == RegistryRemapper.PROTOCOL_751
+                || protocol == RegistryRemapper.PROTOCOL_753
+                || protocol == RegistryRemapper.PROTOCOL_754
+                || protocol == RegistryRemapper.PROTOCOL_755
+                || protocol == RegistryRemapper.PROTOCOL_756
+                || protocol == RegistryRemapper.PROTOCOL_757) {
+            // 736（1.16.1）／751（1.16.2）／753（1.16.3）／754（1.16.5）／755（1.17）／756（1.17.1）／757（1.18）のメタデータ型は 759 と同一で、763 以降とは番号が違う
+            // （minecraft-data mc-1.16.1／mc-1.16／mc-1.17／mc-1.17.1／mc-1.18／mc-1.19-protocol.json の entityMetadataItem で確認。
+            // mc-1.16.1-protocol.json の共有 types（40 件）は mc-1.16.2-protocol.json とバイト同一。
+            // 763 で VarLong 型が 2 番に挿入され、後ろが 1 つずつずれた）。
+            // 0 i8、1 varint、2 f32、3 string、4 chat（JSON 文字列）、
+            // 5 opt chat（JSON 文字列）、6 slot、7 bool、8 rotation（3×f32）、
+            // 9 position、10 opt position、11 direction（varint）、12 opt UUID、
+            // 13 opt block id（varint、0＝無し）、14 NBT、15 particle、
+            // 16 villager data（3×varint）、17 opt varint、18 pose（varint）。
+            // 19 以上は 1.19 で追加された型（cat／frog／wolf variant 等）のため
+            // 736・751・753・754・755・756・757 には無く、未知として扱う。なお 759 も同じ番号付けだが、
+            // 既存の 759 は既定の switch（763 以降の番号）で読んでおり、
+            // 型 2／3／5／14〜18 がずれて読まれる潜在問題がある。759 は
+            // ここでは触らない（判断待ち）。
+            // 型 14（NBT）だけ 736・751・753・754・755 と 756 で読み方が違う：実バニラの writeNbt は
+            // 名前付き（型＋空名＋ペイロード）のため 736・751・753・754・755・756 は名前付きで読む。
+            // 名前付き（型＋空名＋ペイロード）のため 754・755・756 は名前付きで読む。
+            // 757 は既存の匿名読みのまま（判断待ちのため触らない）。
+            return switch (type) {
+                case 0 -> (byte) reader.readByte();
+                case 1 -> reader.readVarInt();
+                case 2 -> reader.readFloat();
+                case 3 -> reader.readString();
+                case 4 -> {
+                    String json = reader.readString();
+                    String text = BedrockLogin.extractString(json, "text");
+                    yield text == null ? json : text;
+                }
+                case 5 -> {
+                    boolean present = reader.readBoolean();
+                    if (!present) {
+                        yield null;
+                    }
+                    String json = reader.readString();
+                    String text = BedrockLogin.extractString(json, "text");
+                    yield text == null ? json : text;
+                }
+                case 6 -> readSlot(reader, protocol);
+                case 7 -> reader.readBoolean();
+                case 8 -> new float[]{reader.readFloat(), reader.readFloat(), reader.readFloat()};
+                case 9 -> reader.readPositionRaw();
+                case 10 -> {
+                    boolean present = reader.readBoolean();
+                    yield present ? reader.readPositionRaw() : null;
+                }
+                case 11 -> reader.readVarInt();
+                case 12 -> {
+                    boolean present = reader.readBoolean();
+                    yield present ? reader.readBytes(16) : null;
+                }
+                case 13 -> {
+                    int state = reader.readVarInt();
+                    yield state == 0 ? null : state;
+                }
+                case 14 -> {
+                    if (protocol == RegistryRemapper.PROTOCOL_736
+                            || protocol == RegistryRemapper.PROTOCOL_751
+                            || protocol == RegistryRemapper.PROTOCOL_753
+                            || protocol == RegistryRemapper.PROTOCOL_754
+                            || protocol == RegistryRemapper.PROTOCOL_755
+                            || protocol == RegistryRemapper.PROTOCOL_756) {
+                        reader.readNamedNbt();
+                    } else {
+                        reader.readAnonymousNbt();
+                    }
+                    yield null;
+                }
+                case 15 -> {
+                    skipParticle(reader, protocol);
+                    yield null;
+                }
+                case 16 -> new int[]{reader.readVarInt(), reader.readVarInt(),
+                        reader.readVarInt()};
+                case 17 -> {
+                    boolean present = reader.readBoolean();
+                    yield present ? reader.readVarInt() : null;
+                }
+                case 18 -> reader.readVarInt();
+                default -> throw new IllegalArgumentException(
+                        "751／753／754／755／756／757 の未知のメタデータ型です: " + type);
+            };
+        }
         // 775 は 774 とペイロード変更 0 件のため型番号も 774 と同じで、この 770〜773 専用の
         // ずれ分岐には含めない（774 と同じく下の既定の switch で読む）。
         if ((protocol == RegistryRemapper.PROTOCOL_770
@@ -1247,6 +2020,49 @@ public final class BedrockEntityTranslator {
     /** パーティクル 1 個を読み飛ばす（765 の形に正規化してから判断する）。 */
     private static void skipParticle(PacketIO.Reader reader, int protocol) {
         int rawId = reader.readVarInt();
+        if ((protocol == RegistryRemapper.PROTOCOL_755
+                || protocol == RegistryRemapper.PROTOCOL_756) && (rawId == 2 || rawId == 3)) {
+            // 755／756 の barrier（2）／light（3）は SimpleParticleType でデータ無し
+            // （1.18 で両者を置き換えた block_marker はブロック状態を持つが、
+            // 1.17 の barrier／light には無い。Minecraft Wiki「Particles」・
+            // Forge「Particles」の SimpleParticleType の説明で確認）。
+            // 正規化すると 765 の block_marker（3）になり、下の switch が
+            // ブロック状態 varint を読んで後続を壊すため、ここで返す。
+            return;
+        }
+        if (protocol == RegistryRemapper.PROTOCOL_754 && rawId == 2) {
+            // 754 の barrier（2）だけがデータ無し（SimpleParticleType）。
+            // 754 に light は無い（1.17 で追加。754 の 3 は block で、
+            // ブロック状態 varint 付きのためここでは返さない）。
+            // 正規化すると 765 の block_marker（3）になり、下の switch が
+            // ブロック状態 varint を読んで後続を壊すため、ここで返す。
+            return;
+        }
+        if (protocol == RegistryRemapper.PROTOCOL_753 && rawId == 2) {
+            // 753 の barrier（2）だけがデータ無し（SimpleParticleType）。
+            // 753 に light は無い（1.17 で追加。753 の 3 は block で、
+            // ブロック状態 varint 付きのためここでは返さない）。
+            // 正規化すると 765 の block_marker（3）になり、下の switch が
+            // ブロック状態 varint を読んで後続を壊すため、ここで返す。
+            return;
+        }
+        if (protocol == RegistryRemapper.PROTOCOL_736 && rawId == 2) {
+            // 736 の barrier（2）だけがデータ無し（SimpleParticleType）。
+            // 736 に light は無い（1.17 で追加。736 の 3 は block で、
+            // ブロック状態 varint 付きのためここでは返さない）。
+            // 正規化すると 765 の block_marker（3）になり、下の switch が
+            // ブロック状態 varint を読んで後続を壊すため、ここで返す。
+            return;
+        }
+        if (protocol == RegistryRemapper.PROTOCOL_751 && rawId == 2) {
+            // 751 の barrier（2）だけがデータ無し（SimpleParticleType）。
+            // 751 に light は無い（1.17 で追加。751 の 3 は block で、
+            // ブロック状態 varint 付きのためここでは返さない）。
+            // 正規化すると 765 の block_marker（3）になり、下の switch が
+            // ブロック状態 varint を読んで後続を壊すため、ここで返す。
+            return;
+        }
+
         // 775 は 774 と同じ番号体系のため 770〜773 専用の生ID読み飛ばしには含めない。
         // 775 の新粒子 pause_mob_growth（50）／reset_mob_growth（51）は
         // mapParticle775To765 でデータ無しの 765 粒子（21）に写るため、下の正規化で読める。
