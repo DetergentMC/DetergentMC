@@ -57,6 +57,7 @@ import static io.detergentmc.protocol.RegistryTables773Down765.*;
 import static io.detergentmc.protocol.RegistryTables773Down765BlockState.*;
 import static io.detergentmc.protocol.RegistryTables773Down766.*;
 import static io.detergentmc.protocol.RegistryTables773Down766BlockState.*;
+import static io.detergentmc.protocol.RegistryTables757.*;
 import static io.detergentmc.protocol.RegistryTables759.*;
 import static io.detergentmc.protocol.RegistryTables760.*;
 import static io.detergentmc.protocol.RegistryTables761.*;
@@ -406,6 +407,8 @@ public final class RegistryRemapper {
 
     /** 761（1.19.3）のプロトコル番号。 */
     /** 760（1.19.1／1.19.2）のプロトコル番号。 */
+    /** 757（1.18／1.18.1）のプロトコル番号。 */
+    public static final int PROTOCOL_757 = 757;
     /** 759（1.19）のプロトコル番号。 */
     public static final int PROTOCOL_759 = 759;
     public static final int PROTOCOL_760 = 760;
@@ -781,6 +784,52 @@ public final class RegistryRemapper {
     public static final int PLAINS_BIOME_759 = 1;
     /** 759側の generic ダメージ種別（762 と同一順序と仮定）。 */
     public static final int GENERIC_DAMAGE_TYPE_759 = 16;
+
+    /** 757側の最大の番号（ViaVersion mapping-1.18.json の件数−1）。 */
+    public static final int MAX_BLOCK_STATE_757 = 20341;
+    public static final int MAX_ITEM_757 = 1100;
+    public static final int MAX_ENTITY_TYPE_757 = 112;
+    public static final int MAX_SOUND_757 = 1202;
+    public static final int MAX_PARTICLE_757 = 87;
+    public static final int MAX_BLOCK_757 = 897;
+    public static final int MAX_MENU_757 = 23;
+    /** 757側のエンチャントは 0〜37（38件。swift_sneak が無い）。 */
+    public static final int MAX_ENCHANTMENT_757 = 37;
+    /** 757側のバイオームは 0〜60（61件。mangrove_swamp・deep_dark が無い）。 */
+    public static final int MAX_BIOME_757 = 60;
+    /** 757側のダメージ種別は 0〜41（42件。762 の順序の恒等写像。実バニラで検証する）。 */
+    public static final int MAX_DAMAGE_TYPE_757 = 41;
+    /** 757側のブロックエンティティ種別は 0〜33（34件）。 */
+    public static final int MAX_BLOCK_ENTITY_757 = 33;
+    /** 757側の属性は 0〜12（13件。759と同一順序）。 */
+    public static final int MAX_ATTRIBUTE_757 = 12;
+    /** 759側の属性は 0〜12（13件。757と同一順序）。 */
+    public static final int MAX_ATTRIBUTE_759 = 12;
+    /** 759側のエフェクトは 1〜33（33件。darkness=33。1ベース）。 */
+    public static final int MAX_EFFECT_759 = 33;
+    /** 757側のエフェクトは 1〜32（32件。darkness が無い。1ベース）。 */
+    public static final int MAX_EFFECT_757 = 32;
+    /** 759側の darkness エフェクト（757には無いため DROP）。 */
+    public static final int DARKNESS_EFFECT_759 = 33;
+    /** 759側の sculk_catalyst ブロックエンティティ（757には無いため DROP）。 */
+    public static final int BLOCK_ENTITY_SCULK_CATALYST_759 = 34;
+    /** 759側の sculk_shrieker ブロックエンティティ（757には無いため DROP）。 */
+    public static final int BLOCK_ENTITY_SCULK_SHRIEKER_759 = 35;
+
+    /** 757側の代替先（mapping-1.18.json の番号。Speed だけ 1ベースで 1）。 */
+    public static final int STONE_BLOCK_STATE_757 = 1;
+    public static final int AIR_BLOCK_STATE_757 = 0;
+    public static final int STONE_ITEM_757 = 1;
+    public static final int PIG_ENTITY_TYPE_757 = 64;
+    public static final int GENERIC_SOUND_757 = 1018; // block.stone.break
+    public static final int AMBIENT_PARTICLE_757 = 0; // ambient_entity_effect
+    public static final int STONE_BLOCK_757 = 1;
+    public static final int CRAFTING_MENU_757 = 11;
+    public static final int SPEED_EFFECT_757 = 1;
+    /** 757側の平原バイオーム（minecraft-data pc/1.18/biomes.json）。 */
+    public static final int PLAINS_BIOME_757 = 1;
+    /** 757側の generic ダメージ種別（762 と同一順序と仮定）。 */
+    public static final int GENERIC_DAMAGE_TYPE_757 = 16;
     /** 761側の平原バイオーム（minecraft-data pc/1.19.3/biomes.json）。 */
     public static final int PLAINS_BIOME_761 = 38;
     /** 761側の generic ダメージ種別（762の generic と同じ番号16。ただし761の
@@ -1793,6 +1842,137 @@ public final class RegistryRemapper {
 
     /** 761のブロック状態ID → 760のブロック状態ID（RegistryTables760）。 */
 
+
+    // ------------------------------------------------------------------
+    // 759 ⇔ 757（1.19 ⇔ 1.18／1.18.1）の展開済み表。RegistryTables757
+    // の区間＋上書きの表をクラスロード時に int[] へ展開する。
+    // 順向き（759→757）は expand()、反転（757→759）は invert() で作る。
+    // invert() だけでは名前の真値と食い違う箇所がある（ブロック状態
+    // 110 件・音 20 件。first-wins の罠）ため、下の UP_757 補正を渡す。
+    // アイテムだけは 766／777 の前例にならい、名前から作った既存の
+    // 逆変換表（ITEM_REVERSE_757）を expand() でそのまま使う。
+    // エフェクト・ブロックエンティティ種別は表を作らない（アクセサで
+    // ハードコードする）。757 は合成表を作らない。
+    // ------------------------------------------------------------------
+
+    /** ブロック状態の反転の補正（757 id → 759 id）。110 件。invert() の
+     * first-wins では、757 の同名の状態よりアルファベット順で先の代替先
+     * （例：mud_bricks）が選ばれてしまう箇所を名前の真値に上書きする。
+     * tools/maps757-corrections.json から生成。検証は
+     * tools/verify-757-tables.py のチェックDを参照。 */
+    private static final int[][] BLOCK_STATE_UP_757_CORRECTIONS = {
+            {149, 209}, {150, 211}, {151, 213}, {152, 215}, {153, 217}, {154, 219}, {155, 221}, {156, 223},
+            {157, 225}, {158, 227}, {159, 229}, {160, 231}, {161, 233}, {162, 235}, {163, 237}, {164, 239},
+            {165, 241}, {166, 243}, {167, 245}, {168, 247}, {169, 249}, {170, 251}, {171, 253}, {172, 255},
+            {173, 257}, {174, 259}, {175, 261}, {176, 263}, {177, 265}, {178, 267}, {179, 269}, {180, 271},
+            {181, 273}, {182, 275}, {183, 277}, {184, 279}, {185, 281}, {186, 283}, {187, 285}, {188, 287},
+            {189, 289}, {190, 291}, {191, 293}, {192, 295}, {193, 297}, {194, 299}, {195, 301}, {196, 303},
+            {197, 305}, {198, 307}, {199, 309}, {200, 311}, {201, 313}, {202, 315}, {203, 317}, {204, 319},
+            {205, 321}, {206, 323}, {207, 325}, {208, 327}, {209, 329}, {210, 331}, {211, 333}, {212, 335},
+            {213, 337}, {214, 339}, {215, 341}, {216, 343}, {217, 345}, {218, 347}, {219, 349}, {220, 351},
+            {221, 353}, {222, 355}, {223, 357}, {224, 359}, {225, 361}, {226, 363}, {227, 365}, {228, 367},
+            {229, 369}, {230, 371}, {231, 373}, {233, 405}, {234, 407}, {235, 409}, {236, 411}, {237, 413},
+            {238, 415}, {239, 417}, {240, 419}, {241, 421}, {242, 423}, {243, 425}, {244, 427}, {245, 429},
+            {246, 431}, {247, 433}, {248, 435}, {249, 437}, {250, 439}, {251, 441}, {252, 443}, {253, 445},
+            {254, 447}, {255, 449}, {256, 451}, {257, 453}, {258, 455}, {259, 457},
+    };
+
+    /** 音の反転の補正（757 id → 759 id）。20 件。ブロック状態と同じ理由。 */
+    private static final int[][] SOUND_UP_757_CORRECTIONS = {
+            {419, 447}, {420, 448}, {421, 449}, {422, 450}, {423, 451}, {640, 701}, {897, 980}, {898, 981},
+            {952, 1046}, {953, 1047}, {954, 1048}, {955, 1049}, {1021, 1115}, {1022, 1116}, {1023, 1117}, {1081, 1179},
+            {1082, 1180}, {1163, 1281}, {1164, 1282}, {1165, 1283},
+    };
+
+    /** 759のブロック状態ID → 757のブロック状態ID（RegistryTables757）。 */
+    private static final int[] BLOCK_STATE_759_TO_757_MAP =
+            expand(BLOCK_STATE_757_RANGES, BLOCK_STATE_757_OVERRIDES, MAX_BLOCK_STATE_759 + 1,
+                    STONE_BLOCK_STATE_757);
+    /** 757のブロック状態ID → 759のブロック状態ID（反転＋補正）。 */
+    private static final int[] BLOCK_STATE_757_TO_759_MAP = invert(
+            BLOCK_STATE_757_RANGES, BLOCK_STATE_757_OVERRIDES,
+            MAX_BLOCK_STATE_759 + 1, MAX_BLOCK_STATE_757 + 1,
+            STONE_BLOCK_STATE_759, BLOCK_STATE_UP_757_CORRECTIONS);
+    /** 759のアイテムID → 757のアイテムID。 */
+    private static final int[] ITEM_759_TO_757_MAP =
+            expand(ITEM_757_RANGES, ITEM_757_OVERRIDES, MAX_ITEM_759 + 1, STONE_ITEM_757);
+    /** 757のアイテムID → 759のアイテムID（名前から作った逆変換表）。 */
+    private static final int[] ITEM_757_TO_759_MAP =
+            expand(ITEM_REVERSE_757_RANGES, ITEM_REVERSE_757_OVERRIDES, MAX_ITEM_757 + 1,
+                    STONE_ITEM_759);
+    /** 759のエンティティ種別ID → 757のエンティティ種別ID。 */
+    private static final int[] ENTITY_TYPE_759_TO_757_MAP =
+            expand(ENTITY_TYPE_757_RANGES, ENTITY_TYPE_757_OVERRIDES, MAX_ENTITY_TYPE_759 + 1,
+                    PIG_ENTITY_TYPE_757);
+    /** 757のエンティティ種別ID → 759のエンティティ種別ID（反転）。 */
+    private static final int[] ENTITY_TYPE_757_TO_759_MAP = invert(
+            ENTITY_TYPE_757_RANGES, ENTITY_TYPE_757_OVERRIDES,
+            MAX_ENTITY_TYPE_759 + 1, MAX_ENTITY_TYPE_757 + 1, PIG_ENTITY_TYPE_759, null);
+    /** 759の音ID → 757の音ID。 */
+    private static final int[] SOUND_759_TO_757_MAP =
+            expand(SOUND_757_RANGES, SOUND_757_OVERRIDES, MAX_SOUND_759 + 1, GENERIC_SOUND_757);
+    /** 757の音ID → 759の音ID（反転＋補正）。 */
+    private static final int[] SOUND_757_TO_759_MAP = invert(
+            SOUND_757_RANGES, SOUND_757_OVERRIDES,
+            MAX_SOUND_759 + 1, MAX_SOUND_757 + 1,
+            GENERIC_SOUND_759, SOUND_UP_757_CORRECTIONS);
+    /** 759のパーティクルID → 757のパーティクルID。 */
+    private static final int[] PARTICLE_759_TO_757_MAP =
+            expand(PARTICLE_757_RANGES, PARTICLE_757_OVERRIDES, MAX_PARTICLE_759 + 1,
+                    AMBIENT_PARTICLE_757);
+    /** 757のパーティクルID → 759のパーティクルID（反転）。 */
+    private static final int[] PARTICLE_757_TO_759_MAP = invert(
+            PARTICLE_757_RANGES, PARTICLE_757_OVERRIDES,
+            MAX_PARTICLE_759 + 1, MAX_PARTICLE_757 + 1, AMBIENT_PARTICLE_759, null);
+    /** 759のブロックID → 757のブロックID。 */
+    private static final int[] BLOCK_759_TO_757_MAP =
+            expand(BLOCK_757_RANGES, BLOCK_757_OVERRIDES, MAX_BLOCK_759 + 1, STONE_BLOCK_757);
+    /** 757のブロックID → 759のブロックID（反転）。 */
+    private static final int[] BLOCK_757_TO_759_MAP = invert(
+            BLOCK_757_RANGES, BLOCK_757_OVERRIDES,
+            MAX_BLOCK_759 + 1, MAX_BLOCK_757 + 1, STONE_BLOCK_757, null);
+    /** 759のメニュー種別ID → 757のメニュー種別ID。 */
+    private static final int[] MENU_759_TO_757_MAP =
+            expand(MENU_757_RANGES, MENU_757_OVERRIDES, MAX_MENU_759 + 1, CRAFTING_MENU_757);
+    /** 757のメニュー種別ID → 759のメニュー種別ID（反転）。 */
+    private static final int[] MENU_757_TO_759_MAP = invert(
+            MENU_757_RANGES, MENU_757_OVERRIDES,
+            MAX_MENU_759 + 1, MAX_MENU_757 + 1, CRAFTING_MENU_759, null);
+    /** 759のバイオームID → 757のバイオームID。mangrove_swamp→swamp、deep_dark→dripstone_caves。 */
+    private static final int[] BIOME_759_TO_757_MAP =
+            expand(BIOME_757_RANGES, BIOME_757_OVERRIDES, MAX_BIOME_759 + 1, PLAINS_BIOME_757);
+    /** 757のバイオームID → 759のバイオームID（反転）。 */
+    private static final int[] BIOME_757_TO_759_MAP = invert(
+            BIOME_757_RANGES, BIOME_757_OVERRIDES,
+            MAX_BIOME_759 + 1, MAX_BIOME_757 + 1, PLAINS_BIOME_759, null);
+    /** ダメージ種別ID：759 → 757（762 の 42 件の恒等写像。1.18／1.19 の
+     * どちらにも damage_type レジストリは無いため、ワイヤ上の呼び出し元は無い）。 */
+    private static final int[] DAMAGE_TYPE_757_MAP = {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
+        38, 39, 40, 41
+    };
+    /** ダメージ種別ID：757 → 759（762 の 42 件の恒等写像。呼び出し元は無い）。 */
+    private static final int[] DAMAGE_TYPE_REVERSE_757_MAP = {
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+        20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37,
+        38, 39, 40, 41
+    };
+    /** 759の属性ID → 757の属性ID。並びは同一。範囲外は {@link #DROP}。 */
+    private static final int[] ATTRIBUTE_757_MAP =
+            expand(ATTRIBUTE_757_RANGES, ATTRIBUTE_757_OVERRIDES, MAX_ATTRIBUTE_759 + 1, DROP);
+    /** 757の属性ID → 759の属性ID。並びは同一。範囲外は {@link #DROP}。 */
+    private static final int[] ATTRIBUTE_REVERSE_757_MAP =
+            expand(ATTRIBUTE_REVERSE_757_RANGES, ATTRIBUTE_REVERSE_757_OVERRIDES,
+                    MAX_ATTRIBUTE_757 + 1, DROP);
+    /** 759のエンチャントID → 757のエンチャントID。swift_sneak（12）は {@link #DROP}。 */
+    private static final int[] ENCHANTMENT_757_MAP =
+            expand(ENCHANTMENT_757_RANGES, ENCHANTMENT_757_OVERRIDES,
+                    MAX_ENCHANTMENT_759 + 1, DROP);
+    /** 757のエンチャントID → 759のエンチャントID。12 以降は +1 ずれる。 */
+    private static final int[] ENCHANTMENT_REVERSE_757_MAP =
+            expand(ENCHANTMENT_REVERSE_757_RANGES, ENCHANTMENT_REVERSE_757_OVERRIDES,
+                    MAX_ENCHANTMENT_757 + 1, DROP);
     /** 760のBlockStateID → 759のBlockStateID（RegistryTables759。恒等写像）。 */
     private static final int[] BLOCK_STATE_760_TO_759_MAP =
             expand(BLOCK_STATE_759_RANGES, BLOCK_STATE_759_OVERRIDES, MAX_BLOCK_STATE_760 + 1,
@@ -3654,6 +3834,14 @@ public final class RegistryRemapper {
     private static final Map<String, String> SOUND_NAME_FALLBACK_761_TO_762_MAP =
             buildSoundNameMap(SOUND_NAME_FALLBACKS_761_TO_762);
 
+
+    /** 759の音の名前 → 757の音の名前（Stop Sound 用）。数値の反転表と一致させる。 */
+    private static final Map<String, String> SOUND_NAME_FALLBACK_759_TO_757_MAP =
+            buildSoundNameMap(SOUND_NAME_FALLBACKS_759_TO_757);
+
+    /** 757の音の名前 → 759の音の名前（Stop Sound 用）。恒等写像のため空。 */
+    private static final Map<String, String> SOUND_NAME_FALLBACK_757_TO_759_MAP =
+            buildSoundNameMap(SOUND_NAME_FALLBACKS_757_TO_759);
     /** 761の音の名前 → 760の音の名前（Stop Sound 用）。数値の合成表と一致させる。 */
     private static final Map<String, String> SOUND_NAME_FALLBACK_761_TO_760_MAP =
             buildSoundNameMap(SOUND_NAME_FALLBACKS_761_TO_760);
@@ -10066,6 +10254,305 @@ public final class RegistryRemapper {
     }
 
 
+
+    // ------------------------------------------------------------------
+    // 759 ⇔ 757（1.19 ⇔ 1.18／1.18.1）
+    // パケットIDは 123 件が変わる（PacketIds の 757 列を参照）。
+    // レジストリは RegistryTables757（ViaVersion mapping-1.18／1.19.json
+    // から名前で突き合わせたもの）を使う。757↔763〜775 は隣接表の連鎖
+    // （757→759→760→761→762→763→合成表）で到達する。合成表は作らない。
+    // Join Game／Respawn は dimensionType の値→キーと lastDeathLocation
+    // の追加が違う（Stage B で PlayTranslator が対応する）。
+    // ------------------------------------------------------------------
+
+    /** 759のブロック状態ID → 757のブロック状態ID。範囲外はSTONE_BLOCK_STATE_757 に相当する代替。 */
+    public static int mapBlockState759To757(int id759) {
+        if (id759 < 0 || id759 >= BLOCK_STATE_759_TO_757_MAP.length) {
+            logUnknownComposedOnce("759→757", "ブロック状態", id759);
+            return STONE_BLOCK_STATE_757;
+        }
+        return BLOCK_STATE_759_TO_757_MAP[id759];
+    }
+
+    /** 757のブロック状態ID → 759のブロック状態ID。範囲外はSTONE_BLOCK_STATE_759 に相当する代替。 */
+    public static int mapBlockState757To759(int id757) {
+        if (id757 < 0 || id757 >= BLOCK_STATE_757_TO_759_MAP.length) {
+            logUnknownComposedOnce("757→759", "ブロック状態", id757);
+            return STONE_BLOCK_STATE_759;
+        }
+        return BLOCK_STATE_757_TO_759_MAP[id757];
+    }
+
+    /** 759のアイテムID → 757のアイテムID。範囲外はSTONE_ITEM_757 に相当する代替。 */
+    public static int mapItem759To757(int id759) {
+        if (id759 < 0 || id759 >= ITEM_759_TO_757_MAP.length) {
+            logUnknownComposedOnce("759→757", "アイテム", id759);
+            return STONE_ITEM_757;
+        }
+        return ITEM_759_TO_757_MAP[id759];
+    }
+
+    /** 757のアイテムID → 759のアイテムID。範囲外はSTONE_ITEM_759 に相当する代替。 */
+    public static int mapItem757To759(int id757) {
+        if (id757 < 0 || id757 >= ITEM_757_TO_759_MAP.length) {
+            logUnknownComposedOnce("757→759", "アイテム", id757);
+            return STONE_ITEM_759;
+        }
+        return ITEM_757_TO_759_MAP[id757];
+    }
+
+    /** 759のエンティティ種別ID → 757のエンティティ種別ID。範囲外はPIG_ENTITY_TYPE_757 に相当する代替。 */
+    public static int mapEntityType759To757(int id759) {
+        if (id759 < 0 || id759 >= ENTITY_TYPE_759_TO_757_MAP.length) {
+            logUnknownComposedOnce("759→757", "エンティティ種別", id759);
+            return PIG_ENTITY_TYPE_757;
+        }
+        return ENTITY_TYPE_759_TO_757_MAP[id759];
+    }
+
+    /** 757のエンティティ種別ID → 759のエンティティ種別ID。範囲外はPIG_ENTITY_TYPE_759 に相当する代替。 */
+    public static int mapEntityType757To759(int id757) {
+        if (id757 < 0 || id757 >= ENTITY_TYPE_757_TO_759_MAP.length) {
+            logUnknownComposedOnce("757→759", "エンティティ種別", id757);
+            return PIG_ENTITY_TYPE_759;
+        }
+        return ENTITY_TYPE_757_TO_759_MAP[id757];
+    }
+
+    /** 759の音ID → 757の音ID。範囲外はGENERIC_SOUND_757 に相当する代替。 */
+    public static int mapSound759To757(int id759) {
+        if (id759 < 0 || id759 >= SOUND_759_TO_757_MAP.length) {
+            logUnknownComposedOnce("759→757", "音", id759);
+            return GENERIC_SOUND_757;
+        }
+        return SOUND_759_TO_757_MAP[id759];
+    }
+
+    /** 757の音ID → 759の音ID。範囲外はGENERIC_SOUND_759 に相当する代替。 */
+    public static int mapSound757To759(int id757) {
+        if (id757 < 0 || id757 >= SOUND_757_TO_759_MAP.length) {
+            logUnknownComposedOnce("757→759", "音", id757);
+            return GENERIC_SOUND_759;
+        }
+        return SOUND_757_TO_759_MAP[id757];
+    }
+
+    /** 759のパーティクルID → 757のパーティクルID。範囲外はAMBIENT_PARTICLE_757 に相当する代替。 */
+    public static int mapParticle759To757(int id759) {
+        if (id759 < 0 || id759 >= PARTICLE_759_TO_757_MAP.length) {
+            logUnknownComposedOnce("759→757", "パーティクル", id759);
+            return AMBIENT_PARTICLE_757;
+        }
+        return PARTICLE_759_TO_757_MAP[id759];
+    }
+
+    /** 757のパーティクルID → 759のパーティクルID。範囲外はAMBIENT_PARTICLE_759 に相当する代替。 */
+    public static int mapParticle757To759(int id757) {
+        if (id757 < 0 || id757 >= PARTICLE_757_TO_759_MAP.length) {
+            logUnknownComposedOnce("757→759", "パーティクル", id757);
+            return AMBIENT_PARTICLE_759;
+        }
+        return PARTICLE_757_TO_759_MAP[id757];
+    }
+
+    /** 759のブロックID → 757のブロックID。範囲外はSTONE_BLOCK_757 に相当する代替。 */
+    public static int mapBlock759To757(int id759) {
+        if (id759 < 0 || id759 >= BLOCK_759_TO_757_MAP.length) {
+            logUnknownComposedOnce("759→757", "ブロック", id759);
+            return STONE_BLOCK_757;
+        }
+        return BLOCK_759_TO_757_MAP[id759];
+    }
+
+    /** 757のブロックID → 759のブロックID。範囲外はSTONE_BLOCK_759 に相当する代替。 */
+    public static int mapBlock757To759(int id757) {
+        if (id757 < 0 || id757 >= BLOCK_757_TO_759_MAP.length) {
+            logUnknownComposedOnce("757→759", "ブロック", id757);
+            return STONE_BLOCK_759;
+        }
+        return BLOCK_757_TO_759_MAP[id757];
+    }
+
+    /** 759のメニュー種別ID → 757のメニュー種別ID。範囲外はCRAFTING_MENU_757 に相当する代替。 */
+    public static int mapMenu759To757(int id759) {
+        if (id759 < 0 || id759 >= MENU_759_TO_757_MAP.length) {
+            logUnknownComposedOnce("759→757", "メニュー", id759);
+            return CRAFTING_MENU_757;
+        }
+        return MENU_759_TO_757_MAP[id759];
+    }
+
+    /** 757のメニュー種別ID → 759のメニュー種別ID。範囲外はCRAFTING_MENU_759 に相当する代替。 */
+    public static int mapMenu757To759(int id757) {
+        if (id757 < 0 || id757 >= MENU_757_TO_759_MAP.length) {
+            logUnknownComposedOnce("757→759", "メニュー", id757);
+            return CRAFTING_MENU_759;
+        }
+        return MENU_757_TO_759_MAP[id757];
+    }
+
+    /**
+     * 759のブロックエンティティ種別ID → 757のブロックエンティティ種別ID。
+     * 759にしか無い sculk_catalyst（34）・sculk_shrieker（35）は {@link #DROP}。
+     */
+    public static int mapBlockEntityType759To757(int id759) {
+        if (id759 < 0 || id759 > MAX_BLOCK_ENTITY_759) {
+            logUnknownComposedOnce("759→757", "ブロックエンティティ種別", id759);
+            return DROP;
+        }
+        if (id759 == BLOCK_ENTITY_SCULK_CATALYST_759
+                || id759 == BLOCK_ENTITY_SCULK_SHRIEKER_759) {
+            return DROP;
+        }
+        return id759;
+    }
+
+    /**
+     * 757のブロックエンティティ種別ID → 759のブロックエンティティ種別ID。
+     * 757にしか無い種別は無いため DROP にはならない。
+     */
+    public static int mapBlockEntityType757To759(int id757) {
+        if (id757 < 0 || id757 > MAX_BLOCK_ENTITY_757) {
+            logUnknownComposedOnce("757→759", "ブロックエンティティ種別", id757);
+            return DROP;
+        }
+        return id757;
+    }
+
+    /** 759のバイオームID → 757のバイオームID。範囲外はPLAINS_BIOME_757 に相当する代替。 */
+    public static int mapBiome759To757(int id759) {
+        if (id759 < 0 || id759 >= BIOME_759_TO_757_MAP.length) {
+            logUnknownComposedOnce("759→757", "バイオーム", id759);
+            return PLAINS_BIOME_757;
+        }
+        return BIOME_759_TO_757_MAP[id759];
+    }
+
+    /** 757のバイオームID → 759のバイオームID。範囲外はPLAINS_BIOME_759 に相当する代替。 */
+    public static int mapBiome757To759(int id757) {
+        if (id757 < 0 || id757 >= BIOME_757_TO_759_MAP.length) {
+            logUnknownComposedOnce("757→759", "バイオーム", id757);
+            return PLAINS_BIOME_759;
+        }
+        return BIOME_757_TO_759_MAP[id757];
+    }
+
+    /** 759のダメージ種別ID → 757のダメージ種別ID（恒等写像。ただし1.18／1.19 の codec に
+     * damage_type レジストリは存在しないため、ワイヤ上の呼び出し元は無い）。 */
+    public static int mapDamageType759To757(int id759) {
+        if (id759 < 0 || id759 > MAX_DAMAGE_TYPE_759) {
+            logUnknownOnce(PROTOCOL_757, "ダメージ種別", id759);
+            return DROP;
+        }
+        return DAMAGE_TYPE_757_MAP[id759];
+    }
+
+    /** 757のダメージ種別ID → 759のダメージ種別ID（恒等写像。ワイヤ上の呼び出し元は無い）。 */
+    public static int mapDamageType757To759(int id757) {
+        if (id757 < 0 || id757 > MAX_DAMAGE_TYPE_757) {
+            logUnknownOnce(PROTOCOL_759, "ダメージ種別", id757);
+            return DROP;
+        }
+        return DAMAGE_TYPE_REVERSE_757_MAP[id757];
+    }
+
+    /**
+     * 759のエフェクトID → 757のエフェクトID。darkness（33）は757に無いため
+     * {@link #DROP}、1〜32 は恒等写像。範囲外は Speed（1）。
+     */
+    public static int mapEffect759To757(int id759) {
+        if (id759 < 0 || id759 > MAX_EFFECT_759) {
+            logUnknownComposedOnce("759→757", "エフェクト", id759);
+            return SPEED_EFFECT_757;
+        }
+        if (id759 == DARKNESS_EFFECT_759) {
+            return DROP;
+        }
+        return id759;
+    }
+
+    /**
+     * 757のエフェクトID → 759のエフェクトID。1〜32 は恒等写像。
+     * 範囲外は Speed（1）。
+     */
+    public static int mapEffect757To759(int id757) {
+        if (id757 < 0 || id757 > MAX_EFFECT_757) {
+            logUnknownComposedOnce("757→759", "エフェクト", id757);
+            return SPEED_EFFECT_759;
+        }
+        return id757;
+    }
+
+    /** 759の属性ID → 757の属性ID。並びは同一。範囲外は {@link #DROP}。 */
+    public static int mapAttribute759To757(int id759) {
+        if (id759 < 0 || id759 > MAX_ATTRIBUTE_759) {
+            logUnknownOnce(PROTOCOL_757, "属性", id759);
+            return DROP;
+        }
+        return ATTRIBUTE_757_MAP[id759];
+    }
+
+    /** 757の属性ID → 759の属性ID。並びは同一。範囲外は {@link #DROP}。 */
+    public static int mapAttribute757To759(int id757) {
+        if (id757 < 0 || id757 > MAX_ATTRIBUTE_757) {
+            logUnknownOnce(PROTOCOL_759, "属性", id757);
+            return DROP;
+        }
+        return ATTRIBUTE_REVERSE_757_MAP[id757];
+    }
+
+    /** 757の属性ID → 属性の名前（Update Attributes は 1.18 では名前形式のため）。 */
+    public static String attributeName757(int id757) {
+        if (id757 < 0 || id757 >= ATTRIBUTE_757_NAMES.length) {
+            return null;
+        }
+        return ATTRIBUTE_757_NAMES[id757];
+    }
+
+    /**
+     * 属性の名前 → 757の属性ID（765／763／764 は属性が名前形式のため、
+     * 757向けに変換するときに使う）。無い名前は {@link #DROP}。
+     */
+    public static int attributeId757(String name) {
+        if (name == null) {
+            return DROP;
+        }
+        String plain = stripMinecraftPrefix(name);
+        for (int i = 0; i < ATTRIBUTE_757_NAMES.length; i++) {
+            if (ATTRIBUTE_757_NAMES[i].equals(plain)) {
+                return i;
+            }
+        }
+        return DROP;
+    }
+
+    /** 759のエンチャントID → 757のエンチャントID。swift_sneak（12）は {@link #DROP}。範囲外も {@link #DROP}。 */
+    public static int mapEnchantment759To757(int id759) {
+        if (id759 < 0 || id759 > MAX_ENCHANTMENT_759) {
+            logUnknownOnce(PROTOCOL_757, "エンチャント", id759);
+            return DROP;
+        }
+        return ENCHANTMENT_757_MAP[id759];
+    }
+
+    /** 757のエンチャントID → 759のエンチャントID。12 以降は +1 ずれる。範囲外は {@link #DROP}。 */
+    public static int mapEnchantment757To759(int id757) {
+        if (id757 < 0 || id757 > MAX_ENCHANTMENT_757) {
+            logUnknownOnce(PROTOCOL_759, "エンチャント", id757);
+            return DROP;
+        }
+        return ENCHANTMENT_REVERSE_757_MAP[id757];
+    }
+
+    /** 759の音の名前 → 757の音の名前（Stop Sound 用）。数値の反転表と一致させる。 */
+    public static String mapSoundName759To757(String name) {
+        return mapSoundNameComposed(name, SOUND_NAME_FALLBACK_759_TO_757_MAP);
+    }
+
+    /** 757の音の名前 → 759の音の名前（Stop Sound 用）。恒等写像のためそのまま返す。 */
+    public static String mapSoundName757To759(String name) {
+        return mapSoundNameComposed(name, SOUND_NAME_FALLBACK_757_TO_759_MAP);
+    }
     // ------------------------------------------------------------------
     // 760 ⇔ 759（1.19.1／1.19.2 ⇔ 1.19）
     // パケットIDは 131 件が変わる（PacketIds の 759 列を参照）。
@@ -25416,7 +25903,8 @@ public final class RegistryRemapper {
     // ------------------------------------------------------------------
     // プロトコル番号で切り替える変換（担当2の配線用）。
     // 765は素通し、766は766の表、767は767の表、768は768の表、
-    // 759は760の表を経由する（759↔760は恒等写像）。
+    // 759は760の表を経由する（759↔760は恒等写像）。757は759の表を
+    // 経由する（757↔763〜775は757→759→760→761→762→763→合成表の連鎖）。
     // 769は769の表、770は770の表、771は771の表、772は772の表、773は773の表、774は774の表、775は775の表、それより古い未知の番号は763の表を使う。
     // 767／768／769／770／771／772／773／774／775は765以上だが素通しではない（>765 の分岐より
     // 先に 767／768／769／770／771／772／773／774／775 を判定すること）。
@@ -25424,6 +25912,9 @@ public final class RegistryRemapper {
 
     /** 765のブロック状態ID → クライアント向けのブロック状態ID。 */
     public static int mapBlockState(int id765, int clientProtocol) {
+        if (clientProtocol == PROTOCOL_757) {
+            return mapBlockState759To757(mapBlockState760To759(mapBlockState761To760(mapBlockState762To761(mapBlockState763To762(mapBlockState(id765))))));
+        }
         if (clientProtocol == PROTOCOL_760) {
             return mapBlockState761To760(mapBlockState762To761(mapBlockState763To762(mapBlockState(id765))));
         }
@@ -25474,6 +25965,9 @@ public final class RegistryRemapper {
 
     /** 765のアイテムID → クライアント向けのアイテムID。 */
     public static int mapItem(int id765, int clientProtocol) {
+        if (clientProtocol == PROTOCOL_757) {
+            return mapItem759To757(mapItem760To759(mapItem761To760(mapItem762To761(mapItem763To762(mapItem(id765))))));
+        }
         if (clientProtocol == PROTOCOL_760) {
             return mapItem761To760(mapItem762To761(mapItem763To762(mapItem(id765))));
         }
@@ -25524,6 +26018,9 @@ public final class RegistryRemapper {
 
     /** クライアントのアイテムID → 765のアイテムID（サーバー行き）。 */
     public static int mapItemReverse(int id, int clientProtocol) {
+        if (clientProtocol == PROTOCOL_757) {
+            return mapItemReverse(mapItem757To759(mapItem759To760(mapItem760To761(mapItem761To762(mapItem762To763(id))))));
+        }
         if (clientProtocol == PROTOCOL_760) {
             return mapItemReverse(mapItem760To761(mapItem761To762(mapItem762To763(id))));
         }
@@ -25592,6 +26089,9 @@ public final class RegistryRemapper {
 
     /** 765のエンティティ種別ID → クライアント向けの種別ID。 */
     public static int mapEntityType(int id765, int clientProtocol) {
+        if (clientProtocol == PROTOCOL_757) {
+            return mapEntityType759To757(mapEntityType760To759(mapEntityType761To760(mapEntityType762To761(mapEntityType763To762(mapEntityType(id765))))));
+        }
         if (clientProtocol == PROTOCOL_760) {
             return mapEntityType761To760(mapEntityType762To761(mapEntityType763To762(mapEntityType(id765))));
         }
@@ -25642,6 +26142,9 @@ public final class RegistryRemapper {
 
     /** 765の音ID → クライアント向けの音ID。 */
     public static int mapSound(int id765, int clientProtocol) {
+        if (clientProtocol == PROTOCOL_757) {
+            return mapSound759To757(mapSound760To759(mapSound761To760(mapSound762To761(mapSound763To762(mapSound(id765))))));
+        }
         if (clientProtocol == PROTOCOL_760) {
             return mapSound761To760(mapSound762To761(mapSound763To762(mapSound(id765))));
         }
@@ -25692,6 +26195,9 @@ public final class RegistryRemapper {
 
     /** 765のパーティクルID → クライアント向けのパーティクルID。 */
     public static int mapParticle(int id765, int clientProtocol) {
+        if (clientProtocol == PROTOCOL_757) {
+            return mapParticle759To757(mapParticle760To759(mapParticle761To760(mapParticle762To761(mapParticle763To762(mapParticle(id765))))));
+        }
         if (clientProtocol == PROTOCOL_760) {
             return mapParticle761To760(mapParticle762To761(mapParticle763To762(mapParticle(id765))));
         }
@@ -25742,6 +26248,9 @@ public final class RegistryRemapper {
 
     /** 765のブロックID → クライアント向けのブロックID。 */
     public static int mapBlock(int id765, int clientProtocol) {
+        if (clientProtocol == PROTOCOL_757) {
+            return mapBlock759To757(mapBlock760To759(mapBlock761To760(mapBlock762To761(mapBlock763To762(mapBlock(id765))))));
+        }
         if (clientProtocol == PROTOCOL_760) {
             return mapBlock761To760(mapBlock762To761(mapBlock763To762(mapBlock(id765))));
         }
@@ -25792,6 +26301,9 @@ public final class RegistryRemapper {
 
     /** 765のメニュー種別ID → クライアント向けの種別ID。 */
     public static int mapMenu(int id765, int clientProtocol) {
+        if (clientProtocol == PROTOCOL_757) {
+            return mapMenu759To757(mapMenu760To759(mapMenu761To760(mapMenu762To761(mapMenu763To762(mapMenu(id765))))));
+        }
         if (clientProtocol == PROTOCOL_760) {
             return mapMenu761To760(mapMenu762To761(mapMenu763To762(mapMenu(id765))));
         }
@@ -25842,6 +26354,9 @@ public final class RegistryRemapper {
 
     /** 765のエフェクトID → クライアント向けのエフェクトID。 */
     public static int mapEffect(int id765, int clientProtocol) {
+        if (clientProtocol == PROTOCOL_757) {
+            return mapEffect759To757(mapEffect(id765));
+        }
         if (clientProtocol == PROTOCOL_760) {
             return mapEffect(id765);
         }
@@ -25892,6 +26407,9 @@ public final class RegistryRemapper {
 
     /** 765のブロックエンティティ種別ID → クライアント向けの種別ID。 */
     public static int mapBlockEntityType(int id765, int clientProtocol) {
+        if (clientProtocol == PROTOCOL_757) {
+            return mapBlockEntityType759To757(mapBlockEntityType760To759(mapBlockEntityType761To760(mapBlockEntityType762To761(mapBlockEntityType763To762(mapBlockEntityType(id765))))));
+        }
         if (clientProtocol == PROTOCOL_760) {
             return mapBlockEntityType761To760(mapBlockEntityType762To761(mapBlockEntityType763To762(mapBlockEntityType(id765))));
         }
@@ -25943,6 +26461,9 @@ public final class RegistryRemapper {
 
     /** 音の名前 → クライアント向けの音の名前。 */
     public static String mapSoundName(String name, int clientProtocol) {
+        if (clientProtocol == PROTOCOL_757) {
+            return mapSoundName759To757(mapSoundName760To759(mapSoundName761To760(mapSoundName762To761(mapSoundName763To762(mapSoundName(name))))));
+        }
         if (clientProtocol == PROTOCOL_760) {
             return mapSoundName761To760(mapSoundName762To761(mapSoundName763To762(mapSoundName(name))));
         }
