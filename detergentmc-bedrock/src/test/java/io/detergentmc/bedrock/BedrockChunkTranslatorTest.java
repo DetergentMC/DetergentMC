@@ -190,4 +190,287 @@ class BedrockChunkTranslatorTest {
         assertEquals(2, decoded.biomeAt(7, 0, 3, 0), "名前が無くても番号で砂漠になること");
         assertEquals(1, decoded.biomeAt(7, 2, 3, 0), "名前が無くても番号で平原になること");
     }
+
+    // ---- 757（1.18／1.18.1）----
+
+    /** 757 のバイオーム登録番号の順序（61 件。minecraft: 無し）。 */
+    static final List<String> BIOME_NAMES_118 = List.of(
+            "the_void", "plains", "sunflower_plains", "snowy_plains", "ice_spikes",
+            "desert", "swamp", "forest", "flower_forest", "birch_forest",
+            "dark_forest", "old_growth_birch_forest", "old_growth_pine_taiga",
+            "old_growth_spruce_taiga", "taiga", "snowy_taiga", "savanna",
+            "savanna_plateau", "windswept_hills", "windswept_gravelly_hills",
+            "windswept_forest", "windswept_savanna", "jungle", "sparse_jungle",
+            "bamboo_jungle", "badlands", "eroded_badlands", "wooded_badlands",
+            "meadow", "grove", "snowy_slopes", "frozen_peaks", "jagged_peaks",
+            "stony_peaks", "river", "frozen_river", "beach", "snowy_beach",
+            "stony_shore", "warm_ocean", "lukewarm_ocean", "deep_lukewarm_ocean",
+            "ocean", "deep_ocean", "cold_ocean", "deep_cold_ocean", "frozen_ocean",
+            "deep_frozen_ocean", "mushroom_fields", "dripstone_caves", "lush_caves",
+            "nether_wastes", "warped_forest", "crimson_forest", "soul_sand_valley",
+            "basalt_deltas", "the_end", "end_highlands", "end_midlands",
+            "small_end_islands", "end_barrens");
+
+    /**
+     * 757 の既知の地形。状態番号は 1.18 のもの（石 1、土 10、草 9、水 34、
+     * オークの丸太 77、丸石 14。1.18_blocks.json で確認）。
+     * マングローブの芽は 1.18 には無いので水没の確認は入れない。
+     */
+    static final TestJavaChunk.BlockAt TERRAIN_757 = (x, y, z) -> {
+        if (x >= 4 && x <= 5 && z >= 4 && z <= 5 && y == 63) {
+            return 34; // 水（level 0）
+        }
+        if (x == 10 && z == 10 && y >= 64 && y <= 66) {
+            return 77; // オークの丸太（axis=y）
+        }
+        if (x == 1 && z == 14 && y == 70) {
+            return 14; // 丸石（転置の確認用：非対称な位置）
+        }
+        if (y < 60) {
+            return 1; // 石
+        }
+        if (y < 63) {
+            return 10; // 土
+        }
+        if (y == 63) {
+            return 9; // 草ブロック
+        }
+        return 0; // 空気
+    };
+
+    /** 西半分は砂漠（5）、東半分は平原（1）。757 のバイオーム番号。 */
+    static final TestJavaChunk.BiomeAt TWO_BIOMES_757 = (x, y, z) -> x < 8 ? 5 : 1;
+
+    @Test
+    void protocol757ChunkRoundTrip() {
+        byte[] javaChunk = TestJavaChunk.build757(0, 0, TERRAIN_757, TWO_BIOMES_757);
+        TranslatedChunk translated = BedrockChunkTranslator.translate(
+                new ChunkInput(0, 0, javaChunk, 757, -64, 384, BIOME_NAMES_118));
+        assertEquals(0, translated.chunkX());
+        assertEquals(0, translated.chunkZ());
+        assertEquals(24, translated.subChunkCount());
+        Decoded decoded = BedrockLevelChunkDecoder.decode(translated.payload(), 24);
+        assertTrue(decoded.fullyConsumed, "ペイロードを読み切ること");
+        assertEquals(0, decoded.borderBlockCount);
+        assertEquals(0, decoded.blockEntityCount);
+
+        // 地面（セクション 7 は y 48〜63）。
+        assertEquals(12183, decoded.blockAt(7, 8, 15, 8, 0), "757 の y=63 は草ブロック");
+        assertEquals(9550, decoded.blockAt(7, 8, 14, 8, 0), "757 の y=62 は土");
+        assertEquals(1774, decoded.blockAt(7, 8, 11, 8, 0), "757 の y=59 は石");
+        assertEquals(1774, decoded.blockAt(4, 0, 0, 0, 0), "757 の y=0 は石");
+        assertEquals(11881, decoded.blockAt(8, 0, 10, 0, 0), "757 の y=74 は空気");
+        // 水たまり（757 の水 34 → 765 の水 80）。
+        assertEquals(9304, decoded.blockAt(7, 4, 15, 4, 0), "757 の水たまりは水");
+        assertEquals(9550, decoded.blockAt(7, 4, 14, 4, 0), "水の下は土");
+        // 丸太（757 の 77 → 765 の 131）。
+        assertEquals(725, decoded.blockAt(8, 10, 0, 10, 0), "757 の y=64 の丸太");
+        assertEquals(725, decoded.blockAt(8, 10, 2, 10, 0), "757 の y=66 の丸太");
+        // 転置の確認。
+        assertEquals(5995, decoded.blockAt(8, 1, 6, 14, 0), "757 の y=70 の丸石");
+        assertEquals(11881, decoded.blockAt(8, 14, 6, 1, 0), "転置されていたらここに出る（空気のはず）");
+
+        // バイオーム：西半分は砂漠、東半分は平原（757 の codec 名で引く）。
+        assertEquals(2, decoded.biomeAt(7, 0, 3, 0), "757 の西は砂漠");
+        assertEquals(1, decoded.biomeAt(7, 2, 3, 0), "757 の東は平原");
+    }
+
+    @Test
+    void protocol757NormalizesBlockStates() {
+        assertEquals(1, BedrockChunkTranslator.normalizeBlockState(1, 757), "757 の石は石");
+        assertEquals(9, BedrockChunkTranslator.normalizeBlockState(9, 757), "757 の草は草");
+        assertEquals(10, BedrockChunkTranslator.normalizeBlockState(10, 757), "757 の土は土");
+        assertEquals(14, BedrockChunkTranslator.normalizeBlockState(14, 757), "757 の丸石は丸石");
+        assertEquals(80, BedrockChunkTranslator.normalizeBlockState(34, 757),
+                "757 の水（level 0）は 765 の水（level 0）");
+        assertEquals(131, BedrockChunkTranslator.normalizeBlockState(77, 757),
+                "757 のオークの丸太（axis=y）は 765 の丸太");
+        assertEquals(1, BedrockChunkTranslator.normalizeBlockState(99999, 757),
+                "範囲外の状態は石に落とす");
+    }
+
+    /**
+     * 757 の BitStorage は long の境界をまたがない詰め（non-straddling）。
+     * 20 種の状態があるセクションは BPE 5 で 342 long になり、straddling
+     * （320 long）で読むとずれる。実バニラ 1.18 の生キャプチャで確認
+     * （2026-11-15：BPE 5 の dataLen は 342）。
+     */
+    @Test
+    void protocol757NonStraddlingPacking() {
+        TestJavaChunk.BlockAt twentyStates = (x, y, z) -> {
+            if (y >= 48 && y < 64) {
+                int j = x | (z << 4) | ((y - 48) << 8);
+                return 1 + (j % 20); // 状態 1〜20（20 種で BPE 5）
+            }
+            if (y < 48) {
+                return 1;
+            }
+            return 0;
+        };
+        byte[] javaChunk = TestJavaChunk.build757(0, 0, twentyStates, (x, y, z) -> 1);
+        TranslatedChunk translated = BedrockChunkTranslator.translate(
+                new ChunkInput(0, 0, javaChunk, 757, -64, 384, BIOME_NAMES_118));
+        Decoded decoded = BedrockLevelChunkDecoder.decode(translated.payload(), 24);
+        assertTrue(decoded.fullyConsumed, "BPE 5 のセクションを読み切ること");
+        assertEquals(1774, decoded.blockAt(7, 0, 0, 0, 0), "状態 1 は石");
+        assertEquals(9550, decoded.blockAt(7, 9, 0, 0, 0), "状態 10 は土");
+        assertEquals(12183, decoded.blockAt(7, 8, 0, 0, 0), "状態 9 は草ブロック");
+    }
+
+    @Test
+    void protocol757BiomeFallbackToPlains() {
+        // 名前が無い場合、範囲外のバイオーム番号は平原（1）に落とす。
+        byte[] javaChunk = TestJavaChunk.build757(0, 0,
+                (x, y, z) -> 1, (x, y, z) -> 100);
+        TranslatedChunk translated = BedrockChunkTranslator.translate(
+                new ChunkInput(0, 0, javaChunk, 757, -64, 384, null));
+        Decoded decoded = BedrockLevelChunkDecoder.decode(translated.payload(), 24);
+        assertTrue(decoded.fullyConsumed);
+        assertEquals(1, decoded.biomeAt(7, 0, 0, 0), "範囲外のバイオームは平原");
+        assertEquals(1, decoded.biomeAt(0, 0, 0, 0), "範囲外のバイオームは平原");
+    }
+
+    // ---- 756（1.17.1）----
+
+    /**
+     * 756 のバイオーム登録番号の順序（81 件。id 0〜175 の非連番。minecraft: 無し）。
+     * minecraft-data pc/1.17/biomes.json の id 順で、隙間の id は ""（平原に落とす）。
+     * 756 の chunk はバイオームを int[1024] で持ち、値はこの id そのもの。
+     */
+    static final List<String> BIOME_NAMES_117 = List.of(
+            "ocean", "plains", "desert", "mountains", "forest", "taiga", "swamp", "river",
+            "nether_wastes", "the_end", "frozen_ocean", "frozen_river", "snowy_tundra", "snowy_mountains", "mushroom_fields", "mushroom_field_shore",
+            "beach", "desert_hills", "wooded_hills", "taiga_hills", "mountain_edge", "jungle", "jungle_hills", "jungle_edge",
+            "deep_ocean", "stone_shore", "snowy_beach", "birch_forest", "birch_forest_hills", "dark_forest", "snowy_taiga", "snowy_taiga_hills",
+            "giant_tree_taiga", "giant_tree_taiga_hills", "wooded_mountains", "savanna", "savanna_plateau", "badlands", "wooded_badlands_plateau", "badlands_plateau",
+            "small_end_islands", "end_midlands", "end_highlands", "end_barrens", "warm_ocean", "lukewarm_ocean", "cold_ocean", "deep_warm_ocean",
+            "deep_lukewarm_ocean", "deep_cold_ocean", "deep_frozen_ocean", "", "", "", "", "",
+            "", "", "", "", "", "", "", "",
+            "", "", "", "", "", "", "", "",
+            "", "", "", "", "", "", "", "",
+            "", "", "", "", "", "", "", "",
+            "", "", "", "", "", "", "", "",
+            "", "", "", "", "", "", "", "",
+            "", "", "", "", "", "", "", "",
+            "", "", "", "", "", "", "", "",
+            "", "", "", "", "", "", "", "the_void",
+            "", "sunflower_plains", "desert_lakes", "gravelly_mountains", "flower_forest", "taiga_mountains", "swamp_hills", "",
+            "", "", "", "", "ice_spikes", "", "", "",
+            "", "", "", "", "", "modified_jungle", "", "modified_jungle_edge",
+            "", "", "", "tall_birch_forest", "tall_birch_hills", "dark_forest_hills", "snowy_taiga_mountains", "",
+            "giant_spruce_taiga", "giant_spruce_taiga_hills", "modified_gravelly_mountains", "shattered_savanna", "shattered_savanna_plateau", "eroded_badlands", "modified_wooded_badlands_plateau", "modified_badlands_plateau",
+            "bamboo_jungle", "bamboo_jungle_hills", "soul_sand_valley", "crimson_forest", "warped_forest", "basalt_deltas", "dripstone_caves", "lush_caves"
+            );
+
+    /** 西半分は砂漠（2）、東半分は平原（1）。756 のバイオーム番号。 */
+    static final TestJavaChunk.BiomeAt TWO_BIOMES_756 = (x, y, z) -> x < 8 ? 2 : 1;
+
+    @Test
+    void protocol756ChunkRoundTrip() {
+        // ブロック状態は 756・757 で同一順序のため TERRAIN_757 をそのまま使う。
+        byte[] javaChunk = TestJavaChunk.build756(0, 0, TERRAIN_757, TWO_BIOMES_756);
+        TranslatedChunk translated = BedrockChunkTranslator.translate(
+                new ChunkInput(0, 0, javaChunk, 756, 0, 256, BIOME_NAMES_117));
+        assertEquals(0, translated.chunkX());
+        assertEquals(0, translated.chunkZ());
+        assertEquals(16, translated.subChunkCount());
+        Decoded decoded = BedrockLevelChunkDecoder.decode(translated.payload(), 16);
+        assertTrue(decoded.fullyConsumed, "ペイロードを読み切ること");
+        assertEquals(0, decoded.borderBlockCount);
+        assertEquals(0, decoded.blockEntityCount);
+        for (int s = 0; s < 16; s++) {
+            assertEquals(s, decoded.subChunkY.get(s), "サブチャンク Y=" + s);
+        }
+
+        // 地面（セクション 3 は y 48〜63）。
+        assertEquals(12183, decoded.blockAt(3, 8, 15, 8, 0), "756 の y=63 は草ブロック");
+        assertEquals(9550, decoded.blockAt(3, 8, 14, 8, 0), "756 の y=62 は土");
+        assertEquals(1774, decoded.blockAt(3, 8, 11, 8, 0), "756 の y=59 は石");
+        assertEquals(1774, decoded.blockAt(0, 0, 0, 0, 0), "756 の y=0 は石");
+        assertEquals(11881, decoded.blockAt(4, 0, 10, 0, 0), "756 の y=74 は空気");
+        // 水たまり（756 の水 34 → 765 の水 80）。
+        assertEquals(9304, decoded.blockAt(3, 4, 15, 4, 0), "756 の水たまりは水");
+        assertEquals(9550, decoded.blockAt(3, 4, 14, 4, 0), "水の下は土");
+        // 丸太（756 の 77 → 765 の 131）。
+        assertEquals(725, decoded.blockAt(4, 10, 0, 10, 0), "756 の y=64 の丸太");
+        assertEquals(725, decoded.blockAt(4, 10, 2, 10, 0), "756 の y=66 の丸太");
+        // 転置の確認。
+        assertEquals(5995, decoded.blockAt(4, 1, 6, 14, 0), "756 の y=70 の丸石");
+        assertEquals(11881, decoded.blockAt(4, 14, 6, 1, 0), "転置されていたらここに出る（空気のはず）");
+
+        // バイオーム：西半分は砂漠、東半分は平原（756 の codec 名で引く）。
+        assertEquals(2, decoded.biomeAt(3, 0, 3, 0), "756 の西は砂漠");
+        assertEquals(1, decoded.biomeAt(3, 2, 3, 0), "756 の東は平原");
+    }
+
+    @Test
+    void protocol756NormalizesBlockStates() {
+        assertEquals(1, BedrockChunkTranslator.normalizeBlockState(1, 756), "756 の石は石");
+        assertEquals(9, BedrockChunkTranslator.normalizeBlockState(9, 756), "756 の草は草");
+        assertEquals(10, BedrockChunkTranslator.normalizeBlockState(10, 756), "756 の土は土");
+        assertEquals(14, BedrockChunkTranslator.normalizeBlockState(14, 756), "756 の丸石は丸石");
+        assertEquals(80, BedrockChunkTranslator.normalizeBlockState(34, 756),
+                "756 の水（level 0）は 765 の水（level 0）");
+        assertEquals(131, BedrockChunkTranslator.normalizeBlockState(77, 756),
+                "756 のオークの丸太（axis=y）は 765 の丸太");
+        assertEquals(1, BedrockChunkTranslator.normalizeBlockState(99999, 756),
+                "範囲外の状態は石に落とす");
+    }
+
+    /**
+     * 756 の BitStorage は long の境界をまたがない詰め（non-straddling）。
+     * 20 種の状態があるセクションは BPE 5 で 342 long になり、straddling
+     * （320 long）で読むとずれる。実バニラ 1.17.1 の生キャプチャで確認
+     * （2026-11-16：cap756-chunk-21-17.bin で BPE 5 の dataLen は 342）。
+     */
+    @Test
+    void protocol756NonStraddlingPacking() {
+        TestJavaChunk.BlockAt twentyStates = (x, y, z) -> {
+            if (y >= 48 && y < 64) {
+                int j = x | (z << 4) | ((y - 48) << 8);
+                return 1 + (j % 20); // 状態 1〜20（20 種で BPE 5）
+            }
+            if (y < 48) {
+                return 1;
+            }
+            return 0;
+        };
+        byte[] javaChunk = TestJavaChunk.build756(0, 0, twentyStates, (x, y, z) -> 1);
+        TranslatedChunk translated = BedrockChunkTranslator.translate(
+                new ChunkInput(0, 0, javaChunk, 756, 0, 256, BIOME_NAMES_117));
+        Decoded decoded = BedrockLevelChunkDecoder.decode(translated.payload(), 16);
+        assertTrue(decoded.fullyConsumed, "BPE 5 のセクションを読み切ること");
+        assertEquals(1774, decoded.blockAt(3, 0, 0, 0, 0), "状態 1 は石");
+        assertEquals(9550, decoded.blockAt(3, 9, 0, 0, 0), "状態 10 は土");
+        assertEquals(12183, decoded.blockAt(3, 8, 0, 0, 0), "状態 9 は草ブロック");
+    }
+
+    @Test
+    void protocol756BiomeFallbackToPlains() {
+        // 名前が無い場合、範囲外のバイオーム番号は平原（1）に落とす。
+        byte[] javaChunk = TestJavaChunk.build756(0, 0,
+                (x, y, z) -> 1, (x, y, z) -> 200);
+        TranslatedChunk translated = BedrockChunkTranslator.translate(
+                new ChunkInput(0, 0, javaChunk, 756, 0, 256, null));
+        Decoded decoded = BedrockLevelChunkDecoder.decode(translated.payload(), 16);
+        assertTrue(decoded.fullyConsumed);
+        assertEquals(1, decoded.biomeAt(3, 0, 0, 0), "範囲外のバイオームは平原");
+        assertEquals(1, decoded.biomeAt(0, 0, 0, 0), "範囲外のバイオームは平原");
+    }
+
+    @Test
+    void protocol756SparseSectionsAreAirButKeepBiomes() {
+        // bitMap にセクション 3・4 だけが立っているチャンク。無いセクションは
+        // ブロックだけ空気で補完し、バイオームは int[1024] の値をそのまま使う。
+        byte[] javaChunk = TestJavaChunk.build756(0, 0, TERRAIN_757, TWO_BIOMES_756, 0x18);
+        TranslatedChunk translated = BedrockChunkTranslator.translate(
+                new ChunkInput(0, 0, javaChunk, 756, 0, 256, BIOME_NAMES_117));
+        Decoded decoded = BedrockLevelChunkDecoder.decode(translated.payload(), 16);
+        assertTrue(decoded.fullyConsumed, "ペイロードを読み切ること");
+        assertEquals(11881, decoded.blockAt(0, 0, 0, 0, 0), "bitMap に無いセクションは空気");
+        assertEquals(11881, decoded.blockAt(15, 0, 0, 0, 0), "bitMap に無いセクションは空気");
+        assertEquals(12183, decoded.blockAt(3, 8, 15, 8, 0), "あるセクションの草ブロックは残る");
+        assertEquals(2, decoded.biomeAt(0, 0, 0, 0), "無いセクションのバイオームも配列の値（砂漠）");
+        assertEquals(1, decoded.biomeAt(0, 2, 0, 0), "無いセクションのバイオームも配列の値（平原）");
+    }
 }
