@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -2926,6 +2927,16 @@ public final class PlayTranslator {
                 case 775774 -> RegistryRemapper::mapDamageType775To774;
                 default -> null;
             };
+            case "minecraft:worldgen/biome" -> switch (from * 1000 + to) {
+                case 757759 -> RegistryRemapper::mapBiome757To759;
+                case 759757 -> RegistryRemapper::mapBiome759To757;
+                default -> null;
+            };
+            case "minecraft:dimension_type" -> switch (from * 1000 + to) {
+                case 757759 -> PlayTranslator::mapDimensionType757To759;
+                case 759757 -> PlayTranslator::mapDimensionType759To757;
+                default -> null;
+            };
             default -> null;
         };
     }
@@ -2968,6 +2979,16 @@ public final class PlayTranslator {
                 case 775 -> DAMAGE_774_NAMES; // 774と同一の50件
                 default -> DAMAGE_766_NAMES;
             };
+            case "minecraft:worldgen/biome" -> switch (to) {
+                case 757 -> BIOME_757_NAMES;
+                case 759 -> BIOME_759_NAMES;
+                default -> null;
+            };
+            case "minecraft:dimension_type" -> switch (to) {
+                case 757 -> DIMENSION_TYPE_757_NAMES;
+                case 759 -> DIMENSION_TYPE_759_NAMES;
+                default -> null;
+            };
             default -> null;
         };
     }
@@ -3006,7 +3027,12 @@ public final class PlayTranslator {
             entry.put("name", new Tag.StringTag(targetNames[targetId]));
             entry.put("id", new Tag.IntTag(targetId));
             compound.get("element").ifPresent(t -> entry.put("element", t));
-            out.set(targetId, new Tag.CompoundTag(entry));
+            // 受信側に無いエントリへのフォールバックで複数の送信側エントリが同じ
+            // 受信側 id になる場合（759→757のバイオームで mangrove_swamp→swamp 等）、
+            // 先に来たもの（真の対応）を残す。他の変換は全て単射のため挙動は変わらない。
+            if (out.get(targetId) == null) {
+                out.set(targetId, new Tag.CompoundTag(entry));
+            }
         }
         for (int i = 0; i < out.size(); i++) {
             if (out.get(i) == null) {
@@ -3024,6 +3050,8 @@ public final class PlayTranslator {
      * 受信側の順序に並べ替える。763／764は765として扱う。
      * {@code minecraft:jukebox_song} は766／765には存在しないため、
      * 受信側が766／765の場合はレジストリごと落とす。
+     * {@code minecraft:chat_type} は1.19で追加されたため、
+     * 受信側が757の場合はレジストリごと落とす。
      * 入力のマップは変更しない（新しいマップを返す）。
      */
     public static Map<String, Tag.CompoundTag> reorderRegistries(
@@ -3049,6 +3077,9 @@ public final class PlayTranslator {
                     && toProtocol != ProtocolVersion.V1_21_9
                     && toProtocol != ProtocolVersion.V1_21_11
                     && toProtocol != ProtocolVersion.V26_1) {
+                continue;
+            }
+            if (registryId.equals("minecraft:chat_type") && toProtocol == ProtocolVersion.V1_18) {
                 continue;
             }
             List<Tag> entries = registry.getValue().getList("value")
@@ -7699,5 +7730,4085 @@ public final class PlayTranslator {
         }
     }
 
+
+
+    // ================================================================
+    // 757 <=> 759 (1.18 / 1.18.1 <=> 1.19)
+    // ================================================================
+
+    /**
+     * 757<=>759の変換で使うレジストリの名前列・element の16進（実バニラの Join Game codec から取ったもの。
+     * ライブキャプチャ（/tmp/cap-757-joingame.bin、/tmp/cap-759-joingame.bin）で確認）。
+     */
+    private static final String[] BIOME_757_NAMES = {
+            "minecraft:the_void", "minecraft:plains", "minecraft:sunflower_plains", "minecraft:snowy_plains", "minecraft:ice_spikes", "minecraft:desert",
+            "minecraft:swamp", "minecraft:forest", "minecraft:flower_forest", "minecraft:birch_forest", "minecraft:dark_forest", "minecraft:old_growth_birch_forest",
+            "minecraft:old_growth_pine_taiga", "minecraft:old_growth_spruce_taiga", "minecraft:taiga", "minecraft:snowy_taiga", "minecraft:savanna", "minecraft:savanna_plateau",
+            "minecraft:windswept_hills", "minecraft:windswept_gravelly_hills", "minecraft:windswept_forest", "minecraft:windswept_savanna", "minecraft:jungle", "minecraft:sparse_jungle",
+            "minecraft:bamboo_jungle", "minecraft:badlands", "minecraft:eroded_badlands", "minecraft:wooded_badlands", "minecraft:meadow", "minecraft:grove",
+            "minecraft:snowy_slopes", "minecraft:frozen_peaks", "minecraft:jagged_peaks", "minecraft:stony_peaks", "minecraft:river", "minecraft:frozen_river",
+            "minecraft:beach", "minecraft:snowy_beach", "minecraft:stony_shore", "minecraft:warm_ocean", "minecraft:lukewarm_ocean", "minecraft:deep_lukewarm_ocean",
+            "minecraft:ocean", "minecraft:deep_ocean", "minecraft:cold_ocean", "minecraft:deep_cold_ocean", "minecraft:frozen_ocean", "minecraft:deep_frozen_ocean",
+            "minecraft:mushroom_fields", "minecraft:dripstone_caves", "minecraft:lush_caves", "minecraft:nether_wastes", "minecraft:warped_forest", "minecraft:crimson_forest",
+            "minecraft:soul_sand_valley", "minecraft:basalt_deltas", "minecraft:the_end", "minecraft:end_highlands", "minecraft:end_midlands", "minecraft:small_end_islands",
+            "minecraft:end_barrens",
+    };
+
+    private static final String[] BIOME_759_NAMES = {
+            "minecraft:the_void", "minecraft:plains", "minecraft:sunflower_plains", "minecraft:snowy_plains", "minecraft:ice_spikes", "minecraft:desert",
+            "minecraft:swamp", "minecraft:mangrove_swamp", "minecraft:forest", "minecraft:flower_forest", "minecraft:birch_forest", "minecraft:dark_forest",
+            "minecraft:old_growth_birch_forest", "minecraft:old_growth_pine_taiga", "minecraft:old_growth_spruce_taiga", "minecraft:taiga", "minecraft:snowy_taiga", "minecraft:savanna",
+            "minecraft:savanna_plateau", "minecraft:windswept_hills", "minecraft:windswept_gravelly_hills", "minecraft:windswept_forest", "minecraft:windswept_savanna", "minecraft:jungle",
+            "minecraft:sparse_jungle", "minecraft:bamboo_jungle", "minecraft:badlands", "minecraft:eroded_badlands", "minecraft:wooded_badlands", "minecraft:meadow",
+            "minecraft:grove", "minecraft:snowy_slopes", "minecraft:frozen_peaks", "minecraft:jagged_peaks", "minecraft:stony_peaks", "minecraft:river",
+            "minecraft:frozen_river", "minecraft:beach", "minecraft:snowy_beach", "minecraft:stony_shore", "minecraft:warm_ocean", "minecraft:lukewarm_ocean",
+            "minecraft:deep_lukewarm_ocean", "minecraft:ocean", "minecraft:deep_ocean", "minecraft:cold_ocean", "minecraft:deep_cold_ocean", "minecraft:frozen_ocean",
+            "minecraft:deep_frozen_ocean", "minecraft:mushroom_fields", "minecraft:dripstone_caves", "minecraft:lush_caves", "minecraft:deep_dark", "minecraft:nether_wastes",
+            "minecraft:warped_forest", "minecraft:crimson_forest", "minecraft:soul_sand_valley", "minecraft:basalt_deltas", "minecraft:the_end", "minecraft:end_highlands",
+            "minecraft:end_midlands", "minecraft:small_end_islands", "minecraft:end_barrens",
+    };
+
+    private static final String[] BIOME_757_CATEGORIES = {
+            "none", "plains", "plains", "icy", "icy", "desert",
+            "swamp", "forest", "forest", "forest", "forest", "forest",
+            "taiga", "taiga", "taiga", "taiga", "savanna", "savanna",
+            "extreme_hills", "extreme_hills", "extreme_hills", "savanna", "jungle", "jungle",
+            "jungle", "mesa", "mesa", "mesa", "mountain", "forest",
+            "mountain", "mountain", "mountain", "mountain", "river", "river",
+            "beach", "beach", "beach", "ocean", "ocean", "ocean",
+            "ocean", "ocean", "ocean", "ocean", "ocean", "ocean",
+            "mushroom", "underground", "underground", "nether", "nether", "nether",
+            "nether", "nether", "the_end", "the_end", "the_end", "the_end",
+            "the_end",
+    };
+
+    private static final String[] DIMENSION_TYPE_757_NAMES = {
+            "minecraft:overworld", "minecraft:overworld_caves", "minecraft:the_nether", "minecraft:the_end",
+    };
+
+    private static final String[] DIMENSION_TYPE_759_NAMES = {
+            "minecraft:overworld", "minecraft:the_nether", "minecraft:the_end", "minecraft:overworld_caves",
+    };
+
+    private static final String[] CHAT_TYPE_759_NAMES = {
+            "minecraft:chat", "minecraft:system", "minecraft:game_info", "minecraft:say_command",
+            "minecraft:msg_command", "minecraft:team_msg_command", "minecraft:emote_command", "minecraft:tellraw_command",
+    };
+
+    /** DIMENSION_TYPE_757_ELEMENT_HEX：実バニラの Join Game codec から取った element（anonymous NBT の16進）。 */
+    private static final String[] DIMENSION_TYPE_757_ELEMENT_HEX = {
+            // minecraft:overworld（291バイト）。
+            "0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000008000a" +
+            "696e66696e696275726e001e6d696e6563726166743a696e66696e696275726e5f6f766572776f726c640100147265737061" +
+            "776e5f616e63686f725f776f726b730001000c6861735f736b796c69676874010100096265645f776f726b73010800076566" +
+            "666563747300136d696e6563726166743a6f766572776f726c640100096861735f72616964730103000e6c6f676963616c5f" +
+            "68656967687400000180060010636f6f7264696e6174655f7363616c653ff00000000000000300056d696e5f79ffffffc001" +
+            "000b6861735f6365696c696e6700010009756c7472617761726d000300066865696768740000018000",
+            // minecraft:overworld_caves（291バイト）。
+            "0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000008000a" +
+            "696e66696e696275726e001e6d696e6563726166743a696e66696e696275726e5f6f766572776f726c640100147265737061" +
+            "776e5f616e63686f725f776f726b730001000c6861735f736b796c69676874010100096265645f776f726b73010800076566" +
+            "666563747300136d696e6563726166743a6f766572776f726c640100096861735f72616964730103000e6c6f676963616c5f" +
+            "68656967687400000180060010636f6f7264696e6174655f7363616c653ff00000000000000300056d696e5f79ffffffc001" +
+            "000b6861735f6365696c696e6701010009756c7472617761726d000300066865696768740000018000",
+            // minecraft:the_nether（310バイト）。
+            "0a01000b7069676c696e5f73616665010100076e61747572616c0005000d616d6269656e745f6c696768743dcccccd08000a" +
+            "696e66696e696275726e001b6d696e6563726166743a696e66696e696275726e5f6e65746865720100147265737061776e5f" +
+            "616e63686f725f776f726b730101000c6861735f736b796c69676874000100096265645f776f726b73000800076566666563" +
+            "747300146d696e6563726166743a7468655f6e657468657204000a66697865645f74696d6500000000000046500100096861" +
+            "735f72616964730003000e6c6f676963616c5f68656967687400000080060010636f6f7264696e6174655f7363616c654020" +
+            "0000000000000300056d696e5f790000000001000b6861735f6365696c696e6701010009756c7472617761726d0103000668" +
+            "65696768740000010000",
+            // minecraft:the_end（304バイト）。
+            "0a01000b7069676c696e5f73616665000100076e61747572616c0005000d616d6269656e745f6c696768740000000008000a" +
+            "696e66696e696275726e00186d696e6563726166743a696e66696e696275726e5f656e640100147265737061776e5f616e63" +
+            "686f725f776f726b730001000c6861735f736b796c69676874000100096265645f776f726b73000800076566666563747300" +
+            "116d696e6563726166743a7468655f656e6404000a66697865645f74696d6500000000000017700100096861735f72616964" +
+            "730103000e6c6f676963616c5f68656967687400000100060010636f6f7264696e6174655f7363616c653ff0000000000000" +
+            "0300056d696e5f790000000001000b6861735f6365696c696e6700010009756c7472617761726d0003000668656967687400" +
+            "00010000",
+    };
+
+    /** DIMENSION_TYPE_759_ELEMENT_HEX：実バニラの Join Game codec から取った element（anonymous NBT の16進）。 */
+    private static final String[] DIMENSION_TYPE_759_ELEMENT_HEX = {
+            // minecraft:overworld（434バイト）。
+            "0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000003001f" +
+            "6d6f6e737465725f737061776e5f626c6f636b5f6c696768745f6c696d69740000000008000a696e66696e696275726e001f" +
+            "236d696e6563726166743a696e66696e696275726e5f6f766572776f726c640100147265737061776e5f616e63686f725f77" +
+            "6f726b730001000c6861735f736b796c69676874010100096265645f776f726b73010800076566666563747300136d696e65" +
+            "63726166743a6f766572776f726c640100096861735f72616964730103000e6c6f676963616c5f6865696768740000018006" +
+            "0010636f6f7264696e6174655f7363616c653ff00000000000000a00196d6f6e737465725f737061776e5f6c696768745f6c" +
+            "6576656c0800047479706500116d696e6563726166743a756e69666f726d0a000576616c756503000d6d696e5f696e636c75" +
+            "736976650000000003000d6d61785f696e636c75736976650000000700000300056d696e5f79ffffffc0010009756c747261" +
+            "7761726d0001000b6861735f6365696c696e67000300066865696768740000018000",
+            // minecraft:the_nether（381バイト）。
+            "0a01000b7069676c696e5f73616665010100076e61747572616c0005000d616d6269656e745f6c696768743dcccccd03001f" +
+            "6d6f6e737465725f737061776e5f626c6f636b5f6c696768745f6c696d69740000000f08000a696e66696e696275726e001c" +
+            "236d696e6563726166743a696e66696e696275726e5f6e65746865720100147265737061776e5f616e63686f725f776f726b" +
+            "730101000c6861735f736b796c69676874000100096265645f776f726b73000800076566666563747300146d696e65637261" +
+            "66743a7468655f6e657468657204000a66697865645f74696d6500000000000046500100096861735f72616964730003000e" +
+            "6c6f676963616c5f68656967687400000080060010636f6f7264696e6174655f7363616c6540200000000000000300196d6f" +
+            "6e737465725f737061776e5f6c696768745f6c6576656c0000000b0300056d696e5f7900000000010009756c747261776172" +
+            "6d0101000b6861735f6365696c696e67010300066865696768740000010000",
+            // minecraft:the_end（447バイト）。
+            "0a01000b7069676c696e5f73616665000100076e61747572616c0005000d616d6269656e745f6c696768740000000003001f" +
+            "6d6f6e737465725f737061776e5f626c6f636b5f6c696768745f6c696d69740000000008000a696e66696e696275726e0019" +
+            "236d696e6563726166743a696e66696e696275726e5f656e640100147265737061776e5f616e63686f725f776f726b730001" +
+            "000c6861735f736b796c69676874000100096265645f776f726b73000800076566666563747300116d696e6563726166743a" +
+            "7468655f656e6404000a66697865645f74696d6500000000000017700100096861735f72616964730103000e6c6f67696361" +
+            "6c5f68656967687400000100060010636f6f7264696e6174655f7363616c653ff00000000000000a00196d6f6e737465725f" +
+            "737061776e5f6c696768745f6c6576656c0800047479706500116d696e6563726166743a756e69666f726d0a000576616c75" +
+            "6503000d6d696e5f696e636c75736976650000000003000d6d61785f696e636c75736976650000000700000300056d696e5f" +
+            "7900000000010009756c7472617761726d0001000b6861735f6365696c696e67000300066865696768740000010000",
+            // minecraft:overworld_caves（434バイト）。
+            "0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000003001f" +
+            "6d6f6e737465725f737061776e5f626c6f636b5f6c696768745f6c696d69740000000008000a696e66696e696275726e001f" +
+            "236d696e6563726166743a696e66696e696275726e5f6f766572776f726c640100147265737061776e5f616e63686f725f77" +
+            "6f726b730001000c6861735f736b796c69676874010100096265645f776f726b73010800076566666563747300136d696e65" +
+            "63726166743a6f766572776f726c640100096861735f72616964730103000e6c6f676963616c5f6865696768740000018006" +
+            "0010636f6f7264696e6174655f7363616c653ff00000000000000a00196d6f6e737465725f737061776e5f6c696768745f6c" +
+            "6576656c0800047479706500116d696e6563726166743a756e69666f726d0a000576616c756503000d6d696e5f696e636c75" +
+            "736976650000000003000d6d61785f696e636c75736976650000000700000300056d696e5f79ffffffc0010009756c747261" +
+            "7761726d0001000b6861735f6365696c696e67010300066865696768740000018000",
+    };
+
+    /** CHAT_TYPE_759_ELEMENT_HEX：実バニラの Join Game codec から取った element（anonymous NBT の16進）。 */
+    private static final String[] CHAT_TYPE_759_ELEMENT_HEX = {
+            // minecraft:chat（232バイト）。
+            "0a0a0004636861740a000a6465636f726174696f6e08000f7472616e736c6174696f6e5f6b6579000e636861742e74797065" +
+            "2e746578740a00057374796c650009000a706172616d65746572730800000002000673656e6465720007636f6e74656e7400" +
+            "000a00096e6172726174696f6e0800087072696f726974790004636861740a000a6465636f726174696f6e08000f7472616e" +
+            "736c6174696f6e5f6b65790016636861742e747970652e746578742e6e6172726174650a00057374796c650009000a706172" +
+            "616d65746572730800000002000673656e6465720007636f6e74656e74000000",
+            // minecraft:system（42バイト）。
+            "0a0a000463686174000a00096e6172726174696f6e0800087072696f72697479000673797374656d0000",
+            // minecraft:game_info（13バイト）。
+            "0a0a00076f7665726c61790000",
+            // minecraft:say_command（240バイト）。
+            "0a0a0004636861740a000a6465636f726174696f6e08000f7472616e736c6174696f6e5f6b65790016636861742e74797065" +
+            "2e616e6e6f756e63656d656e740a00057374796c650009000a706172616d65746572730800000002000673656e6465720007" +
+            "636f6e74656e7400000a00096e6172726174696f6e0800087072696f726974790004636861740a000a6465636f726174696f" +
+            "6e08000f7472616e736c6174696f6e5f6b65790016636861742e747970652e746578742e6e6172726174650a00057374796c" +
+            "650009000a706172616d65746572730800000002000673656e6465720007636f6e74656e74000000",
+            // minecraft:msg_command（275バイト）。
+            "0a0a0004636861740a000a6465636f726174696f6e08000f7472616e736c6174696f6e5f6b65790021636f6d6d616e64732e" +
+            "6d6573736167652e646973706c61792e696e636f6d696e670a00057374796c65080005636f6c6f7200046772617901000669" +
+            "74616c6963010009000a706172616d65746572730800000002000673656e6465720007636f6e74656e7400000a00096e6172" +
+            "726174696f6e0800087072696f726974790004636861740a000a6465636f726174696f6e08000f7472616e736c6174696f6e" +
+            "5f6b65790016636861742e747970652e746578742e6e6172726174650a00057374796c650009000a706172616d6574657273" +
+            "0800000002000673656e6465720007636f6e74656e74000000",
+            // minecraft:team_msg_command（248バイト）。
+            "0a0a0004636861740a000a6465636f726174696f6e08000f7472616e736c6174696f6e5f6b65790013636861742e74797065" +
+            "2e7465616d2e746578740a00057374796c650009000a706172616d6574657273080000000300097465616d5f6e616d650006" +
+            "73656e6465720007636f6e74656e7400000a00096e6172726174696f6e0800087072696f726974790004636861740a000a64" +
+            "65636f726174696f6e08000f7472616e736c6174696f6e5f6b65790016636861742e747970652e746578742e6e6172726174" +
+            "650a00057374796c650009000a706172616d65746572730800000002000673656e6465720007636f6e74656e74000000",
+            // minecraft:emote_command（226バイト）。
+            "0a0a0004636861740a000a6465636f726174696f6e08000f7472616e736c6174696f6e5f6b6579000f636861742e74797065" +
+            "2e656d6f74650a00057374796c650009000a706172616d65746572730800000002000673656e6465720007636f6e74656e74" +
+            "00000a00096e6172726174696f6e0800087072696f726974790004636861740a000a6465636f726174696f6e08000f747261" +
+            "6e736c6174696f6e5f6b6579000f636861742e747970652e656d6f74650a00057374796c650009000a706172616d65746572" +
+            "730800000002000673656e6465720007636f6e74656e74000000",
+            // minecraft:tellraw_command（40バイト）。
+            "0a0a000463686174000a00096e6172726174696f6e0800087072696f726974790004636861740000",
+    };
+
+    /** dimension_type の id を757順→759順に直す（overworld_caves 1→3）。 */
+    private static int mapDimensionType757To759(int id) {
+        return switch (id) {
+            case 0 -> 0;
+            case 1 -> 3;
+            case 2 -> 1;
+            case 3 -> 2;
+            default -> 0; // 範囲外は overworld
+        };
+    }
+
+    /** dimension_type の id を759順→757順に直す（overworld_caves 3→1）。 */
+    private static int mapDimensionType759To757(int id) {
+        return switch (id) {
+            case 0 -> 0;
+            case 1 -> 2;
+            case 2 -> 3;
+            case 3 -> 1;
+            default -> 0; // 範囲外は overworld
+        };
+    }
+
+    /** 16進の anonymous NBT（1要素分）を CompoundTag に直す。 */
+    private static Tag.CompoundTag parseElementHex(String hex) {
+        Tag tag = Nbt.readAnonymous(HexFormat.of().parseHex(hex), 0).tag();
+        if (!(tag instanceof Tag.CompoundTag compound)) {
+            throw new IllegalArgumentException("element の NBT がコンパウンドではありません。");
+        }
+        return compound;
+    }
+
+    /** 名前列と element の16進列から、名前→element のマップを作る。 */
+    private static Map<String, Tag.CompoundTag> elementMap(String[] names, String[] hexes) {
+        Map<String, Tag.CompoundTag> out = new LinkedHashMap<>();
+        for (int i = 0; i < names.length; i++) {
+            out.put(names[i], parseElementHex(hexes[i]));
+        }
+        return out;
+    }
+
+    /** 実バニラ1.18の dimension_type element 4件（名前→element）。 */
+    private static final Map<String, Tag.CompoundTag> DIMENSION_TYPE_757_ELEMENTS =
+            elementMap(DIMENSION_TYPE_757_NAMES, DIMENSION_TYPE_757_ELEMENT_HEX);
+
+    /** 実バニラ1.19の dimension_type element 4件（名前→element）。 */
+    private static final Map<String, Tag.CompoundTag> DIMENSION_TYPE_759_ELEMENTS =
+            elementMap(DIMENSION_TYPE_759_NAMES, DIMENSION_TYPE_759_ELEMENT_HEX);
+
+    /** 実バニラ1.19の chat_type element 8件（名前→element）。 */
+    private static final Map<String, Tag.CompoundTag> CHAT_TYPE_759_ELEMENTS =
+            elementMap(CHAT_TYPE_759_NAMES, CHAT_TYPE_759_ELEMENT_HEX);
+
+    /** 757に無く759にあるバイオーム2件の element（名前→element。実バニラ1.19の Join Game codec から取ったもの）。 */
+    private static final Map<String, Tag.CompoundTag> BIOME_759_NEW_ELEMENTS = Map.of(
+            "minecraft:mangrove_swamp", parseElementHex("0a08000d70726563697069746174696f6e00047261696e0a00076566666563747308001467726173735f636f6c6f725f6d6f64696669657200057377616d700a00056d757369630100157265706c6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e64001f6d696e6563726166743a6d757369632e6f766572776f726c642e7377616d700300096d696e5f64656c617900002ee000030009736b795f636f6c6f720078a7ff03000d666f6c696167655f636f6c6f72008db12703000f77617465725f666f675f636f6c6f72004d7a60030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003a7a6a0a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f4ccccd050008646f776e66616c6c3f66666600"),
+            "minecraft:deep_dark", parseElementHex("0a08000d70726563697069746174696f6e00047261696e0a0007656666656374730a00056d757369630100157265706c6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400236d696e6563726166743a6d757369632e6f766572776f726c642e646565705f6461726b0300096d696e5f64656c617900002ee000030009736b795f636f6c6f720078a7ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f4ccccd050008646f776e66616c6c3ecccccd00"));
+
+    /** 送信者の無いチャットに使う nil UUID（1.18のバニラもシステムメッセージには Util.NIL_UUID を使う）。 */
+    private static final UUID NIL_UUID = new UUID(0L, 0L);
+
+    /** ブロック座標 (x, y, z) を position（i64 packed）に直す。 */
+    private static long packBlockPosition(int x, int y, int z) {
+        return ((long) (x & 0x3FFFFFF) << 38) | ((long) (z & 0x3FFFFFF) << 12) | (y & 0xFFF);
+    }
+
+    /** codec の dimension_type から、element が dimension と一致するエントリの名前を返す。無ければ null。 */
+    private static String findDimensionName(Tag.CompoundTag codec, Tag dimension) {
+        return codec.getCompound("minecraft:dimension_type")
+                .flatMap(r -> r.getList("value"))
+                .map(Tag.ListTag::value)
+                .orElse(List.of()).stream()
+                .filter(e -> e instanceof Tag.CompoundTag)
+                .map(e -> (Tag.CompoundTag) e)
+                .filter(e -> e.get("element").map(el -> el.equals(dimension)).orElse(false))
+                .findFirst()
+                .flatMap(e -> e.getString("name"))
+                .orElse(null);
+    }
+
+    /** codec の dimension_type から、名前のエントリの element を返す。無ければ null。 */
+    private static Tag findDimensionElement(Tag.CompoundTag codec, String name) {
+        return codec.getCompound("minecraft:dimension_type")
+                .flatMap(r -> r.getList("value"))
+                .map(Tag.ListTag::value)
+                .orElse(List.of()).stream()
+                .filter(e -> e instanceof Tag.CompoundTag)
+                .map(e -> (Tag.CompoundTag) e)
+                .filter(e -> e.getString("name").map(name::equals).orElse(false))
+                .findFirst()
+                .flatMap(e -> e.get("element"))
+                .orElse(null);
+    }
+
+    /**
+     * 757の dimension（NBTの値）に対応する dimension_type の名前を返す。
+     * codec 内の element との完全一致で探し、無ければ既定の757 element との一致、
+     * (effects, has_ceiling) での推定の順に試す。どれも当たらなければ overworld。
+     * codec が null の場合（Respawn）は codec での検索を飛ばす。
+     */
+    private static String dimensionName757(Tag dimension, Tag.CompoundTag codec) {
+        if (codec != null) {
+            String fromCodec = findDimensionName(codec, dimension);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        for (Map.Entry<String, Tag.CompoundTag> e : DIMENSION_TYPE_757_ELEMENTS.entrySet()) {
+            if (e.getValue().equals(dimension)) {
+                return e.getKey();
+            }
+        }
+        // 推定：effects と has_ceiling の組み合わせで4種を区別する
+        // （overworld と overworld_caves は has_ceiling だけが違う。ライブキャプチャで確認）。
+        if (dimension instanceof Tag.CompoundTag compound) {
+            String effects = compound.getString("effects").orElse("");
+            boolean hasCeiling = compound.get("has_ceiling")
+                    .filter(t -> t instanceof Tag.ByteTag)
+                    .map(t -> ((Tag.ByteTag) t).value() != 0)
+                    .orElse(false);
+            if (effects.equals("minecraft:the_nether")) {
+                return "minecraft:the_nether";
+            }
+            if (effects.equals("minecraft:the_end")) {
+                return "minecraft:the_end";
+            }
+            if (effects.equals("minecraft:overworld")) {
+                return hasCeiling ? "minecraft:overworld_caves" : "minecraft:overworld";
+            }
+        }
+        LOG.warning("dimension の名前が分からなかったため minecraft:overworld にします。");
+        return "minecraft:overworld";
+    }
+
+    /**
+     * 759の dimension（名前）に対応する757の dimension（NBTの値）を返す。
+     * 既定の757 element を使う。名前が既定に無く、codec に element があればそれを使い、
+     * それも無ければ overworld の element にする。
+     */
+    private static Tag dimensionValue759(String name, Tag.CompoundTag codec) {
+        Tag.CompoundTag element = DIMENSION_TYPE_757_ELEMENTS.get(name);
+        if (element != null) {
+            return element;
+        }
+        if (codec != null) {
+            Tag fromCodec = findDimensionElement(codec, name);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        LOG.warning("dimension " + name + " の757 element が無いため minecraft:overworld にします。");
+        return DIMENSION_TYPE_757_ELEMENTS.get("minecraft:overworld");
+    }
+
+    /** 759の dimension（名前）に対応する757の dimension（NBTの値）を返す（codec が無い場合。Respawn 用）。 */
+    private static Tag dimensionValue759(String name) {
+        return dimensionValue759(name, null);
+    }
+
+    /** codec（名前付き NBT の中身）からレジストリのマップを抜く。 */
+    private static Map<String, Tag.CompoundTag> registriesFromCodec(Tag.CompoundTag codec) {
+        Map<String, Tag.CompoundTag> out = new LinkedHashMap<>();
+        for (Map.Entry<String, Tag> e : codec.value().entrySet()) {
+            if (e.getValue() instanceof Tag.CompoundTag reg) {
+                out.put(e.getKey(), reg);
+            }
+        }
+        return out;
+    }
+
+    /**
+     * dimension_type のエントリ列の element を、受信側バージョンの既定値で置き換える。
+     * 名前が既定に無いもの（カスタムの dimension_type）はそのまま。
+     * 757の element には monster_spawn_block_light_limit／monster_spawn_light_level が無く、
+     * infiniburn も "#" 無しのため、そのまま759クライアントに送ると読めない。
+     * 逆に759の element には757に無いフィールドがあるため、そのまま757に送らない。
+     * 既定値は実バニラの Join Game codec から取ったもの（ライブキャプチャで確認）。
+     */
+    private static List<Tag> substituteDimensionTypeElements(List<Tag> entries, int toProtocol) {
+        Map<String, Tag.CompoundTag> defaults = toProtocol == ProtocolVersion.V1_19
+                ? DIMENSION_TYPE_759_ELEMENTS
+                : toProtocol == ProtocolVersion.V1_17_1
+                        ? DIMENSION_TYPE_756_ELEMENTS : DIMENSION_TYPE_757_ELEMENTS;
+        List<Tag> out = new ArrayList<>(entries.size());
+        for (Tag entry : entries) {
+            if (!(entry instanceof Tag.CompoundTag compound)) {
+                out.add(entry);
+                continue;
+            }
+            String name = compound.getString("name").orElse(null);
+            Tag.CompoundTag replacement = name == null ? null : defaults.get(name);
+            if (replacement == null) {
+                out.add(entry);
+                continue;
+            }
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            compound.value().forEach((k, v) -> {
+                if (!k.equals("element")) {
+                    rebuilt.put(k, v);
+                }
+            });
+            rebuilt.put("element", replacement);
+            out.add(new Tag.CompoundTag(rebuilt));
+        }
+        return out;
+    }
+
+    /** biome のエントリ列の element に category が無ければ757の表から補う（1.18の Biome codec は category を要する。759の element には category が無い）。 */
+    private static List<Tag> addBiomeCategories(List<Tag> entries) {
+        List<Tag> out = new ArrayList<>(entries.size());
+        for (Tag entry : entries) {
+            if (!(entry instanceof Tag.CompoundTag compound)) {
+                out.add(entry);
+                continue;
+            }
+            int id = compound.get("id")
+                    .filter(t -> t instanceof Tag.IntTag)
+                    .map(t -> ((Tag.IntTag) t).value())
+                    .orElse(-1);
+            if (id < 0 || id >= BIOME_757_CATEGORIES.length) {
+                out.add(entry);
+                continue;
+            }
+            Tag element = compound.get("element").orElse(null);
+            if (!(element instanceof Tag.CompoundTag elementCompound)
+                    || elementCompound.get("category").isPresent()) {
+                out.add(entry);
+                continue;
+            }
+            Map<String, Tag> rebuiltElement = new LinkedHashMap<>(elementCompound.value());
+            rebuiltElement.put("category", new Tag.StringTag(BIOME_757_CATEGORIES[id]));
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            compound.value().forEach((k, v) -> {
+                rebuilt.put(k, k.equals("element") ? new Tag.CompoundTag(rebuiltElement) : v);
+            });
+            out.add(new Tag.CompoundTag(rebuilt));
+        }
+        return out;
+    }
+
+    /**
+     * biome のエントリ列のうち element が無いものに、759の既定の element を補う。
+     * 対象は757に無い mangrove_swamp と deep_dark の2件（reorderRegistries が
+     * 名前だけのエントリで埋めたもの）。759のクライアントは biome の element
+     * （色・音など）を要するため、名前だけでは不十分。element は実バニラ1.19の
+     * Join Game codec から取ったもの。
+     */
+    private static List<Tag> fillNewBiomeElements(List<Tag> entries) {
+        List<Tag> out = new ArrayList<>(entries.size());
+        for (Tag entry : entries) {
+            if (!(entry instanceof Tag.CompoundTag compound)) {
+                out.add(entry);
+                continue;
+            }
+            if (compound.get("element").isPresent()) {
+                out.add(entry);
+                continue;
+            }
+            String name = compound.getString("name").orElse(null);
+            Tag.CompoundTag element = name == null ? null : BIOME_759_NEW_ELEMENTS.get(name);
+            if (element == null) {
+                out.add(entry);
+                continue;
+            }
+            Map<String, Tag> rebuilt = new LinkedHashMap<>(compound.value());
+            rebuilt.put("element", element);
+            out.add(new Tag.CompoundTag(rebuilt));
+        }
+        return out;
+    }
+
+    /**
+     * 757の dimensionCodec を759形式にする。dimension_type・biome を並べ替え、
+     * dimension_type の element を759既定値に置き換え、chat_type 8件を既定値で補う。
+     * biome の element はそのまま引き継ぐ（757の element にある category は
+     * 759の codec では未知のフィールドとして無視される）。757に無い
+     * mangrove_swamp・deep_dark の2件には759の既定の element を補う。
+     * codec のキーの並びは759の実バニラ通り（chat_type、dimension_type、worldgen/biome）。
+     */
+    public static Tag.CompoundTag translateDimensionCodec757To759(Tag.CompoundTag codec757) {
+        Map<String, Tag.CompoundTag> reordered = reorderRegistries(
+                registriesFromCodec(codec757), ProtocolVersion.V1_18, ProtocolVersion.V1_19);
+        Map<String, Tag> codec = new LinkedHashMap<>();
+        List<Tag> chatEntries = new ArrayList<>();
+        for (int i = 0; i < CHAT_TYPE_759_NAMES.length; i++) {
+            chatEntries.add(new Tag.CompoundTag(Map.of(
+                    "name", new Tag.StringTag(CHAT_TYPE_759_NAMES[i]),
+                    "id", new Tag.IntTag(i),
+                    "element", CHAT_TYPE_759_ELEMENTS.get(CHAT_TYPE_759_NAMES[i]))));
+        }
+        Map<String, Tag> chatCodec = new LinkedHashMap<>();
+        chatCodec.put("type", new Tag.StringTag("minecraft:chat_type"));
+        chatCodec.put("value", new Tag.ListTag(Nbt.COMPOUND, chatEntries));
+        codec.put("minecraft:chat_type", new Tag.CompoundTag(chatCodec));
+        Tag.CompoundTag dimensionRegistry = reordered.get("minecraft:dimension_type");
+        if (dimensionRegistry != null) {
+            List<Tag> entries = substituteDimensionTypeElements(
+                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
+                    ProtocolVersion.V1_19);
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
+        }
+        Tag.CompoundTag biomeRegistry = reordered.get("minecraft:worldgen/biome");
+        if (biomeRegistry != null) {
+            List<Tag> entries = fillNewBiomeElements(
+                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
+        }
+        return new Tag.CompoundTag(codec);
+    }
+
+    /**
+     * 759の dimensionCodec を757形式にする。chat_type を落とし、dimension_type・biome を757順に並べ替え、
+     * dimension_type の element を757既定値に置き換える。biome の element に category が無ければ757の表から補う。
+     * codec のキーの並びは757の実バニラ通り（dimension_type、worldgen/biome）。
+     */
+    public static Tag.CompoundTag translateDimensionCodec759To757(Tag.CompoundTag codec759) {
+        Map<String, Tag.CompoundTag> reordered = reorderRegistries(
+                registriesFromCodec(codec759), ProtocolVersion.V1_19, ProtocolVersion.V1_18);
+        Map<String, Tag> codec = new LinkedHashMap<>();
+        Tag.CompoundTag dimensionRegistry = reordered.get("minecraft:dimension_type");
+        if (dimensionRegistry != null) {
+            List<Tag> entries = substituteDimensionTypeElements(
+                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
+                    ProtocolVersion.V1_18);
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
+        }
+        Tag.CompoundTag biomeRegistry = reordered.get("minecraft:worldgen/biome");
+        if (biomeRegistry != null) {
+            List<Tag> entries = addBiomeCategories(
+                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
+        }
+        return new Tag.CompoundTag(codec);
+    }
+
+    // ------------------------------------------------------------------
+    // Join Game
+    // ------------------------------------------------------------------
+
+    /** 757の Join Game の中身。dimension は DimensionType の値そのもの（NBT）。previousGameMode は i8（-1＝なし）。 */
+    public record JoinGame757(int entityId, boolean hardcore, int gameMode, int previousGameMode,
+            List<String> worldNames, Tag.CompoundTag dimensionCodec, Tag dimension,
+            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
+            int simulationDistance, boolean reducedDebug, boolean enableRespawnScreen,
+            boolean isDebug, boolean isFlat) {
+    }
+
+    /** 759の Join Game の中身。dimension は ResourceKey（文字列）。death は lastDeathLocation。 */
+    public record JoinGame759(int entityId, boolean hardcore, int gameMode, int previousGameMode,
+            List<String> worldNames, Tag.CompoundTag dimensionCodec, String dimension,
+            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
+            int simulationDistance, boolean reducedDebug, boolean enableRespawnScreen,
+            boolean isDebug, boolean isFlat, boolean hasDeath, String deathDimension,
+            long deathLocation) {
+    }
+
+    /** GameType の最大 id（spectator＝3）。previousGameMode の範囲検査に使う。 */
+    private static final int MAX_GAME_TYPE_ID_757 = 3;
+
+    /** 757／759の previousGameMode（i8）が GameType の範囲内か。-1＝なし、0〜3＝id。 */
+    private static void checkPreviousGameMode757(int value) {
+        if (value != -1 && (value < 0 || value > MAX_GAME_TYPE_ID_757)) {
+            throw new IllegalArgumentException(
+                    "previousGameMode が GameType の範囲外です: " + value);
+        }
+    }
+
+    /**
+     * 757の Join Game を読む。順番は entityId, hardcore, gameMode, previousGameMode(i8),
+     * worldNames, dimensionCodec（名前付き NBT）, dimension（名前付き NBT）,
+     * worldName, hashedSeed, maxPlayers, viewDistance, simulationDistance,
+     * reducedDebug, enableRespawnScreen, isDebug, isFlat である
+     * （minecraft-data mc-1.18-protocol.json の packet_login とライブキャプチャで確認）。
+     */
+    public static JoinGame757 parseJoinGame757(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        boolean hardcore = reader.readBoolean();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readByte();
+        checkPreviousGameMode757(previousGameMode);
+        List<String> worldNames = PacketIO.readStringList(reader);
+        Tag dimensionCodec = reader.readNamedNbt().tag();
+        if (!(dimensionCodec instanceof Tag.CompoundTag codec)) {
+            throw new IllegalArgumentException("Join Game の dimensionCodec がコンパウンドではありません。");
+        }
+        Tag dimension = reader.readNamedNbt().tag();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int maxPlayers = reader.readVarInt();
+        int viewDistance = reader.readVarInt();
+        int simulationDistance = reader.readVarInt();
+        boolean reducedDebug = reader.readBoolean();
+        boolean enableRespawnScreen = reader.readBoolean();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        requireEnd(reader);
+        return new JoinGame757(entityId, hardcore, gameMode, previousGameMode, worldNames,
+                codec, dimension, worldName, hashedSeed, maxPlayers, viewDistance,
+                simulationDistance, reducedDebug, enableRespawnScreen, isDebug, isFlat);
+    }
+
+    /**
+     * 759の Join Game を読む。757と同じ順番だが、dimension は ResourceKey（文字列）で、
+     * 末尾に death（lastDeathLocation の option）が付く
+     * （minecraft-data mc-1.19-protocol.json の packet_login とライブキャプチャで確認）。
+     */
+    public static JoinGame759 parseJoinGame759(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        boolean hardcore = reader.readBoolean();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readByte();
+        checkPreviousGameMode757(previousGameMode);
+        List<String> worldNames = PacketIO.readStringList(reader);
+        Tag dimensionCodec = reader.readNamedNbt().tag();
+        if (!(dimensionCodec instanceof Tag.CompoundTag codec)) {
+            throw new IllegalArgumentException("Join Game の dimensionCodec がコンパウンドではありません。");
+        }
+        String dimension = reader.readString();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int maxPlayers = reader.readVarInt();
+        int viewDistance = reader.readVarInt();
+        int simulationDistance = reader.readVarInt();
+        boolean reducedDebug = reader.readBoolean();
+        boolean enableRespawnScreen = reader.readBoolean();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        boolean hasDeath = reader.readBoolean();
+        String deathDimension = null;
+        long deathLocation = 0;
+        if (hasDeath) {
+            deathDimension = reader.readString();
+            deathLocation = reader.readPositionRaw();
+        }
+        requireEnd(reader);
+        return new JoinGame759(entityId, hardcore, gameMode, previousGameMode, worldNames,
+                codec, dimension, worldName, hashedSeed, maxPlayers, viewDistance,
+                simulationDistance, reducedDebug, enableRespawnScreen, isDebug, isFlat,
+                hasDeath, deathDimension, deathLocation);
+    }
+
+    /** 757の Join Game を書く。 */
+    public static byte[] writeJoinGame757(JoinGame757 join) {
+        Writer writer = new Writer();
+        writer.writeInt(join.entityId());
+        writer.writeBoolean(join.hardcore());
+        writer.writeByte(join.gameMode());
+        writer.writeByte(join.previousGameMode());
+        PacketIO.writeStringList(writer, join.worldNames());
+        writer.writeNamedNbt("", join.dimensionCodec());
+        writer.writeNamedNbt("", join.dimension());
+        writer.writeString(join.worldName());
+        writer.writeLong(join.hashedSeed());
+        writer.writeVarInt(join.maxPlayers());
+        writer.writeVarInt(join.viewDistance());
+        writer.writeVarInt(join.simulationDistance());
+        writer.writeBoolean(join.reducedDebug());
+        writer.writeBoolean(join.enableRespawnScreen());
+        writer.writeBoolean(join.isDebug());
+        writer.writeBoolean(join.isFlat());
+        return writer.bytes();
+    }
+
+    /** 759の Join Game を書く。 */
+    public static byte[] writeJoinGame759(JoinGame759 join) {
+        Writer writer = new Writer();
+        writer.writeInt(join.entityId());
+        writer.writeBoolean(join.hardcore());
+        writer.writeByte(join.gameMode());
+        writer.writeByte(join.previousGameMode());
+        PacketIO.writeStringList(writer, join.worldNames());
+        writer.writeNamedNbt("", join.dimensionCodec());
+        writer.writeString(join.dimension());
+        writer.writeString(join.worldName());
+        writer.writeLong(join.hashedSeed());
+        writer.writeVarInt(join.maxPlayers());
+        writer.writeVarInt(join.viewDistance());
+        writer.writeVarInt(join.simulationDistance());
+        writer.writeBoolean(join.reducedDebug());
+        writer.writeBoolean(join.enableRespawnScreen());
+        writer.writeBoolean(join.isDebug());
+        writer.writeBoolean(join.isFlat());
+        writer.writeBoolean(join.hasDeath());
+        if (join.hasDeath()) {
+            writer.writeString(join.deathDimension());
+            writer.writePositionRaw(join.deathLocation());
+        }
+        return writer.bytes();
+    }
+
+    /**
+     * Join Game（757 → 759）。dimension は NBT の値から codec 内の名前を引き、
+     * dimensionCodec は759形式に直す（chat_type 8件を補う）。lastDeathLocation は757に無いため absent。
+     * 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
+     */
+    public static byte[] translateJoinGame757To759(byte[] payload) {
+        try {
+            JoinGame757 join = parseJoinGame757(payload);
+            String dimensionName = dimensionName757(join.dimension(), join.dimensionCodec());
+            return writeJoinGame759(new JoinGame759(join.entityId(), join.hardcore(),
+                    join.gameMode(), join.previousGameMode(), join.worldNames(),
+                    translateDimensionCodec757To759(join.dimensionCodec()), dimensionName,
+                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
+                    join.simulationDistance(), join.reducedDebug(), join.enableRespawnScreen(),
+                    join.isDebug(), join.isFlat(), false, null, 0));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Join Game（759 → 757）。dimension は名前から757の element を引き、
+     * dimensionCodec は757形式に直す（chat_type を落とす）。lastDeathLocation は落とす。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateJoinGame759To757(byte[] payload) {
+        try {
+            JoinGame759 join = parseJoinGame759(payload);
+            Tag dimension = dimensionValue759(join.dimension(), join.dimensionCodec());
+            return writeJoinGame757(new JoinGame757(join.entityId(), join.hardcore(),
+                    join.gameMode(), join.previousGameMode(), join.worldNames(),
+                    translateDimensionCodec759To757(join.dimensionCodec()), dimension,
+                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
+                    join.simulationDistance(), join.reducedDebug(), join.enableRespawnScreen(),
+                    join.isDebug(), join.isFlat()));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Respawn
+    // ------------------------------------------------------------------
+
+    /** 757の Respawn（SpawnInfo）の中身。dimension は DimensionType の値そのもの（NBT）。previousGameMode は u8（Join Game の i8 とは違う。protocol.json で確認）。 */
+    public record SpawnInfo757(Tag dimension, String worldName, long hashedSeed, int gameMode,
+            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata) {
+    }
+
+    /** 759の Respawn（SpawnInfo）の中身。dimension は ResourceKey（文字列）。death は lastDeathLocation。 */
+    public record SpawnInfo759(String dimension, String worldName, long hashedSeed, int gameMode,
+            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata,
+            boolean hasDeath, String deathDimension, long deathLocation) {
+    }
+
+    /** 757の SpawnInfo を読む。 */
+    public static SpawnInfo757 readSpawnInfo757(Reader reader) {
+        Tag dimension = reader.readNamedNbt().tag();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readUnsignedByte();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        boolean copyMetadata = reader.readBoolean();
+        return new SpawnInfo757(dimension, worldName, hashedSeed, gameMode,
+                previousGameMode, isDebug, isFlat, copyMetadata);
+    }
+
+    /** 759の SpawnInfo を読む。 */
+    public static SpawnInfo759 readSpawnInfo759(Reader reader) {
+        String dimension = reader.readString();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readUnsignedByte();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        boolean copyMetadata = reader.readBoolean();
+        boolean hasDeath = reader.readBoolean();
+        String deathDimension = null;
+        long deathLocation = 0;
+        if (hasDeath) {
+            deathDimension = reader.readString();
+            deathLocation = reader.readPositionRaw();
+        }
+        return new SpawnInfo759(dimension, worldName, hashedSeed, gameMode,
+                previousGameMode, isDebug, isFlat, copyMetadata, hasDeath, deathDimension,
+                deathLocation);
+    }
+
+    /** 757の SpawnInfo を書く。 */
+    public static void writeSpawnInfo757(Writer writer, SpawnInfo757 info) {
+        writer.writeNamedNbt("", info.dimension());
+        writer.writeString(info.worldName());
+        writer.writeLong(info.hashedSeed());
+        writer.writeByte(info.gameMode());
+        writer.writeByte(info.previousGameMode());
+        writer.writeBoolean(info.isDebug());
+        writer.writeBoolean(info.isFlat());
+        writer.writeBoolean(info.copyMetadata());
+    }
+
+    /** 759の SpawnInfo を書く。 */
+    public static void writeSpawnInfo759(Writer writer, SpawnInfo759 info) {
+        writer.writeString(info.dimension());
+        writer.writeString(info.worldName());
+        writer.writeLong(info.hashedSeed());
+        writer.writeByte(info.gameMode());
+        writer.writeByte(info.previousGameMode());
+        writer.writeBoolean(info.isDebug());
+        writer.writeBoolean(info.isFlat());
+        writer.writeBoolean(info.copyMetadata());
+        writer.writeBoolean(info.hasDeath());
+        if (info.hasDeath()) {
+            writer.writeString(info.deathDimension());
+            writer.writePositionRaw(info.deathLocation());
+        }
+    }
+
+    /**
+     * Respawn（757 → 759）。dimension は NBT の値から名前を引く（codec が無いため既定の757 element との一致で判定）。
+     * lastDeathLocation は757に無いため absent。copyMetadata はそのまま写す。
+     * previousGameMode は u8 のまま写す（範囲検査はしない。Join Game の i8 と違い、"無し" の符号が protocol.json には無いため）。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo757 info = readSpawnInfo757(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo759(writer, new SpawnInfo759(
+                    dimensionName757(info.dimension(), null),
+                    info.worldName(), info.hashedSeed(), info.gameMode(),
+                    info.previousGameMode(), info.isDebug(), info.isFlat(),
+                    info.copyMetadata(), false, null, 0));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Respawn（759 → 757）。dimension は名前から757の element を引く。lastDeathLocation は落とす。
+     * copyMetadata はそのまま写す。読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo759 info = readSpawnInfo759(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo757(writer, new SpawnInfo757(
+                    dimensionValue759(info.dimension()),
+                    info.worldName(), info.hashedSeed(), info.gameMode(),
+                    info.previousGameMode(), info.isDebug(), info.isFlat(),
+                    info.copyMetadata()));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // チャット
+    // ------------------------------------------------------------------
+
+    /** 1.18の Chat の position（i8）を1.19の System Chat の type（varint）に直す。0=chat、1=system、2=game_info。範囲外は chat（0）。 */
+    private static int chatPositionToChatType(int position) {
+        if (position < 0 || position > 2) {
+            LOG.warning("Chat の position が範囲外のため chat（0）にします: " + position);
+            return 0;
+        }
+        return position;
+    }
+
+    /** 1.19の System Chat の type（varint）を1.18の Chat の position（i8）に直す。0=chat、1=system、2=game_info。3〜7（say_command 等）は1.18に無いため chat（0）扱いにする。範囲外も chat（0）。 */
+    private static int chatTypeToChatPosition(int type) {
+        if (type < 0 || type > 7) {
+            LOG.warning("System Chat の type が範囲外のため chat（0）にします: " + type);
+            return 0;
+        }
+        return type <= 2 ? type : 0;
+    }
+
+    /**
+     * Chat（757 クライアント行き 0x0F → 759 System Chat 0x5F）。
+     * 757は {message string, position i8, sender UUID}、759は {content string, type varint}。
+     * position は chat_type の id と同じ並び（0=chat、1=system、2=game_info）。
+     * sender は System Chat に無いため落とす。
+     * （注：759の System Chat の type は varint であり、overlay bool ではない。
+     * overlay bool は1.19.1／760で追加されたもので、759には無い。
+     * minecraft-data mc-1.19-protocol.json の packet_system_chat で確認。）
+     */
+    public static byte[] translateChat757ToSystemChat(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            int position = reader.readByte();
+            reader.readUuid(); // sender（759 の System Chat には無い）
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(message);
+            writer.writeVarInt(chatPositionToChatType(position));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * System Chat（759 0x5F → 757 Chat 0x0F）。sender は無いため nil UUID を補う。
+     * type 3〜7（say_command 等）は1.18に無いため chat（position 0）扱いにする。
+     */
+    public static byte[] translateSystemChat759ToChat(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String content = reader.readString();
+            int type = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(content);
+            writer.writeByte(chatTypeToChatPosition(type));
+            writer.writeUuid(NIL_UUID);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("System Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Chat（757 サーバー行き 0x03 → 759 Chat Message 0x04）。"/" で始まるものはコマンドのため null を返す
+     * （translateChat757ToChatCommand を使う。ProxySession は null の場合にそちらを試す）。
+     * 署名は無いため timestamp＝現在時刻、salt＝0、署名は空、signedPreview＝false で埋める
+     * （763の簡略形と同じ方針。署名の検証はしない）。
+     */
+    public static byte[] translateChat757ToChatMessage(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            requireEnd(reader);
+            if (message.startsWith("/")) {
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writeString(message);
+            writer.writeLong(System.currentTimeMillis());
+            writer.writeLong(0L);
+            writer.writeByteArray(new byte[0]);
+            writer.writeBoolean(false);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Chat（757 サーバー行き 0x03 → 759 Chat Command 0x03）。"/" で始まらないものはコマンドではないため null を返す
+     * （translateChat757ToChatMessage を使う）。コマンド文字列は "/" を除いたもの。
+     * 引数署名は空、timestamp＝現在時刻、salt＝0、signedPreview＝false で埋める。
+     */
+    public static byte[] translateChat757ToChatCommand(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            requireEnd(reader);
+            if (!message.startsWith("/")) {
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writeString(message.substring(1));
+            writer.writeLong(System.currentTimeMillis());
+            writer.writeLong(0L);
+            writer.writeVarInt(0); // argumentSignatures（空）
+            writer.writeBoolean(false);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Chat Message（759 サーバー行き 0x04 → 757 Chat 0x03）。署名・タイムスタンプ・salt・signedPreview を落として本文だけ通す。 */
+    public static byte[] translateChatMessage759ToChat(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            reader.readLong(); // timestamp
+            reader.readLong(); // salt
+            reader.readByteArray(); // signature
+            reader.readBoolean(); // signedPreview
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(message);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat Message を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Chat Command（759 サーバー行き 0x03 → 757 Chat 0x03）。"/" を付けて戻す。引数署名は落とす。 */
+    public static byte[] translateChatCommand759ToChat(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String command = reader.readString();
+            reader.readLong(); // timestamp
+            reader.readLong(); // salt
+            int argCount = reader.readVarInt();
+            if (argCount < 0) {
+                throw new IllegalArgumentException("Chat Command の引数の件数が負です: " + argCount);
+            }
+            for (int i = 0; i < argCount; i++) {
+                reader.readString();
+                reader.readByteArray();
+            }
+            reader.readBoolean(); // signedPreview
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString("/" + command);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat Command を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Player Chat（759 クライアント行き 0x30 → 757）。署名付きのため757へは変換せず null を返す（落とす）。
+     * 759の Player Chat は署名付きの発言で、757の Chat には署名の送り先が無い。
+     * 本文だけを Chat に直すことも考えられるが、chat_type の装飾（"&lt;名前&gt; 本文" 等）を
+     * プロキシが合成することになり、サーバーの書式とずれるため行わない。
+     * 呼び出し側（ProxySession）は null を受けたらパケットを落とす。
+     */
+    public static byte[] translatePlayerChat759ToChat(byte[] payload) {
+        return null;
+    }
+
+    // ------------------------------------------------------------------
+    // Spawn Entity
+    // ------------------------------------------------------------------
+
+    /** 759の painting のエンティティ種別 id。registries-1.19.json で確認（757は60）。 */
+    private static final int PAINTING_ENTITY_759 = 63;
+
+    /** 759の painting のエンティティ種別 id（757側は60）。registries-1.18.json で確認。 */
+    private static final int PAINTING_ENTITY_757 = 60;
+
+    /**
+     * 759のエンティティ種別 id のうち、living（LivingEntity）ではないもの39件。
+     * 実バニラ1.19の server.jar のクラス階層で確認（EntityType の静的初期化子から名前→クラスを引き、
+     * LivingEntity（bbf）の子孫かどうかを javap で判定）。painting（63）を含む。
+     */
+    private static final int[] NON_LIVING_ENTITY_759_IDS = {
+            1, 3, 8, 9, 18, 21, 26, 27, 28, 29, 30, 35, 44, 45, 46, 47, 48, 50, 52, 53, 54, 55,
+            56, 57, 58, 59, 63, 72, 79, 84, 86, 87, 93, 94, 95, 96, 97, 109, 117,
+    };
+
+    /** 759のエンティティ種別 id が living（LivingEntity）かどうか。範囲外の id は living 扱いしない（汎用パケットへ回す）。 */
+    public static boolean isLivingEntityType759(int type759) {
+        if (type759 < 0 || type759 > 117) {
+            return false;
+        }
+        return java.util.Arrays.binarySearch(NON_LIVING_ENTITY_759_IDS, type759) < 0;
+    }
+
+    /**
+     * Spawn Entity Living（757 0x02 → 759 Spawn Entity 0x00）。
+     * 757は {entityId, uuid, type, x, y, z, yaw, pitch, headPitch, velocity}、
+     * 759は {entityId, uuid, type, x, y, z, pitch, yaw, headPitch, objectData, velocity}。
+     * pitch／yaw の順序を入れ替え、type はエンティティ種別表で付け替え、
+     * objectData は 0 を補う（living には不要。実バニラ1.19の ClientboundAddEntityPacket(Entity) は
+     * this(entity, 0) で、javap で確認）。
+     */
+    public static byte[] translateSpawnEntityLiving757ToSpawnEntity759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            UUID uuid = reader.readUuid();
+            int type = reader.readVarInt();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            int yaw = reader.readByte();
+            int pitch = reader.readByte();
+            int headPitch = reader.readByte();
+            int velX = reader.readShort();
+            int velY = reader.readShort();
+            int velZ = reader.readShort();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeUuid(uuid);
+            writer.writeVarInt(RegistryRemapper.mapEntityType757To759(type));
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeByte(pitch);
+            writer.writeByte(yaw);
+            writer.writeByte(headPitch);
+            writer.writeVarInt(0); // objectData（living は 0）
+            writer.writeShort(velX);
+            writer.writeShort(velY);
+            writer.writeShort(velZ);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity Living を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Spawn Entity（757 0x00 → 759 Spawn Entity 0x00）。
+     * 757は {entityId, uuid, type, x, y, z, pitch, yaw, objectData i32, velocity}、
+     * 759は {entityId, uuid, type, x, y, z, pitch, yaw, headPitch, objectData varint, velocity}。
+     * headPitch は 0 を補う（実バニラ1.19の (Entity, int) コンストラクタは yHeadRot=0.0 で、javap で確認）。
+     * objectData は i32→varint に直す。type はエンティティ種別表で付け替える。
+     */
+    public static byte[] translateSpawnEntity757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            UUID uuid = reader.readUuid();
+            int type = reader.readVarInt();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            int pitch = reader.readByte();
+            int yaw = reader.readByte();
+            int objectData = reader.readInt();
+            int velX = reader.readShort();
+            int velY = reader.readShort();
+            int velZ = reader.readShort();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeUuid(uuid);
+            writer.writeVarInt(RegistryRemapper.mapEntityType757To759(type));
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeByte(pitch);
+            writer.writeByte(yaw);
+            writer.writeByte(0); // headPitch（汎用は 0）
+            writer.writeVarInt(objectData);
+            writer.writeShort(velX);
+            writer.writeShort(velY);
+            writer.writeShort(velZ);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** 方向の3D data value（DOWN=0、UP=1、NORTH=2、SOUTH=3、WEST=4、EAST=5）を絵画の yaw（i8）に直す。SOUTH=0、WEST=64、NORTH=-128、EAST=-64。上下は絵画に無いため SOUTH（0）扱い。 */
+    private static int paintingDirectionToYaw(int direction) {
+        return switch (direction) {
+            case 4 -> 64; // WEST：90度
+            case 2 -> -128; // NORTH：180度
+            case 5 -> -64; // EAST：270度
+            default -> 0; // SOUTH（3）・上下（0／1）・範囲外
+        };
+    }
+
+    /**
+     * Spawn Entity Painting（757 0x03 → 759 Spawn Entity 0x00）。
+     * 757は {entityId, uuid, motive varint, pos, direction u8}、
+     * 759は {entityId, uuid, type, x, y, z, pitch, yaw, headPitch, objectData, velocity}。
+     * type は painting（757:60→759:63）。x／y／z はブロック座標を double に直す。
+     * pitch=0、yaw は direction から（実バニラ1.19の AbstractPainting.setDirection は
+     * setYRot(get2DDataValue()*90) で、javap で確認）、headPitch=0、
+     * objectData は direction の3D data value（実バニラ1.19の Painting.getAddEntityPacket は
+     * new ClientboundAddEntityPacket(this, direction.get3DDataValue(), blockPos) で、javap で確認）、
+     * velocity は (0, 0, 0)。motive（絵柄）は759の Spawn Entity には無いため落とす
+     * （絵柄は後の Set Entity Data で送られる）。
+     */
+    public static byte[] translateSpawnEntityPainting757ToSpawnEntity759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            UUID uuid = reader.readUuid();
+            reader.readVarInt(); // motive（759 には無い）
+            long pos = reader.readPositionRaw();
+            int direction = reader.readUnsignedByte();
+            requireEnd(reader);
+            int x = (int) (pos >> 38);
+            int y = (int) (pos & 0xFFF);
+            int z = (int) ((pos << 26) >> 38); // 26ビットの符号付き（負の座標も正しく復元する）
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeUuid(uuid);
+            writer.writeVarInt(RegistryRemapper.mapEntityType757To759(PAINTING_ENTITY_757));
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeByte(0); // pitch（絵画は0）
+            writer.writeByte(paintingDirectionToYaw(direction));
+            writer.writeByte(0); // headPitch
+            writer.writeVarInt(direction); // objectData（3D data value）
+            writer.writeShort(0);
+            writer.writeShort(0);
+            writer.writeShort(0);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity Painting を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Spawn Entity（759 0x00 → 757 Spawn Entity Living 0x02）。type が living の場合のみ変換し、それ以外は null を返す。
+     * pitch／yaw の順序を入れ替え、objectData を落とす。type はエンティティ種別表で付け替える。
+     */
+    public static byte[] translateSpawnEntity759ToLiving(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            UUID uuid = reader.readUuid();
+            int type = reader.readVarInt();
+            if (!isLivingEntityType759(type)) {
+                return null;
+            }
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            int pitch = reader.readByte();
+            int yaw = reader.readByte();
+            int headPitch = reader.readByte();
+            reader.readVarInt(); // objectData（757 の living には無い）
+            int velX = reader.readShort();
+            int velY = reader.readShort();
+            int velZ = reader.readShort();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeUuid(uuid);
+            writer.writeVarInt(RegistryRemapper.mapEntityType759To757(type));
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeByte(yaw);
+            writer.writeByte(pitch);
+            writer.writeByte(headPitch);
+            writer.writeShort(velX);
+            writer.writeShort(velY);
+            writer.writeShort(velZ);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Spawn Entity（759 0x00 → 757 Spawn Entity 0x00）。type が living でも painting でもない場合のみ変換し、
+     * それ以外は null を返す（translateSpawnEntity759ToLiving／translateSpawnEntity759ToPainting を使う）。
+     * headPitch を落とし、objectData は varint→i32 に直す。type はエンティティ種別表で付け替える。
+     */
+    public static byte[] translateSpawnEntity759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            UUID uuid = reader.readUuid();
+            int type = reader.readVarInt();
+            if (type == PAINTING_ENTITY_759 || isLivingEntityType759(type)) {
+                return null;
+            }
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            int pitch = reader.readByte();
+            int yaw = reader.readByte();
+            reader.readByte(); // headPitch（757 の汎用には無い）
+            int objectData = reader.readVarInt();
+            int velX = reader.readShort();
+            int velY = reader.readShort();
+            int velZ = reader.readShort();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeUuid(uuid);
+            writer.writeVarInt(RegistryRemapper.mapEntityType759To757(type));
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeByte(pitch);
+            writer.writeByte(yaw);
+            writer.writeInt(objectData);
+            writer.writeShort(velX);
+            writer.writeShort(velY);
+            writer.writeShort(velZ);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Spawn Entity（759 0x00 → 757 Spawn Entity Painting 0x03）。type が painting（63）の場合のみ変換し、それ以外は null を返す。
+     * x／y／z は double からブロック座標に直す。direction は objectData（3D data value）。
+     * motive（絵柄）は Spawn Entity からは分からないため 0（kebab。1.18の既定）にする。
+     * 正しい絵柄は後の Set Entity Data で送られる（別途の変換対象）。
+     */
+    public static byte[] translateSpawnEntity759ToPainting(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            UUID uuid = reader.readUuid();
+            int type = reader.readVarInt();
+            if (type != PAINTING_ENTITY_759) {
+                return null;
+            }
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            reader.readByte(); // pitch（絵画は0。使わない）
+            reader.readByte(); // yaw（direction から決まるため使わない）
+            reader.readByte(); // headPitch（使わない）
+            int objectData = reader.readVarInt();
+            reader.readShort(); // velocity（使わない）
+            reader.readShort();
+            reader.readShort();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeUuid(uuid);
+            writer.writeVarInt(0); // motive：不明のため kebab（0）
+            writer.writePositionRaw(packBlockPosition(
+                    (int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z)));
+            writer.writeByte(objectData);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Player Info／Set Held Item／Vehicle Move
+    // ------------------------------------------------------------------
+
+    /** Player Info のプロパティ1件（signature は option）。 */
+    private record PlayerInfo757Property(String name, String value, boolean hasSignature, String signature) {
+    }
+
+    /** Player Info 1エントリ分（crypto は759の add_player にだけある）。 */
+    private record PlayerInfo757Entry(UUID uuid, String name, List<PlayerInfo757Property> properties,
+            int gameMode, int ping, boolean hasDisplayName, String displayName,
+            boolean hasCrypto, long cryptoTimestamp, byte[] cryptoPublicKey,
+            byte[] cryptoSignature) {
+    }
+
+    /** Player Info の action が範囲内か（0=add_player、1=update_game_mode、2=update_latency、3=update_display_name、4=remove_player）。 */
+    private static void checkPlayerInfoAction(int action) {
+        if (action < 0 || action > 4) {
+            throw new IllegalArgumentException("Player Info の action が範囲外です: " + action);
+        }
+    }
+
+    /** Player Info 1エントリ分を読む。hasCryptoField が true の場合（759）は add_player の crypto も読む。 */
+    private static PlayerInfo757Entry readPlayerInfo757Entry(Reader reader, int action, boolean hasCryptoField) {
+        UUID uuid = reader.readUuid();
+        String name = null;
+        List<PlayerInfo757Property> properties = List.of();
+        int gameMode = 0;
+        int ping = 0;
+        boolean hasDisplayName = false;
+        String displayName = null;
+        boolean hasCrypto = false;
+        long cryptoTimestamp = 0;
+        byte[] cryptoPublicKey = null;
+        byte[] cryptoSignature = null;
+        switch (action) {
+            case 0 -> {
+                name = reader.readString();
+                int propertyCount = reader.readVarInt();
+                if (propertyCount < 0) {
+                    throw new IllegalArgumentException(
+                            "Player Info のプロパティ件数が負です: " + propertyCount);
+                }
+                List<PlayerInfo757Property> props = new ArrayList<>(propertyCount);
+                for (int i = 0; i < propertyCount; i++) {
+                    String propertyName = reader.readString();
+                    String propertyValue = reader.readString();
+                    boolean hasSignature = reader.readBoolean();
+                    String signature = hasSignature ? reader.readString() : null;
+                    props.add(new PlayerInfo757Property(propertyName, propertyValue, hasSignature, signature));
+                }
+                properties = props;
+                gameMode = reader.readVarInt();
+                ping = reader.readVarInt();
+                hasDisplayName = reader.readBoolean();
+                displayName = hasDisplayName ? reader.readString() : null;
+                if (hasCryptoField) {
+                    hasCrypto = reader.readBoolean();
+                    if (hasCrypto) {
+                        cryptoTimestamp = reader.readLong();
+                        cryptoPublicKey = reader.readByteArray();
+                        cryptoSignature = reader.readByteArray();
+                    }
+                }
+            }
+            case 1 -> gameMode = reader.readVarInt();
+            case 2 -> ping = reader.readVarInt();
+            case 3 -> {
+                hasDisplayName = reader.readBoolean();
+                displayName = hasDisplayName ? reader.readString() : null;
+            }
+            case 4 -> {
+                // remove_player：UUID だけ
+            }
+            default -> throw new IllegalArgumentException("Player Info の action が範囲外です: " + action);
+        }
+        return new PlayerInfo757Entry(uuid, name, properties, gameMode, ping,
+                hasDisplayName, displayName, hasCrypto, cryptoTimestamp, cryptoPublicKey, cryptoSignature);
+    }
+
+    /** Player Info 1エントリ分を書く。writeCrypto が true の場合（759）は add_player の crypto も書く（無ければ absent）。 */
+    private static void writePlayerInfo757Entry(Writer writer, PlayerInfo757Entry entry, int action, boolean writeCrypto) {
+        writer.writeUuid(entry.uuid());
+        switch (action) {
+            case 0 -> {
+                writer.writeString(entry.name());
+                writer.writeVarInt(entry.properties().size());
+                for (PlayerInfo757Property property : entry.properties()) {
+                    writer.writeString(property.name());
+                    writer.writeString(property.value());
+                    writer.writeBoolean(property.hasSignature());
+                    if (property.hasSignature()) {
+                        writer.writeString(property.signature());
+                    }
+                }
+                writer.writeVarInt(entry.gameMode());
+                writer.writeVarInt(entry.ping());
+                writer.writeBoolean(entry.hasDisplayName());
+                if (entry.hasDisplayName()) {
+                    writer.writeString(entry.displayName());
+                }
+                if (writeCrypto) {
+                    writer.writeBoolean(entry.hasCrypto());
+                    if (entry.hasCrypto()) {
+                        writer.writeLong(entry.cryptoTimestamp());
+                        writer.writeByteArray(entry.cryptoPublicKey());
+                        writer.writeByteArray(entry.cryptoSignature());
+                    }
+                }
+            }
+            case 1 -> writer.writeVarInt(entry.gameMode());
+            case 2 -> writer.writeVarInt(entry.ping());
+            case 3 -> {
+                writer.writeBoolean(entry.hasDisplayName());
+                if (entry.hasDisplayName()) {
+                    writer.writeString(entry.displayName());
+                }
+            }
+            case 4 -> {
+                // remove_player：UUID だけ
+            }
+            default -> throw new IllegalArgumentException("Player Info の action が範囲外です: " + action);
+        }
+    }
+
+    /**
+     * Player Info（757 0x36 → 759 0x34）。759は add_player に crypto（公開鍵＋署名の option）が追加されたため、
+     * 757→759では absent を補う。action 1〜4（update_game_mode／update_latency／update_display_name／remove_player）は同一。
+     * （minecraft-data mc-1.18／mc-1.19-protocol.json の packet_player_info で確認。）
+     */
+    public static byte[] translatePlayerInfo757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int action = reader.readVarInt();
+            checkPlayerInfoAction(action);
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Player Info の件数が負です: " + count);
+            }
+            List<PlayerInfo757Entry> entries = new ArrayList<>(count);
+            for (int i = 0; i < count; i++) {
+                entries.add(readPlayerInfo757Entry(reader, action, false));
+            }
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(action);
+            writer.writeVarInt(count);
+            for (PlayerInfo757Entry entry : entries) {
+                writePlayerInfo757Entry(writer, entry, action, true);
+            }
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Player Info を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Player Info（759 0x34 → 757 0x36）。add_player の crypto を落とす。
+     * それ以外は同一。
+     */
+    public static byte[] translatePlayerInfo759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int action = reader.readVarInt();
+            checkPlayerInfoAction(action);
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Player Info の件数が負です: " + count);
+            }
+            List<PlayerInfo757Entry> entries = new ArrayList<>(count);
+            for (int i = 0; i < count; i++) {
+                entries.add(readPlayerInfo757Entry(reader, action, true));
+            }
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(action);
+            writer.writeVarInt(count);
+            for (PlayerInfo757Entry entry : entries) {
+                writePlayerInfo757Entry(writer, entry, action, false);
+            }
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Player Info を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Held Item（757 0x48 → 759 0x47）。{slot i8} は同一のため素通しする（IDの付け替えは呼び出し側）。 */
+    public static byte[] translateSetHeldItem757To759(byte[] payload) {
+        return payload;
+    }
+
+    /** Set Held Item（759 0x47 → 757 0x48）。{slot i8} は同一のため素通しする。 */
+    public static byte[] translateSetHeldItem759To757(byte[] payload) {
+        return payload;
+    }
+
+    /** Held Item Change（サーバー行き。757 0x25 → 759 0x27）。{slotId i16} は同一のため素通しする。 */
+    public static byte[] translateHeldItemChange757To759(byte[] payload) {
+        return payload;
+    }
+
+    /** Held Item Change（サーバー行き。759 0x27 → 757 0x25）。{slotId i16} は同一のため素通しする。 */
+    public static byte[] translateHeldItemChange759To757(byte[] payload) {
+        return payload;
+    }
+
+    /** Vehicle Move（757 0x2C → 759 0x29）。{x／y／z f64, yaw／pitch f32} は同一のため素通しする。 */
+    public static byte[] translateVehicleMove757To759(byte[] payload) {
+        return payload;
+    }
+
+    /** Vehicle Move（759 0x29 → 757 0x2C）。同一のため素通しする。 */
+    public static byte[] translateVehicleMove759To757(byte[] payload) {
+        return payload;
+    }
+
+    // ---------------------------------------------------------------
+    // 757 <=> 759：クライアント→サーバー側の小さい変換器（統合ステップで追加）
+    // フィールド構成は minecraft-data protocol.json（mc-1.18／mc-1.19／
+    // mc-1.20／mc-26.1-protocol.json）で実測。Wiki値は使っていない。
+    // 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
+    // ---------------------------------------------------------------
+
+    /**
+     * Block Dig（757 → 759）。757は {status varint, location position, face i8}、
+     * 759は末尾に sequence（varint）が付く。sequence はサーバー側の照合用で、
+     * 757クライアントは送ってこないため 0 を補う。
+     */
+    public static byte[] translateBlockDig757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int status = reader.readVarInt();
+            long location = reader.readPositionRaw();
+            int face = reader.readByte();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Block Dig に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(status);
+            writer.writePositionRaw(location);
+            writer.writeByte(face);
+            writer.writeVarInt(0); // sequence：757には無いため 0 を補う
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Block Dig（763 → 757）。763は759と同じく末尾に sequence（varint）が付くため剥がす。
+     * 763／764／765は同形式のため共用する。
+     */
+    public static byte[] translateBlockDig763To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int status = reader.readVarInt();
+            long location = reader.readPositionRaw();
+            int face = reader.readByte();
+            reader.readVarInt(); // sequence：757には無いため落とす
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Block Dig に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(status);
+            writer.writePositionRaw(location);
+            writer.writeByte(face);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Block Place（757 → 759）。757は {hand varint, location position, direction varint,
+     * cursorX／Y／Z f32, insideBlock bool}、759は末尾に sequence（varint）が付く。
+     * sequence は 0 を補う。
+     */
+    public static byte[] translateBlockPlace757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int hand = reader.readVarInt();
+            long location = reader.readPositionRaw();
+            int direction = reader.readVarInt();
+            float cursorX = reader.readFloat();
+            float cursorY = reader.readFloat();
+            float cursorZ = reader.readFloat();
+            boolean insideBlock = reader.readBoolean();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Block Place に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(hand);
+            writer.writePositionRaw(location);
+            writer.writeVarInt(direction);
+            writer.writeFloat(cursorX);
+            writer.writeFloat(cursorY);
+            writer.writeFloat(cursorZ);
+            writer.writeBoolean(insideBlock);
+            writer.writeVarInt(0); // sequence：757には無いため 0 を補う
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Block Place（763 → 757）。763は759と同じく末尾に sequence（varint）が付くため剥がす。
+     * 763／764／765は同形式のため共用する。
+     */
+    public static byte[] translateBlockPlace763To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int hand = reader.readVarInt();
+            long location = reader.readPositionRaw();
+            int direction = reader.readVarInt();
+            float cursorX = reader.readFloat();
+            float cursorY = reader.readFloat();
+            float cursorZ = reader.readFloat();
+            boolean insideBlock = reader.readBoolean();
+            reader.readVarInt(); // sequence：757には無いため落とす
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Block Place に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(hand);
+            writer.writePositionRaw(location);
+            writer.writeVarInt(direction);
+            writer.writeFloat(cursorX);
+            writer.writeFloat(cursorY);
+            writer.writeFloat(cursorZ);
+            writer.writeBoolean(insideBlock);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Use Item（757 → 759）。757は {hand varint}、759は末尾に sequence（varint）が付く。
+     * sequence は 0 を補う。
+     */
+    public static byte[] translateUseItem757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int hand = reader.readVarInt();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Use Item に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(hand);
+            writer.writeVarInt(0); // sequence：757には無いため 0 を補う
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Use Item（763 → 757）。763は759と同じく末尾に sequence（varint）が付くため剥がす。
+     * 763／764／765は同形式のため共用する。
+     */
+    public static byte[] translateUseItem763To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int hand = reader.readVarInt();
+            reader.readVarInt(); // sequence：757には無いため落とす
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Use Item に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(hand);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Set Beacon Effect（757 → 759）。757は {primary varint, secondary varint}、
+     * 759は {primary option varint, secondary option varint}。757の -1（無し）は
+     * absent（0x00）に直す。-1 が「無し」の慣習であることは実バニラの
+     * ClientboundSetBeaconEffect の仕様からの推論で、protocol.json では決まらない。
+     * 実機での確認は未実施。
+     */
+    public static byte[] translateSetBeaconEffect757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int primary = reader.readVarInt();
+            int secondary = reader.readVarInt();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Set Beacon Effect に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writeOptionalEffect(writer, primary);
+            writeOptionalEffect(writer, secondary);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /** Set Beacon Effect の option varint 1件分を書く（-1 は absent）。 */
+    private static void writeOptionalEffect(Writer writer, int effect) {
+        if (effect < 0) {
+            writer.writeBoolean(false);
+        } else {
+            writer.writeBoolean(true);
+            writer.writeVarInt(effect);
+        }
+    }
+
+    /**
+     * Set Beacon Effect（763 → 757）。763は759と同じく option varint のため、
+     * absent は -1 に戻す。763／764／765は同形式のため共用する。
+     */
+    public static byte[] translateSetBeaconEffect763To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int primary = readOptionalEffect(reader);
+            int secondary = readOptionalEffect(reader);
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Set Beacon Effect に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(primary);
+            writer.writeVarInt(secondary);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /** Set Beacon Effect の option varint 1件分を読む（absent は -1）。 */
+    private static int readOptionalEffect(Reader reader) {
+        if (!reader.readBoolean()) {
+            return -1;
+        }
+        return reader.readVarInt();
+    }
+
+    /**
+     * Update Structure Block（757 → 759）。seed だけが varlong（757）→ varint（759）で、
+     * それ以外は同一（location position, action varint, mode varint, name string,
+     * offset x／y／z i8, size x／y／z i8, mirror varint, rotation varint, metadata string,
+     * integrity f32, flags u8）。seed は64ビット→32ビットへの切り詰め（実機での確認は未実施）。
+     */
+    public static byte[] translateUpdateStructureBlock757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long location = reader.readPositionRaw();
+            int action = reader.readVarInt();
+            int mode = reader.readVarInt();
+            String name = reader.readString();
+            int offsetX = reader.readByte();
+            int offsetY = reader.readByte();
+            int offsetZ = reader.readByte();
+            int sizeX = reader.readByte();
+            int sizeY = reader.readByte();
+            int sizeZ = reader.readByte();
+            int mirror = reader.readVarInt();
+            int rotation = reader.readVarInt();
+            String metadata = reader.readString();
+            float integrity = reader.readFloat();
+            long seed = reader.readVarLong();
+            int flags = reader.readUnsignedByte();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Update Structure Block に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writePositionRaw(location);
+            writer.writeVarInt(action);
+            writer.writeVarInt(mode);
+            writer.writeString(name);
+            writer.writeByte(offsetX);
+            writer.writeByte(offsetY);
+            writer.writeByte(offsetZ);
+            writer.writeByte(sizeX);
+            writer.writeByte(sizeY);
+            writer.writeByte(sizeZ);
+            writer.writeVarInt(mirror);
+            writer.writeVarInt(rotation);
+            writer.writeString(metadata);
+            writer.writeFloat(integrity);
+            writer.writeVarInt((int) seed);
+            writer.writeUnsignedByte(flags);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Update Structure Block（763 → 757）。763は759と同じく seed が varint のため varlong に戻す。
+     * 763／764／765は同形式のため共用する。
+     */
+    public static byte[] translateUpdateStructureBlock763To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long location = reader.readPositionRaw();
+            int action = reader.readVarInt();
+            int mode = reader.readVarInt();
+            String name = reader.readString();
+            int offsetX = reader.readByte();
+            int offsetY = reader.readByte();
+            int offsetZ = reader.readByte();
+            int sizeX = reader.readByte();
+            int sizeY = reader.readByte();
+            int sizeZ = reader.readByte();
+            int mirror = reader.readVarInt();
+            int rotation = reader.readVarInt();
+            String metadata = reader.readString();
+            float integrity = reader.readFloat();
+            int seed = reader.readVarInt();
+            int flags = reader.readUnsignedByte();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Update Structure Block に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writePositionRaw(location);
+            writer.writeVarInt(action);
+            writer.writeVarInt(mode);
+            writer.writeString(name);
+            writer.writeByte(offsetX);
+            writer.writeByte(offsetY);
+            writer.writeByte(offsetZ);
+            writer.writeByte(sizeX);
+            writer.writeByte(sizeY);
+            writer.writeByte(sizeZ);
+            writer.writeVarInt(mirror);
+            writer.writeVarInt(rotation);
+            writer.writeString(metadata);
+            writer.writeFloat(integrity);
+            writer.writeVarLong(seed);
+            writer.writeUnsignedByte(flags);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Login Start（757 → 759）。757は {username string} のみ、759は末尾に
+     * signature の option（{timestamp i64, publicKey buffer, signature buffer}）が付く。
+     * 757クライアントは署名を持たないため absent（0x00）を補う。
+     */
+    public static byte[] translateLoginStart757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String username = reader.readString();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Login Start に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString(username);
+            writer.writeBoolean(false); // signature 無し
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Login Start（759 → 757）。759の signature option を落として {username string} だけにする。
+     * 署名付きの場合は署名データを読み飛ばす。
+     */
+    public static byte[] translateLoginStart759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String username = reader.readString();
+            if (reader.readBoolean()) { // signature option
+                reader.readLong(); // timestamp
+                reader.readByteArray(); // publicKey
+                reader.readByteArray(); // signature
+            }
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Login Start に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString(username);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Chat Message（763 → 757）。763は {message string, timestamp i64, salt i64,
+     * signature option（bool＋256バイト）, offset varint, acknowledged 3バイト}。
+     * 署名・タイムスタンプ等を剥がして757の chat {message string} に直す。
+     * 763／764／765は同形式のため共用する（775は末尾に checksum u8 が付くため別メソッド）。
+     */
+    public static byte[] translateChatMessage763To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            reader.readLong(); // timestamp
+            reader.readLong(); // salt
+            if (reader.readBoolean()) { // signature option
+                reader.readBytes(256);
+            }
+            reader.readVarInt(); // offset
+            reader.readBytes(3); // acknowledged
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Chat Message に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString(message);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Chat Command（763 → 757）。763は {command string, timestamp i64, salt i64,
+     * argumentSignatures（count varint＋{name string, signature 256バイト}）,
+     * messageCount varint, acknowledged 3バイト}。署名等を剥がして757の chat
+     * {"/"＋command} に直す。763／764／765は同形式のため共用する。
+     */
+    public static byte[] translateChatCommand763To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String command = reader.readString();
+            reader.readLong(); // timestamp
+            reader.readLong(); // salt
+            int count = reader.readVarInt();
+            for (int i = 0; i < count; i++) {
+                reader.readString(); // argumentName
+                reader.readBytes(256); // signature
+            }
+            reader.readVarInt(); // messageCount
+            reader.readBytes(3); // acknowledged
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Chat Command に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString("/" + command);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Chat Message（775 → 757）。775は763形式の末尾に checksum（u8）が付く。
+     * 署名・タイムスタンプ等を剥がして757の chat {message string} に直す。
+     */
+    public static byte[] translateChatMessage775To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            reader.readLong(); // timestamp
+            reader.readLong(); // salt
+            if (reader.readBoolean()) { // signature option
+                reader.readBytes(256);
+            }
+            reader.readVarInt(); // offset
+            reader.readBytes(3); // acknowledged
+            reader.readByte(); // checksum
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Chat Message に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString(message);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Chat Command（775 → 757）。775の符号なし Chat Command は {command string} のみ。
+     * 757の chat {"/"＋command} に直す。
+     */
+    public static byte[] translateChatCommand775To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String command = reader.readString();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Chat Command に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString("/" + command);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Chat Command Signed（775 → 757）。775は {command string, timestamp i64, salt i64,
+     * argumentSignatures（count varint＋{name string, signature 256バイト}）,
+     * messageCount varint, acknowledged 3バイト, checksum u8}。署名等を剥がして
+     * 757の chat {"/"＋command} に直す。
+     */
+    public static byte[] translateChatCommandSigned775To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String command = reader.readString();
+            reader.readLong(); // timestamp
+            reader.readLong(); // salt
+            int count = reader.readVarInt();
+            for (int i = 0; i < count; i++) {
+                reader.readString(); // argumentName
+                reader.readBytes(256); // signature
+            }
+            reader.readVarInt(); // messageCount
+            reader.readBytes(3); // acknowledged
+            reader.readByte(); // checksum
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Chat Command Signed に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString("/" + command);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Attack（775 → 757 の Use Entity）。775は {entityId varint}、757は
+     * {target varint, mouse varint, sneaking bool}（mouse==1 が attack）。
+     * 775の attack パケットには sneaking が無いため false にする
+     * （translateAttack775ToUseEntity774 と同じ方針）。
+     */
+    public static byte[] translateAttack775ToUseEntity757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int target = reader.readVarInt();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Attack に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(target);
+            writer.writeVarInt(1); // mouse：attack
+            writer.writeBoolean(false); // sneaking：775の attack には無いため false
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Use Entity（775 → 757）。775は {target varint, hand varint, location（f32×3）,
+     * sneaking bool}、757は {target varint, mouse varint, x／y／z f32, hand varint,
+     * sneaking bool}。775 には素の interact（mouse==0）の形が無いため、
+     * 常に mouse==2（interact_at）として変換する
+     * （translateUseEntity775To774 と同じ方針）。
+     */
+    public static byte[] translateUseEntity775To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int target = reader.readVarInt();
+            int hand = reader.readVarInt();
+            float x = reader.readFloat();
+            float y = reader.readFloat();
+            float z = reader.readFloat();
+            boolean sneaking = reader.readBoolean();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Use Entity に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(target);
+            writer.writeVarInt(2); // mouse：interact_at
+            writer.writeFloat(x);
+            writer.writeFloat(y);
+            writer.writeFloat(z);
+            writer.writeVarInt(hand);
+            writer.writeBoolean(sneaking);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+
+    // ================================================================
+    // 756 <=> 757 (1.17.1 <=> 1.18 / 1.18.1)
+    // ================================================================
+    //
+    // フィールド差分は minecraft-data protocol.json（mc-1.17.1／mc-1.18）で実測。
+    // play toClient の差分は次の5件だけ（それ以外は全て同一）。
+    //   - packet_login（Join Game）：757は viewDistance の後に simulationDistance（varint）が付く。
+    //   - packet_simulation_distance：757だけにある（0x57。1.18で追加。756には無い）。
+    //   - packet_map_chunk（Chunk Data）：756は {bitMap, heightmaps, biomes, chunkData, blockEntities}、
+    //     757は {heightmaps, chunkData, blockEntities, trustEdges, light masks, skyLight, blockLight}。
+    //     ChunkTranslator の担当のためここでは扱わない。
+    //   - packet_multi_block_change：chunkCoordinates の y が756は unsigned、757は signed。
+    //     ChunkTranslator の担当のためここでは扱わない。
+    //   - packet_tile_entity_data（Block Entity Data）：action が756は u8、757は varint。
+    //     ChunkTranslator の担当のためここでは扱わない。
+    // play toServer の差分は packet_settings（Client Information）1件だけ。
+    // login／handshaking／status は全パケット同一（差分0件）。
+    //
+    // 変換器を作らなかったもの（フィールド同一のため。protocol.json で確認。ID の付け替えだけは
+    // PacketIds の表に任せる）：Chat（両方向）、Player Info、Set Held Item、Vehicle Move、
+    // Block Dig／Block Place／Use Item（sequence は757・756とも無い。759で追加されたもの）、
+    // Set Beacon Effect（両方 {primary varint, secondary varint}。option化は759から）、
+    // Update Structure Block（seed は両方 varlong。varint化は759から）、
+    // Initialize World Border／World Border Lerp Size（speed は両方 varlong。varint化は759から）、
+    // Login Start（両方 {username} のみ。signature は759から）、
+    // Enchant Item（両方 {windowId i8, enchantment i8}）。
+    // Update Time は ID だけが違う（756=0x58、757=0x59。ペイロード同一）。
+    //
+    // dimensionCodec の違い（実バニラの Join Game ライブキャプチャで確認。
+    // 756：31,555バイト、757：23,986バイト。どちらも Python ソケットの偽クライアントで取得。
+    // JVM の TCP ループバックは遮断されるため Java クライアントは使えない）：
+    //   - dimension_type は4件・同一順序（overworld 0、overworld_caves 1、the_nether 2、the_end 3）で
+    //     id の写像は恒等。ただし overworld／overworld_caves の element は違う
+    //     （1.18のワールド高さ変更：logical_height 256→384、min_y 0→-64、height 256→384）ため
+    //     element は受信側の既定値で置き換える（757<=>759と同じ方針）。the_nether／the_end は同一。
+    //   - worldgen/biome は756が81件（id 0〜175の非連番）、757が61件（id 0〜60の連番）。
+    //     共有44件＋改名11件。757にしか無い6件は meadow→plains、grove→snowy_taiga、
+    //     snowy_slopes→snowy_tundra、frozen_peaks→snowy_mountains、jagged_peaks→mountains、
+    //     stony_peaks→mountains（RegistryTables756 の BIOME_756 表通り）。
+    //     756→757では57件を持ち越し、残る4件（meadow／snowy_slopes／jagged_peaks／
+    //     stony_peaks。grove／frozen_peaks は通常持ち越しで埋まる）を実バニラ1.18の element で
+    //     埋めて61件にする。757→756では56件を持ち越し、残る25件を実バニラ1.17.1の element で
+    //     埋めて81件にする。埋め表は両方向とも全件分（61件／81件）持つため、入力の codec が
+    //     欠けていても出力は完全な codec になる。
+    //   - 写像の衝突（複数の元が同じ先になる）は逆写像が指す正規の元を優先する。
+    //     756→757の衝突は20組あり、19組は先勝ちで正規の元が残るが、windswept_forest（757 id 20）
+    //     だけは例外で、wooded_hills（756 id 18）と wooded_mountains（756 id 34）が両方写り、
+    //     逆写像は34を指す。先勝ちだと18の element が残り、往復で wooded_mountains が18の
+    //     element に化けてしまうため、正規の元（34）が来たら上書きする。757→756の衝突4組は
+    //     先勝ちで正規の元が残るが、念のため同じ規則にしている。
+    //   - バイオーム element は756だけに depth・scale がある（1.18で削除）。
+    //     756→757では落とし、757→756では実バニラ1.17.1の値を足す
+    //     （depth は effects の直後、scale は temperature の直後に挿入し、並びも再現する）。
+    //     それ以外の値の違い（savanna の temperature 1.2→2.0、dripstone_caves／lush_caves への
+    //     music 追加等）は element をそのまま引き継ぐ（757<=>759と同じ方針で訂正しない）。
+    //   - Join Game の dimension は両方 NBT の値。Respawn は両方とも
+    //     {dimension NBT, worldName, seed, gameMode u8, previousGameMode u8, isDebug, isFlat,
+    //     copyMetadata bool} で同一。dataToKeep はどちらにも無い。
+    //
+    // 設計上の決定：
+    //   - 756→757の simulationDistance は viewDistance と同じ値にする
+    //     （1.17.1に simulationDistance は無く、実質のシミュレーション距離は描画距離だったため。
+    //     実バニラ1.18サーバーも simulation-distance の既定値は view-distance と同じ10を送る）。
+    //   - 756→757の Client Information の enableServerListing は true で補完する
+    //     （1.18以前のクライアントに一覧表示の拒否手段は無かったため。
+    //     実バニラ1.18クライアントの送信値は未確認）。
+    //   - reorderRegistries には756<=>757の対応を入れていない。756のバイオームは id が非連番で
+    //     176枠の表にすると隙間まで埋めてしまうため、codec の変換はこの節の専用メソッドで行う。
+
+    private static final String[] DIMENSION_TYPE_756_NAMES = {
+            "minecraft:overworld", "minecraft:overworld_caves", "minecraft:the_nether", "minecraft:the_end",
+    };
+
+    /** DIMENSION_TYPE_756_ELEMENT_HEX：実バニラ1.17.1の Join Game codec から取った element（anonymous NBT の16進）。 */
+    private static final String[] DIMENSION_TYPE_756_ELEMENT_HEX = {
+            // minecraft:overworld（291バイト）。
+            "0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000008" +
+            "000a696e66696e696275726e001e6d696e6563726166743a696e66696e696275726e5f6f766572776f726c6401001472" +
+            "65737061776e5f616e63686f725f776f726b730001000c6861735f736b796c69676874010100096265645f776f726b73" +
+            "010800076566666563747300136d696e6563726166743a6f766572776f726c640100096861735f72616964730103000e" +
+            "6c6f676963616c5f68656967687400000100060010636f6f7264696e6174655f7363616c653ff0000000000000030005" +
+            "6d696e5f790000000001000b6861735f6365696c696e6700010009756c7472617761726d000300066865696768740000" +
+            "010000",
+            // minecraft:overworld_caves（291バイト）。
+            "0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000008" +
+            "000a696e66696e696275726e001e6d696e6563726166743a696e66696e696275726e5f6f766572776f726c6401001472" +
+            "65737061776e5f616e63686f725f776f726b730001000c6861735f736b796c69676874010100096265645f776f726b73" +
+            "010800076566666563747300136d696e6563726166743a6f766572776f726c640100096861735f72616964730103000e" +
+            "6c6f676963616c5f68656967687400000100060010636f6f7264696e6174655f7363616c653ff0000000000000030005" +
+            "6d696e5f790000000001000b6861735f6365696c696e6701010009756c7472617761726d000300066865696768740000" +
+            "010000",
+            // minecraft:the_nether（310バイト）。
+            "0a01000b7069676c696e5f73616665010100076e61747572616c0005000d616d6269656e745f6c696768743dcccccd08" +
+            "000a696e66696e696275726e001b6d696e6563726166743a696e66696e696275726e5f6e657468657201001472657370" +
+            "61776e5f616e63686f725f776f726b730101000c6861735f736b796c69676874000100096265645f776f726b73000800" +
+            "076566666563747300146d696e6563726166743a7468655f6e657468657204000a66697865645f74696d650000000000" +
+            "0046500100096861735f72616964730003000e6c6f676963616c5f68656967687400000080060010636f6f7264696e61" +
+            "74655f7363616c6540200000000000000300056d696e5f790000000001000b6861735f6365696c696e6701010009756c" +
+            "7472617761726d010300066865696768740000010000",
+            // minecraft:the_end（304バイト）。
+            "0a01000b7069676c696e5f73616665000100076e61747572616c0005000d616d6269656e745f6c696768740000000008" +
+            "000a696e66696e696275726e00186d696e6563726166743a696e66696e696275726e5f656e640100147265737061776e" +
+            "5f616e63686f725f776f726b730001000c6861735f736b796c69676874000100096265645f776f726b73000800076566" +
+            "666563747300116d696e6563726166743a7468655f656e6404000a66697865645f74696d650000000000001770010009" +
+            "6861735f72616964730103000e6c6f676963616c5f68656967687400000100060010636f6f7264696e6174655f736361" +
+            "6c653ff00000000000000300056d696e5f790000000001000b6861735f6365696c696e6700010009756c747261776172" +
+            "6d000300066865696768740000010000",
+    };
+
+    /** 実バニラ1.17.1の dimension_type element 4件（名前→element）。 */
+    private static final Map<String, Tag.CompoundTag> DIMENSION_TYPE_756_ELEMENTS =
+            elementMap(DIMENSION_TYPE_756_NAMES, DIMENSION_TYPE_756_ELEMENT_HEX);
+
+    /**
+     * 756のバイオーム名（index = 756の id。id 0〜175の非連番のため隙間は null）。
+     * 実バニラ1.17.1の Join Game codec（81件）と biomes-1.17.json の（id, name）から取ったもの。
+     */
+    private static final String[] BIOME_756_NAMES = {
+            "minecraft:ocean", "minecraft:plains", "minecraft:desert", "minecraft:mountains", "minecraft:forest", "minecraft:taiga", "minecraft:swamp", "minecraft:river",
+            "minecraft:nether_wastes", "minecraft:the_end", "minecraft:frozen_ocean", "minecraft:frozen_river", "minecraft:snowy_tundra", "minecraft:snowy_mountains", "minecraft:mushroom_fields", "minecraft:mushroom_field_shore",
+            "minecraft:beach", "minecraft:desert_hills", "minecraft:wooded_hills", "minecraft:taiga_hills", "minecraft:mountain_edge", "minecraft:jungle", "minecraft:jungle_hills", "minecraft:jungle_edge",
+            "minecraft:deep_ocean", "minecraft:stone_shore", "minecraft:snowy_beach", "minecraft:birch_forest", "minecraft:birch_forest_hills", "minecraft:dark_forest", "minecraft:snowy_taiga", "minecraft:snowy_taiga_hills",
+            "minecraft:giant_tree_taiga", "minecraft:giant_tree_taiga_hills", "minecraft:wooded_mountains", "minecraft:savanna", "minecraft:savanna_plateau", "minecraft:badlands", "minecraft:wooded_badlands_plateau", "minecraft:badlands_plateau",
+            "minecraft:small_end_islands", "minecraft:end_midlands", "minecraft:end_highlands", "minecraft:end_barrens", "minecraft:warm_ocean", "minecraft:lukewarm_ocean", "minecraft:cold_ocean", "minecraft:deep_warm_ocean",
+            "minecraft:deep_lukewarm_ocean", "minecraft:deep_cold_ocean", "minecraft:deep_frozen_ocean", null, null, null, null, null,
+            null, null, null, null, null, null, null, null,
+            null, null, null, null, null, null, null, null,
+            null, null, null, null, null, null, null, null,
+            null, null, null, null, null, null, null, null,
+            null, null, null, null, null, null, null, null,
+            null, null, null, null, null, null, null, null,
+            null, null, null, null, null, null, null, null,
+            null, null, null, null, null, null, null, null,
+            null, null, null, null, null, null, null, "minecraft:the_void",
+            null, "minecraft:sunflower_plains", "minecraft:desert_lakes", "minecraft:gravelly_mountains", "minecraft:flower_forest", "minecraft:taiga_mountains", "minecraft:swamp_hills", null,
+            null, null, null, null, "minecraft:ice_spikes", null, null, null,
+            null, null, null, null, null, "minecraft:modified_jungle", null, "minecraft:modified_jungle_edge",
+            null, null, null, "minecraft:tall_birch_forest", "minecraft:tall_birch_hills", "minecraft:dark_forest_hills", "minecraft:snowy_taiga_mountains", null,
+            "minecraft:giant_spruce_taiga", "minecraft:giant_spruce_taiga_hills", "minecraft:modified_gravelly_mountains", "minecraft:shattered_savanna", "minecraft:shattered_savanna_plateau", "minecraft:eroded_badlands", "minecraft:modified_wooded_badlands_plateau", "minecraft:modified_badlands_plateau",
+            "minecraft:bamboo_jungle", "minecraft:bamboo_jungle_hills", "minecraft:soul_sand_valley", "minecraft:crimson_forest", "minecraft:warped_forest", "minecraft:basalt_deltas", "minecraft:dripstone_caves", "minecraft:lush_caves"
+    };
+
+    /**
+     * 757のバイオーム id → その写像先の756バイオームの (depth, scale)。
+     * 実バニラ1.17.1の Join Game codec から取った値。757にしか無い6件も写像先の値が入っている
+     * （meadow→plains 等。先勝ちで落とされるものは使われないが、写像先が空の場合はそのまま使える）。
+     */
+    private static final float[][] BIOME_757_DEPTH_SCALE = {
+            {0.1f, 0.2f}, // 0 minecraft:the_void -> 756 id 127 minecraft:the_void
+            {0.125f, 0.05f}, // 1 minecraft:plains -> 756 id 1 minecraft:plains
+            {0.125f, 0.05f}, // 2 minecraft:sunflower_plains -> 756 id 129 minecraft:sunflower_plains
+            {0.125f, 0.05f}, // 3 minecraft:snowy_plains -> 756 id 12 minecraft:snowy_tundra
+            {0.425f, 0.45000002f}, // 4 minecraft:ice_spikes -> 756 id 140 minecraft:ice_spikes
+            {0.125f, 0.05f}, // 5 minecraft:desert -> 756 id 2 minecraft:desert
+            {-0.2f, 0.1f}, // 6 minecraft:swamp -> 756 id 6 minecraft:swamp
+            {0.1f, 0.2f}, // 7 minecraft:forest -> 756 id 4 minecraft:forest
+            {0.1f, 0.4f}, // 8 minecraft:flower_forest -> 756 id 132 minecraft:flower_forest
+            {0.1f, 0.2f}, // 9 minecraft:birch_forest -> 756 id 27 minecraft:birch_forest
+            {0.1f, 0.2f}, // 10 minecraft:dark_forest -> 756 id 29 minecraft:dark_forest
+            {0.2f, 0.4f}, // 11 minecraft:old_growth_birch_forest -> 756 id 155 minecraft:tall_birch_forest
+            {0.2f, 0.2f}, // 12 minecraft:old_growth_pine_taiga -> 756 id 32 minecraft:giant_tree_taiga
+            {0.2f, 0.2f}, // 13 minecraft:old_growth_spruce_taiga -> 756 id 160 minecraft:giant_spruce_taiga
+            {0.2f, 0.2f}, // 14 minecraft:taiga -> 756 id 5 minecraft:taiga
+            {0.2f, 0.2f}, // 15 minecraft:snowy_taiga -> 756 id 30 minecraft:snowy_taiga
+            {0.125f, 0.05f}, // 16 minecraft:savanna -> 756 id 35 minecraft:savanna
+            {1.5f, 0.025f}, // 17 minecraft:savanna_plateau -> 756 id 36 minecraft:savanna_plateau
+            {1f, 0.5f}, // 18 minecraft:windswept_hills -> 756 id 3 minecraft:mountains
+            {1f, 0.5f}, // 19 minecraft:windswept_gravelly_hills -> 756 id 131 minecraft:gravelly_mountains
+            {1f, 0.5f}, // 20 minecraft:windswept_forest -> 756 id 34 minecraft:wooded_mountains
+            {0.3625f, 1.225f}, // 21 minecraft:windswept_savanna -> 756 id 163 minecraft:shattered_savanna
+            {0.1f, 0.2f}, // 22 minecraft:jungle -> 756 id 21 minecraft:jungle
+            {0.1f, 0.2f}, // 23 minecraft:sparse_jungle -> 756 id 23 minecraft:jungle_edge
+            {0.1f, 0.2f}, // 24 minecraft:bamboo_jungle -> 756 id 168 minecraft:bamboo_jungle
+            {0.1f, 0.2f}, // 25 minecraft:badlands -> 756 id 37 minecraft:badlands
+            {0.1f, 0.2f}, // 26 minecraft:eroded_badlands -> 756 id 165 minecraft:eroded_badlands
+            {1.5f, 0.025f}, // 27 minecraft:wooded_badlands -> 756 id 38 minecraft:wooded_badlands_plateau
+            {0.125f, 0.05f}, // 28 minecraft:meadow -> 756 id 1 minecraft:plains
+            {0.2f, 0.2f}, // 29 minecraft:grove -> 756 id 30 minecraft:snowy_taiga
+            {0.125f, 0.05f}, // 30 minecraft:snowy_slopes -> 756 id 12 minecraft:snowy_tundra
+            {0.45f, 0.3f}, // 31 minecraft:frozen_peaks -> 756 id 13 minecraft:snowy_mountains
+            {1f, 0.5f}, // 32 minecraft:jagged_peaks -> 756 id 3 minecraft:mountains
+            {1f, 0.5f}, // 33 minecraft:stony_peaks -> 756 id 3 minecraft:mountains
+            {-0.5f, 0f}, // 34 minecraft:river -> 756 id 7 minecraft:river
+            {-0.5f, 0f}, // 35 minecraft:frozen_river -> 756 id 11 minecraft:frozen_river
+            {0f, 0.025f}, // 36 minecraft:beach -> 756 id 16 minecraft:beach
+            {0f, 0.025f}, // 37 minecraft:snowy_beach -> 756 id 26 minecraft:snowy_beach
+            {0.1f, 0.8f}, // 38 minecraft:stony_shore -> 756 id 25 minecraft:stone_shore
+            {-1f, 0.1f}, // 39 minecraft:warm_ocean -> 756 id 44 minecraft:warm_ocean
+            {-1f, 0.1f}, // 40 minecraft:lukewarm_ocean -> 756 id 45 minecraft:lukewarm_ocean
+            {-1.8f, 0.1f}, // 41 minecraft:deep_lukewarm_ocean -> 756 id 48 minecraft:deep_lukewarm_ocean
+            {-1f, 0.1f}, // 42 minecraft:ocean -> 756 id 0 minecraft:ocean
+            {-1.8f, 0.1f}, // 43 minecraft:deep_ocean -> 756 id 24 minecraft:deep_ocean
+            {-1f, 0.1f}, // 44 minecraft:cold_ocean -> 756 id 46 minecraft:cold_ocean
+            {-1.8f, 0.1f}, // 45 minecraft:deep_cold_ocean -> 756 id 49 minecraft:deep_cold_ocean
+            {-1f, 0.1f}, // 46 minecraft:frozen_ocean -> 756 id 10 minecraft:frozen_ocean
+            {-1.8f, 0.1f}, // 47 minecraft:deep_frozen_ocean -> 756 id 50 minecraft:deep_frozen_ocean
+            {0.2f, 0.3f}, // 48 minecraft:mushroom_fields -> 756 id 14 minecraft:mushroom_fields
+            {0.125f, 0.05f}, // 49 minecraft:dripstone_caves -> 756 id 174 minecraft:dripstone_caves
+            {0.1f, 0.2f}, // 50 minecraft:lush_caves -> 756 id 175 minecraft:lush_caves
+            {0.1f, 0.2f}, // 51 minecraft:nether_wastes -> 756 id 8 minecraft:nether_wastes
+            {0.1f, 0.2f}, // 52 minecraft:warped_forest -> 756 id 172 minecraft:warped_forest
+            {0.1f, 0.2f}, // 53 minecraft:crimson_forest -> 756 id 171 minecraft:crimson_forest
+            {0.1f, 0.2f}, // 54 minecraft:soul_sand_valley -> 756 id 170 minecraft:soul_sand_valley
+            {0.1f, 0.2f}, // 55 minecraft:basalt_deltas -> 756 id 173 minecraft:basalt_deltas
+            {0.1f, 0.2f}, // 56 minecraft:the_end -> 756 id 9 minecraft:the_end
+            {0.1f, 0.2f}, // 57 minecraft:end_highlands -> 756 id 42 minecraft:end_highlands
+            {0.1f, 0.2f}, // 58 minecraft:end_midlands -> 756 id 41 minecraft:end_midlands
+            {0.1f, 0.2f}, // 59 minecraft:small_end_islands -> 756 id 40 minecraft:small_end_islands
+            {0.1f, 0.2f}, // 60 minecraft:end_barrens -> 756 id 43 minecraft:end_barrens
+    };
+
+    /**
+     * 実バニラ1.18のバイオーム element 全61件（名前→element。Join Game codec から取ったもの）。
+     * 756→757で写像で埋まらない757のバイオームを埋めるために使う。通常は4件だけが埋められる
+     * （meadow／snowy_slopes／jagged_peaks／stony_peaks。grove／frozen_peaks は通常
+     * snowy_taiga_mountains／snowy_mountains の持ち越しで埋まる）。入力の756 codec が欠けて
+     * いる場合も、ここから埋めるため出力は常に61件の完全な codec になる。
+     * Map.of は10件までしか受け付けないため Map.ofEntries を使う。
+     */
+    private static final Map<String, Tag.CompoundTag> BIOME_757_FILL_ELEMENTS = Map.ofEntries(
+            Map.entry("minecraft:the_void", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f727900046e6f6e6500")),
+            Map.entry("minecraft:plains", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720078a7" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f4ccccd050008646f776e66616c" +
+                    "6c3ecccccd08000863617465676f72790006706c61696e7300")),
+            Map.entry("minecraft:sunflower_plains", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720078a7" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f4ccccd050008646f776e66616c" +
+                    "6c3ecccccd08000863617465676f72790006706c61696e7300")),
+            Map.entry("minecraft:snowy_plains", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f72007fa1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d706572617475726500000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f7279000369637900")),
+            Map.entry("minecraft:ice_spikes", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f72007fa1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d706572617475726500000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f7279000369637900")),
+            Map.entry("minecraft:desert", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d706572617475726540000000050008646f776e66616c" +
+                    "6c0000000008000863617465676f7279000664657365727400")),
+            Map.entry("minecraft:swamp", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a00076566666563747308001467726173735f636f6c6f725f" +
+                    "6d6f64696669657200057377616d70030009736b795f636f6c6f720078a7ff03000d666f6c696167655f636f6c6f7200" +
+                    "6a703903000f77617465725f666f675f636f6c6f7200232317030009666f675f636f6c6f7200c0d8ff03000b77617465" +
+                    "725f636f6c6f7200617b640a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673" +
+                    "65744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f" +
+                    "636b5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f4ccccd050008646f776e66" +
+                    "616c6c3f66666608000863617465676f727900057377616d7000")),
+            Map.entry("minecraft:forest", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720079a6" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f333333050008646f776e66616c" +
+                    "6c3f4ccccd08000863617465676f72790006666f7265737400")),
+            Map.entry("minecraft:flower_forest", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720079a6" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f333333050008646f776e66616c" +
+                    "6c3f4ccccd08000863617465676f72790006666f7265737400")),
+            Map.entry("minecraft:birch_forest", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007aa5" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f19999a050008646f776e66616c" +
+                    "6c3f19999a08000863617465676f72790006666f7265737400")),
+            Map.entry("minecraft:dark_forest", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a00076566666563747308001467726173735f636f6c6f725f" +
+                    "6d6f646966696572000b6461726b5f666f72657374030009736b795f636f6c6f720079a6ff03000f77617465725f666f" +
+                    "675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a" +
+                    "6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000000000000008000573" +
+                    "6f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f65787465" +
+                    "6e7400000008000005000b74656d70657261747572653f333333050008646f776e66616c6c3f4ccccd08000863617465" +
+                    "676f72790006666f7265737400")),
+            Map.entry("minecraft:old_growth_birch_forest", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007aa5" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f19999a050008646f776e66616c" +
+                    "6c3f19999a08000863617465676f72790006666f7265737400")),
+            Map.entry("minecraft:old_growth_pine_taiga", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ca3" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653e99999a050008646f776e66616c" +
+                    "6c3f4ccccd08000863617465676f72790005746169676100")),
+            Map.entry("minecraft:old_growth_spruce_taiga", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da3" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653e800000050008646f776e66616c" +
+                    "6c3f4ccccd08000863617465676f72790005746169676100")),
+            Map.entry("minecraft:taiga", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da3" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653e800000050008646f776e66616c" +
+                    "6c3f4ccccd08000863617465676f72790005746169676100")),
+            Map.entry("minecraft:snowy_taiga", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f7200839e" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003d57d60a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d7065726174757265bf000000050008646f776e66616c" +
+                    "6c3ecccccd08000863617465676f72790005746169676100")),
+            Map.entry("minecraft:savanna", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d706572617475726540000000050008646f776e66616c" +
+                    "6c0000000008000863617465676f72790007736176616e6e6100")),
+            Map.entry("minecraft:savanna_plateau", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d706572617475726540000000050008646f776e66616c" +
+                    "6c0000000008000863617465676f72790007736176616e6e6100")),
+            Map.entry("minecraft:windswept_hills", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da2" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653e4ccccd050008646f776e66616c" +
+                    "6c3e99999a08000863617465676f7279000d65787472656d655f68696c6c7300")),
+            Map.entry("minecraft:windswept_gravelly_hills", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da2" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653e4ccccd050008646f776e66616c" +
+                    "6c3e99999a08000863617465676f7279000d65787472656d655f68696c6c7300")),
+            Map.entry("minecraft:windswept_forest", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da2" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653e4ccccd050008646f776e66616c" +
+                    "6c3e99999a08000863617465676f7279000d65787472656d655f68696c6c7300")),
+            Map.entry("minecraft:windswept_savanna", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d706572617475726540000000050008646f776e66616c" +
+                    "6c0000000008000863617465676f72790007736176616e6e6100")),
+            Map.entry("minecraft:jungle", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f733333050008646f776e66616c" +
+                    "6c3f66666608000863617465676f727900066a756e676c6500")),
+            Map.entry("minecraft:sparse_jungle", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f733333050008646f776e66616c" +
+                    "6c3f4ccccd08000863617465676f727900066a756e676c6500")),
+            Map.entry("minecraft:bamboo_jungle", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f733333050008646f776e66616c" +
+                    "6c3f66666608000863617465676f727900066a756e676c6500")),
+            Map.entry("minecraft:badlands", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1" +
+                    "ff03000b67726173735f636f6c6f720090814d03000d666f6c696167655f636f6c6f72009e814d03000f77617465725f" +
+                    "666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a" +
+                    "000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673657440000000000000000800" +
+                    "05736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f6578" +
+                    "74656e7400000008000005000b74656d706572617475726540000000050008646f776e66616c6c000000000800086361" +
+                    "7465676f727900046d65736100")),
+            Map.entry("minecraft:eroded_badlands", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1" +
+                    "ff03000b67726173735f636f6c6f720090814d03000d666f6c696167655f636f6c6f72009e814d03000f77617465725f" +
+                    "666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a" +
+                    "000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673657440000000000000000800" +
+                    "05736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f6578" +
+                    "74656e7400000008000005000b74656d706572617475726540000000050008646f776e66616c6c000000000800086361" +
+                    "7465676f727900046d65736100")),
+            Map.entry("minecraft:wooded_badlands", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1" +
+                    "ff03000b67726173735f636f6c6f720090814d03000d666f6c696167655f636f6c6f72009e814d03000f77617465725f" +
+                    "666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a" +
+                    "000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673657440000000000000000800" +
+                    "05736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f6578" +
+                    "74656e7400000008000005000b74656d706572617475726540000000050008646f776e66616c6c000000000800086361" +
+                    "7465676f727900046d65736100")),
+            Map.entry("minecraft:meadow", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400206d696e65" +
+                    "63726166743a6d757369632e6f766572776f726c642e6d6561646f770300096d696e5f64656c617900002ee000030009" +
+                    "736b795f636f6c6f72007ba4ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200" +
+                    "c0d8ff03000b77617465725f636f6c6f72000e4ecf0a000a6d6f6f645f736f756e6403000a7469636b5f64656c617900" +
+                    "0017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e" +
+                    "63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f00" +
+                    "0000050008646f776e66616c6c3f4ccccd08000863617465676f727900086d6f756e7461696e00")),
+            Map.entry("minecraft:grove", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e64001f6d696e65" +
+                    "63726166743a6d757369632e6f766572776f726c642e67726f76650300096d696e5f64656c617900002ee00003000973" +
+                    "6b795f636f6c6f720081a0ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0" +
+                    "d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c61790000" +
+                    "17700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63" +
+                    "617665030013626c6f636b5f7365617263685f657874656e7400000008000005000b74656d7065726174757265be4ccc" +
+                    "cd050008646f776e66616c6c3f4ccccd08000863617465676f72790006666f7265737400")),
+            Map.entry("minecraft:snowy_slopes", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400266d696e65" +
+                    "63726166743a6d757369632e6f766572776f726c642e736e6f77795f736c6f7065730300096d696e5f64656c61790000" +
+                    "2ee000030009736b795f636f6c6f7200829fff03000f77617465725f666f675f636f6c6f7200050533030009666f675f" +
+                    "636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f" +
+                    "64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d" +
+                    "6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000b74656d70657261" +
+                    "74757265be99999a050008646f776e66616c6c3f66666608000863617465676f727900086d6f756e7461696e00")),
+            Map.entry("minecraft:frozen_peaks", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400266d696e65" +
+                    "63726166743a6d757369632e6f766572776f726c642e66726f7a656e5f7065616b730300096d696e5f64656c61790000" +
+                    "2ee000030009736b795f636f6c6f7200859dff03000f77617465725f666f675f636f6c6f7200050533030009666f675f" +
+                    "636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f" +
+                    "64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d" +
+                    "6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000b74656d70657261" +
+                    "74757265bf333333050008646f776e66616c6c3f66666608000863617465676f727900086d6f756e7461696e00")),
+            Map.entry("minecraft:jagged_peaks", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400266d696e65" +
+                    "63726166743a6d757369632e6f766572776f726c642e6a61676765645f7065616b730300096d696e5f64656c61790000" +
+                    "2ee000030009736b795f636f6c6f7200859dff03000f77617465725f666f675f636f6c6f7200050533030009666f675f" +
+                    "636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f" +
+                    "64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d" +
+                    "6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000b74656d70657261" +
+                    "74757265bf333333050008646f776e66616c6c3f66666608000863617465676f727900086d6f756e7461696e00")),
+            Map.entry("minecraft:stony_peaks", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400256d696e65" +
+                    "63726166743a6d757369632e6f766572776f726c642e73746f6e795f7065616b730300096d696e5f64656c617900002e" +
+                    "e000030009736b795f636f6c6f720076a8ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f63" +
+                    "6f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64" +
+                    "656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d62" +
+                    "69656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000b74656d7065726174" +
+                    "7572653f800000050008646f776e66616c6c3e99999a08000863617465676f727900086d6f756e7461696e00")),
+            Map.entry("minecraft:river", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f72790005726976657200")),
+            Map.entry("minecraft:frozen_river", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f72007fa1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003938c90a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d706572617475726500000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f72790005726976657200")),
+            Map.entry("minecraft:beach", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720078a7" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f4ccccd050008646f776e66616c" +
+                    "6c3ecccccd08000863617465676f72790005626561636800")),
+            Map.entry("minecraft:snowy_beach", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f72007fa1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003d57d60a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653d4ccccd050008646f776e66616c" +
+                    "6c3e99999a08000863617465676f72790005626561636800")),
+            Map.entry("minecraft:stony_shore", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da2" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653e4ccccd050008646f776e66616c" +
+                    "6c3e99999a08000863617465676f72790005626561636800")),
+            Map.entry("minecraft:warm_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200041f33030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f720043d5ee0a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f727900056f6365616e00")),
+            Map.entry("minecraft:lukewarm_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200041633030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f720045adf20a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f727900056f6365616e00")),
+            Map.entry("minecraft:deep_lukewarm_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200041633030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f720045adf20a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f727900056f6365616e00")),
+            Map.entry("minecraft:ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f727900056f6365616e00")),
+            Map.entry("minecraft:deep_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f727900056f6365616e00")),
+            Map.entry("minecraft:cold_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003d57d60a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f727900056f6365616e00")),
+            Map.entry("minecraft:deep_cold_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003d57d60a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f727900056f6365616e00")),
+            Map.entry("minecraft:frozen_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f72007fa1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003938c90a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d706572617475726500000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f727900056f6365616e08001474656d70657261747572655f6d6f6469666965720006" +
+                    "66726f7a656e00")),
+            Map.entry("minecraft:deep_frozen_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003938c90a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f727900056f6365616e08001474656d70657261747572655f6d6f6469666965720006" +
+                    "66726f7a656e00")),
+            Map.entry("minecraft:mushroom_fields", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f666666050008646f776e66616c" +
+                    "6c3f80000008000863617465676f727900086d757368726f6f6d00")),
+            Map.entry("minecraft:dripstone_caves", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400296d696e65" +
+                    "63726166743a6d757369632e6f766572776f726c642e6472697073746f6e655f63617665730300096d696e5f64656c61" +
+                    "7900002ee000030009736b795f636f6c6f720078a7ff03000f77617465725f666f675f636f6c6f720005053303000966" +
+                    "6f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469" +
+                    "636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e656372616674" +
+                    "3a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000b74656d70" +
+                    "657261747572653f4ccccd050008646f776e66616c6c3ecccccd08000863617465676f7279000b756e64657267726f75" +
+                    "6e6400")),
+            Map.entry("minecraft:lush_caves", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400246d696e65" +
+                    "63726166743a6d757369632e6f766572776f726c642e6c7573685f63617665730300096d696e5f64656c617900002ee0" +
+                    "00030009736b795f636f6c6f72007ba4ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f" +
+                    "6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f6465" +
+                    "6c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269" +
+                    "656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000b74656d706572617475" +
+                    "72653f000000050008646f776e66616c6c3f00000008000863617465676f7279000b756e64657267726f756e6400")),
+            Map.entry("minecraft:nether_wastes", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400246d696e65" +
+                    "63726166743a6d757369632e6e65746865722e6e65746865725f7761737465730300096d696e5f64656c617900002ee0" +
+                    "00030009736b795f636f6c6f72006eb1ff08000d616d6269656e745f736f756e6400246d696e6563726166743a616d62" +
+                    "69656e742e6e65746865725f7761737465732e6c6f6f700a000f6164646974696f6e735f736f756e64080005736f756e" +
+                    "6400296d696e6563726166743a616d6269656e742e6e65746865725f7761737465732e6164646974696f6e7306000b74" +
+                    "69636b5f6368616e63653f86bb98c7e282410003000f77617465725f666f675f636f6c6f7200050533030009666f675f" +
+                    "636f6c6f720033080803000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f" +
+                    "64656c6179000017700600066f66667365744000000000000000080005736f756e6400246d696e6563726166743a616d" +
+                    "6269656e742e6e65746865725f7761737465732e6d6f6f64030013626c6f636b5f7365617263685f657874656e740000" +
+                    "0008000005000b74656d706572617475726540000000050008646f776e66616c6c0000000008000863617465676f7279" +
+                    "00066e657468657200")),
+            Map.entry("minecraft:warped_forest", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400246d696e65" +
+                    "63726166743a6d757369632e6e65746865722e7761727065645f666f726573740300096d696e5f64656c617900002ee0" +
+                    "00030009736b795f636f6c6f72006eb1ff08000d616d6269656e745f736f756e6400246d696e6563726166743a616d62" +
+                    "69656e742e7761727065645f666f726573742e6c6f6f700a000f6164646974696f6e735f736f756e64080005736f756e" +
+                    "6400296d696e6563726166743a616d6269656e742e7761727065645f666f726573742e6164646974696f6e7306000b74" +
+                    "69636b5f6368616e63653f86bb98c7e28241000a00087061727469636c6505000b70726f626162696c6974793c69f6a9" +
+                    "0a00076f7074696f6e730800047479706500166d696e6563726166743a7761727065645f73706f7265000003000f7761" +
+                    "7465725f666f675f636f6c6f7200050533030009666f675f636f6c6f72001a051a03000b77617465725f636f6c6f7200" +
+                    "3f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000000000" +
+                    "0000080005736f756e6400246d696e6563726166743a616d6269656e742e7761727065645f666f726573742e6d6f6f64" +
+                    "030013626c6f636b5f7365617263685f657874656e7400000008000005000b74656d7065726174757265400000000500" +
+                    "08646f776e66616c6c0000000008000863617465676f727900066e657468657200")),
+            Map.entry("minecraft:crimson_forest", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400256d696e65" +
+                    "63726166743a6d757369632e6e65746865722e6372696d736f6e5f666f726573740300096d696e5f64656c617900002e" +
+                    "e000030009736b795f636f6c6f72006eb1ff08000d616d6269656e745f736f756e6400256d696e6563726166743a616d" +
+                    "6269656e742e6372696d736f6e5f666f726573742e6c6f6f700a000f6164646974696f6e735f736f756e64080005736f" +
+                    "756e64002a6d696e6563726166743a616d6269656e742e6372696d736f6e5f666f726573742e6164646974696f6e7306" +
+                    "000b7469636b5f6368616e63653f86bb98c7e28241000a00087061727469636c6505000b70726f626162696c6974793c" +
+                    "cccccd0a00076f7074696f6e730800047479706500176d696e6563726166743a6372696d736f6e5f73706f7265000003" +
+                    "000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f720033030303000b77617465725f636f" +
+                    "6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000" +
+                    "000000000000080005736f756e6400256d696e6563726166743a616d6269656e742e6372696d736f6e5f666f72657374" +
+                    "2e6d6f6f64030013626c6f636b5f7365617263685f657874656e7400000008000005000b74656d706572617475726540" +
+                    "000000050008646f776e66616c6c0000000008000863617465676f727900066e657468657200")),
+            Map.entry("minecraft:soul_sand_valley", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400276d696e65" +
+                    "63726166743a6d757369632e6e65746865722e736f756c5f73616e645f76616c6c65790300096d696e5f64656c617900" +
+                    "002ee000030009736b795f636f6c6f72006eb1ff08000d616d6269656e745f736f756e6400276d696e6563726166743a" +
+                    "616d6269656e742e736f756c5f73616e645f76616c6c65792e6c6f6f700a000f6164646974696f6e735f736f756e6408" +
+                    "0005736f756e64002c6d696e6563726166743a616d6269656e742e736f756c5f73616e645f76616c6c65792e61646469" +
+                    "74696f6e7306000b7469636b5f6368616e63653f86bb98c7e28241000a00087061727469636c6505000b70726f626162" +
+                    "696c6974793bcccccd0a00076f7074696f6e7308000474797065000d6d696e6563726166743a617368000003000f7761" +
+                    "7465725f666f675f636f6c6f7200050533030009666f675f636f6c6f72001b474503000b77617465725f636f6c6f7200" +
+                    "3f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000000000" +
+                    "0000080005736f756e6400276d696e6563726166743a616d6269656e742e736f756c5f73616e645f76616c6c65792e6d" +
+                    "6f6f64030013626c6f636b5f7365617263685f657874656e7400000008000005000b74656d7065726174757265400000" +
+                    "00050008646f776e66616c6c0000000008000863617465676f727900066e657468657200")),
+            Map.entry("minecraft:basalt_deltas", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400246d696e65" +
+                    "63726166743a6d757369632e6e65746865722e626173616c745f64656c7461730300096d696e5f64656c617900002ee0" +
+                    "00030009736b795f636f6c6f72006eb1ff08000d616d6269656e745f736f756e6400246d696e6563726166743a616d62" +
+                    "69656e742e626173616c745f64656c7461732e6c6f6f700a000f6164646974696f6e735f736f756e64080005736f756e" +
+                    "6400296d696e6563726166743a616d6269656e742e626173616c745f64656c7461732e6164646974696f6e7306000b74" +
+                    "69636b5f6368616e63653f86bb98c7e28241000a00087061727469636c6505000b70726f626162696c6974793df1daeb" +
+                    "0a00076f7074696f6e730800047479706500136d696e6563726166743a77686974655f617368000003000f7761746572" +
+                    "5f666f675f636f6c6f7200050533030009666f675f636f6c6f7200685f7003000b77617465725f636f6c6f72003f76e4" +
+                    "0a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000000000000008" +
+                    "0005736f756e6400246d696e6563726166743a616d6269656e742e626173616c745f64656c7461732e6d6f6f64030013" +
+                    "626c6f636b5f7365617263685f657874656e7400000008000005000b74656d706572617475726540000000050008646f" +
+                    "776e66616c6c0000000008000863617465676f727900066e657468657200")),
+            Map.entry("minecraft:the_end", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72000000" +
+                    "0003000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200a080a003000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f727900077468655f656e6400")),
+            Map.entry("minecraft:end_highlands", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72000000" +
+                    "0003000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200a080a003000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f727900077468655f656e6400")),
+            Map.entry("minecraft:end_midlands", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72000000" +
+                    "0003000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200a080a003000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f727900077468655f656e6400")),
+            Map.entry("minecraft:small_end_islands", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72000000" +
+                    "0003000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200a080a003000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f727900077468655f656e6400")),
+            Map.entry("minecraft:end_barrens", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72000000" +
+                    "0003000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200a080a003000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f000000050008646f776e66616c" +
+                    "6c3f00000008000863617465676f727900077468655f656e6400"))
+    );
+
+    /**
+     * 実バニラ1.17.1のバイオーム element 全81件（名前→element。Join Game codec から取ったもの）。
+     * 757→756で写像で埋まらない756のバイオームを埋めるために使う。通常は次の25件が埋められる
+     * （757側に写像先が無いもの。snowy_mountains は frozen_peaks の写像先のため含まない）：
+     * 756 id 15 minecraft:mushroom_field_shore
+     * 756 id 17 minecraft:desert_hills
+     * 756 id 18 minecraft:wooded_hills
+     * 756 id 19 minecraft:taiga_hills
+     * 756 id 20 minecraft:mountain_edge
+     * 756 id 22 minecraft:jungle_hills
+     * 756 id 28 minecraft:birch_forest_hills
+     * 756 id 31 minecraft:snowy_taiga_hills
+     * 756 id 33 minecraft:giant_tree_taiga_hills
+     * 756 id 39 minecraft:badlands_plateau
+     * 756 id 47 minecraft:deep_warm_ocean
+     * 756 id 130 minecraft:desert_lakes
+     * 756 id 133 minecraft:taiga_mountains
+     * 756 id 134 minecraft:swamp_hills
+     * 756 id 149 minecraft:modified_jungle
+     * 756 id 151 minecraft:modified_jungle_edge
+     * 756 id 156 minecraft:tall_birch_hills
+     * 756 id 157 minecraft:dark_forest_hills
+     * 756 id 158 minecraft:snowy_taiga_mountains
+     * 756 id 161 minecraft:giant_spruce_taiga_hills
+     * 756 id 162 minecraft:modified_gravelly_mountains
+     * 756 id 164 minecraft:shattered_savanna_plateau
+     * 756 id 166 minecraft:modified_wooded_badlands_plateau
+     * 756 id 167 minecraft:modified_badlands_plateau
+     * 756 id 169 minecraft:bamboo_jungle_hills
+     * 入力の757 codec が欠けている場合も、ここから埋めるため出力は常に81件の完全な codec になる。
+     * Map.of は10件までしか受け付けないため Map.ofEntries を使う。
+     */
+    private static final Map<String, Tag.CompoundTag> BIOME_756_FILL_ELEMENTS = Map.ofEntries(
+            Map.entry("minecraft:ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e740000000800000500056465707468bf80000005000b74656d70657261747572653f00" +
+                    "00000500057363616c653dcccccd050008646f776e66616c6c3f00000008000863617465676f727900056f6365616e00")),
+            Map.entry("minecraft:plains", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720078a7" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e00000005000b74656d70657261747572653f4c" +
+                    "cccd0500057363616c653d4ccccd050008646f776e66616c6c3ecccccd08000863617465676f72790006706c61696e73" +
+                    "00")),
+            Map.entry("minecraft:desert", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e00000005000b74656d70657261747572654000" +
+                    "00000500057363616c653d4ccccd050008646f776e66616c6c0000000008000863617465676f72790006646573657274" +
+                    "00")),
+            Map.entry("minecraft:mountains", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da2" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683f80000005000b74656d70657261747572653e4c" +
+                    "cccd0500057363616c653f000000050008646f776e66616c6c3e99999a08000863617465676f7279000d65787472656d" +
+                    "655f68696c6c7300")),
+            Map.entry("minecraft:forest", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720079a6" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d70657261747572653f33" +
+                    "33330500057363616c653e4ccccd050008646f776e66616c6c3f4ccccd08000863617465676f72790006666f72657374" +
+                    "00")),
+            Map.entry("minecraft:taiga", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da3" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e4ccccd05000b74656d70657261747572653e80" +
+                    "00000500057363616c653e4ccccd050008646f776e66616c6c3f4ccccd08000863617465676f72790005746169676100")),
+            Map.entry("minecraft:swamp", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a00076566666563747308001467726173735f636f6c6f725f" +
+                    "6d6f64696669657200057377616d70030009736b795f636f6c6f720078a7ff03000d666f6c696167655f636f6c6f7200" +
+                    "6a703903000f77617465725f666f675f636f6c6f7200232317030009666f675f636f6c6f7200c0d8ff03000b77617465" +
+                    "725f636f6c6f7200617b640a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673" +
+                    "65744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f" +
+                    "636b5f7365617263685f657874656e740000000800000500056465707468be4ccccd05000b74656d7065726174757265" +
+                    "3f4ccccd0500057363616c653dcccccd050008646f776e66616c6c3f66666608000863617465676f727900057377616d" +
+                    "7000")),
+            Map.entry("minecraft:river", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e740000000800000500056465707468bf00000005000b74656d70657261747572653f00" +
+                    "00000500057363616c6500000000050008646f776e66616c6c3f00000008000863617465676f72790005726976657200")),
+            Map.entry("minecraft:nether_wastes", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400246d696e65" +
+                    "63726166743a6d757369632e6e65746865722e6e65746865725f7761737465730300096d696e5f64656c617900002ee0" +
+                    "00030009736b795f636f6c6f72006eb1ff08000d616d6269656e745f736f756e6400246d696e6563726166743a616d62" +
+                    "69656e742e6e65746865725f7761737465732e6c6f6f700a000f6164646974696f6e735f736f756e64080005736f756e" +
+                    "6400296d696e6563726166743a616d6269656e742e6e65746865725f7761737465732e6164646974696f6e7306000b74" +
+                    "69636b5f6368616e63653f86bb98c7e282410003000f77617465725f666f675f636f6c6f7200050533030009666f675f" +
+                    "636f6c6f720033080803000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f" +
+                    "64656c6179000017700600066f66667365744000000000000000080005736f756e6400246d696e6563726166743a616d" +
+                    "6269656e742e6e65746865725f7761737465732e6d6f6f64030013626c6f636b5f7365617263685f657874656e740000" +
+                    "0008000005000564657074683dcccccd05000b74656d7065726174757265400000000500057363616c653e4ccccd0500" +
+                    "08646f776e66616c6c0000000008000863617465676f727900066e657468657200")),
+            Map.entry("minecraft:the_end", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72000000" +
+                    "0003000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200a080a003000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d70657261747572653f00" +
+                    "00000500057363616c653e4ccccd050008646f776e66616c6c3f00000008000863617465676f727900077468655f656e" +
+                    "6400")),
+            Map.entry("minecraft:frozen_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f72007fa1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003938c90a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e740000000800000500056465707468bf80000005000b74656d70657261747572650000" +
+                    "00000500057363616c653dcccccd050008646f776e66616c6c3f00000008000863617465676f727900056f6365616e08" +
+                    "001474656d70657261747572655f6d6f646966696572000666726f7a656e00")),
+            Map.entry("minecraft:frozen_river", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f72007fa1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003938c90a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e740000000800000500056465707468bf00000005000b74656d70657261747572650000" +
+                    "00000500057363616c6500000000050008646f776e66616c6c3f00000008000863617465676f72790005726976657200")),
+            Map.entry("minecraft:snowy_tundra", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f72007fa1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e00000005000b74656d70657261747572650000" +
+                    "00000500057363616c653d4ccccd050008646f776e66616c6c3f00000008000863617465676f7279000369637900")),
+            Map.entry("minecraft:snowy_mountains", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f72007fa1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683ee6666605000b74656d70657261747572650000" +
+                    "00000500057363616c653e99999a050008646f776e66616c6c3f00000008000863617465676f7279000369637900")),
+            Map.entry("minecraft:mushroom_fields", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e4ccccd05000b74656d70657261747572653f66" +
+                    "66660500057363616c653e99999a050008646f776e66616c6c3f80000008000863617465676f727900086d757368726f" +
+                    "6f6d00")),
+            Map.entry("minecraft:mushroom_field_shore", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074680000000005000b74656d70657261747572653f66" +
+                    "66660500057363616c653ccccccd050008646f776e66616c6c3f80000008000863617465676f727900086d757368726f" +
+                    "6f6d00")),
+            Map.entry("minecraft:beach", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720078a7" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074680000000005000b74656d70657261747572653f4c" +
+                    "cccd0500057363616c653ccccccd050008646f776e66616c6c3ecccccd08000863617465676f72790005626561636800")),
+            Map.entry("minecraft:desert_hills", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683ee6666605000b74656d70657261747572654000" +
+                    "00000500057363616c653e99999a050008646f776e66616c6c0000000008000863617465676f72790006646573657274" +
+                    "00")),
+            Map.entry("minecraft:wooded_hills", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720079a6" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683ee6666605000b74656d70657261747572653f33" +
+                    "33330500057363616c653e99999a050008646f776e66616c6c3f4ccccd08000863617465676f72790006666f72657374" +
+                    "00")),
+            Map.entry("minecraft:taiga_hills", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da3" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683ee6666605000b74656d70657261747572653e80" +
+                    "00000500057363616c653e99999a050008646f776e66616c6c3f4ccccd08000863617465676f72790005746169676100")),
+            Map.entry("minecraft:mountain_edge", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da2" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683f4ccccd05000b74656d70657261747572653e4c" +
+                    "cccd0500057363616c653e99999a050008646f776e66616c6c3e99999a08000863617465676f7279000d65787472656d" +
+                    "655f68696c6c7300")),
+            Map.entry("minecraft:jungle", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d70657261747572653f73" +
+                    "33330500057363616c653e4ccccd050008646f776e66616c6c3f66666608000863617465676f727900066a756e676c65" +
+                    "00")),
+            Map.entry("minecraft:jungle_hills", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683ee6666605000b74656d70657261747572653f73" +
+                    "33330500057363616c653e99999a050008646f776e66616c6c3f66666608000863617465676f727900066a756e676c65" +
+                    "00")),
+            Map.entry("minecraft:jungle_edge", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d70657261747572653f73" +
+                    "33330500057363616c653e4ccccd050008646f776e66616c6c3f4ccccd08000863617465676f727900066a756e676c65" +
+                    "00")),
+            Map.entry("minecraft:deep_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e740000000800000500056465707468bfe6666605000b74656d70657261747572653f00" +
+                    "00000500057363616c653dcccccd050008646f776e66616c6c3f00000008000863617465676f727900056f6365616e00")),
+            Map.entry("minecraft:stone_shore", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da2" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d70657261747572653e4c" +
+                    "cccd0500057363616c653f4ccccd050008646f776e66616c6c3e99999a08000863617465676f727900046e6f6e6500")),
+            Map.entry("minecraft:snowy_beach", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f72007fa1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003d57d60a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074680000000005000b74656d70657261747572653d4c" +
+                    "cccd0500057363616c653ccccccd050008646f776e66616c6c3e99999a08000863617465676f72790005626561636800")),
+            Map.entry("minecraft:birch_forest", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007aa5" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d70657261747572653f19" +
+                    "999a0500057363616c653e4ccccd050008646f776e66616c6c3f19999a08000863617465676f72790006666f72657374" +
+                    "00")),
+            Map.entry("minecraft:birch_forest_hills", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007aa5" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683ee6666605000b74656d70657261747572653f19" +
+                    "999a0500057363616c653e99999a050008646f776e66616c6c3f19999a08000863617465676f72790006666f72657374" +
+                    "00")),
+            Map.entry("minecraft:dark_forest", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a00076566666563747308001467726173735f636f6c6f725f" +
+                    "6d6f646966696572000b6461726b5f666f72657374030009736b795f636f6c6f720079a6ff03000f77617465725f666f" +
+                    "675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a" +
+                    "6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000000000000008000573" +
+                    "6f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f65787465" +
+                    "6e7400000008000005000564657074683dcccccd05000b74656d70657261747572653f3333330500057363616c653e4c" +
+                    "cccd050008646f776e66616c6c3f4ccccd08000863617465676f72790006666f7265737400")),
+            Map.entry("minecraft:snowy_taiga", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f7200839e" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003d57d60a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e4ccccd05000b74656d7065726174757265bf00" +
+                    "00000500057363616c653e4ccccd050008646f776e66616c6c3ecccccd08000863617465676f72790005746169676100")),
+            Map.entry("minecraft:snowy_taiga_hills", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f7200839e" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003d57d60a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683ee6666605000b74656d7065726174757265bf00" +
+                    "00000500057363616c653e99999a050008646f776e66616c6c3ecccccd08000863617465676f72790005746169676100")),
+            Map.entry("minecraft:giant_tree_taiga", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ca3" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e4ccccd05000b74656d70657261747572653e99" +
+                    "999a0500057363616c653e4ccccd050008646f776e66616c6c3f4ccccd08000863617465676f72790005746169676100")),
+            Map.entry("minecraft:giant_tree_taiga_hills", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ca3" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683ee6666605000b74656d70657261747572653e99" +
+                    "999a0500057363616c653e99999a050008646f776e66616c6c3f4ccccd08000863617465676f72790005746169676100")),
+            Map.entry("minecraft:wooded_mountains", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da2" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683f80000005000b74656d70657261747572653e4c" +
+                    "cccd0500057363616c653f000000050008646f776e66616c6c3e99999a08000863617465676f7279000d65787472656d" +
+                    "655f68696c6c7300")),
+            Map.entry("minecraft:savanna", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f720075aa" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e00000005000b74656d70657261747572653f99" +
+                    "999a0500057363616c653d4ccccd050008646f776e66616c6c0000000008000863617465676f72790007736176616e6e" +
+                    "6100")),
+            Map.entry("minecraft:savanna_plateau", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f720076a8" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683fc0000005000b74656d70657261747572653f80" +
+                    "00000500057363616c653ccccccd050008646f776e66616c6c0000000008000863617465676f72790007736176616e6e" +
+                    "6100")),
+            Map.entry("minecraft:badlands", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1" +
+                    "ff03000b67726173735f636f6c6f720090814d03000d666f6c696167655f636f6c6f72009e814d03000f77617465725f" +
+                    "666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a" +
+                    "000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673657440000000000000000800" +
+                    "05736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f6578" +
+                    "74656e7400000008000005000564657074683dcccccd05000b74656d7065726174757265400000000500057363616c65" +
+                    "3e4ccccd050008646f776e66616c6c0000000008000863617465676f727900046d65736100")),
+            Map.entry("minecraft:wooded_badlands_plateau", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1" +
+                    "ff03000b67726173735f636f6c6f720090814d03000d666f6c696167655f636f6c6f72009e814d03000f77617465725f" +
+                    "666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a" +
+                    "000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673657440000000000000000800" +
+                    "05736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f6578" +
+                    "74656e7400000008000005000564657074683fc0000005000b74656d7065726174757265400000000500057363616c65" +
+                    "3ccccccd050008646f776e66616c6c0000000008000863617465676f727900046d65736100")),
+            Map.entry("minecraft:badlands_plateau", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1" +
+                    "ff03000b67726173735f636f6c6f720090814d03000d666f6c696167655f636f6c6f72009e814d03000f77617465725f" +
+                    "666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a" +
+                    "000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673657440000000000000000800" +
+                    "05736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f6578" +
+                    "74656e7400000008000005000564657074683fc0000005000b74656d7065726174757265400000000500057363616c65" +
+                    "3ccccccd050008646f776e66616c6c0000000008000863617465676f727900046d65736100")),
+            Map.entry("minecraft:small_end_islands", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72000000" +
+                    "0003000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200a080a003000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d70657261747572653f00" +
+                    "00000500057363616c653e4ccccd050008646f776e66616c6c3f00000008000863617465676f727900077468655f656e" +
+                    "6400")),
+            Map.entry("minecraft:end_midlands", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72000000" +
+                    "0003000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200a080a003000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d70657261747572653f00" +
+                    "00000500057363616c653e4ccccd050008646f776e66616c6c3f00000008000863617465676f727900077468655f656e" +
+                    "6400")),
+            Map.entry("minecraft:end_highlands", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72000000" +
+                    "0003000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200a080a003000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d70657261747572653f00" +
+                    "00000500057363616c653e4ccccd050008646f776e66616c6c3f00000008000863617465676f727900077468655f656e" +
+                    "6400")),
+            Map.entry("minecraft:end_barrens", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72000000" +
+                    "0003000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200a080a003000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d70657261747572653f00" +
+                    "00000500057363616c653e4ccccd050008646f776e66616c6c3f00000008000863617465676f727900077468655f656e" +
+                    "6400")),
+            Map.entry("minecraft:warm_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200041f33030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f720043d5ee0a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e740000000800000500056465707468bf80000005000b74656d70657261747572653f00" +
+                    "00000500057363616c653dcccccd050008646f776e66616c6c3f00000008000863617465676f727900056f6365616e00")),
+            Map.entry("minecraft:lukewarm_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200041633030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f720045adf20a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e740000000800000500056465707468bf80000005000b74656d70657261747572653f00" +
+                    "00000500057363616c653dcccccd050008646f776e66616c6c3f00000008000863617465676f727900056f6365616e00")),
+            Map.entry("minecraft:cold_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003d57d60a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e740000000800000500056465707468bf80000005000b74656d70657261747572653f00" +
+                    "00000500057363616c653dcccccd050008646f776e66616c6c3f00000008000863617465676f727900056f6365616e00")),
+            Map.entry("minecraft:deep_warm_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200041f33030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f720043d5ee0a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e740000000800000500056465707468bfe6666605000b74656d70657261747572653f00" +
+                    "00000500057363616c653dcccccd050008646f776e66616c6c3f00000008000863617465676f727900056f6365616e00")),
+            Map.entry("minecraft:deep_lukewarm_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200041633030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f720045adf20a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e740000000800000500056465707468bfe6666605000b74656d70657261747572653f00" +
+                    "00000500057363616c653dcccccd050008646f776e66616c6c3f00000008000863617465676f727900056f6365616e00")),
+            Map.entry("minecraft:deep_cold_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003d57d60a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e740000000800000500056465707468bfe6666605000b74656d70657261747572653f00" +
+                    "00000500057363616c653dcccccd050008646f776e66616c6c3f00000008000863617465676f727900056f6365616e00")),
+            Map.entry("minecraft:deep_frozen_ocean", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003938c90a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e740000000800000500056465707468bfe6666605000b74656d70657261747572653f00" +
+                    "00000500057363616c653dcccccd050008646f776e66616c6c3f00000008000863617465676f727900056f6365616e08" +
+                    "001474656d70657261747572655f6d6f646966696572000666726f7a656e00")),
+            Map.entry("minecraft:the_void", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d70657261747572653f00" +
+                    "00000500057363616c653e4ccccd050008646f776e66616c6c3f00000008000863617465676f727900046e6f6e6500")),
+            Map.entry("minecraft:sunflower_plains", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720078a7" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e00000005000b74656d70657261747572653f4c" +
+                    "cccd0500057363616c653d4ccccd050008646f776e66616c6c3ecccccd08000863617465676f72790006706c61696e73" +
+                    "00")),
+            Map.entry("minecraft:desert_lakes", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e66666605000b74656d70657261747572654000" +
+                    "00000500057363616c653e800000050008646f776e66616c6c0000000008000863617465676f72790006646573657274" +
+                    "00")),
+            Map.entry("minecraft:gravelly_mountains", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da2" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683f80000005000b74656d70657261747572653e4c" +
+                    "cccd0500057363616c653f000000050008646f776e66616c6c3e99999a08000863617465676f7279000d65787472656d" +
+                    "655f68696c6c7300")),
+            Map.entry("minecraft:flower_forest", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720079a6" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d70657261747572653f33" +
+                    "33330500057363616c653ecccccd050008646f776e66616c6c3f4ccccd08000863617465676f72790006666f72657374" +
+                    "00")),
+            Map.entry("minecraft:taiga_mountains", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da3" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e99999a05000b74656d70657261747572653e80" +
+                    "00000500057363616c653ecccccd050008646f776e66616c6c3f4ccccd08000863617465676f72790005746169676100")),
+            Map.entry("minecraft:swamp_hills", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a00076566666563747308001467726173735f636f6c6f725f" +
+                    "6d6f64696669657200057377616d70030009736b795f636f6c6f720078a7ff03000d666f6c696167655f636f6c6f7200" +
+                    "6a703903000f77617465725f666f675f636f6c6f7200232317030009666f675f636f6c6f7200c0d8ff03000b77617465" +
+                    "725f636f6c6f7200617b640a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673" +
+                    "65744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f" +
+                    "636b5f7365617263685f657874656e740000000800000500056465707468bdcccccd05000b74656d7065726174757265" +
+                    "3f4ccccd0500057363616c653e99999a050008646f776e66616c6c3f66666608000863617465676f727900057377616d" +
+                    "7000")),
+            Map.entry("minecraft:ice_spikes", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f72007fa1" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683ed9999a05000b74656d70657261747572650000" +
+                    "00000500057363616c653ee66667050008646f776e66616c6c3f00000008000863617465676f7279000369637900")),
+            Map.entry("minecraft:modified_jungle", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e4ccccd05000b74656d70657261747572653f73" +
+                    "33330500057363616c653ecccccd050008646f776e66616c6c3f66666608000863617465676f727900066a756e676c65" +
+                    "00")),
+            Map.entry("minecraft:modified_jungle_edge", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e4ccccd05000b74656d70657261747572653f73" +
+                    "33330500057363616c653ecccccd050008646f776e66616c6c3f4ccccd08000863617465676f727900066a756e676c65" +
+                    "00")),
+            Map.entry("minecraft:tall_birch_forest", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007aa5" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e4ccccd05000b74656d70657261747572653f19" +
+                    "999a0500057363616c653ecccccd050008646f776e66616c6c3f19999a08000863617465676f72790006666f72657374" +
+                    "00")),
+            Map.entry("minecraft:tall_birch_hills", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007aa5" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683f0ccccd05000b74656d70657261747572653f19" +
+                    "999a0500057363616c653f000000050008646f776e66616c6c3f19999a08000863617465676f72790006666f72657374" +
+                    "00")),
+            Map.entry("minecraft:dark_forest_hills", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a00076566666563747308001467726173735f636f6c6f725f" +
+                    "6d6f646966696572000b6461726b5f666f72657374030009736b795f636f6c6f720079a6ff03000f77617465725f666f" +
+                    "675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a" +
+                    "6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000000000000008000573" +
+                    "6f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f65787465" +
+                    "6e7400000008000005000564657074683e4ccccd05000b74656d70657261747572653f3333330500057363616c653ecc" +
+                    "cccd050008646f776e66616c6c3f4ccccd08000863617465676f72790006666f7265737400")),
+            Map.entry("minecraft:snowy_taiga_mountains", parseElementHex(
+                    "0a08000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f7200839e" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003d57d60a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e99999a05000b74656d7065726174757265bf00" +
+                    "00000500057363616c653ecccccd050008646f776e66616c6c3ecccccd08000863617465676f72790005746169676100")),
+            Map.entry("minecraft:giant_spruce_taiga", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da3" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e4ccccd05000b74656d70657261747572653e80" +
+                    "00000500057363616c653e4ccccd050008646f776e66616c6c3f4ccccd08000863617465676f72790005746169676100")),
+            Map.entry("minecraft:giant_spruce_taiga_hills", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da3" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e4ccccd05000b74656d70657261747572653e80" +
+                    "00000500057363616c653e4ccccd050008646f776e66616c6c3f4ccccd08000863617465676f72790005746169676100")),
+            Map.entry("minecraft:modified_gravelly_mountains", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da2" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683f80000005000b74656d70657261747572653e4c" +
+                    "cccd0500057363616c653f000000050008646f776e66616c6c3e99999a08000863617465676f7279000d65787472656d" +
+                    "655f68696c6c7300")),
+            Map.entry("minecraft:shattered_savanna", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f720076a9" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683eb9999a05000b74656d70657261747572653f8c" +
+                    "cccd0500057363616c653f9ccccd050008646f776e66616c6c0000000008000863617465676f72790007736176616e6e" +
+                    "6100")),
+            Map.entry("minecraft:shattered_savanna_plateau", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f720076a8" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683f86666605000b74656d70657261747572653f80" +
+                    "00000500057363616c653f9b3334050008646f776e66616c6c0000000008000863617465676f72790007736176616e6e" +
+                    "6100")),
+            Map.entry("minecraft:eroded_badlands", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1" +
+                    "ff03000b67726173735f636f6c6f720090814d03000d666f6c696167655f636f6c6f72009e814d03000f77617465725f" +
+                    "666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a" +
+                    "000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673657440000000000000000800" +
+                    "05736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f6578" +
+                    "74656e7400000008000005000564657074683dcccccd05000b74656d7065726174757265400000000500057363616c65" +
+                    "3e4ccccd050008646f776e66616c6c0000000008000863617465676f727900046d65736100")),
+            Map.entry("minecraft:modified_wooded_badlands_plateau", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1" +
+                    "ff03000b67726173735f636f6c6f720090814d03000d666f6c696167655f636f6c6f72009e814d03000f77617465725f" +
+                    "666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a" +
+                    "000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673657440000000000000000800" +
+                    "05736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f6578" +
+                    "74656e7400000008000005000564657074683ee6666605000b74656d7065726174757265400000000500057363616c65" +
+                    "3e99999a050008646f776e66616c6c0000000008000863617465676f727900046d65736100")),
+            Map.entry("minecraft:modified_badlands_plateau", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1" +
+                    "ff03000b67726173735f636f6c6f720090814d03000d666f6c696167655f636f6c6f72009e814d03000f77617465725f" +
+                    "666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a" +
+                    "000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673657440000000000000000800" +
+                    "05736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f6578" +
+                    "74656e7400000008000005000564657074683ee6666605000b74656d7065726174757265400000000500057363616c65" +
+                    "3e99999a050008646f776e66616c6c0000000008000863617465676f727900046d65736100")),
+            Map.entry("minecraft:bamboo_jungle", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d70657261747572653f73" +
+                    "33330500057363616c653e4ccccd050008646f776e66616c6c3f66666608000863617465676f727900066a756e676c65" +
+                    "00")),
+            Map.entry("minecraft:bamboo_jungle_hills", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683ee6666605000b74656d70657261747572653f73" +
+                    "33330500057363616c653e99999a050008646f776e66616c6c3f66666608000863617465676f727900066a756e676c65" +
+                    "00")),
+            Map.entry("minecraft:soul_sand_valley", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400276d696e65" +
+                    "63726166743a6d757369632e6e65746865722e736f756c5f73616e645f76616c6c65790300096d696e5f64656c617900" +
+                    "002ee000030009736b795f636f6c6f72006eb1ff08000d616d6269656e745f736f756e6400276d696e6563726166743a" +
+                    "616d6269656e742e736f756c5f73616e645f76616c6c65792e6c6f6f700a000f6164646974696f6e735f736f756e6408" +
+                    "0005736f756e64002c6d696e6563726166743a616d6269656e742e736f756c5f73616e645f76616c6c65792e61646469" +
+                    "74696f6e7306000b7469636b5f6368616e63653f86bb98c7e28241000a00087061727469636c6505000b70726f626162" +
+                    "696c6974793bcccccd0a00076f7074696f6e7308000474797065000d6d696e6563726166743a617368000003000f7761" +
+                    "7465725f666f675f636f6c6f7200050533030009666f675f636f6c6f72001b474503000b77617465725f636f6c6f7200" +
+                    "3f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000000000" +
+                    "0000080005736f756e6400276d696e6563726166743a616d6269656e742e736f756c5f73616e645f76616c6c65792e6d" +
+                    "6f6f64030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b7465" +
+                    "6d7065726174757265400000000500057363616c653e4ccccd050008646f776e66616c6c000000000800086361746567" +
+                    "6f727900066e657468657200")),
+            Map.entry("minecraft:crimson_forest", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400256d696e65" +
+                    "63726166743a6d757369632e6e65746865722e6372696d736f6e5f666f726573740300096d696e5f64656c617900002e" +
+                    "e000030009736b795f636f6c6f72006eb1ff08000d616d6269656e745f736f756e6400256d696e6563726166743a616d" +
+                    "6269656e742e6372696d736f6e5f666f726573742e6c6f6f700a000f6164646974696f6e735f736f756e64080005736f" +
+                    "756e64002a6d696e6563726166743a616d6269656e742e6372696d736f6e5f666f726573742e6164646974696f6e7306" +
+                    "000b7469636b5f6368616e63653f86bb98c7e28241000a00087061727469636c6505000b70726f626162696c6974793c" +
+                    "cccccd0a00076f7074696f6e730800047479706500176d696e6563726166743a6372696d736f6e5f73706f7265000003" +
+                    "000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f720033030303000b77617465725f636f" +
+                    "6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000" +
+                    "000000000000080005736f756e6400256d696e6563726166743a616d6269656e742e6372696d736f6e5f666f72657374" +
+                    "2e6d6f6f64030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b" +
+                    "74656d7065726174757265400000000500057363616c653e4ccccd050008646f776e66616c6c00000000080008636174" +
+                    "65676f727900066e657468657200")),
+            Map.entry("minecraft:warped_forest", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400246d696e65" +
+                    "63726166743a6d757369632e6e65746865722e7761727065645f666f726573740300096d696e5f64656c617900002ee0" +
+                    "00030009736b795f636f6c6f72006eb1ff08000d616d6269656e745f736f756e6400246d696e6563726166743a616d62" +
+                    "69656e742e7761727065645f666f726573742e6c6f6f700a000f6164646974696f6e735f736f756e64080005736f756e" +
+                    "6400296d696e6563726166743a616d6269656e742e7761727065645f666f726573742e6164646974696f6e7306000b74" +
+                    "69636b5f6368616e63653f86bb98c7e28241000a00087061727469636c6505000b70726f626162696c6974793c69f6a9" +
+                    "0a00076f7074696f6e730800047479706500166d696e6563726166743a7761727065645f73706f7265000003000f7761" +
+                    "7465725f666f675f636f6c6f7200050533030009666f675f636f6c6f72001a051a03000b77617465725f636f6c6f7200" +
+                    "3f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000000000" +
+                    "0000080005736f756e6400246d696e6563726166743a616d6269656e742e7761727065645f666f726573742e6d6f6f64" +
+                    "030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d7065" +
+                    "726174757265400000000500057363616c653e4ccccd050008646f776e66616c6c0000000008000863617465676f7279" +
+                    "00066e657468657200")),
+            Map.entry("minecraft:basalt_deltas", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00046e6f6e650a0007656666656374730a00056d757369630100157265706c" +
+                    "6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400246d696e65" +
+                    "63726166743a6d757369632e6e65746865722e626173616c745f64656c7461730300096d696e5f64656c617900002ee0" +
+                    "00030009736b795f636f6c6f72006eb1ff08000d616d6269656e745f736f756e6400246d696e6563726166743a616d62" +
+                    "69656e742e626173616c745f64656c7461732e6c6f6f700a000f6164646974696f6e735f736f756e64080005736f756e" +
+                    "6400296d696e6563726166743a616d6269656e742e626173616c745f64656c7461732e6164646974696f6e7306000b74" +
+                    "69636b5f6368616e63653f86bb98c7e28241000a00087061727469636c6505000b70726f626162696c6974793df1daeb" +
+                    "0a00076f7074696f6e730800047479706500136d696e6563726166743a77686974655f617368000003000f7761746572" +
+                    "5f666f675f636f6c6f7200423e42030009666f675f636f6c6f7200685f7003000b77617465725f636f6c6f72003f76e4" +
+                    "0a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000000000000008" +
+                    "0005736f756e6400246d696e6563726166743a616d6269656e742e626173616c745f64656c7461732e6d6f6f64030013" +
+                    "626c6f636b5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d7065726174" +
+                    "757265400000000500057363616c653e4ccccd050008646f776e66616c6c0000000008000863617465676f727900066e" +
+                    "657468657200")),
+            Map.entry("minecraft:dripstone_caves", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720078a7" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574" +
+                    "4000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+                    "5f7365617263685f657874656e7400000008000005000564657074683e00000005000b74656d70657261747572653f4c" +
+                    "cccd0500057363616c653d4ccccd050008646f776e66616c6c3ecccccd08000863617465676f7279000b756e64657267" +
+                    "726f756e6400")),
+            Map.entry("minecraft:lush_caves", parseElementHex(
+                    "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
+                    "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+                    "636f6c6f72003f76e40005000564657074683dcccccd05000b74656d70657261747572653f0000000500057363616c65" +
+                    "3e4ccccd050008646f776e66616c6c3f00000008000863617465676f7279000b756e64657267726f756e6400"))
+    );
+
+    /**
+     * 756の dimension（NBTの値）に対応する dimension_type の名前を返す。
+     * dimensionName757 と同じ手順で、既定の element は756のものを使う。
+     * （756と757の overworld／overworld_caves の element は logical_height／min_y／height が違うため、
+     * 757の既定値では一致しない。）codec が null の場合（Respawn）は codec での検索を飛ばす。
+     */
+    private static String dimensionName756(Tag dimension, Tag.CompoundTag codec) {
+        if (codec != null) {
+            String fromCodec = findDimensionName(codec, dimension);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        for (Map.Entry<String, Tag.CompoundTag> e : DIMENSION_TYPE_756_ELEMENTS.entrySet()) {
+            if (e.getValue().equals(dimension)) {
+                return e.getKey();
+            }
+        }
+        // 推定：effects と has_ceiling の組み合わせで4種を区別する（dimensionName757 と同じ）。
+        if (dimension instanceof Tag.CompoundTag compound) {
+            String effects = compound.getString("effects").orElse("");
+            boolean hasCeiling = compound.get("has_ceiling")
+                    .filter(t -> t instanceof Tag.ByteTag)
+                    .map(t -> ((Tag.ByteTag) t).value() != 0)
+                    .orElse(false);
+            if (effects.equals("minecraft:the_nether")) {
+                return "minecraft:the_nether";
+            }
+            if (effects.equals("minecraft:the_end")) {
+                return "minecraft:the_end";
+            }
+            if (effects.equals("minecraft:overworld")) {
+                return hasCeiling ? "minecraft:overworld_caves" : "minecraft:overworld";
+            }
+        }
+        LOG.warning("dimension の名前が分からなかったため minecraft:overworld にします。");
+        return "minecraft:overworld";
+    }
+
+    /**
+     * 756の dimension_type の名前に対応する756の element を返す。
+     * 既定の756 element を使う。名前が既定に無く、codec に element があればそれを使い、
+     * それも無ければ overworld の element にする。
+     */
+    private static Tag dimensionValue756(String name, Tag.CompoundTag codec) {
+        Tag.CompoundTag element = DIMENSION_TYPE_756_ELEMENTS.get(name);
+        if (element != null) {
+            return element;
+        }
+        if (codec != null) {
+            Tag fromCodec = findDimensionElement(codec, name);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        LOG.warning("dimension " + name + " の756 element が無いため minecraft:overworld にします。");
+        return DIMENSION_TYPE_756_ELEMENTS.get("minecraft:overworld");
+    }
+
+    /** 756の dimension_type の名前に対応する756の element を返す（codec が無い場合。Respawn 用）。 */
+    private static Tag dimensionValue756(String name) {
+        return dimensionValue756(name, null);
+    }
+
+    /** レジストリのエントリ列の1件から id を抜く。無ければ -1。 */
+    private static int registryEntryId(Tag.CompoundTag compound) {
+        return compound.get("id")
+                .filter(t -> t instanceof Tag.IntTag)
+                .map(t -> ((Tag.IntTag) t).value())
+                .orElse(-1);
+    }
+
+    /** バイオームのレジストリエントリ1件を作る。element が null の場合は element 無し。 */
+    private static Tag.CompoundTag biomeEntry(String name, int id, Tag element) {
+        Map<String, Tag> entry = new LinkedHashMap<>();
+        entry.put("name", new Tag.StringTag(name));
+        entry.put("id", new Tag.IntTag(id));
+        if (element != null) {
+            entry.put("element", element);
+        }
+        return new Tag.CompoundTag(entry);
+    }
+
+    /** バイオーム element から depth・scale を落とす（756→757。1.18の element には無い）。他のフィールドは順番も含めてそのまま。 */
+    private static Tag.CompoundTag stripDepthScale(Tag.CompoundTag element) {
+        Map<String, Tag> rebuilt = new LinkedHashMap<>();
+        element.value().forEach((k, v) -> {
+            if (!k.equals("depth") && !k.equals("scale")) {
+                rebuilt.put(k, v);
+            }
+        });
+        return new Tag.CompoundTag(rebuilt);
+    }
+
+    /**
+     * バイオーム element に depth・scale を足す（757→756。1.17.1の element は depth・scale を要する）。
+     * 実バニラ1.17.1の並び（precipitation, effects, depth, temperature, scale, downfall, category）に合わせ、
+     * depth は effects の直後、scale は temperature の直後に入れる。anchor が無い場合は末尾に足す。
+     */
+    private static Tag.CompoundTag addDepthScale(Tag.CompoundTag element, float depth, float scale) {
+        Map<String, Tag> rebuilt = new LinkedHashMap<>();
+        boolean depthAdded = false;
+        boolean scaleAdded = false;
+        for (Map.Entry<String, Tag> e : element.value().entrySet()) {
+            rebuilt.put(e.getKey(), e.getValue());
+            if (e.getKey().equals("effects")) {
+                rebuilt.put("depth", new Tag.FloatTag(depth));
+                depthAdded = true;
+            } else if (e.getKey().equals("temperature")) {
+                rebuilt.put("scale", new Tag.FloatTag(scale));
+                scaleAdded = true;
+            }
+        }
+        if (!depthAdded) {
+            rebuilt.put("depth", new Tag.FloatTag(depth));
+        }
+        if (!scaleAdded) {
+            rebuilt.put("scale", new Tag.FloatTag(scale));
+        }
+        return new Tag.CompoundTag(rebuilt);
+    }
+
+    /**
+     * 756のバイオームのエントリ列を757順に並べ替える。
+     * RegistryRemapper.mapBiome756To757 で写す。element は depth・scale を落として引き継ぐ。
+     * 同じ757 id になるものが複数ある場合、逆写像（mapBiome757To756）が指す正規の元を優先する
+     * （正規の元が後から来たら上書きする。それ以外は先勝ち）。これが無いと windswept_forest
+     * （757 id 20）で wooded_hills（756 id 18）の element が残り、往復で wooded_mountains
+     * （756 id 34）が wooded_hills の element に化けてしまう（逆写像は34を指す）。
+     * 写像で埋まらない757のバイオームは実バニラ1.18の element（BIOME_757_FILL_ELEMENTS）で
+     * 埋め、61件にする。
+     */
+    private static List<Tag> reorderBiomeEntries756To757(List<Tag> entries) {
+        Tag[] out = new Tag[BIOME_757_NAMES.length];
+        for (Tag entry : entries) {
+            if (!(entry instanceof Tag.CompoundTag compound)) {
+                continue;
+            }
+            int srcId = registryEntryId(compound);
+            if (srcId < 0 || srcId >= BIOME_756_NAMES.length) {
+                continue;
+            }
+            int dstId = RegistryRemapper.mapBiome756To757(srcId);
+            if (dstId < 0 || dstId >= out.length) {
+                continue;
+            }
+            boolean canonical = RegistryRemapper.mapBiome757To756(dstId) == srcId;
+            if (out[dstId] != null && !canonical) {
+                continue;
+            }
+            Tag element = compound.get("element").orElse(null);
+            Tag stripped = element instanceof Tag.CompoundTag elementCompound
+                    ? stripDepthScale(elementCompound) : element;
+            out[dstId] = biomeEntry(BIOME_757_NAMES[dstId], dstId, stripped);
+        }
+        for (int i = 0; i < out.length; i++) {
+            if (out[i] == null) {
+                Tag.CompoundTag element = BIOME_757_FILL_ELEMENTS.get(BIOME_757_NAMES[i]);
+                if (element == null) {
+                    continue; // fill 表に無い（ありえないはず）
+                }
+                out[i] = biomeEntry(BIOME_757_NAMES[i], i, element);
+            }
+        }
+        return List.of(out);
+    }
+
+    /**
+     * 757のバイオームのエントリ列を756順に並べ替える。
+     * RegistryRemapper.mapBiome757To756 で写す。element は写像先の756バイオームの depth・scale を
+     * 足して引き継ぐ。同じ756 id になるものが複数ある場合、逆写像（mapBiome756To757）が指す
+     * 正規の元を優先する（756→757側と同じ規則。こちらの衝突4組は先勝ちでも正規の元が残るが、
+     * 入力の並びに依存しないよう同じ規則にしている）。
+     * 写像で埋まらない756のバイオームは実バニラ1.17.1の element（BIOME_756_FILL_ELEMENTS）で
+     * 埋め、81件にする。返り値は756 id の昇順（実バニラ1.17.1の codec と同じ並び）。
+     */
+    private static List<Tag> reorderBiomeEntries757To756(List<Tag> entries) {
+        Tag[] out = new Tag[BIOME_756_NAMES.length];
+        for (Tag entry : entries) {
+            if (!(entry instanceof Tag.CompoundTag compound)) {
+                continue;
+            }
+            int srcId = registryEntryId(compound);
+            if (srcId < 0 || srcId >= BIOME_757_NAMES.length) {
+                continue;
+            }
+            int dstId = RegistryRemapper.mapBiome757To756(srcId);
+            if (dstId < 0 || dstId >= out.length) {
+                continue;
+            }
+            boolean canonical = RegistryRemapper.mapBiome756To757(dstId) == srcId;
+            if (out[dstId] != null && !canonical) {
+                continue;
+            }
+            String name = BIOME_756_NAMES[dstId];
+            if (name == null) {
+                continue; // 756の隙間 id（表の上ではありえないはずだが安全のため）
+            }
+            float[] depthScale = BIOME_757_DEPTH_SCALE[srcId];
+            Tag element = compound.get("element").orElse(null);
+            Tag withDepthScale = element instanceof Tag.CompoundTag elementCompound
+                    ? addDepthScale(elementCompound, depthScale[0], depthScale[1]) : element;
+            out[dstId] = biomeEntry(name, dstId, withDepthScale);
+        }
+        for (int i = 0; i < out.length; i++) {
+            if (out[i] == null && BIOME_756_NAMES[i] != null) {
+                Tag.CompoundTag element = BIOME_756_FILL_ELEMENTS.get(BIOME_756_NAMES[i]);
+                if (element == null) {
+                    continue; // fill 表に無い（ありえないはず）
+                }
+                out[i] = biomeEntry(BIOME_756_NAMES[i], i, element);
+            }
+        }
+        List<Tag> result = new ArrayList<>();
+        for (Tag tag : out) {
+            if (tag != null) {
+                result.add(tag);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * 756の dimensionCodec を757形式にする。dimension_type の element を757既定値に置き換え、
+     * biome を757順に並べ替える（depth・scale を落とす。757にしか無い6件は実バニラ1.18の element で補う）。
+     * codec のキーの並びは実バニラ通り（dimension_type、worldgen/biome）。
+     */
+    public static Tag.CompoundTag translateDimensionCodec756To757(Tag.CompoundTag codec756) {
+        Map<String, Tag.CompoundTag> registries = registriesFromCodec(codec756);
+        Map<String, Tag> codec = new LinkedHashMap<>();
+        Tag.CompoundTag dimensionRegistry = registries.get("minecraft:dimension_type");
+        if (dimensionRegistry != null) {
+            List<Tag> entries = substituteDimensionTypeElements(
+                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
+                    ProtocolVersion.V1_18);
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
+        }
+        Tag.CompoundTag biomeRegistry = registries.get("minecraft:worldgen/biome");
+        if (biomeRegistry != null) {
+            List<Tag> entries = reorderBiomeEntries756To757(
+                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
+        }
+        return new Tag.CompoundTag(codec);
+    }
+
+    /**
+     * 757の dimensionCodec を756形式にする。dimension_type の element を756既定値に置き換え、
+     * biome を756順に並べ替える（depth・scale を足す。写像で埋まらない25件は実バニラ1.17.1の element で補う）。
+     * codec のキーの並びは実バニラ通り（dimension_type、worldgen/biome）。
+     */
+    public static Tag.CompoundTag translateDimensionCodec757To756(Tag.CompoundTag codec757) {
+        Map<String, Tag.CompoundTag> registries = registriesFromCodec(codec757);
+        Map<String, Tag> codec = new LinkedHashMap<>();
+        Tag.CompoundTag dimensionRegistry = registries.get("minecraft:dimension_type");
+        if (dimensionRegistry != null) {
+            List<Tag> entries = substituteDimensionTypeElements(
+                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
+                    ProtocolVersion.V1_17_1);
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
+        }
+        Tag.CompoundTag biomeRegistry = registries.get("minecraft:worldgen/biome");
+        if (biomeRegistry != null) {
+            List<Tag> entries = reorderBiomeEntries757To756(
+                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
+        }
+        return new Tag.CompoundTag(codec);
+    }
+
+    // ------------------------------------------------------------------
+    // Join Game
+    // ------------------------------------------------------------------
+
+    /** 756の Join Game の中身。757と違い simulationDistance が無い。dimension は DimensionType の値そのもの（NBT）。previousGameMode は i8（-1＝なし）。 */
+    public record JoinGame756(int entityId, boolean hardcore, int gameMode, int previousGameMode,
+            List<String> worldNames, Tag.CompoundTag dimensionCodec, Tag dimension,
+            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
+            boolean reducedDebug, boolean enableRespawnScreen,
+            boolean isDebug, boolean isFlat) {
+    }
+
+    /**
+     * 756の Join Game を読む。順番は entityId, hardcore, gameMode, previousGameMode(i8),
+     * worldNames, dimensionCodec（名前付き NBT）, dimension（名前付き NBT）,
+     * worldName, hashedSeed, maxPlayers, viewDistance,
+     * reducedDebug, enableRespawnScreen, isDebug, isFlat である
+     * （minecraft-data mc-1.17.1-protocol.json の packet_login とライブキャプチャで確認）。
+     */
+    public static JoinGame756 parseJoinGame756(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        boolean hardcore = reader.readBoolean();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readByte();
+        checkPreviousGameMode757(previousGameMode);
+        List<String> worldNames = PacketIO.readStringList(reader);
+        Tag dimensionCodec = reader.readNamedNbt().tag();
+        if (!(dimensionCodec instanceof Tag.CompoundTag codec)) {
+            throw new IllegalArgumentException("Join Game の dimensionCodec がコンパウンドではありません。");
+        }
+        Tag dimension = reader.readNamedNbt().tag();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int maxPlayers = reader.readVarInt();
+        int viewDistance = reader.readVarInt();
+        boolean reducedDebug = reader.readBoolean();
+        boolean enableRespawnScreen = reader.readBoolean();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        requireEnd(reader);
+        return new JoinGame756(entityId, hardcore, gameMode, previousGameMode, worldNames,
+                codec, dimension, worldName, hashedSeed, maxPlayers, viewDistance,
+                reducedDebug, enableRespawnScreen, isDebug, isFlat);
+    }
+
+    /** 756の Join Game を書く。 */
+    public static byte[] writeJoinGame756(JoinGame756 join) {
+        Writer writer = new Writer();
+        writer.writeInt(join.entityId());
+        writer.writeBoolean(join.hardcore());
+        writer.writeByte(join.gameMode());
+        writer.writeByte(join.previousGameMode());
+        PacketIO.writeStringList(writer, join.worldNames());
+        writer.writeNamedNbt("", join.dimensionCodec());
+        writer.writeNamedNbt("", join.dimension());
+        writer.writeString(join.worldName());
+        writer.writeLong(join.hashedSeed());
+        writer.writeVarInt(join.maxPlayers());
+        writer.writeVarInt(join.viewDistance());
+        writer.writeBoolean(join.reducedDebug());
+        writer.writeBoolean(join.enableRespawnScreen());
+        writer.writeBoolean(join.isDebug());
+        writer.writeBoolean(join.isFlat());
+        return writer.bytes();
+    }
+
+    /**
+     * Join Game（756 → 757）。dimension は NBT の値から codec 内の名前を引き、757の element に直す。
+     * dimensionCodec は757形式に直す。simulationDistance は viewDistance と同じ値にする
+     * （1.17.1に simulationDistance は無く、実質のシミュレーション距離は描画距離だったため）。
+     * 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
+     */
+    public static byte[] translateJoinGame756To757(byte[] payload) {
+        try {
+            JoinGame756 join = parseJoinGame756(payload);
+            String dimensionName = dimensionName756(join.dimension(), join.dimensionCodec());
+            return writeJoinGame757(new JoinGame757(join.entityId(), join.hardcore(),
+                    join.gameMode(), join.previousGameMode(), join.worldNames(),
+                    translateDimensionCodec756To757(join.dimensionCodec()),
+                    dimensionValue759(dimensionName),
+                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
+                    join.viewDistance(), join.reducedDebug(), join.enableRespawnScreen(),
+                    join.isDebug(), join.isFlat()));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Join Game（757 → 756）。dimension は名前から756の element を引き、
+     * dimensionCodec は756形式に直す。simulationDistance は落とす。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateJoinGame757To756(byte[] payload) {
+        try {
+            JoinGame757 join = parseJoinGame757(payload);
+            String dimensionName = dimensionName757(join.dimension(), join.dimensionCodec());
+            return writeJoinGame756(new JoinGame756(join.entityId(), join.hardcore(),
+                    join.gameMode(), join.previousGameMode(), join.worldNames(),
+                    translateDimensionCodec757To756(join.dimensionCodec()),
+                    dimensionValue756(dimensionName),
+                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
+                    join.reducedDebug(), join.enableRespawnScreen(),
+                    join.isDebug(), join.isFlat()));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Respawn
+    // ------------------------------------------------------------------
+
+    /** 756の Respawn（SpawnInfo）の中身。757と同一の8フィールド。dimension は DimensionType の値そのもの（NBT）。previousGameMode は u8（Join Game の i8 とは違う。protocol.json で確認）。copyMetadata は末尾。dataToKeep は無い。 */
+    public record SpawnInfo756(Tag dimension, String worldName, long hashedSeed, int gameMode,
+            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata) {
+    }
+
+    /** 756の SpawnInfo を読む。 */
+    public static SpawnInfo756 readSpawnInfo756(Reader reader) {
+        Tag dimension = reader.readNamedNbt().tag();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readUnsignedByte();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        boolean copyMetadata = reader.readBoolean();
+        return new SpawnInfo756(dimension, worldName, hashedSeed, gameMode,
+                previousGameMode, isDebug, isFlat, copyMetadata);
+    }
+
+    /** 756の SpawnInfo を書く。 */
+    public static void writeSpawnInfo756(Writer writer, SpawnInfo756 info) {
+        writer.writeNamedNbt("", info.dimension());
+        writer.writeString(info.worldName());
+        writer.writeLong(info.hashedSeed());
+        writer.writeByte(info.gameMode());
+        writer.writeByte(info.previousGameMode());
+        writer.writeBoolean(info.isDebug());
+        writer.writeBoolean(info.isFlat());
+        writer.writeBoolean(info.copyMetadata());
+    }
+
+    /**
+     * Respawn（756 → 757）。フィールドは同一のため、dimension の element だけ757既定値に直す
+     * （overworld／overworld_caves の height が違う）。copyMetadata はそのまま写す。
+     * previousGameMode は u8 のまま写す（範囲検査はしない。Join Game の i8 と違い、"無し" の符号が protocol.json には無いため）。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo756 info = readSpawnInfo756(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo757(writer, new SpawnInfo757(
+                    dimensionValue759(dimensionName756(info.dimension(), null)),
+                    info.worldName(), info.hashedSeed(), info.gameMode(),
+                    info.previousGameMode(), info.isDebug(), info.isFlat(),
+                    info.copyMetadata()));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Respawn（757 → 756）。フィールドは同一のため、dimension の element だけ756既定値に直す。
+     * copyMetadata はそのまま写す。読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo757 info = readSpawnInfo757(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo756(writer, new SpawnInfo756(
+                    dimensionValue756(dimensionName757(info.dimension(), null)),
+                    info.worldName(), info.hashedSeed(), info.gameMode(),
+                    info.previousGameMode(), info.isDebug(), info.isFlat(),
+                    info.copyMetadata()));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Client Information（Settings）
+    // ------------------------------------------------------------------
+
+    /**
+     * Client Information（756 → 757）。756は {locale, viewDistance i8, chatFlags varint,
+     * chatColors bool, skinParts u8, mainHand varint, disableTextFiltering bool} の7フィールド、
+     * 757は末尾に enableServerListing bool が付いた8フィールド。
+     * disableTextFiltering は反転して enableTextFiltering にする。
+     * enableServerListing は true で補完する（1.18以前のクライアントに一覧表示の拒否手段は無かったため。
+     * 実バニラ1.18クライアントの送信値は未確認）。読めないペイロードは素通しする。
+     */
+    public static byte[] translateClientInformation756To757(byte[] payload) {
+        if (payload == null) {
+            return payload;
+        }
+        try {
+            Reader reader = new Reader(payload);
+            String locale = reader.readString();
+            int viewDistance = reader.readByte();
+            int chatFlags = reader.readVarInt();
+            boolean chatColors = reader.readBoolean();
+            int skinParts = reader.readUnsignedByte();
+            int mainHand = reader.readVarInt();
+            boolean disableTextFiltering = reader.readBoolean();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Client Information に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString(locale);
+            writer.writeByte(viewDistance);
+            writer.writeVarInt(chatFlags);
+            writer.writeBoolean(chatColors);
+            writer.writeUnsignedByte(skinParts);
+            writer.writeVarInt(mainHand);
+            writer.writeBoolean(!disableTextFiltering); // enableTextFiltering
+            writer.writeBoolean(true); // enableServerListing：756には無いため true を補う
+            return writer.bytes();
+        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Client Information（757 → 756）。末尾の enableServerListing を落とし、
+     * enableTextFiltering を反転して disableTextFiltering にする。読めないペイロードは素通しする。
+     */
+    public static byte[] translateClientInformation757To756(byte[] payload) {
+        if (payload == null) {
+            return payload;
+        }
+        try {
+            Reader reader = new Reader(payload);
+            String locale = reader.readString();
+            int viewDistance = reader.readByte();
+            int chatFlags = reader.readVarInt();
+            boolean chatColors = reader.readBoolean();
+            int skinParts = reader.readUnsignedByte();
+            int mainHand = reader.readVarInt();
+            boolean enableTextFiltering = reader.readBoolean();
+            boolean enableServerListing = reader.readBoolean();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Client Information に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString(locale);
+            writer.writeByte(viewDistance);
+            writer.writeVarInt(chatFlags);
+            writer.writeBoolean(chatColors);
+            writer.writeUnsignedByte(skinParts);
+            writer.writeVarInt(mainHand);
+            writer.writeBoolean(!enableTextFiltering); // disableTextFiltering
+            return writer.bytes();
+        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            return payload;
+        }
+    }
 
 }
