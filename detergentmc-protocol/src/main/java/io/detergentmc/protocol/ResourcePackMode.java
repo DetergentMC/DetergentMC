@@ -120,6 +120,15 @@ public final class ResourcePackMode {
      *                (external with a bad SHA-1)
      * @param problem a human-readable warning for the log, or {@code null}
      *                when the configuration is fine
+     * @param pack757 the 1.18 / 1.18.1 pack to offer to 757 clients in external
+     *                mode, or {@code null} when none is configured
+     *                (757 clients then get {@code pack759} when it is
+     *                configured, else {@code pack760} when it is
+     *                configured, else {@code pack761} when it is
+     *                configured, else {@code pack762} when it is
+     *                configured, else {@code pack763} when it is
+     *                configured, else {@code pack} as before; one pack
+     *                serves both 1.18 and 1.18.1: protocol 757)
      * @param pack759 the 1.19 pack to offer to 759 clients in external
      *                mode, or {@code null} when none is configured
      *                (759 clients then get {@code pack760} when it is
@@ -190,7 +199,7 @@ public final class ResourcePackMode {
      *                before)
      */
     public record Decision(Kind kind, ResourcePack pack, String problem,
-            ResourcePack pack759, ResourcePack pack760, ResourcePack pack761, ResourcePack pack762, ResourcePack pack763, ResourcePack pack764,
+            ResourcePack pack757, ResourcePack pack759, ResourcePack pack760, ResourcePack pack761, ResourcePack pack762, ResourcePack pack763, ResourcePack pack764,
             ResourcePack pack766, ResourcePack pack767, ResourcePack pack768,
             ResourcePack pack769, ResourcePack pack770, ResourcePack pack771,
             ResourcePack pack772, ResourcePack pack773, ResourcePack pack774,
@@ -259,7 +268,7 @@ public final class ResourcePackMode {
                 ResourcePack pack763, ResourcePack pack764, ResourcePack pack766,
                 ResourcePack pack767, ResourcePack pack768, ResourcePack pack769,
                 ResourcePack pack770, ResourcePack pack771, ResourcePack pack772) {
-            this(kind, pack, problem, null, null, null, null, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, null, null, null);
+            this(kind, pack, problem, null, null, null, null, null, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, null, null, null);
         }
 
         /** Backwards-compatible constructor without a 1.21.11 pack. */
@@ -267,7 +276,7 @@ public final class ResourcePackMode {
                 ResourcePack pack763, ResourcePack pack764, ResourcePack pack766,
                 ResourcePack pack767, ResourcePack pack768, ResourcePack pack769,
                 ResourcePack pack770, ResourcePack pack771, ResourcePack pack772, ResourcePack pack773) {
-            this(kind, pack, problem, null, null, null, null, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, null, null);
+            this(kind, pack, problem, null, null, null, null, null, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, null, null);
         }
 
         /** Backwards-compatible constructor without a 26.1 pack. */
@@ -275,7 +284,17 @@ public final class ResourcePackMode {
                 ResourcePack pack763, ResourcePack pack764, ResourcePack pack766,
                 ResourcePack pack767, ResourcePack pack768, ResourcePack pack769,
                 ResourcePack pack770, ResourcePack pack771, ResourcePack pack772, ResourcePack pack773, ResourcePack pack774) {
-            this(kind, pack, problem, null, null, null, null, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, null);
+            this(kind, pack, problem, null, null, null, null, null, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, null);
+        }
+
+        /** Backwards-compatible constructor without a 1.18 / 1.18.1 pack. */
+        public Decision(Kind kind, ResourcePack pack, String problem,
+                ResourcePack pack759, ResourcePack pack760, ResourcePack pack761, ResourcePack pack762, ResourcePack pack763, ResourcePack pack764,
+                ResourcePack pack766, ResourcePack pack767, ResourcePack pack768,
+                ResourcePack pack769, ResourcePack pack770, ResourcePack pack771,
+                ResourcePack pack772, ResourcePack pack773, ResourcePack pack774,
+                ResourcePack pack775) {
+            this(kind, pack, problem, null, pack759, pack760, pack761, pack762, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, pack775);
         }
 
 
@@ -285,7 +304,7 @@ public final class ResourcePackMode {
          * を使うこと）。
          *
          * <p>出し分けの基準はプロトコルであって、内部サーバーのバージョン
-         * ではない。759→{@code pack759}（9）、760→{@code pack760}（9）、761→{@code pack761}（12）、762→{@code pack762}（13）、765→本体（pack_format 22）、
+         * ではない。757→{@code pack757}（8）、759→{@code pack759}（9）、760→{@code pack760}（9）、761→{@code pack761}（12）、762→{@code pack762}（13）、765→本体（pack_format 22）、
          * 764→{@code pack764}
          * （18）、763→{@code pack763}（15）、766→{@code pack766}
          * （32）、767→{@code pack767}（34）、768→{@code pack768}（42）、
@@ -297,6 +316,10 @@ public final class ResourcePackMode {
          * 759用のパックが未設定の場合は760用のパック（9）があればそれを、
          * 無ければ761用のパック（12）、さらに無ければ762用のパック（13）、
          * さらに無ければ763用のパック（15）、さらに無ければ本体を返す。
+         * 757用のパックが未設定の場合は759用のパック（9）があればそれを、
+         * 無ければ760用のパック（9）、さらに無ければ761用のパック（12）、
+         * さらに無ければ762用のパック（13）、さらに無ければ763用のパック（15）、
+         * さらに無ければ本体を返す。
          * 760用のパックが未設定の場合は761用のパック（12）があればそれを、
          * 無ければ762用のパック（13）、それも無ければ763用のパック（15）、
          * さらに無ければ本体を返す。
@@ -310,6 +333,14 @@ public final class ResourcePackMode {
          * server.properties に入る。
          */
         public ResourcePack packForProtocol(int protocol) {
+            if (protocol == ProtocolVersion.V1_18) {
+                return pack757 != null ? pack757
+                        : pack759 != null ? pack759
+                        : pack760 != null ? pack760
+                        : pack761 != null ? pack761
+                        : pack762 != null ? pack762
+                        : pack763 != null ? pack763 : pack;
+            }
             if (protocol == ProtocolVersion.V1_19) {
                 return pack759 != null ? pack759
                         : pack760 != null ? pack760
@@ -987,6 +1018,12 @@ public final class ResourcePackMode {
      * @param configuredUrl775  {@code resource-pack.url-775} (may be null/blank)
      * @param configuredSha1775 {@code resource-pack.sha1-775} (may be null/blank)
      */
+    /**
+     * {@link #decide(String, String, boolean, String)} with the optional
+     * per-version packs through 26.1 plus the 1.19.1 / 1.19.2 and 1.19
+     * packs, but without a 1.18 / 1.18.1 pack. 757 clients are offered
+     * the 1.19 pack (when configured) as before.
+     */
     public static Decision decide(String configuredUrl, String configuredSha1,
             String configuredUrl761, String configuredSha1761,
             String configuredUrl762, String configuredSha1762,
@@ -1005,6 +1042,45 @@ public final class ResourcePackMode {
             String configuredUrl760, String configuredSha1760,
             String configuredUrl759, String configuredSha1759,
             boolean required, String promptKey) {
+        return decide(configuredUrl, configuredSha1,
+                configuredUrl761, configuredSha1761,
+                configuredUrl762, configuredSha1762,
+                configuredUrl763, configuredSha1763,
+                configuredUrl764, configuredSha1764,
+                configuredUrl766, configuredSha1766,
+                configuredUrl767, configuredSha1767,
+                configuredUrl768, configuredSha1768,
+                configuredUrl769, configuredSha1769,
+                configuredUrl770, configuredSha1770,
+                configuredUrl771, configuredSha1771,
+                configuredUrl772, configuredSha1772,
+                configuredUrl773, configuredSha1773,
+                configuredUrl774, configuredSha1774,
+                configuredUrl775, configuredSha1775,
+                configuredUrl760, configuredSha1760,
+                configuredUrl759, configuredSha1759,
+                null, null, required, promptKey);
+    }
+
+    public static Decision decide(String configuredUrl, String configuredSha1,
+            String configuredUrl761, String configuredSha1761,
+            String configuredUrl762, String configuredSha1762,
+            String configuredUrl763, String configuredSha1763,
+            String configuredUrl764, String configuredSha1764,
+            String configuredUrl766, String configuredSha1766,
+            String configuredUrl767, String configuredSha1767,
+            String configuredUrl768, String configuredSha1768,
+            String configuredUrl769, String configuredSha1769,
+            String configuredUrl770, String configuredSha1770,
+            String configuredUrl771, String configuredSha1771,
+            String configuredUrl772, String configuredSha1772,
+            String configuredUrl773, String configuredSha1773,
+            String configuredUrl774, String configuredSha1774,
+            String configuredUrl775, String configuredSha1775,
+            String configuredUrl760, String configuredSha1760,
+            String configuredUrl759, String configuredSha1759,
+            String configuredUrl757, String configuredSha1757,
+            boolean required, String promptKey) {
         String url = configuredUrl == null ? "" : configuredUrl.trim();
         String prompt = promptKey == null || promptKey.isBlank()
                 ? ResourcePackServer.DEFAULT_PROMPT_KEY : promptKey.trim();
@@ -1020,6 +1096,7 @@ public final class ResourcePackMode {
             ResourcePack pack = new ResourcePack(url,
                     configuredSha1.trim().toLowerCase(Locale.ROOT),
                     required, prompt);
+            ResourcePack pack757 = null;
             ResourcePack pack759 = null;
             ResourcePack pack760 = null;
             ResourcePack pack761 = null;
@@ -1064,6 +1141,21 @@ public final class ResourcePackMode {
                 } else {
                     pack759 = new ResourcePack(url759,
                             configuredSha1759.trim().toLowerCase(Locale.ROOT),
+                            required, prompt);
+                }
+            }
+            String url757 = configuredUrl757 == null ? "" : configuredUrl757.trim();
+            if (!url757.isEmpty()) {
+                if (!url757.startsWith("https://")) {
+                    problems.add("resource-pack.url-757 must start with https:// (got '"
+                            + url757 + "'); 757 clients will be offered the 1.19 pack instead");
+                } else if (!isValidSha1(configuredSha1757)) {
+                    problems.add("resource-pack.sha1-757 is missing or not a 40-digit hex "
+                            + "SHA-1: '" + configuredSha1757
+                            + "'; 757 clients will be offered the 1.19 pack instead");
+                } else {
+                    pack757 = new ResourcePack(url757,
+                            configuredSha1757.trim().toLowerCase(Locale.ROOT),
                             required, prompt);
                 }
             }
@@ -1279,7 +1371,7 @@ public final class ResourcePackMode {
             }
             String problem = problems.isEmpty() ? null : String.join("; ", problems);
             return new Decision(Kind.EXTERNAL, pack, problem,
-                    pack759, pack760, pack761, pack762, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, pack775);
+                    pack757, pack759, pack760, pack761, pack762, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, pack775);
         }
         return new Decision(Kind.LOOPBACK, null,
                 "resource-pack.url must start with https:// (got '" + url
