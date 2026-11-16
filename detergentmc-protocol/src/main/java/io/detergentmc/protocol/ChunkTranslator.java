@@ -42840,4 +42840,8101 @@ public final class ChunkTranslator {
         copyComponentOpaque774(reader, writer, kind774);
     }
 
+    // ------------------------------------------------------------------
+    // 757 <=> 759（1.18／1.18.1 <=> 1.19）
+    // パケットIDは ProxySession が付け替える（Join Game 0x23／0x26、
+    // Chunk Data 0x1F／0x22）。ペイロードの差は protocol.json
+    // （mc-1.18-protocol.json／mc-1.19-protocol.json、minecraft-data）で実測。
+    // 757・759 ともデータコンポーネントは無い（NBT 時代。1.20.5／766 で追加）
+    // ため、スロットは 761<=>760 節と同じ [present bool][id VarInt][個数 i8]
+    // [任意の名前付き NBT] で、NBT は素通しする。KIND 表は作らない。
+    // Chunk Data の外枠（heightmaps NBT・trustEdges・light）は両方とも同一。
+    // 含めないもの（形式が同一でレジストリ番号を持たないため変換子は要らない）：
+    // Block Entity Data（packet_tile_entity_data。location＋action＋NBT）、
+    // Update Attributes（属性名は文字列で同一）、Explosion（全フィールド同一）。
+    // バイオームは RegistryRemapper.mapBiome757To759／mapBiome759To757 を使う
+    // （759 にだけある mangrove_swamp（7）／deep_dark（52）は 757 で
+    // swamp（6）／dripstone_caves（49）に落とす。Stage A の代替表による。
+    // 範囲外のバイオームは plains。パレットのエントリは落とせないため）。
+    // エフェクトは darkness（759=33）だけが 757 に無く、1〜32 は恒等写像
+    // （mapEffect759To757／mapEffect757To759）。ブロックエンティティは
+    // sculk_catalyst（34）・sculk_shrieker（35）だけが 759 に無く、他は恒等
+    // （mapBlockEntityType759To757／mapBlockEntityType757To759）。
+    // ------------------------------------------------------------------
+
+    static final int FALLING_BLOCK_757 = 27;
+    static final int FALLING_BLOCK_759 = 29;
+
+    /**
+     * 座標3つを Position の long 形式に詰める（x 26ビット・z 26ビット・y 12ビット。
+     * バニラの BlockPos の詰め方と同じ並び）。759→757 の vibration 粒子の
+     * origin（1.18 にだけある）に使う。
+     */
+    private static long packPosition757(int x, int y, int z) {
+        return ((long) (x & 0x3FFFFFF) << 38) | ((long) (z & 0x3FFFFFF) << 12) | (y & 0xFFF);
+    }
+
+
+    // ------------------------------------------------------------------
+    // スロット（757 <=> 759）
+    // ------------------------------------------------------------------
+
+    /** 757のスロット1個を759向けに読む。NBT は名前付きのまま通す。 */
+    public static void translateSlot757To759(Reader reader, Writer writer) {
+        boolean present = reader.readBoolean();
+        writer.writeBoolean(present);
+        if (!present) {
+            return;
+        }
+        translateSlotBody757To759(reader, writer);
+    }
+
+    /** 757のスロットの中身（present の後ろ）を759向けに読む。 */
+    private static void translateSlotBody757To759(Reader reader, Writer writer) {
+        writer.writeVarInt(RegistryRemapper.mapItem757To759(reader.readVarInt()));
+        writer.writeByte(reader.readByte());
+        writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+    }
+
+    /** 759のスロット1個を757向けに読む。NBT は名前付きのまま通す。 */
+    public static void translateSlot759To757(Reader reader, Writer writer) {
+        boolean present = reader.readBoolean();
+        writer.writeBoolean(present);
+        if (!present) {
+            return;
+        }
+        translateSlotBody759To757(reader, writer);
+    }
+
+    /** 759のスロットの中身（present の後ろ）を757向けに読む。 */
+    private static void translateSlotBody759To757(Reader reader, Writer writer) {
+        writer.writeVarInt(RegistryRemapper.mapItem759To757(reader.readVarInt()));
+        writer.writeByte(reader.readByte());
+        writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+    }
+
+
+    // ------------------------------------------------------------------
+    // Chunk Data（757 <=> 759）
+    // ------------------------------------------------------------------
+
+    /** Chunk Data（757 0x1F → 759 0x22）。ブロック状態・バイオーム・ブロックエンティティ種別を付け替える。 */
+    public static byte[] translateChunkData757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int chunkX = reader.readInt();
+            int chunkZ = reader.readInt();
+            Nbt.NamedResult heightmaps = reader.readNamedNbt();
+            int dataLength = reader.readVarInt();
+            byte[] chunkData = reader.readBytes(dataLength);
+            byte[] translatedSections = translateChunkSections757To759(chunkData);
+            int blockEntityCount = reader.readVarInt();
+            List<BlockEntityEntry> kept = new ArrayList<>();
+            for (int i = 0; i < blockEntityCount; i++) {
+                int packedXZ = reader.readUnsignedByte();
+                int y = reader.readShort();
+                int type = reader.readVarInt();
+                Tag nbt = readOptionalNamedNbt(reader);
+                int mapped = RegistryRemapper.mapBlockEntityType757To759(type);
+                if (mapped == RegistryRemapper.DROP) {
+                    LOG.warning("759に無いブロックエンティティ種別（757 type=" + type
+                            + "）のエントリをチャンクから落とします。");
+                    continue;
+                }
+                kept.add(new BlockEntityEntry(packedXZ, y, mapped, nbt));
+            }
+            boolean trustEdges = reader.readBoolean();
+            byte[] lightData = reader.rest();
+            Writer writer = new Writer();
+            writer.writeInt(chunkX);
+            writer.writeInt(chunkZ);
+            if (heightmaps.tag() == null) {
+                writer.writeByte(0);
+            } else {
+                writer.writeNamedNbt("", heightmaps.tag());
+            }
+            writer.writeByteArray(translatedSections);
+            writer.writeVarInt(kept.size());
+            for (BlockEntityEntry entry : kept) {
+                writer.writeUnsignedByte(entry.packedXZ());
+                writer.writeShort(entry.y());
+                writer.writeVarInt(entry.type());
+                writeOptionalNamedNbt(writer, entry.nbt());
+            }
+            writer.writeBoolean(trustEdges);
+            writer.writeBytes(lightData);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chunk Data を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Chunk Data（759 0x22 → 757 0x1F）。757 に無いブロックエンティティ種別はエントリごと落とす。 */
+    public static byte[] translateChunkData759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int chunkX = reader.readInt();
+            int chunkZ = reader.readInt();
+            Nbt.NamedResult heightmaps = reader.readNamedNbt();
+            int dataLength = reader.readVarInt();
+            byte[] chunkData = reader.readBytes(dataLength);
+            byte[] translatedSections = translateChunkSections759To757(chunkData);
+            int blockEntityCount = reader.readVarInt();
+            List<BlockEntityEntry> kept = new ArrayList<>();
+            for (int i = 0; i < blockEntityCount; i++) {
+                int packedXZ = reader.readUnsignedByte();
+                int y = reader.readShort();
+                int type = reader.readVarInt();
+                Tag nbt = readOptionalNamedNbt(reader);
+                int mapped = RegistryRemapper.mapBlockEntityType759To757(type);
+                if (mapped == RegistryRemapper.DROP) {
+                    LOG.warning("757に無いブロックエンティティ種別（759 type=" + type
+                            + "）のエントリをチャンクから落とします。");
+                    continue;
+                }
+                kept.add(new BlockEntityEntry(packedXZ, y, mapped, nbt));
+            }
+            boolean trustEdges = reader.readBoolean();
+            byte[] lightData = reader.rest();
+            Writer writer = new Writer();
+            writer.writeInt(chunkX);
+            writer.writeInt(chunkZ);
+            if (heightmaps.tag() == null) {
+                writer.writeByte(0);
+            } else {
+                writer.writeNamedNbt("", heightmaps.tag());
+            }
+            writer.writeByteArray(translatedSections);
+            writer.writeVarInt(kept.size());
+            for (BlockEntityEntry entry : kept) {
+                writer.writeUnsignedByte(entry.packedXZ());
+                writer.writeShort(entry.y());
+                writer.writeVarInt(entry.type());
+                writeOptionalNamedNbt(writer, entry.nbt());
+            }
+            writer.writeBoolean(trustEdges);
+            writer.writeBytes(lightData);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chunk Data を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** チャンク内のセクション列を 757 → 759 向けに変換する。 */
+    static byte[] translateChunkSections757To759(byte[] data) {
+        return translateChunkSections757(data, true);
+    }
+
+    /** チャンク内のセクション列を 759 → 757 向けに変換する。 */
+    static byte[] translateChunkSections759To757(byte[] data) {
+        return translateChunkSections757(data, false);
+    }
+
+    private static byte[] translateChunkSections757(byte[] data, boolean to759) {
+        Reader reader = new Reader(data);
+        Writer writer = new Writer();
+        while (reader.remaining() > 0) {
+            int blockCount = reader.readShort();
+            writer.writeShort(blockCount);
+            translatePalettedContainer757(reader, writer, true, to759);
+            translatePalettedContainer757(reader, writer, false, to759);
+        }
+        return writer.bytes();
+    }
+
+    /**
+     * パレット付きコンテナ1個を 757<=>759 向けに変換する。
+     * ブロックはブロック状態ID、バイオームはバイオームIDを付け替える。
+     * バイオームは 61→63（mangrove_swamp が 759 の 7 番、deep_dark が 759 の
+     * 52 番に挿入。757 に無い 2 種は swamp／dripstone_caves に落とす
+     * （Stage A の代替表。範囲外は plains）。
+     */
+    private static void translatePalettedContainer757(Reader reader, Writer writer, boolean blocks,
+            boolean to759) {
+        int bitsPerEntry = reader.readUnsignedByte();
+        if (bitsPerEntry > 32) {
+            throw new IllegalArgumentException("Bits Per Entry が大きすぎます: " + bitsPerEntry);
+        }
+        writer.writeUnsignedByte(bitsPerEntry);
+        int entryCount = blocks ? 4096 : 64;
+        if (bitsPerEntry == 0) {
+            int value = reader.readVarInt();
+            writer.writeVarInt(blocks
+                    ? (to759 ? RegistryRemapper.mapBlockState757To759(value)
+                            : RegistryRemapper.mapBlockState759To757(value))
+                    : (to759 ? RegistryRemapper.mapBiome757To759(value)
+                            : RegistryRemapper.mapBiome759To757(value)));
+            int dataLength = reader.readVarInt();
+            if (dataLength != 0) {
+                throw new IllegalArgumentException(
+                        "シングルパレットの Data Array 長が 0 ではありません: " + dataLength);
+            }
+            writer.writeVarInt(0);
+            return;
+        }
+        boolean indirect = blocks ? bitsPerEntry <= 8 : bitsPerEntry <= 3;
+        if (indirect) {
+            int paletteLength = reader.readVarInt();
+            if (paletteLength <= 0 || paletteLength > (1 << bitsPerEntry)) {
+                throw new IllegalArgumentException("パレット長が不正です: " + paletteLength);
+            }
+            writer.writeVarInt(paletteLength);
+            for (int i = 0; i < paletteLength; i++) {
+                int value = reader.readVarInt();
+                writer.writeVarInt(blocks
+                        ? (to759 ? RegistryRemapper.mapBlockState757To759(value)
+                                : RegistryRemapper.mapBlockState759To757(value))
+                        : (to759 ? RegistryRemapper.mapBiome757To759(value)
+                                : RegistryRemapper.mapBiome759To757(value)));
+            }
+            copyLongArray(reader, writer);
+            return;
+        }
+        // 直接パレット：Data Array の中身がレジストリ番号そのもの。
+        int dataLength = reader.readVarInt();
+        // バニラの BitStorage はエントリを long の境界をまたいで連続して詰めるため、
+        // long 数は (entryCount * bitsPerEntry + 63) / 64。旧式の
+        // (entryCount + perLong - 1) / perLong（perLong = 64 / bits）は bits が 64 を
+        // 割り切らないとき（3・5・6・7・9…）に多めに数え、後続のコンテナがずれて
+        // 読めなくなる（2026-11-14、26.1のBedrockマトリクスで発覚）。
+        int expected = (entryCount * bitsPerEntry + 63) / 64;
+        if (dataLength != expected) {
+            throw new IllegalArgumentException("直接パレットの Data Array 長が想定と違います: "
+                    + dataLength + "（想定=" + expected + "）。");
+        }
+        writer.writeVarInt(dataLength);
+        long[] longs = new long[dataLength];
+        for (int i = 0; i < dataLength; i++) {
+            longs[i] = reader.readLong();
+        }
+        remapDirectEntries757(longs, bitsPerEntry, entryCount, blocks, to759);
+        for (long value : longs) {
+            writer.writeLong(value);
+        }
+    }
+
+    /** 直接パレットの long 列の中の各エントリを 757<=>759 の番号に変換する。 */
+    private static void remapDirectEntries757(long[] longs, int bitsPerEntry, int entryCount,
+            boolean blocks, boolean to759) {
+        long mask = (1L << bitsPerEntry) - 1;
+        // エントリは long の境界をまたぐことがある（bits が 64 を割り切らないとき）。
+        // BitStorage.get と同じく、またぐ分は次の long の下位ビットから取る。
+        int needed = (entryCount * bitsPerEntry + 63) / 64;
+        if (longs.length < needed) {
+            throw new IllegalArgumentException(
+                    "直接パレットの Data Array 長が想定より短いです（渡された=" + longs.length + "、想定=" + needed + "）。");
+        }
+        int[] entries = new int[entryCount];
+        int bitPos = 0;
+        for (int index = 0; index < entryCount; index++) {
+            int cellIndex = bitPos >> 6;
+            int bitIndex = bitPos & 63;
+            long low = longs[cellIndex];
+            int entry;
+            if (bitIndex + bitsPerEntry <= 64) {
+                entry = (int) ((low >>> bitIndex) & mask);
+            } else {
+                int lowBits = 64 - bitIndex;
+                long high = cellIndex + 1 < longs.length ? longs[cellIndex + 1] : 0L;
+                entry = (int) (((low >>> bitIndex) | (high << lowBits)) & mask);
+            }
+            entries[index] = entry;
+            bitPos += bitsPerEntry;
+        }
+        for (int i = 0; i < longs.length; i++) {
+            longs[i] = 0L;
+        }
+        bitPos = 0;
+        for (int index = 0; index < entryCount; index++) {
+            int mapped;
+            if (blocks) {
+                mapped = to759 ? RegistryRemapper.mapBlockState757To759(entries[index])
+                        : RegistryRemapper.mapBlockState759To757(entries[index]);
+            } else {
+                mapped = to759 ? RegistryRemapper.mapBiome757To759(entries[index])
+                        : RegistryRemapper.mapBiome759To757(entries[index]);
+            }
+            int cellIndex = bitPos >> 6;
+            int bitIndex = bitPos & 63;
+            longs[cellIndex] |= ((long) mapped & mask) << bitIndex;
+            if (bitIndex + bitsPerEntry > 64) {
+                int lowBits = 64 - bitIndex;
+                longs[cellIndex + 1] |= ((long) mapped & mask) >>> lowBits;
+            }
+            bitPos += bitsPerEntry;
+        }
+    }
+
+    /** Block Change（757 → 759）：位置＋ブロック状態ID。 */
+    public static byte[] translateBlockChange757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long position = reader.readPositionRaw();
+            int state = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writePositionRaw(position);
+            writer.writeVarInt(RegistryRemapper.mapBlockState757To759(state));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Block Change を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Block Change（759 → 757）：位置＋ブロック状態ID。 */
+    public static byte[] translateBlockChange759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long position = reader.readPositionRaw();
+            int state = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writePositionRaw(position);
+            writer.writeVarInt(RegistryRemapper.mapBlockState759To757(state));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Block Change を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    /**
+     * Multi Block Change（757 → 759）。bool は両方とも notTrustEdges で同じ位置の
+     * 1バイトのためそのまま写す。各レコードは 757 が varlong、759 が varint
+     * （protocol.json で実測）。レコードの詰め方（ブロック状態ID << 12｜局所座標）
+     * は両方とも同じ。
+     */
+    public static byte[] translateMultiBlockChange757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long chunkCoordinates = reader.readLong();
+            boolean notTrustEdges = reader.readBoolean();
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Multi Block Change の件数が負です: " + count);
+            }
+            Writer writer = new Writer();
+            writer.writeLong(chunkCoordinates);
+            writer.writeBoolean(notTrustEdges);
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                long record = reader.readVarLong();
+                int state = (int) (record >>> 12);
+                int local = (int) (record & 0xFFF);
+                writer.writeVarInt(
+                        (RegistryRemapper.mapBlockState757To759(state) << 12) | local);
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Multi Block Change を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Multi Block Change（759 → 757）。レコードを varint から varlong に直す。 */
+    public static byte[] translateMultiBlockChange759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long chunkCoordinates = reader.readLong();
+            boolean notTrustEdges = reader.readBoolean();
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Multi Block Change の件数が負です: " + count);
+            }
+            Writer writer = new Writer();
+            writer.writeLong(chunkCoordinates);
+            writer.writeBoolean(notTrustEdges);
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                int record = reader.readVarInt();
+                int state = record >>> 12;
+                int local = record & 0xFFF;
+                writer.writeVarLong(
+                        ((long) RegistryRemapper.mapBlockState759To757(state) << 12) | local);
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Multi Block Change を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // スロット・ウィンドウ（757 <=> 759）
+    // ------------------------------------------------------------------
+
+    /** Set Slot（757 → 759）。 */
+    public static byte[] translateSetSlot757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeByte(reader.readByte());
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeShort(reader.readShort());
+            translateSlot757To759(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Slot を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Slot（759 → 757）。 */
+    public static byte[] translateSetSlot759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeByte(reader.readByte());
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeShort(reader.readShort());
+            translateSlot759To757(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Slot を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Window Items（757 → 759）。 */
+    public static byte[] translateWindowItems757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte());
+            writer.writeVarInt(reader.readVarInt());
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Items の個数が負です: " + count);
+            }
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                translateSlot757To759(reader, writer);
+            }
+            translateSlot757To759(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Items を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Window Items（759 → 757）。 */
+    public static byte[] translateWindowItems759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte());
+            writer.writeVarInt(reader.readVarInt());
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Items の個数が負です: " + count);
+            }
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                translateSlot759To757(reader, writer);
+            }
+            translateSlot759To757(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Items を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Cooldown（757 → 759）：アイテムIDだけ変換する。 */
+    public static byte[] translateSetCooldown757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int item = reader.readVarInt();
+            int ticks = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapItem757To759(item));
+            writer.writeVarInt(ticks);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Cooldown を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Cooldown（759 → 757）：アイテムIDだけ変換する。 */
+    public static byte[] translateSetCooldown759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int item = reader.readVarInt();
+            int ticks = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapItem759To757(item));
+            writer.writeVarInt(ticks);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Cooldown を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Equipment（757 → 759）。スロット列は上位ビットが終端。 */
+    public static byte[] translateEntityEquipment757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt());
+            while (true) {
+                int slotByte = reader.readUnsignedByte();
+                writer.writeUnsignedByte(slotByte);
+                translateSlot757To759(reader, writer);
+                if ((slotByte & 0x80) == 0) {
+                    break;
+                }
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Equipment を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Equipment（759 → 757）。スロット列は上位ビットが終端。 */
+    public static byte[] translateEntityEquipment759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt());
+            while (true) {
+                int slotByte = reader.readUnsignedByte();
+                writer.writeUnsignedByte(slotByte);
+                translateSlot759To757(reader, writer);
+                if ((slotByte & 0x80) == 0) {
+                    break;
+                }
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Equipment を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Open Window（757 → 759）。
+     * メニュー種別IDを変換する。タイトルは 757・759 ともに JSON 文字列のためそのまま通す。
+     */
+    public static byte[] translateOpenWindow757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int windowId = reader.readVarInt();
+            int menu = reader.readVarInt();
+            String title = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(windowId);
+            writer.writeVarInt(RegistryRemapper.mapMenu757To759(menu));
+            writer.writeString(title);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Open Window を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Open Window（759 → 757）。
+     * メニュー種別IDを変換する。タイトルは 757・759 ともに JSON 文字列のためそのまま通す。
+     */
+    public static byte[] translateOpenWindow759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int windowId = reader.readVarInt();
+            int menu = reader.readVarInt();
+            String title = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(windowId);
+            writer.writeVarInt(RegistryRemapper.mapMenu759To757(menu));
+            writer.writeString(title);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Open Window を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Block Action（757 → 759）：ブロックIDだけ変換する。 */
+    public static byte[] translateBlockAction757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long position = reader.readPositionRaw();
+            int byte1 = reader.readUnsignedByte();
+            int byte2 = reader.readUnsignedByte();
+            int block = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writePositionRaw(position);
+            writer.writeUnsignedByte(byte1);
+            writer.writeUnsignedByte(byte2);
+            writer.writeVarInt(RegistryRemapper.mapBlock757To759(block));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Block Action を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Block Action（759 → 757）：ブロックIDだけ変換する。 */
+    public static byte[] translateBlockAction759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long position = reader.readPositionRaw();
+            int byte1 = reader.readUnsignedByte();
+            int byte2 = reader.readUnsignedByte();
+            int block = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writePositionRaw(position);
+            writer.writeUnsignedByte(byte1);
+            writer.writeUnsignedByte(byte2);
+            writer.writeVarInt(RegistryRemapper.mapBlock759To757(block));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Block Action を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    /**
+     * Trade List（759 → 757）。件数は両方とも u8。取引の inputItem2 は
+     * 759 では slot、757 では option slot（bool＋slot）のため付け替える。
+     * その他のフィールドは同一（protocol.json で実測）。
+     */
+    public static byte[] translateTradeList759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt()); // windowId
+            int count = reader.readUnsignedByte();
+            writer.writeUnsignedByte(count);
+            for (int i = 0; i < count; i++) {
+                translateSlot759To757(reader, writer);
+                translateSlot759To757(reader, writer);
+                boolean present = reader.readBoolean(); // inputItem2 の slot present
+                writer.writeBoolean(present); // option の present
+                if (present) {
+                    writer.writeBoolean(true);
+                    translateSlotBody759To757(reader, writer);
+                }
+                writer.writeBoolean(reader.readBoolean()); // tradeDisabled
+                writer.writeInt(reader.readInt()); // nbTradeUses
+                writer.writeInt(reader.readInt()); // maximumNbTradeUses
+                writer.writeInt(reader.readInt()); // xp
+                writer.writeInt(reader.readInt()); // specialPrice
+                writer.writeFloat(reader.readFloat()); // priceMultiplier
+                writer.writeInt(reader.readInt()); // demand
+            }
+            writer.writeVarInt(reader.readVarInt()); // villagerLevel
+            writer.writeVarInt(reader.readVarInt()); // experience
+            writer.writeBoolean(reader.readBoolean()); // isRegularVillager
+            writer.writeBoolean(reader.readBoolean()); // canRestock
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Trade List を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Trade List（757 → 759）。inputItem2 の option を slot に直す。 */
+    public static byte[] translateTradeList757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt()); // windowId
+            int count = reader.readUnsignedByte();
+            writer.writeUnsignedByte(count);
+            for (int i = 0; i < count; i++) {
+                translateSlot757To759(reader, writer);
+                translateSlot757To759(reader, writer);
+                boolean present = reader.readBoolean(); // option の present
+                if (!present) {
+                    writer.writeBoolean(false);
+                } else {
+                    boolean slotPresent = reader.readBoolean();
+                    writer.writeBoolean(slotPresent);
+                    if (slotPresent) {
+                        translateSlotBody757To759(reader, writer);
+                    }
+                }
+                writer.writeBoolean(reader.readBoolean()); // tradeDisabled
+                writer.writeInt(reader.readInt()); // nbTradeUses
+                writer.writeInt(reader.readInt()); // maximumNbTradeUses
+                writer.writeInt(reader.readInt()); // xp
+                writer.writeInt(reader.readInt()); // specialPrice
+                writer.writeFloat(reader.readFloat()); // priceMultiplier
+                writer.writeInt(reader.readInt()); // demand
+            }
+            writer.writeVarInt(reader.readVarInt()); // villagerLevel
+            writer.writeVarInt(reader.readVarInt()); // experience
+            writer.writeBoolean(reader.readBoolean()); // isRegularVillager
+            writer.writeBoolean(reader.readBoolean()); // canRestock
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Trade List を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // エンティティ・音・パーティクル・エフェクト（757 <=> 759）
+    // ------------------------------------------------------------------
+
+    /**
+     * Spawn Entity（757 → 759）。種別IDを変換する。757 には headPitch が無く
+     * objectData が i32 のため、headPitch には yaw を入れる（ベストエフォート。
+     * 実機未確認）。falling_block の objectData はブロック状態IDなので一緒に変換する。
+     */
+    public static byte[] translateSpawnEntity757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            byte[] uuid = reader.readBytes(16);
+            int type = reader.readVarInt();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            int pitch = reader.readByte();
+            int yaw = reader.readByte();
+            int objectData = reader.readInt();
+            int velX = reader.readShort();
+            int velY = reader.readShort();
+            int velZ = reader.readShort();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeBytes(uuid);
+            writer.writeVarInt(RegistryRemapper.mapEntityType757To759(type));
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeByte(pitch);
+            writer.writeByte(yaw);
+            writer.writeByte(yaw); // headPitch（757 には無いため yaw で代用）
+            writer.writeVarInt(type == FALLING_BLOCK_757
+                    ? RegistryRemapper.mapBlockState757To759(objectData) : objectData);
+            writer.writeShort(velX);
+            writer.writeShort(velY);
+            writer.writeShort(velZ);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Spawn Entity（759 → 757）。headPitch を落とし、objectData を i32 に直す。 */
+    public static byte[] translateSpawnEntity759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            byte[] uuid = reader.readBytes(16);
+            int type = reader.readVarInt();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            int pitch = reader.readByte();
+            int yaw = reader.readByte();
+            reader.readByte(); // headPitch（757 には無い）
+            int objectData = reader.readVarInt();
+            int velX = reader.readShort();
+            int velY = reader.readShort();
+            int velZ = reader.readShort();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeBytes(uuid);
+            writer.writeVarInt(RegistryRemapper.mapEntityType759To757(type));
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeByte(pitch);
+            writer.writeByte(yaw);
+            writer.writeInt(type == FALLING_BLOCK_759
+                    ? RegistryRemapper.mapBlockState759To757(objectData) : objectData);
+            writer.writeShort(velX);
+            writer.writeShort(velY);
+            writer.writeShort(velZ);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    /**
+     * Entity Metadata（757 → 759）。メタデータの型番号と形式は 757・759 で同一
+     * （protocol.json の entityMetadataItem が両方とも同じ定義）のため、番号は
+     * そのまま通し、スロット・ブロック状態・粒子だけ番号を付け替える。
+     */
+    public static byte[] translateEntityMetadata757To759(byte[] payload) {
+        return translateEntityMetadata757(payload, true);
+    }
+
+    /** Entity Metadata（759 → 757）。 */
+    public static byte[] translateEntityMetadata759To757(byte[] payload) {
+        return translateEntityMetadata757(payload, false);
+    }
+
+    /** Entity Metadata を 757<=>759 向けに変換する。 */
+    private static byte[] translateEntityMetadata757(byte[] payload, boolean to759) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt());
+            while (true) {
+                int index = reader.readUnsignedByte();
+                if (index == 0xFF) {
+                    writer.writeUnsignedByte(0xFF);
+                    break;
+                }
+                int type = reader.readVarInt();
+                // frog variant（22）・global pos（23）・painting variant（24）は
+                // 1.19 で追加された型のため、757 には無い。757 クライアントは
+                // 型自体を読めないため、759→757 ではエントリごと落とす
+                // （読んで捨ててストリームは合わせる）。757→759 では出ないため通す。
+                // （1.18 の型一覧は実機未確認。落とす側が安全なためこの扱いにする。）
+                if (!to759 && (type == 22 || type == 23 || type == 24)) {
+                    skipMetadataValue757(reader, type);
+                    continue;
+                }
+                writer.writeUnsignedByte(index);
+                writer.writeVarInt(type);
+                translateMetadataValue757(reader, writer, type, to759);
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Metadata を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** 759→757 で落とすメタデータ型（22／23／24）の値1個を読み飛ばす。 */
+    private static void skipMetadataValue757(Reader reader, int type) {
+        switch (type) {
+            case 22, 24 -> reader.readVarInt();
+            case 23 -> {
+                boolean present = reader.readBoolean();
+                if (present) {
+                    reader.readString();
+                    reader.readPositionRaw();
+                }
+            }
+            default -> throw new IllegalArgumentException("落とせないメタデータ型です: " + type);
+        }
+    }
+
+    /**
+     * メタデータの値1個を 757<=>759 向けに変換する。型番号は 757・759 で同一。
+     * チャットは両方とも JSON 文字列、NBT は両方とも名前付き。
+     */
+    private static void translateMetadataValue757(Reader reader, Writer writer, int type,
+            boolean to759) {
+        switch (type) {
+            case 0 -> writer.writeByte(reader.readByte());
+            case 1 -> writer.writeVarInt(reader.readVarInt());
+            case 2 -> writer.writeVarLong(reader.readVarLong());
+            case 3 -> writer.writeFloat(reader.readFloat());
+            case 4 -> writer.writeString(reader.readString());
+            case 5 -> writer.writeString(reader.readString());
+            case 6 -> {
+                boolean present = reader.readBoolean();
+                writer.writeBoolean(present);
+                if (present) {
+                    writer.writeString(reader.readString());
+                }
+            }
+            case 7 -> {
+                if (to759) {
+                    translateSlot757To759(reader, writer);
+                } else {
+                    translateSlot759To757(reader, writer);
+                }
+            }
+            case 8 -> writer.writeBoolean(reader.readBoolean());
+            case 9 -> {
+                writer.writeFloat(reader.readFloat());
+                writer.writeFloat(reader.readFloat());
+                writer.writeFloat(reader.readFloat());
+            }
+            case 10 -> writer.writePositionRaw(reader.readPositionRaw());
+            case 11 -> {
+                boolean present = reader.readBoolean();
+                writer.writeBoolean(present);
+                if (present) {
+                    writer.writePositionRaw(reader.readPositionRaw());
+                }
+            }
+            case 12 -> writer.writeVarInt(reader.readVarInt());
+            case 13 -> {
+                boolean present = reader.readBoolean();
+                writer.writeBoolean(present);
+                if (present) {
+                    writer.writeBytes(reader.readBytes(16));
+                }
+            }
+            case 14 -> writer.writeVarInt(to759
+                    ? RegistryRemapper.mapBlockState757To759(reader.readVarInt())
+                    : RegistryRemapper.mapBlockState759To757(reader.readVarInt()));
+            case 15 -> {
+                int state = reader.readVarInt();
+                writer.writeVarInt(state == 0 ? 0 : (to759
+                        ? RegistryRemapper.mapBlockState757To759(state)
+                        : RegistryRemapper.mapBlockState759To757(state)));
+            }
+            case 16 -> writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+            case 17 -> {
+                if (to759) {
+                    translateParticle757To759(reader, writer);
+                } else {
+                    translateParticle759To757(reader, writer);
+                }
+            }
+            case 18 -> {
+                // 村人データ（種別・職業・レベル）。
+                writer.writeVarInt(reader.readVarInt());
+                writer.writeVarInt(reader.readVarInt());
+                writer.writeVarInt(reader.readVarInt());
+            }
+            case 19 -> writer.writeVarInt(reader.readVarInt());
+            case 20 -> writer.writeVarInt(reader.readVarInt());
+            case 21 -> writer.writeVarInt(reader.readVarInt());
+            case 22 -> writer.writeVarInt(reader.readVarInt());
+            case 23 -> {
+                boolean present = reader.readBoolean();
+                writer.writeBoolean(present);
+                if (present) {
+                    writer.writeString(reader.readString());
+                    writer.writePositionRaw(reader.readPositionRaw());
+                }
+            }
+            case 24 -> writer.writeVarInt(reader.readVarInt());
+            case 25 -> writer.writeVarInt(reader.readVarInt());
+            case 26 -> {
+                writer.writeFloat(reader.readFloat());
+                writer.writeFloat(reader.readFloat());
+                writer.writeFloat(reader.readFloat());
+            }
+            case 27 -> {
+                writer.writeFloat(reader.readFloat());
+                writer.writeFloat(reader.readFloat());
+                writer.writeFloat(reader.readFloat());
+                writer.writeFloat(reader.readFloat());
+            }
+            default -> throw new IllegalArgumentException("未知のメタデータ型です: " + type);
+        }
+    }
+
+    /**
+     * Sound Effect（757 → 759）。音は両方とも素の VarInt ID。
+     * 759 にだけある seed（i64）に 0 を入れる。
+     */
+    public static byte[] translateSoundEffect757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapSound757To759(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeInt(reader.readInt());
+            writer.writeInt(reader.readInt());
+            writer.writeInt(reader.readInt());
+            writer.writeFloat(reader.readFloat());
+            writer.writeFloat(reader.readFloat());
+            writer.writeLong(0L); // seed（757 には無い）
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Sound Effect（759 → 757）。音は両方とも素の VarInt ID。
+     * 759 にだけある seed（i64）を落とす。
+     */
+    public static byte[] translateSoundEffect759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapSound759To757(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeInt(reader.readInt());
+            writer.writeInt(reader.readInt());
+            writer.writeInt(reader.readInt());
+            writer.writeFloat(reader.readFloat());
+            writer.writeFloat(reader.readFloat());
+            reader.readLong(); // seed（757 には無い）
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Sound Effect（757 → 759）。759 にだけある seed（i64）に 0 を入れる。 */
+    public static byte[] translateEntitySoundEffect757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapSound757To759(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeFloat(reader.readFloat());
+            writer.writeFloat(reader.readFloat());
+            writer.writeLong(0L); // seed（757 には無い）
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Sound Effect（759 → 757）。759 にだけある seed（i64）を落とす。 */
+    public static byte[] translateEntitySoundEffect759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapSound759To757(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeFloat(reader.readFloat());
+            writer.writeFloat(reader.readFloat());
+            reader.readLong(); // seed（757 には無い）
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Named Sound Effect（757 → 759）。名前で音を指定する形式。
+     * 759 にだけある seed（i64）に 0 を入れる。
+     */
+    public static byte[] translateNamedSoundEffect757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String name = reader.readString();
+            int category = reader.readVarInt();
+            int x = reader.readInt();
+            int y = reader.readInt();
+            int z = reader.readInt();
+            float volume = reader.readFloat();
+            float pitch = reader.readFloat();
+            
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(RegistryRemapper.mapSoundName757To759(name));
+            writer.writeVarInt(category);
+            writer.writeInt(x);
+            writer.writeInt(y);
+            writer.writeInt(z);
+            writer.writeFloat(volume);
+            writer.writeFloat(pitch);
+            writer.writeLong(0L); // seed（757 には無い）
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Named Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Named Sound Effect（759 → 757）。名前で音を指定する形式。
+     * 759 にだけある seed（i64）を落とす。
+     */
+    public static byte[] translateNamedSoundEffect759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String name = reader.readString();
+            int category = reader.readVarInt();
+            int x = reader.readInt();
+            int y = reader.readInt();
+            int z = reader.readInt();
+            float volume = reader.readFloat();
+            float pitch = reader.readFloat();
+            reader.readLong(); // seed（757 には無い）
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(RegistryRemapper.mapSoundName759To757(name));
+            writer.writeVarInt(category);
+            writer.writeInt(x);
+            writer.writeInt(y);
+            writer.writeInt(z);
+            writer.writeFloat(volume);
+            writer.writeFloat(pitch);
+            
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Named Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Stop Sound（757 → 759）。
+     * flags の bit 0 は音源（VarInt）、bit 1 は音の名前（文字列）。
+     * 名前は 757に無い音なら代替の音の名前にする。
+     */
+    public static byte[] translateStopSound757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int flags = reader.readByte();
+            Writer writer = new Writer();
+            writer.writeByte(flags);
+            if ((flags & 0x01) != 0) {
+                writer.writeVarInt(reader.readVarInt());
+            }
+            if ((flags & 0x02) != 0) {
+                writer.writeString(RegistryRemapper.mapSoundName757To759(reader.readString()));
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Stop Sound を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Stop Sound（759 → 757）。
+     * flags の bit 0 は音源（VarInt）、bit 1 は音の名前（文字列）。
+     * 名前は 759に無い音なら代替の音の名前にする。
+     */
+    public static byte[] translateStopSound759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int flags = reader.readByte();
+            Writer writer = new Writer();
+            writer.writeByte(flags);
+            if ((flags & 0x01) != 0) {
+                writer.writeVarInt(reader.readVarInt());
+            }
+            if ((flags & 0x02) != 0) {
+                writer.writeString(RegistryRemapper.mapSoundName759To757(reader.readString()));
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Stop Sound を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    /**
+     * 粒子1個の読み取り結果。データの並びは読み側（送信元）の番号で決まるため、
+     * 読み側のIDを保持し、書き側はそれで分岐する。スロットとブロック状態は
+     * 読み取り時に付け替え済みの値（書き側の番号）を保持する。
+     */
+    private static final class ParsedParticle757 {
+        int id;
+        int blockState;
+        float[] floats;
+        byte[] slotBytes;
+        String positionType;
+        int entityId;
+        int eyeHeight;
+        long destPos;
+        int destEntity;
+        int ticks;
+        boolean blockDest;
+    }
+
+    /**
+     * 759形式の粒子データ1個を読む（IDは呼び出し側で読む）。データを持つ粒子は
+     * 759の番号で分岐する（protocol.json の particleData で実測）。
+     * block=2・block_marker=3・falling_dust=25：ブロック状態ID。
+     * dust=14：4 float。dust_color_transition=15：7 float。
+     * sculk_charge=30：回転1 float（757の代替 soul にはデータが無いため読んで捨てる）。
+     * item=39：スロット。vibration=40：位置種別＋行き先＋tick数。
+     * shriek=92：遅延tick数（757の代替 sweep_attack にはデータが無いため読んで捨てる）。
+     * 759にだけある sonic_boom（24）・sculk_soul（29）・sculk_charge（30）は
+     * RegistryRemapper で explosion／soul に写す（データ無し）。
+     */
+    private static ParsedParticle757 readParticleData759(Reader reader, int id) {
+        ParsedParticle757 particle = new ParsedParticle757();
+        particle.id = id;
+        switch (id) {
+            case 2, 3, 25 -> particle.blockState =
+                    RegistryRemapper.mapBlockState759To757(reader.readVarInt());
+            case 14 -> {
+                particle.floats = new float[4];
+                for (int i = 0; i < 4; i++) {
+                    particle.floats[i] = reader.readFloat();
+                }
+            }
+            case 15 -> {
+                particle.floats = new float[7];
+                for (int i = 0; i < 7; i++) {
+                    particle.floats[i] = reader.readFloat();
+                }
+            }
+            case 30 -> reader.readFloat(); // sculk_charge の回転：代替にはデータ無し
+            case 39 -> {
+                Writer slotWriter = new Writer();
+                translateSlot759To757(reader, slotWriter);
+                particle.slotBytes = slotWriter.bytes();
+            }
+            case 40 -> readVibration759(reader, particle);
+            case 92 -> reader.readVarInt(); // shriek の遅延：代替にはデータ無し
+            default -> {
+                // その他の粒子にデータは無い。
+            }
+        }
+        return particle;
+    }
+
+    /** 759形式の vibration 粒子のデータを読む（protocol.json で実測）。 */
+    private static void readVibration759(Reader reader, ParsedParticle757 particle) {
+        particle.positionType = reader.readString();
+        if ("minecraft:entity".equals(particle.positionType)) {
+            particle.entityId = reader.readVarInt();
+            particle.eyeHeight = reader.readVarInt();
+        }
+        if ("minecraft:block".equals(particle.positionType)) {
+            particle.blockDest = true;
+            particle.destPos = reader.readPositionRaw();
+        } else if ("minecraft:entity".equals(particle.positionType)) {
+            particle.destEntity = reader.readVarInt();
+        }
+        particle.ticks = reader.readVarInt();
+    }
+
+    /**
+     * 759で読んだ粒子を757形式で書く（IDは呼び出し側で書く。World Particles の
+     * 757 の粒子IDは i32、Entity Metadata の粒子IDは varint のため）。
+     * vibration は757にだけある origin を付ける（呼び出し側が渡す。World Particles
+     * ではパケットの x／y／z、Entity Metadata では (0, 0, 0)）。
+     * entityId・eyeHeight は757には無いため落とす。
+     */
+    private static void writeParticleData757(Writer writer, ParsedParticle757 particle, long origin) {
+        switch (particle.id) {
+            case 2, 3, 25 -> writer.writeVarInt(particle.blockState);
+            case 14, 15 -> {
+                for (float value : particle.floats) {
+                    writer.writeFloat(value);
+                }
+            }
+            case 39 -> writer.writeBytes(particle.slotBytes);
+            case 40 -> {
+                writer.writePositionRaw(origin);
+                writer.writeString(particle.positionType);
+                if (particle.blockDest) {
+                    writer.writePositionRaw(particle.destPos);
+                } else if ("minecraft:entity".equals(particle.positionType)) {
+                    writer.writeVarInt(particle.destEntity);
+                }
+                writer.writeVarInt(particle.ticks);
+            }
+            default -> {
+                // sculk_charge／shriek 等の代替先にデータは無い。
+            }
+        }
+    }
+
+    /**
+     * 757形式の粒子データ1個を読む（IDは呼び出し側で読む）。データを持つ粒子は
+     * 757の番号で分岐する（protocol.json の particleData で実測）。
+     * block=2・block_marker=3・falling_dust=24：ブロック状態ID。
+     * dust=14：4 float。dust_color_transition=15：7 float。
+     * item=35：スロット。vibration=36：origin＋位置種別＋行き先＋tick数。
+     */
+    private static ParsedParticle757 readParticleData757(Reader reader, int id) {
+        ParsedParticle757 particle = new ParsedParticle757();
+        particle.id = id;
+        switch (id) {
+            case 2, 3, 24 -> particle.blockState =
+                    RegistryRemapper.mapBlockState757To759(reader.readVarInt());
+            case 14 -> {
+                particle.floats = new float[4];
+                for (int i = 0; i < 4; i++) {
+                    particle.floats[i] = reader.readFloat();
+                }
+            }
+            case 15 -> {
+                particle.floats = new float[7];
+                for (int i = 0; i < 7; i++) {
+                    particle.floats[i] = reader.readFloat();
+                }
+            }
+            case 35 -> {
+                Writer slotWriter = new Writer();
+                translateSlot757To759(reader, slotWriter);
+                particle.slotBytes = slotWriter.bytes();
+            }
+            case 36 -> readVibration757(reader, particle);
+            default -> {
+                // その他の粒子にデータは無い。
+            }
+        }
+        return particle;
+    }
+
+    /** 757形式の vibration 粒子のデータを読む。origin は757にだけあるため読んで捨てる。 */
+    private static void readVibration757(Reader reader, ParsedParticle757 particle) {
+        reader.readPositionRaw(); // origin（759には無い）
+        particle.positionType = reader.readString();
+        if ("minecraft:block".equals(particle.positionType)) {
+            particle.blockDest = true;
+            particle.destPos = reader.readPositionRaw();
+        } else if ("minecraft:entity".equals(particle.positionType)) {
+            particle.destEntity = reader.readVarInt();
+        }
+        particle.ticks = reader.readVarInt();
+    }
+
+    /**
+     * 757で読んだ粒子を759形式で書く（IDは呼び出し側で書く）。
+     * vibration は origin を落とす。entity の行き先では、759の entityId・eyeHeight
+     * に行き先のエンティティIDと 0 を入れる（ベストエフォート。実機未確認）。
+     */
+    private static void writeParticleData759(Writer writer, ParsedParticle757 particle) {
+        switch (particle.id) {
+            case 2, 3, 24 -> writer.writeVarInt(particle.blockState);
+            case 14, 15 -> {
+                for (float value : particle.floats) {
+                    writer.writeFloat(value);
+                }
+            }
+            case 35 -> writer.writeBytes(particle.slotBytes);
+            case 36 -> {
+                writer.writeString(particle.positionType);
+                if ("minecraft:entity".equals(particle.positionType)) {
+                    writer.writeVarInt(particle.destEntity); // entityId（ベストエフォート）
+                    writer.writeVarInt(0); // eyeHeight（757には無いため 0）
+                }
+                if (particle.blockDest) {
+                    writer.writePositionRaw(particle.destPos);
+                } else if ("minecraft:entity".equals(particle.positionType)) {
+                    writer.writeVarInt(particle.destEntity);
+                }
+                writer.writeVarInt(particle.ticks);
+            }
+            default -> {
+                // その他の粒子にデータは無い。
+            }
+        }
+    }
+
+    /** 粒子1個（ID VarInt＋データ）を 759 → 757 向けに変換する。vibration の origin は (0, 0, 0)。 */
+    private static void translateParticle759To757(Reader reader, Writer writer) {
+        int particleId = reader.readVarInt();
+        ParsedParticle757 particle = readParticleData759(reader, particleId);
+        writer.writeVarInt(RegistryRemapper.mapParticle759To757(particleId));
+        writeParticleData757(writer, particle, 0L);
+    }
+
+    /** 粒子1個（ID VarInt＋データ）を 757 → 759 向けに変換する。 */
+    private static void translateParticle757To759(Reader reader, Writer writer) {
+        int particleId = reader.readVarInt();
+        ParsedParticle757 particle = readParticleData757(reader, particleId);
+        writer.writeVarInt(RegistryRemapper.mapParticle757To759(particleId));
+        writeParticleData759(writer, particle);
+    }
+
+    /**
+     * World Particles（759 → 757）。パケットの粒子IDは 759 が varint、757 が i32。
+     * vibration の origin にはパケットの x／y／z（ブロック座標に切り捨て）を使う。
+     */
+    public static byte[] translateWorldParticles759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int particleId = reader.readVarInt();
+            ParsedParticle757 particle = readParticleData759(reader, particleId);
+            boolean longDistance = reader.readBoolean();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            float offsetX = reader.readFloat();
+            float offsetY = reader.readFloat();
+            float offsetZ = reader.readFloat();
+            float speed = reader.readFloat();
+            int count = reader.readInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeInt(RegistryRemapper.mapParticle759To757(particleId));
+            writeParticleData757(writer, particle, packPosition757(
+                    (int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z)));
+            writer.writeBoolean(longDistance);
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeFloat(offsetX);
+            writer.writeFloat(offsetY);
+            writer.writeFloat(offsetZ);
+            writer.writeFloat(speed);
+            writer.writeInt(count);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Particles を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** World Particles（757 → 759）。パケットの粒子IDを i32 から varint に直す。 */
+    public static byte[] translateWorldParticles757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int particleId = reader.readInt();
+            ParsedParticle757 particle = readParticleData757(reader, particleId);
+            boolean longDistance = reader.readBoolean();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            float offsetX = reader.readFloat();
+            float offsetY = reader.readFloat();
+            float offsetZ = reader.readFloat();
+            float speed = reader.readFloat();
+            int count = reader.readInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapParticle757To759(particleId));
+            writeParticleData759(writer, particle);
+            writer.writeBoolean(longDistance);
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeFloat(offsetX);
+            writer.writeFloat(offsetY);
+            writer.writeFloat(offsetZ);
+            writer.writeFloat(speed);
+            writer.writeInt(count);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Particles を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    /**
+     * Entity Effect（759 → 757）。エフェクトIDは 1〜32 が恒等、darkness（33）は
+     * 757 に無いためパケットごと落とす（{@code null} を返す）。
+     * 759 の factorCodec（option NBT）は 757 には無いため読んで捨てる。
+     * エフェクトIDは 759 が varint、757 が i8。
+     */
+    public static byte[] translateEntityEffect759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            int effectId = reader.readVarInt();
+            int amplifier = reader.readByte();
+            int duration = reader.readVarInt();
+            int hideParticles = reader.readByte();
+            boolean hasFactor = reader.readBoolean();
+            if (hasFactor) {
+                reader.readNamedNbt();
+            }
+            requireEnd(reader);
+            int mapped = RegistryRemapper.mapEffect759To757(effectId);
+            if (mapped == RegistryRemapper.DROP) {
+                LOG.warning("757に無いエフェクト（759 effect=" + effectId
+                        + "）の Entity Effect を落とします。");
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeByte(mapped);
+            writer.writeByte(amplifier);
+            writer.writeVarInt(duration);
+            writer.writeByte(hideParticles);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Effect（757 → 759）。factorCodec は無しで書く。 */
+    public static byte[] translateEntityEffect757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            int effectId = reader.readByte();
+            int amplifier = reader.readByte();
+            int duration = reader.readVarInt();
+            int hideParticles = reader.readByte();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeVarInt(RegistryRemapper.mapEffect757To759(effectId));
+            writer.writeByte(amplifier);
+            writer.writeVarInt(duration);
+            writer.writeByte(hideParticles);
+            writer.writeBoolean(false); // factorCodec 無し
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Remove Entity Effect（759 → 757）。darkness（33）はパケットごと落とす。 */
+    public static byte[] translateRemoveEntityEffect759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            int effectId = reader.readVarInt();
+            requireEnd(reader);
+            int mapped = RegistryRemapper.mapEffect759To757(effectId);
+            if (mapped == RegistryRemapper.DROP) {
+                LOG.warning("757に無いエフェクト（759 effect=" + effectId
+                        + "）の Remove Entity Effect を落とします。");
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeByte(mapped);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Remove Entity Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Remove Entity Effect（757 → 759）。 */
+    public static byte[] translateRemoveEntityEffect757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            int effectId = reader.readByte();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeVarInt(RegistryRemapper.mapEffect757To759(effectId));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Remove Entity Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // サーバー行き（757 <=> 759）
+    // ------------------------------------------------------------------
+
+    /**
+     * Entity Destroy（757 → 759）。757 は [entityId varint] 1体だけだが、
+     * 759 は [count varint][entityIds] の配列のため、count 1 の配列にする
+     * （translateEntityDestroy755To756 と同じ段取り）。
+     */
+    public static byte[] translateEntityDestroy757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(1); // count
+            writer.writeVarInt(reader.readVarInt()); // entityId
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Destroy を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Entity Destroy（759 → 757）。759 の配列が1体だけのとき単体に直す。
+     * count 0 は消すものが無いので落として正しく、count 2以上は757の
+     * 1パケットでは表せないためパケットごと落とす（null を返す。
+     * 分割して送るには ProxySession 側の対応が要る）。
+     * 呼び出し元は無い（759サーバー→757クライアントの汎用パケットは
+     * handleServerPlayFrom763 で落とす設計のため。変換器だけ作っておく）。
+     */
+    public static byte[] translateEntityDestroy759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Entity Destroy の件数が負です: " + count);
+            }
+            if (count != 1) {
+                LOG.warning("757 では表せない Entity Destroy（count=" + count + "）を落とします。");
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt()); // entityId
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Destroy を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Window Click（757 → 759）。変更スロットとカーソルを759向けにする。 */
+    public static byte[] translateWindowClick757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte());
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeShort(reader.readShort());
+            writer.writeByte(reader.readByte());
+            writer.writeVarInt(reader.readVarInt());
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Click の個数が負です: " + count);
+            }
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                writer.writeShort(reader.readShort());
+                translateSlot757To759(reader, writer);
+            }
+            translateSlot757To759(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Click を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Window Click（759 → 757）。変更スロットとカーソルを757向けにする。 */
+    public static byte[] translateWindowClick759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte());
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeShort(reader.readShort());
+            writer.writeByte(reader.readByte());
+            writer.writeVarInt(reader.readVarInt());
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Click の個数が負です: " + count);
+            }
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                writer.writeShort(reader.readShort());
+                translateSlot759To757(reader, writer);
+            }
+            translateSlot759To757(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Click を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Creative Slot（757 → 759）。 */
+    public static byte[] translateSetCreativeSlot757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeShort(reader.readShort());
+            translateSlot757To759(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Creative Slot を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Creative Slot（759 → 757）。 */
+    public static byte[] translateSetCreativeSlot759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeShort(reader.readShort());
+            translateSlot759To757(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Creative Slot を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Enchant Item（757 → 759）。エンチャントIDは両方とも i8。
+     * 範囲外のIDはパケットごと落とす。
+     */
+    public static byte[] translateEnchantItem757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int windowId = reader.readByte();
+            int enchantment = reader.readByte();
+            requireEnd(reader);
+            int mapped = RegistryRemapper.mapEnchantment757To759(enchantment);
+            if (mapped == RegistryRemapper.DROP) {
+                LOG.warning("759に無いエンチャント（757 enchantment=" + enchantment
+                        + "）の Enchant Item を落とします。");
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writeByte(windowId);
+            writer.writeByte(mapped);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Enchant Item を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Enchant Item（759 → 757）。エンチャントIDは両方とも i8。
+     * swift_sneak（759=12）は 757 に無いためパケットごと落とす。別エンチャントへの付け替えは誤ったエンチャントになるためしない。
+     */
+    public static byte[] translateEnchantItem759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int windowId = reader.readByte();
+            int enchantment = reader.readByte();
+            requireEnd(reader);
+            int mapped = RegistryRemapper.mapEnchantment759To757(enchantment);
+            if (mapped == RegistryRemapper.DROP) {
+                LOG.warning("757に無いエンチャント（759 enchantment=" + enchantment
+                        + "）の Enchant Item を落とします。");
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writeByte(windowId);
+            writer.writeByte(mapped);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Enchant Item を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ---------------------------------------------------------------
+    // 757 <=> 759：World Border（統合ステップで追加）
+    // speed だけが varlong（757）→ varint（759）で、それ以外は同一。
+    // フィールド構成は minecraft-data protocol.json（mc-1.18／mc-1.19）で実測。
+    // ---------------------------------------------------------------
+
+    /**
+     * Initialize World Border（757 → 759）。{x f64, z f64, oldDiameter f64,
+     * newDiameter f64, speed varlong→varint, portalTeleportBoundary varint,
+     * warningBlocks varint, warningTime varint}。speed は64ビット→32ビットへの切り詰め。
+     */
+    public static byte[] translateInitializeWorldBorder757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            double x = reader.readDouble();
+            double z = reader.readDouble();
+            double oldDiameter = reader.readDouble();
+            double newDiameter = reader.readDouble();
+            long speed = reader.readVarLong();
+            int portalTeleportBoundary = reader.readVarInt();
+            int warningBlocks = reader.readVarInt();
+            int warningTime = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeDouble(x);
+            writer.writeDouble(z);
+            writer.writeDouble(oldDiameter);
+            writer.writeDouble(newDiameter);
+            writer.writeVarInt((int) speed);
+            writer.writeVarInt(portalTeleportBoundary);
+            writer.writeVarInt(warningBlocks);
+            writer.writeVarInt(warningTime);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Initialize World Border を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Initialize World Border（759 → 757）。speed を varint から varlong に戻す。 */
+    public static byte[] translateInitializeWorldBorder759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            double x = reader.readDouble();
+            double z = reader.readDouble();
+            double oldDiameter = reader.readDouble();
+            double newDiameter = reader.readDouble();
+            int speed = reader.readVarInt();
+            int portalTeleportBoundary = reader.readVarInt();
+            int warningBlocks = reader.readVarInt();
+            int warningTime = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeDouble(x);
+            writer.writeDouble(z);
+            writer.writeDouble(oldDiameter);
+            writer.writeDouble(newDiameter);
+            writer.writeVarLong(speed);
+            writer.writeVarInt(portalTeleportBoundary);
+            writer.writeVarInt(warningBlocks);
+            writer.writeVarInt(warningTime);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Initialize World Border を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * World Border Lerp Size（757 → 759）。{oldDiameter f64, newDiameter f64,
+     * speed varlong→varint}。speed は64ビット→32ビットへの切り詰め。
+     */
+    public static byte[] translateWorldBorderLerpSize757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            double oldDiameter = reader.readDouble();
+            double newDiameter = reader.readDouble();
+            long speed = reader.readVarLong();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeDouble(oldDiameter);
+            writer.writeDouble(newDiameter);
+            writer.writeVarInt((int) speed);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Border Lerp Size を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** World Border Lerp Size（759 → 757）。speed を varint から varlong に戻す。 */
+    public static byte[] translateWorldBorderLerpSize759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            double oldDiameter = reader.readDouble();
+            double newDiameter = reader.readDouble();
+            int speed = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeDouble(oldDiameter);
+            writer.writeDouble(newDiameter);
+            writer.writeVarLong(speed);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Border Lerp Size を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Enchant Item（775 → 757）。775は {windowId varint（ContainerID）, enchantment varint}、
+     * 757は {windowId i8, enchantment i8}。エンチャントIDは775→767→766→765の合成表で
+     * 765まで戻し、765→759は同一順序（39件。minecraft-data enchantments-1.19.json と
+     * enchantments-1.20.json が同一順序であることを実測済み）のためそのまま写し、
+     * 759→757で swift_sneak のずれを直す。範囲外・DROP の場合はパケットごと落とす。
+     */
+    public static byte[] translateEnchantItem775To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int windowId = reader.readVarInt();
+            int enchantment = reader.readVarInt();
+            requireEnd(reader);
+            int id767 = RegistryRemapper.mapEnchantment775To767(enchantment);
+            if (id767 == RegistryRemapper.DROP) {
+                LOG.warning("767に無いエンチャント（775 enchantment=" + enchantment
+                        + "）の Enchant Item を落とします。");
+                return null;
+            }
+            int id766 = RegistryRemapper.mapEnchantment767To766(id767);
+            if (id766 == RegistryRemapper.DROP) {
+                LOG.warning("766に無いエンチャント（775 enchantment=" + enchantment
+                        + "）の Enchant Item を落とします。");
+                return null;
+            }
+            int id765 = RegistryRemapper.mapEnchantment766To765(id766);
+            if (id765 == RegistryRemapper.DROP) {
+                LOG.warning("765に無いエンチャント（775 enchantment=" + enchantment
+                        + "）の Enchant Item を落とします。");
+                return null;
+            }
+            // 765→759は同一順序のためそのまま写す。
+            int mapped = RegistryRemapper.mapEnchantment759To757(id765);
+            if (mapped == RegistryRemapper.DROP) {
+                LOG.warning("757に無いエンチャント（775 enchantment=" + enchantment
+                        + "）の Enchant Item を落とします。");
+                return null;
+            }
+            if (windowId < -128 || windowId > 127 || mapped < -128 || mapped > 127) {
+                LOG.warning("757の i8 に収まらない Enchant Item（windowId=" + windowId
+                        + "、enchantment=" + enchantment + "）を落とします。");
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writeByte(windowId);
+            writer.writeByte(mapped);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Enchant Item を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Enchant Item（767 → 757）。767の {windowId varint, enchantment varint} を
+     * 757の {windowId i8, enchantment i8} に直す。エンチャントIDは
+     * 767→766→765→759→757の連鎖で写す（765→759は同一順序）。
+     * 767に無いエンチャント・i8に収まらない値は null を返し、呼び出し側が落とす。
+     * 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
+     * （767の enchant_item は1.21.1の mc-1.21.1-protocol.json で
+     * {windowId ContainerID, enchantment varint} を確認。）
+     */
+    public static byte[] translateEnchantItem767To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int windowId = reader.readVarInt();
+            int enchantment = reader.readVarInt();
+            requireEnd(reader);
+            int id766 = RegistryRemapper.mapEnchantment767To766(enchantment);
+            if (id766 == RegistryRemapper.DROP) {
+                LOG.warning("766に無いエンチャント（767 enchantment=" + enchantment
+                        + "）の Enchant Item を落とします。");
+                return null;
+            }
+            int id765 = RegistryRemapper.mapEnchantment766To765(id766);
+            if (id765 == RegistryRemapper.DROP) {
+                LOG.warning("765に無いエンチャント（767 enchantment=" + enchantment
+                        + "）の Enchant Item を落とします。");
+                return null;
+            }
+            // 765→759は同一順序のためそのまま写す。
+            int mapped = RegistryRemapper.mapEnchantment759To757(id765);
+            if (mapped == RegistryRemapper.DROP) {
+                LOG.warning("757に無いエンチャント（767 enchantment=" + enchantment
+                        + "）の Enchant Item を落とします。");
+                return null;
+            }
+            if (windowId < -128 || windowId > 127 || mapped < -128 || mapped > 127) {
+                LOG.warning("757の i8 に収まらない Enchant Item（windowId=" + windowId
+                        + "、enchantment=" + enchantment + "）を落とします。");
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writeByte(windowId);
+            writer.writeByte(mapped);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Enchant Item を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // 756 <=> 757（1.17.1 <=> 1.18／1.18.1）
+    // パケットIDは ProxySession が付け替える（Chunk Data 0x22／0x22、
+    // Join Game 0x26／0x26。PacketIds.java の 756 列で実測）。
+    // ペイロードの差は protocol.json（mc-1.17.1-protocol.json／
+    // mc-1.18-protocol.json、minecraft-data）で実測し、チャンク形式は
+    // 実バニラ 1.17.1 サーバーからの生キャプチャと両バージョンの jar の
+    // javap（公式 server_mappings.txt 付き）で裏付けた。
+    // 756・757 ともデータコンポーネントは無い（NBT 時代。1.20.5／766 で追加）
+    // ため、スロットは [present bool][id VarInt][個数 i8][任意の名前付き NBT]
+    // で、NBT は素通しする。
+    // [実測したチャンク形式の違い]
+    // 756 の Chunk Data は {x i32, z i32, bitMap varint[i64], heightmaps NBT,
+    // biomes varint[1024], chunkData buffer, blockEntities varint[NBT]}。
+    // 757 は {x i32, z i32, heightmaps NBT, chunkData buffer,
+    // blockEntities varint[chunkBlockEntity], trustEdges bool, 光データ}。
+    // 756 のセクションは16個（y 0〜15、0〜256）。757 は24個（y -4〜19、
+    // -64〜320）。756→757 では下（y -4〜-1）と上（y 16〜19）に空セクションを
+    // 補完し、757→756 ではその8個を落とす。756 の bitMap に無いセクションは
+    // 空（air）として補完する。757→756 では blockCount が 0 のセクションは
+    // bitMap に立てず、chunkData にも書かない（実バニラ 1.17.1 と同じ扱い）。
+    // 756 のバイオームはチャンク全体の int[1024]（index = (y>>2)*16 +
+    // (z>>2)*4 + (x>>2)。ChunkBiomeContainer の javap で確認）。757 は
+    // セクションごとのバイオームパレット。セクション s の 64 件は 756 配列の
+    // [64*s, 64*s+64) とちょうど一致する（どちらも y 主・x 従の並び）。
+    // セクション内部は両方とも [blockCount i16][ブロックのパレット付き
+    // コンテナ]（756 はバイオームコンテナ無し、757 は後ろにバイオームの
+    // パレット付きコンテナが付く）。BitStorage は両方とも non-straddling
+    // （SimpleBitStorage。実バニラ 1.17.1 の生キャプチャで BPE 5 の Data Array
+    // 長が 342＝ceil(4096/12) であることと、1.17.1／1.18 の jar の javap
+    // （BitStorage.get が cell = index / (64/bits) で読む）で確認）。
+    // 直接パレットの Data Array 長は (entryCount + perLong - 1) / perLong
+    // （perLong = 64 / bits）で検証する。straddling 前提の (entryCount * bits
+    // + 63) / 64 は使わない（757 節の直接パレット経路は straddling 前提だが、
+    // 実バニラ 1.18 は non-straddling のため食い違う。757 ノート §14.2.4 の
+    // 判断待ち。757 節は直していない）。
+    // heightmaps NBT は両方とも名前付き（ルート名は空文字）で素通しする。
+    // 光データは 756 の Chunk Data には無く、別パケットの Update Light で
+    // 送る。757→756 では Chunk Data から光を落とし、
+    // extractUpdateLightFromChunkData757 で 756 形式の Update Light を
+    // 別途作れる（ProxySession への配線は親の担当）。756→757 では空の光
+    // （マスク 0・配列 0・trustEdges false）を合成する。
+    // ブロックエンティティ：756 は NBT そのもの（id／x／y／z を含む。実バニラ
+    // 1.17.1 の生キャプチャで確認。getUpdateTag()＝save() がメタデータを
+    // 含むため）。757 は {packedXZ u8, y i16, type varint, data optionalNbt}
+    // で、data は getUpdateTag()＝saveWithoutMetadata()（id／x／y／z 無し。
+    // 1.18 の jar の javap で確認）。変換時に id／x／y／z を剥がす／付ける。
+    // 種別は両方とも 34 件・同一順序のため番号は恒等写像。
+    // [作らない変換器（形式が同一でレジストリ番号を持たないため）]
+    // Block Change（位置＋ブロック状態。ブロック状態は 20,342 件・同一順序）、
+    // Spawn Entity／Spawn Entity Living／Named Entity Spawn（フィールド・
+    // エンティティ種別とも同一。113 件）、Open Window（メニュー 24 件・同一）、
+    // Block Action（ブロック 898 件・同一）、Entity Effect／Remove Entity
+    // Effect（effectId i8。エフェクト 32 件・同一）、Explosion（全フィールド
+    // 同一）、Update Attributes（属性名は文字列で同一）、Enchant Item
+    // （{windowId i8, enchantment i8}。エンチャント 38 件・同一）、
+    // Initialize World Border／World Border Lerp Size（speed は両方とも
+    // varlong）。Multi Block Change のレコードは両方とも varlong で
+    // ブロック状態も同一のため、y の範囲チェック以外は素通しする。
+    // メタデータの型番号は 1.17／1.18 で同一（0〜18。EntityDataSerializers
+    // の登録順を両バージョンの jar の javap で確認。757 節のメタデータ読みは
+    // 1.19 の番号付けのため 757 には使えない。757 ノート §14.2.4 の判断待ち）。
+    // ------------------------------------------------------------------
+
+    /** ブロックエンティティ種別名（protocol_id 順。756・757 とも同一）。 */
+    private static final String[] BLOCK_ENTITY_TYPE_NAMES_756 = {
+        "minecraft:furnace", "minecraft:chest", "minecraft:trapped_chest",
+        "minecraft:ender_chest", "minecraft:jukebox", "minecraft:dispenser",
+        "minecraft:dropper", "minecraft:sign", "minecraft:mob_spawner",
+        "minecraft:piston", "minecraft:brewing_stand", "minecraft:enchanting_table",
+        "minecraft:end_portal", "minecraft:beacon", "minecraft:skull",
+        "minecraft:daylight_detector", "minecraft:hopper", "minecraft:comparator",
+        "minecraft:banner", "minecraft:structure_block", "minecraft:end_gateway",
+        "minecraft:command_block", "minecraft:shulker_box", "minecraft:bed",
+        "minecraft:conduit", "minecraft:barrel", "minecraft:smoker",
+        "minecraft:blast_furnace", "minecraft:lectern", "minecraft:bell",
+        "minecraft:jigsaw", "minecraft:campfire", "minecraft:beehive",
+        "minecraft:sculk_sensor",
+    };
+
+    /** ブロックエンティティ種別名 → protocol_id。無ければ -1。 */
+    private static int blockEntityTypeId756(String name) {
+        for (int i = 0; i < BLOCK_ENTITY_TYPE_NAMES_756.length; i++) {
+            if (BLOCK_ENTITY_TYPE_NAMES_756[i].equals(name)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /** 756 のビットマスク（long 列）のビットが立っているか。 */
+    private static boolean bitmaskHas(long[] bitmask, int section) {
+        int index = section / 64;
+        if (index < 0 || index >= bitmask.length) {
+            return false;
+        }
+        return (bitmask[index] & (1L << (section % 64))) != 0;
+    }
+
+
+    // ------------------------------------------------------------------
+    // スロット（756 <=> 757）
+    // ------------------------------------------------------------------
+
+    /** 756のスロット1個を757向けに読む。NBT は名前付きのまま通す。 */
+    public static void translateSlot756To757(Reader reader, Writer writer) {
+        boolean present = reader.readBoolean();
+        writer.writeBoolean(present);
+        if (!present) {
+            return;
+        }
+        translateSlotBody756To757(reader, writer);
+    }
+
+    /** 756のスロットの中身（present の後ろ）を757向けに読む。 */
+    private static void translateSlotBody756To757(Reader reader, Writer writer) {
+        writer.writeVarInt(RegistryRemapper.mapItem756To757(reader.readVarInt()));
+        writer.writeByte(reader.readByte());
+        writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+    }
+
+    /** 757のスロット1個を756向けに読む。NBT は名前付きのまま通す。 */
+    public static void translateSlot757To756(Reader reader, Writer writer) {
+        boolean present = reader.readBoolean();
+        writer.writeBoolean(present);
+        if (!present) {
+            return;
+        }
+        translateSlotBody757To756(reader, writer);
+    }
+
+    /** 757のスロットの中身（present の後ろ）を756向けに読む。 */
+    private static void translateSlotBody757To756(Reader reader, Writer writer) {
+        writer.writeVarInt(RegistryRemapper.mapItem757To756(reader.readVarInt()));
+        writer.writeByte(reader.readByte());
+        writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+    }
+
+
+    // ------------------------------------------------------------------
+    // パレット付きコンテナ（756 <=> 757 共通。BitStorage は non-straddling）
+    // ------------------------------------------------------------------
+
+    /**
+     * ブロックのパレット付きコンテナ1個をそのまま写す（ブロック状態は
+     * 756・757 で同一順序のため付け替えは不要）。Data Array 長は
+     * non-straddling の (entryCount + perLong - 1) / perLong で検証する。
+     */
+    private static void copyBlockContainer756(Reader reader, Writer writer) {
+        int bitsPerEntry = reader.readUnsignedByte();
+        if (bitsPerEntry > 15) {
+            throw new IllegalArgumentException("Bits Per Entry が大きすぎます: " + bitsPerEntry);
+        }
+        writer.writeUnsignedByte(bitsPerEntry);
+        if (bitsPerEntry == 0) {
+            writer.writeVarInt(reader.readVarInt());
+            int dataLength = reader.readVarInt();
+            if (dataLength != 0) {
+                throw new IllegalArgumentException(
+                        "シングルパレットの Data Array 長が 0 ではありません: " + dataLength);
+            }
+            writer.writeVarInt(0);
+            return;
+        }
+        if (bitsPerEntry <= 8) {
+            int paletteLength = reader.readVarInt();
+            if (paletteLength <= 0 || paletteLength > (1 << bitsPerEntry)) {
+                throw new IllegalArgumentException("パレット長が不正です: " + paletteLength);
+            }
+            writer.writeVarInt(paletteLength);
+            for (int i = 0; i < paletteLength; i++) {
+                writer.writeVarInt(reader.readVarInt());
+            }
+        }
+        copyNonStraddlingDataArray(reader, writer, 4096, bitsPerEntry);
+    }
+
+    /** ブロックのパレット付きコンテナ1個を読み飛ばす（検証だけする）。 */
+    private static void skipBlockContainer756(Reader reader) {
+        int bitsPerEntry = reader.readUnsignedByte();
+        if (bitsPerEntry > 15) {
+            throw new IllegalArgumentException("Bits Per Entry が大きすぎます: " + bitsPerEntry);
+        }
+        if (bitsPerEntry == 0) {
+            reader.readVarInt();
+            int dataLength = reader.readVarInt();
+            if (dataLength != 0) {
+                throw new IllegalArgumentException(
+                        "シングルパレットの Data Array 長が 0 ではありません: " + dataLength);
+            }
+            return;
+        }
+        if (bitsPerEntry <= 8) {
+            int paletteLength = reader.readVarInt();
+            if (paletteLength <= 0 || paletteLength > (1 << bitsPerEntry)) {
+                throw new IllegalArgumentException("パレット長が不正です: " + paletteLength);
+            }
+            for (int i = 0; i < paletteLength; i++) {
+                reader.readVarInt();
+            }
+        }
+        int perLong = 64 / bitsPerEntry;
+        int expected = (4096 + perLong - 1) / perLong;
+        int dataLength = reader.readVarInt();
+        if (dataLength != expected) {
+            throw new IllegalArgumentException("Data Array 長が想定と違います: "
+                    + dataLength + "（想定=" + expected + "）。");
+        }
+        reader.readBytes(dataLength * 8);
+    }
+
+    /** Data Array（VarInt 長＋long 列）を non-straddling の長さで検証して写す。 */
+    private static void copyNonStraddlingDataArray(Reader reader, Writer writer,
+            int entryCount, int bitsPerEntry) {
+        int perLong = 64 / bitsPerEntry;
+        int expected = (entryCount + perLong - 1) / perLong;
+        int dataLength = reader.readVarInt();
+        if (dataLength != expected) {
+            throw new IllegalArgumentException("Data Array 長が想定と違います: "
+                    + dataLength + "（想定=" + expected + "）。");
+        }
+        writer.writeVarInt(dataLength);
+        for (int i = 0; i < dataLength; i++) {
+            writer.writeLong(reader.readLong());
+        }
+    }
+
+    /** Data Array（VarInt 長＋long 列）を non-straddling の長さで検証して読む。 */
+    private static long[] readNonStraddlingDataArray(Reader reader,
+            int entryCount, int bitsPerEntry) {
+        int perLong = 64 / bitsPerEntry;
+        int expected = (entryCount + perLong - 1) / perLong;
+        int dataLength = reader.readVarInt();
+        if (dataLength != expected) {
+            throw new IllegalArgumentException("Data Array 長が想定と違います: "
+                    + dataLength + "（想定=" + expected + "）。");
+        }
+        long[] longs = new long[dataLength];
+        for (int i = 0; i < dataLength; i++) {
+            longs[i] = reader.readLong();
+        }
+        return longs;
+    }
+
+    /**
+     * non-straddling の long 列をエントリ列にほぐす（SimpleBitStorage.get と
+     * 同じ読み方。エントリは long の境界をまたがない）。
+     */
+    private static int[] unpackNonStraddling(long[] longs, int bitsPerEntry, int entryCount) {
+        int perLong = 64 / bitsPerEntry;
+        long mask = (1L << bitsPerEntry) - 1;
+        int[] entries = new int[entryCount];
+        for (int i = 0; i < entryCount; i++) {
+            int cell = i / perLong;
+            int offset = (i % perLong) * bitsPerEntry;
+            entries[i] = (int) ((longs[cell] >>> offset) & mask);
+        }
+        return entries;
+    }
+
+    /** エントリ列を non-straddling の long 列に詰める。 */
+    private static long[] packNonStraddling(int[] entries, int bitsPerEntry) {
+        int perLong = 64 / bitsPerEntry;
+        long mask = (1L << bitsPerEntry) - 1;
+        long[] longs = new long[(entries.length + perLong - 1) / perLong];
+        for (int i = 0; i < entries.length; i++) {
+            longs[i / perLong] |= ((long) entries[i] & mask) << ((i % perLong) * bitsPerEntry);
+        }
+        return longs;
+    }
+
+    /**
+     * 757 のバイオームのパレット付きコンテナ1個を読み、64 件のバイオームID
+     * （757 の番号）を返す。BPE 0 はシングル、1〜3 は間接、4〜15 は直接。
+     */
+    private static int[] readBiomeContainer757(Reader reader) {
+        int bitsPerEntry = reader.readUnsignedByte();
+        if (bitsPerEntry > 15) {
+            throw new IllegalArgumentException("バイオームの Bits Per Entry が大きすぎます: "
+                    + bitsPerEntry);
+        }
+        int[] values = new int[64];
+        if (bitsPerEntry == 0) {
+            int value = reader.readVarInt();
+            int dataLength = reader.readVarInt();
+            if (dataLength != 0) {
+                throw new IllegalArgumentException(
+                        "シングルパレットの Data Array 長が 0 ではありません: " + dataLength);
+            }
+            for (int i = 0; i < 64; i++) {
+                values[i] = value;
+            }
+            return values;
+        }
+        if (bitsPerEntry <= 3) {
+            int paletteLength = reader.readVarInt();
+            if (paletteLength <= 0 || paletteLength > (1 << bitsPerEntry)) {
+                throw new IllegalArgumentException("バイオームのパレット長が不正です: "
+                        + paletteLength);
+            }
+            int[] palette = new int[paletteLength];
+            for (int i = 0; i < paletteLength; i++) {
+                palette[i] = reader.readVarInt();
+            }
+            long[] longs = readNonStraddlingDataArray(reader, 64, bitsPerEntry);
+            int[] indices = unpackNonStraddling(longs, bitsPerEntry, 64);
+            for (int i = 0; i < 64; i++) {
+                if (indices[i] >= paletteLength) {
+                    throw new IllegalArgumentException(
+                            "バイオームのパレット添字が範囲外です: " + indices[i]);
+                }
+                values[i] = palette[indices[i]];
+            }
+            return values;
+        }
+        long[] longs = readNonStraddlingDataArray(reader, 64, bitsPerEntry);
+        return unpackNonStraddling(longs, bitsPerEntry, 64);
+    }
+
+    /**
+     * 757 のバイオームのパレット付きコンテナ1個を書く（values は 64 件の
+     * 757 のバイオームID）。1 種類ならシングル、8 種類までなら間接、
+     * それ以上なら直接（6 ビット。757 のバイオームは 61 件のため 6 ビットで足りる）。
+     */
+    private static void writeBiomeContainer757(Writer writer, int[] values) {
+        int[] palette = new int[64];
+        int paletteSize = 0;
+        int[] indices = new int[64];
+        for (int i = 0; i < 64; i++) {
+            int value = values[i];
+            if (value < 0 || value >= 64) {
+                value = RegistryRemapper.PLAINS_BIOME_757;
+                values[i] = value;
+            }
+            int found = -1;
+            for (int j = 0; j < paletteSize; j++) {
+                if (palette[j] == value) {
+                    found = j;
+                    break;
+                }
+            }
+            if (found < 0) {
+                palette[paletteSize] = value;
+                found = paletteSize;
+                paletteSize++;
+            }
+            indices[i] = found;
+        }
+        if (paletteSize == 1) {
+            writer.writeUnsignedByte(0);
+            writer.writeVarInt(palette[0]);
+            writer.writeVarInt(0);
+            return;
+        }
+        if (paletteSize <= 8) {
+            int bits = 1;
+            while ((1 << bits) < paletteSize) {
+                bits++;
+            }
+            writer.writeUnsignedByte(bits);
+            writer.writeVarInt(paletteSize);
+            for (int i = 0; i < paletteSize; i++) {
+                writer.writeVarInt(palette[i]);
+            }
+            long[] longs = packNonStraddling(indices, bits);
+            writer.writeVarInt(longs.length);
+            for (long value : longs) {
+                writer.writeLong(value);
+            }
+            return;
+        }
+        writer.writeUnsignedByte(6);
+        long[] longs = packNonStraddling(values, 6);
+        writer.writeVarInt(longs.length);
+        for (long value : longs) {
+            writer.writeLong(value);
+        }
+    }
+
+    /** 空セクション1個を757形式で書く（ブロック・バイオームともシングルパレット）。 */
+    private static void writeEmptySection757(Writer writer) {
+        writeEmptyBlockContainer757(writer);
+        writer.writeUnsignedByte(0); // バイオーム BPE（シングル）
+        writer.writeVarInt(RegistryRemapper.PLAINS_BIOME_757);
+        writer.writeVarInt(0); // Data Array 長
+    }
+
+    /** 空のブロックコンテナ1個を757形式で書く（blockCount 0・シングル air）。 */
+    private static void writeEmptyBlockContainer757(Writer writer) {
+        writer.writeShort(0); // blockCount
+        writer.writeUnsignedByte(0); // ブロック BPE（シングル）
+        writer.writeVarInt(0); // air
+        writer.writeVarInt(0); // Data Array 長
+    }
+
+
+    // ------------------------------------------------------------------
+    // ブロックエンティティの NBT（756 <=> 757）
+    // ------------------------------------------------------------------
+
+    /**
+     * 756 のブロックエンティティ NBT から id／x／y／z を剥がす（757 の data
+     * 形式にする）。空になれば null を返す（757 では NBT 無しになる）。
+     */
+    private static Tag stripBlockEntityMetadata(Tag tag) {
+        if (!(tag instanceof Tag.CompoundTag compound)) {
+            return tag;
+        }
+        Map<String, Tag> copy = new LinkedHashMap<>(compound.value());
+        copy.remove("id");
+        copy.remove("x");
+        copy.remove("y");
+        copy.remove("z");
+        if (copy.isEmpty()) {
+            return null;
+        }
+        return new Tag.CompoundTag(copy);
+    }
+
+    /**
+     * 757 のブロックエンティティ NBT に id／x／y／z を付ける（756 の形式に
+     * する）。id／x／y／z は先頭に置く（実バニラ 1.17.1 の save() と同じ並び）。
+     */
+    private static Tag withBlockEntityMetadata(Tag tag, String id, int x, int y, int z) {
+        Map<String, Tag> copy = new LinkedHashMap<>();
+        copy.put("id", new Tag.StringTag(id));
+        copy.put("x", new Tag.IntTag(x));
+        copy.put("y", new Tag.IntTag(y));
+        copy.put("z", new Tag.IntTag(z));
+        if (tag instanceof Tag.CompoundTag compound) {
+            for (Map.Entry<String, Tag> entry : compound.value().entrySet()) {
+                String key = entry.getKey();
+                if (!key.equals("id") && !key.equals("x")
+                        && !key.equals("y") && !key.equals("z")) {
+                    copy.put(key, entry.getValue());
+                }
+            }
+        }
+        return new Tag.CompoundTag(copy);
+    }
+
+    /** 756 のブロックエンティティ NBT から座標（IntTag）を1個読む。無ければ null。 */
+    private static Integer blockEntityCoord(Tag.CompoundTag compound, String name) {
+        Tag tag = compound.get(name).orElse(null);
+        return tag instanceof Tag.IntTag intTag ? intTag.value() : null;
+    }
+
+
+    // ------------------------------------------------------------------
+    // Chunk Data（756 <=> 757）
+    // ------------------------------------------------------------------
+
+    /**
+     * Chunk Data（756 0x22 → 757 0x22）。セクションを 16 個から 24 個に広げ、
+     * バイオームを int[1024] からセクションごとのパレットに直し、
+     * ブロックエンティティを NBT 形式から packedXZ／y／type 形式に直す。
+     * 光データは 756 には無いため空の光を合成する（trustEdges false、
+     * マスク 0・配列 0）。読めない場合は素通しする。
+     */
+    public static byte[] translateChunkData756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int chunkX = reader.readInt();
+            int chunkZ = reader.readInt();
+            int maskCount = reader.readVarInt();
+            if (maskCount < 0 || maskCount > 4) {
+                throw new IllegalArgumentException("bitMap の long 数が不正です: " + maskCount);
+            }
+            long[] bitmask = new long[maskCount];
+            for (int i = 0; i < maskCount; i++) {
+                bitmask[i] = reader.readLong();
+            }
+            Nbt.NamedResult heightmaps = reader.readNamedNbt();
+            int biomeCount = reader.readVarInt();
+            if (biomeCount != 1024) {
+                throw new IllegalArgumentException(
+                        "バイオーム配列の件数が 1024 ではありません: " + biomeCount);
+            }
+            int[] biomes = new int[1024];
+            for (int i = 0; i < 1024; i++) {
+                biomes[i] = reader.readVarInt();
+            }
+            int dataLength = reader.readVarInt();
+            byte[] chunkData = reader.readBytes(dataLength);
+            Reader sections = new Reader(chunkData);
+            Writer outSections = new Writer();
+            for (int s = -4; s < 20; s++) {
+                if (s < 0 || s > 15) {
+                    // 756 の範囲外（y -4〜-1・16〜19）はバイオーム情報が無いため空で補完する。
+                    writeEmptySection757(outSections);
+                    continue;
+                }
+                if (!bitmaskHas(bitmask, s)) {
+                    // bitMap に無いセクションもブロックは空だが、バイオーム配列の
+                    // 値は残っているため、そのままバイオームパレットに直す
+                    // （落とすと往復でバイオームが plains に変わってしまう）。
+                    writeEmptyBlockContainer757(outSections);
+                    int[] sectionBiomes = new int[64];
+                    for (int i = 0; i < 64; i++) {
+                        sectionBiomes[i] =
+                                RegistryRemapper.mapBiome756To757(biomes[s * 64 + i]);
+                    }
+                    writeBiomeContainer757(outSections, sectionBiomes);
+                    continue;
+                }
+                int blockCount = sections.readShort();
+                outSections.writeShort(blockCount);
+                copyBlockContainer756(sections, outSections);
+                int[] sectionBiomes = new int[64];
+                for (int i = 0; i < 64; i++) {
+                    sectionBiomes[i] =
+                            RegistryRemapper.mapBiome756To757(biomes[s * 64 + i]);
+                }
+                writeBiomeContainer757(outSections, sectionBiomes);
+            }
+            if (sections.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "チャンクデータに余分なバイトがあります（残り=" + sections.remaining() + "）。");
+            }
+            int blockEntityCount = reader.readVarInt();
+            if (blockEntityCount < 0) {
+                throw new IllegalArgumentException(
+                        "ブロックエンティティの件数が負です: " + blockEntityCount);
+            }
+            List<BlockEntityEntry> kept = new ArrayList<>();
+            for (int i = 0; i < blockEntityCount; i++) {
+                Tag tag = reader.readNamedNbt().tag();
+                if (!(tag instanceof Tag.CompoundTag compound)) {
+                    LOG.warning("756 のブロックエンティティ NBT がコンパウンドではないため落とします。");
+                    continue;
+                }
+                String id = compound.getString("id").orElse(null);
+                Integer x = blockEntityCoord(compound, "x");
+                Integer y = blockEntityCoord(compound, "y");
+                Integer z = blockEntityCoord(compound, "z");
+                if (id == null || x == null || y == null || z == null) {
+                    LOG.warning("756 のブロックエンティティ NBT に id／x／y／z が無いため落とします。");
+                    continue;
+                }
+                int type = blockEntityTypeId756(id);
+                if (type < 0) {
+                    LOG.warning("756 に無いブロックエンティティ種別（id=" + id + "）のエントリを落とします。");
+                    continue;
+                }
+                int packedXZ = ((x & 0xF) << 4) | (z & 0xF);
+                kept.add(new BlockEntityEntry(packedXZ, y, type, stripBlockEntityMetadata(tag)));
+            }
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeInt(chunkX);
+            writer.writeInt(chunkZ);
+            if (heightmaps.tag() == null) {
+                writer.writeByte(0);
+            } else {
+                writer.writeNamedNbt("", heightmaps.tag());
+            }
+            writer.writeByteArray(outSections.bytes());
+            writer.writeVarInt(kept.size());
+            for (BlockEntityEntry entry : kept) {
+                writer.writeUnsignedByte(entry.packedXZ());
+                writer.writeShort(entry.y());
+                writer.writeVarInt(entry.type());
+                writeOptionalNamedNbt(writer, entry.nbt());
+            }
+            writer.writeBoolean(false); // trustEdges（756 には無い）
+            writer.writeVarInt(0); // skyLightMask
+            writer.writeVarInt(0); // blockLightMask
+            writer.writeVarInt(0); // emptySkyLightMask
+            writer.writeVarInt(0); // emptyBlockLightMask
+            writer.writeVarInt(0); // skyLight
+            writer.writeVarInt(0); // blockLight
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chunk Data を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Chunk Data（757 0x22 → 756 0x22）。セクションを 24 個から 16 個に縮め、
+     * バイオームをセクションごとのパレットから int[1024] に直し、
+     * ブロックエンティティを packedXZ／y／type 形式から NBT 形式に直す。
+     * 光データは 756 の Chunk Data には入らないため落とす（別パケット化には
+     * extractUpdateLightFromChunkData757 を使うこと）。読めない場合は素通しする。
+     */
+    public static byte[] translateChunkData757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int chunkX = reader.readInt();
+            int chunkZ = reader.readInt();
+            Nbt.NamedResult heightmaps = reader.readNamedNbt();
+            int dataLength = reader.readVarInt();
+            byte[] chunkData = reader.readBytes(dataLength);
+            Reader sections = new Reader(chunkData);
+            long bitmask = 0L;
+            int[] biomes = new int[1024];
+            for (int i = 0; i < 1024; i++) {
+                biomes[i] = RegistryRemapper.PLAINS_BIOME_756;
+            }
+            Writer outSections = new Writer();
+            for (int s = -4; s < 20; s++) {
+                if (sections.remaining() == 0) {
+                    // 24 個に満たないチャンクは、残りを空セクションとして扱う。
+                    logOnce("chunk757-short",
+                            "757 のチャンクデータが 24 セクションに満たないため、残りを空として扱います。");
+                    continue;
+                }
+                int blockCount = sections.readShort();
+                if (s < 0 || s > 15) {
+                    skipBlockContainer756(sections);
+                    readBiomeContainer757(sections);
+                    continue;
+                }
+                Writer sectionWriter = new Writer();
+                sectionWriter.writeShort(blockCount);
+                copyBlockContainer756(sections, sectionWriter);
+                int[] sectionBiomes = readBiomeContainer757(sections);
+                for (int i = 0; i < 64; i++) {
+                    biomes[s * 64 + i] =
+                            RegistryRemapper.mapBiome757To756(sectionBiomes[i]);
+                }
+                if (blockCount > 0) {
+                    bitmask |= (1L << s);
+                    outSections.writeBytes(sectionWriter.bytes());
+                }
+            }
+            if (sections.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "チャンクデータに余分なバイトがあります（残り=" + sections.remaining() + "）。");
+            }
+            int blockEntityCount = reader.readVarInt();
+            if (blockEntityCount < 0) {
+                throw new IllegalArgumentException(
+                        "ブロックエンティティの件数が負です: " + blockEntityCount);
+            }
+            List<Tag> kept = new ArrayList<>();
+            for (int i = 0; i < blockEntityCount; i++) {
+                int packedXZ = reader.readUnsignedByte();
+                int y = reader.readShort();
+                int type = reader.readVarInt();
+                Tag nbt = readOptionalNamedNbt(reader);
+                if (type < 0 || type > RegistryRemapper.MAX_BLOCK_ENTITY_757) {
+                    LOG.warning("757 に無いブロックエンティティ種別（757 type=" + type
+                            + "）のエントリをチャンクから落とします。");
+                    continue;
+                }
+                int localX = (packedXZ >> 4) & 0xF;
+                int localZ = packedXZ & 0xF;
+                kept.add(withBlockEntityMetadata(nbt, BLOCK_ENTITY_TYPE_NAMES_756[type],
+                        chunkX * 16 + localX, y, chunkZ * 16 + localZ));
+            }
+            reader.readBoolean(); // trustEdges（756 には無いため読んで捨てる）
+            readLightSection(reader); // 光データ（756 の Chunk Data には入らないため捨てる）
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeInt(chunkX);
+            writer.writeInt(chunkZ);
+            writer.writeVarInt(1); // bitMap の long 数
+            writer.writeLong(bitmask);
+            if (heightmaps.tag() == null) {
+                writer.writeByte(0);
+            } else {
+                writer.writeNamedNbt("", heightmaps.tag());
+            }
+            writer.writeVarInt(1024);
+            for (int biome : biomes) {
+                writer.writeVarInt(biome);
+            }
+            writer.writeByteArray(outSections.bytes());
+            writer.writeVarInt(kept.size());
+            for (Tag tag : kept) {
+                writer.writeNamedNbt("", tag);
+            }
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chunk Data を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // 光データ（756 <=> 757）
+    // ------------------------------------------------------------------
+
+    /** 光データ1組（Update Light／Chunk Data の末尾の共通部分）。 */
+    private static final class LightSection {
+        long[][] masks = new long[4][];
+        List<byte[]> skyLight = new ArrayList<>();
+        List<byte[]> blockLight = new ArrayList<>();
+    }
+
+    /** 光データ1組を読む（マスク4個＋光配列2種）。 */
+    private static LightSection readLightSection(Reader reader) {
+        LightSection light = new LightSection();
+        for (int i = 0; i < 4; i++) {
+            int count = reader.readVarInt();
+            if (count < 0 || count > 64) {
+                throw new IllegalArgumentException("光マスクの long 数が不正です: " + count);
+            }
+            long[] longs = new long[count];
+            for (int j = 0; j < count; j++) {
+                longs[j] = reader.readLong();
+            }
+            light.masks[i] = longs;
+        }
+        light.skyLight = readLightArrays(reader);
+        light.blockLight = readLightArrays(reader);
+        return light;
+    }
+
+    /** 光配列の列（VarInt 件数＋VarInt 長のバイト列）を読む。 */
+    private static List<byte[]> readLightArrays(Reader reader) {
+        int count = reader.readVarInt();
+        if (count < 0 || count > 64) {
+            throw new IllegalArgumentException("光配列の件数が不正です: " + count);
+        }
+        List<byte[]> arrays = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            int length = reader.readVarInt();
+            if (length < 0 || length > 65536) {
+                throw new IllegalArgumentException("光配列の長さが不正です: " + length);
+            }
+            arrays.add(reader.readBytes(length));
+        }
+        return arrays;
+    }
+
+    /** 光データ1組を書く。 */
+    private static void writeLightSection(Writer writer, LightSection light) {
+        for (int i = 0; i < 4; i++) {
+            writer.writeVarInt(light.masks[i].length);
+            for (long value : light.masks[i]) {
+                writer.writeLong(value);
+            }
+        }
+        writeLightArrays(writer, light.skyLight);
+        writeLightArrays(writer, light.blockLight);
+    }
+
+    /** 光配列の列を書く。 */
+    private static void writeLightArrays(Writer writer, List<byte[]> arrays) {
+        writer.writeVarInt(arrays.size());
+        for (byte[] array : arrays) {
+            writer.writeVarInt(array.length);
+            writer.writeBytes(array);
+        }
+    }
+
+    /**
+     * 光マスクのビットをずらす。756→757 は +4（下に 4 セクション分空ける）。
+     * 757→756 は -4 で、0〜3（y -5〜-2）と 22〜25（y 17〜20）は落とす。
+     * マスクのビット i はセクション (i - 1 + minSection) に対応する（実バニラ
+     * 1.17.1 の Update Light キャプチャで確認。ビット 0 がワールド下、
+     * ビット 17 がワールド上）。
+     */
+    private static long[] shiftMaskBits(long[] longs, boolean to757) {
+        List<Integer> bits = new ArrayList<>();
+        for (int i = 0; i < longs.length; i++) {
+            long value = longs[i];
+            for (int b = 0; b < 64; b++) {
+                if ((value & (1L << b)) != 0) {
+                    bits.add(i * 64 + b);
+                }
+            }
+        }
+        List<Integer> shifted = new ArrayList<>();
+        for (int bit : bits) {
+            if (!to757 && (bit < 4 || bit > 21)) {
+                continue;
+            }
+            shifted.add(to757 ? bit + 4 : bit - 4);
+        }
+        if (shifted.isEmpty()) {
+            return new long[0];
+        }
+        int max = shifted.get(shifted.size() - 1);
+        long[] out = new long[max / 64 + 1];
+        for (int bit : shifted) {
+            out[bit / 64] |= (1L << (bit % 64));
+        }
+        return out;
+    }
+
+    /**
+     * 光マスクのセットビットに対応する光配列のうち、残るビットのものだけを残す
+     * （757→756 で落としたセクションの光配列を落とす）。配列はセットビットの
+     * 昇順に対応する。件数が合わなければ例外。
+     */
+    private static List<byte[]> filterLightArrays(long[] mask, List<byte[]> arrays) {
+        List<byte[]> kept = new ArrayList<>();
+        int index = 0;
+        for (int i = 0; i < mask.length; i++) {
+            long value = mask[i];
+            for (int b = 0; b < 64; b++) {
+                if ((value & (1L << b)) != 0) {
+                    int bit = i * 64 + b;
+                    if (index >= arrays.size()) {
+                        throw new IllegalArgumentException(
+                                "光マスクのセットビット数と光配列の件数が合いません。");
+                    }
+                    if (bit >= 4 && bit <= 21) {
+                        kept.add(arrays.get(index));
+                    }
+                    index++;
+                }
+            }
+        }
+        if (index != arrays.size()) {
+            throw new IllegalArgumentException(
+                    "光マスクのセットビット数と光配列の件数が合いません。");
+        }
+        return kept;
+    }
+
+    /** 光データ1組のマスクをずらす（757→756 では範囲外の光配列も落とす）。 */
+    private static LightSection shiftLightSection(LightSection light, boolean to757) {
+        LightSection out = new LightSection();
+        for (int i = 0; i < 4; i++) {
+            out.masks[i] = shiftMaskBits(light.masks[i], to757);
+        }
+        if (to757) {
+            out.skyLight = light.skyLight;
+            out.blockLight = light.blockLight;
+        } else {
+            out.skyLight = filterLightArrays(light.masks[0], light.skyLight);
+            out.blockLight = filterLightArrays(light.masks[1], light.blockLight);
+        }
+        return out;
+    }
+
+    /**
+     * 757 の Chunk Data から光データを抜き出し、756 形式の Update Light
+     * ペイロードを作る。757 の Chunk Data には光が内包されているが、756 の
+     * Chunk Data には入らないため、ProxySession が別パケットとして送るための
+     * もの。読めない場合は null を返す。
+     */
+    public static byte[] extractUpdateLightFromChunkData757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int chunkX = reader.readInt();
+            int chunkZ = reader.readInt();
+            reader.readNamedNbt(); // heightmaps
+            int dataLength = reader.readVarInt();
+            reader.readBytes(dataLength); // セクション列
+            int blockEntityCount = reader.readVarInt();
+            if (blockEntityCount < 0) {
+                throw new IllegalArgumentException(
+                        "ブロックエンティティの件数が負です: " + blockEntityCount);
+            }
+            for (int i = 0; i < blockEntityCount; i++) {
+                reader.readUnsignedByte();
+                reader.readShort();
+                reader.readVarInt();
+                readOptionalNamedNbt(reader);
+            }
+            boolean trustEdges = reader.readBoolean();
+            LightSection light = shiftLightSection(readLightSection(reader), false);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(chunkX);
+            writer.writeVarInt(chunkZ);
+            writer.writeBoolean(trustEdges);
+            writeLightSection(writer, light);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chunk Data から光データを抜き出せなかったため Update Light を作りません: "
+                    + e.getMessage());
+            return null;
+        }
+    }
+
+    /** Update Light（756 → 757）。光マスクのビットを +4 ずらす。 */
+    public static byte[] translateUpdateLight756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt()); // chunkX
+            writer.writeVarInt(reader.readVarInt()); // chunkZ
+            writer.writeBoolean(reader.readBoolean()); // trustEdges
+            writeLightSection(writer, shiftLightSection(readLightSection(reader), true));
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Update Light を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Update Light（757 → 756）。光マスクのビットを -4 ずらし、範囲外の光を落とす。 */
+    public static byte[] translateUpdateLight757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt()); // chunkX
+            writer.writeVarInt(reader.readVarInt()); // chunkZ
+            writer.writeBoolean(reader.readBoolean()); // trustEdges
+            writeLightSection(writer, shiftLightSection(readLightSection(reader), false));
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Update Light を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // ブロック変化・スロット・ウィンドウ（756 <=> 757）
+    // ------------------------------------------------------------------
+
+    /**
+     * Multi Block Change（756 → 757）。レコードは両方とも varlong で、
+     * ブロック状態も同一のためそのまま写す。chunkCoordinates の y は
+     * 下位 20 ビット（756 は unsigned、757 は signed。値は 0〜15 のため
+     * ビットは同一）。
+     */
+    public static byte[] translateMultiBlockChange756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeLong(reader.readLong()); // chunkCoordinates
+            writer.writeBoolean(reader.readBoolean()); // notTrustEdges
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Multi Block Change の件数が負です: " + count);
+            }
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                writer.writeVarLong(reader.readVarLong());
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Multi Block Change を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Multi Block Change（757 → 756）。セクション y が 0〜15 の範囲外の
+     * パケットは 756 には無いセクションを指すためパケットごと落とす
+     * （null を返す）。範囲内ならそのまま写す。
+     */
+    public static byte[] translateMultiBlockChange757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long chunkCoordinates = reader.readLong();
+            int y = (int) (chunkCoordinates << 44 >> 44); // 下位 20 ビットを符号拡張
+            if (y < 0 || y > 15) {
+                LOG.warning("756 に無いセクション（y=" + y
+                        + "）の Multi Block Change を落とします。");
+                return null;
+            }
+            boolean notTrustEdges = reader.readBoolean();
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Multi Block Change の件数が負です: " + count);
+            }
+            Writer writer = new Writer();
+            writer.writeLong(chunkCoordinates);
+            writer.writeBoolean(notTrustEdges);
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                writer.writeVarLong(reader.readVarLong());
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Multi Block Change を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Slot（756 → 757）。 */
+    public static byte[] translateSetSlot756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeByte(reader.readByte());
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeShort(reader.readShort());
+            translateSlot756To757(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Slot を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Slot（757 → 756）。 */
+    public static byte[] translateSetSlot757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeByte(reader.readByte());
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeShort(reader.readShort());
+            translateSlot757To756(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Slot を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Window Items（756 → 757）。 */
+    public static byte[] translateWindowItems756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte());
+            writer.writeVarInt(reader.readVarInt());
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Items の件数が負です: " + count);
+            }
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                translateSlot756To757(reader, writer);
+            }
+            translateSlot756To757(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Items を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Window Items（757 → 756）。 */
+    public static byte[] translateWindowItems757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte());
+            writer.writeVarInt(reader.readVarInt());
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Items の件数が負です: " + count);
+            }
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                translateSlot757To756(reader, writer);
+            }
+            translateSlot757To756(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Items を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Cooldown（756 → 757）。アイテムIDだけ付け替える。 */
+    public static byte[] translateSetCooldown756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapItem756To757(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt());
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Cooldown を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Cooldown（757 → 756）。アイテムIDだけ付け替える。 */
+    public static byte[] translateSetCooldown757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapItem757To756(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt());
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Cooldown を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Equipment（756 → 757）。 */
+    public static byte[] translateEntityEquipment756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt());
+            while (true) {
+                int slot = reader.readUnsignedByte();
+                writer.writeUnsignedByte(slot);
+                translateSlot756To757(reader, writer);
+                if ((slot & 0x80) == 0) {
+                    break;
+                }
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Equipment を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Equipment（757 → 756）。 */
+    public static byte[] translateEntityEquipment757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt());
+            while (true) {
+                int slot = reader.readUnsignedByte();
+                writer.writeUnsignedByte(slot);
+                translateSlot757To756(reader, writer);
+                if ((slot & 0x80) == 0) {
+                    break;
+                }
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Equipment を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Trade List（756 → 757）。inputItem2 は両方とも [option slot]。 */
+    public static byte[] translateTradeList756To757(byte[] payload) {
+        return translateTradeList756(payload, true);
+    }
+
+    /** Trade List（757 → 756）。inputItem2 は両方とも [option slot]。 */
+    public static byte[] translateTradeList757To756(byte[] payload) {
+        return translateTradeList756(payload, false);
+    }
+
+    /** Trade List を 756<=>757 向けに変換する。 */
+    private static byte[] translateTradeList756(byte[] payload, boolean to757) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt()); // windowId
+            int count = reader.readUnsignedByte();
+            writer.writeUnsignedByte(count);
+            for (int i = 0; i < count; i++) {
+                if (to757) {
+                    translateSlot756To757(reader, writer);
+                    translateSlot756To757(reader, writer);
+                } else {
+                    translateSlot757To756(reader, writer);
+                    translateSlot757To756(reader, writer);
+                }
+                boolean present = reader.readBoolean(); // inputItem2 の option
+                writer.writeBoolean(present);
+                if (present) {
+                    if (to757) {
+                        translateSlot756To757(reader, writer);
+                    } else {
+                        translateSlot757To756(reader, writer);
+                    }
+                }
+                writer.writeBoolean(reader.readBoolean()); // tradeDisabled
+                writer.writeInt(reader.readInt()); // nbTradeUses
+                writer.writeInt(reader.readInt()); // maximumNbTradeUses
+                writer.writeInt(reader.readInt()); // xp
+                writer.writeInt(reader.readInt()); // specialPrice
+                writer.writeFloat(reader.readFloat()); // priceMultiplier
+                writer.writeInt(reader.readInt()); // demand
+            }
+            writer.writeVarInt(reader.readVarInt()); // villagerLevel
+            writer.writeVarInt(reader.readVarInt()); // experience
+            writer.writeBoolean(reader.readBoolean()); // isRegularVillager
+            writer.writeBoolean(reader.readBoolean()); // canRestock
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Trade List を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Block Entity Data（756 → 757）。action を u8 から varint に直す。 */
+    public static byte[] translateTileEntityData756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long position = reader.readPositionRaw();
+            int action = reader.readUnsignedByte();
+            Tag nbt = readOptionalNamedNbt(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writePositionRaw(position);
+            writer.writeVarInt(action);
+            // 756 の NBT は getUpdateTag()＝save()（id／x／y／z を含む）。
+            // 757 は saveWithoutMetadata()（含まない）ため剥がす。
+            writeOptionalNamedNbt(writer, stripBlockEntityMetadata(nbt));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Block Entity Data を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Block Entity Data（757 → 756）。action を varint から u8 に直す。
+     * NBT に x／y／z を付ける（位置はパケットの location から分かる）。
+     * id はパケットに種別が無いため付けられない（1.17 クライアントは既存の
+     * ブロックエンティティに load() するため id は要らない。ベストエフォート）。
+     */
+    public static byte[] translateTileEntityData757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long position = reader.readPositionRaw();
+            int action = reader.readVarInt();
+            Tag nbt = readOptionalNamedNbt(reader);
+            requireEnd(reader);
+            if (action < 0 || action > 255) {
+                LOG.warning("756 の u8 に収まらない Block Entity Data（action=" + action
+                        + "）を落とします。");
+                return null;
+            }
+            int x = (int) (position >> 38);
+            int y = (int) (position << 52 >> 52);
+            int z = (int) (position << 26 >> 38);
+            Map<String, Tag> copy = new LinkedHashMap<>();
+            copy.put("x", new Tag.IntTag(x));
+            copy.put("y", new Tag.IntTag(y));
+            copy.put("z", new Tag.IntTag(z));
+            if (nbt instanceof Tag.CompoundTag compound) {
+                for (Map.Entry<String, Tag> entry : compound.value().entrySet()) {
+                    String key = entry.getKey();
+                    if (!key.equals("x") && !key.equals("y") && !key.equals("z")) {
+                        copy.put(key, entry.getValue());
+                    }
+                }
+            }
+            Writer writer = new Writer();
+            writer.writePositionRaw(position);
+            writer.writeUnsignedByte(action);
+            writeOptionalNamedNbt(writer, new Tag.CompoundTag(copy));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Block Entity Data を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // エンティティ・音・パーティクル（756 <=> 757）
+    // ------------------------------------------------------------------
+
+    /**
+     * Entity Metadata（756 → 757）。型番号は 1.17／1.18 で同一（0〜18。
+     * EntityDataSerializers の登録順を両バージョンの jar の javap で確認）。
+     * スロット（6）・ブロック状態（13）・粒子（15）だけ番号を付け替える。
+     */
+    public static byte[] translateEntityMetadata756To757(byte[] payload) {
+        return translateEntityMetadata756(payload, true);
+    }
+
+    /** Entity Metadata（757 → 756）。 */
+    public static byte[] translateEntityMetadata757To756(byte[] payload) {
+        return translateEntityMetadata756(payload, false);
+    }
+
+    /** Entity Metadata を 756<=>757 向けに変換する。 */
+    private static byte[] translateEntityMetadata756(byte[] payload, boolean to757) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt());
+            while (true) {
+                int index = reader.readUnsignedByte();
+                if (index == 0xFF) {
+                    writer.writeUnsignedByte(0xFF);
+                    break;
+                }
+                int type = reader.readVarInt();
+                writer.writeUnsignedByte(index);
+                writer.writeVarInt(type);
+                translateMetadataValue756(reader, writer, type, to757);
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Metadata を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * メタデータの値1個を 756<=>757 向けに変換する。型番号は 756・757 で同一
+     * （protocol.json の entityMetadataItem と両バージョンの jar の javap で実測）。
+     * 0:i8、1:varint、2:f32、3:string、4:chat、5:option string、6:slot、
+     * 7:bool、8:rotation、9:position、10:option position、11:varint、
+     * 12:option UUID、13:ブロック状態 varint、14:NBT、15:粒子、16:村人データ、
+     * 17:optvarint、18:varint。
+     */
+    private static void translateMetadataValue756(Reader reader, Writer writer, int type,
+            boolean to757) {
+        switch (type) {
+            case 0 -> writer.writeByte(reader.readByte());
+            case 1 -> writer.writeVarInt(reader.readVarInt());
+            case 2 -> writer.writeFloat(reader.readFloat());
+            case 3, 4 -> writer.writeString(reader.readString());
+            case 5 -> {
+                boolean present = reader.readBoolean();
+                writer.writeBoolean(present);
+                if (present) {
+                    writer.writeString(reader.readString());
+                }
+            }
+            case 6 -> {
+                if (to757) {
+                    translateSlot756To757(reader, writer);
+                } else {
+                    translateSlot757To756(reader, writer);
+                }
+            }
+            case 7 -> writer.writeBoolean(reader.readBoolean());
+            case 8 -> {
+                writer.writeFloat(reader.readFloat());
+                writer.writeFloat(reader.readFloat());
+                writer.writeFloat(reader.readFloat());
+            }
+            case 9 -> writer.writePositionRaw(reader.readPositionRaw());
+            case 10 -> {
+                boolean present = reader.readBoolean();
+                writer.writeBoolean(present);
+                if (present) {
+                    writer.writePositionRaw(reader.readPositionRaw());
+                }
+            }
+            case 11 -> writer.writeVarInt(reader.readVarInt());
+            case 12 -> {
+                boolean present = reader.readBoolean();
+                writer.writeBoolean(present);
+                if (present) {
+                    writer.writeBytes(reader.readBytes(16));
+                }
+            }
+            case 13 -> writer.writeVarInt(to757
+                    ? RegistryRemapper.mapBlockState756To757(reader.readVarInt())
+                    : RegistryRemapper.mapBlockState757To756(reader.readVarInt()));
+            case 14 -> writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+            case 15 -> {
+                if (to757) {
+                    translateParticle756To757(reader, writer);
+                } else {
+                    translateParticle757To756(reader, writer);
+                }
+            }
+            case 16 -> {
+                writer.writeVarInt(reader.readVarInt());
+                writer.writeVarInt(reader.readVarInt());
+                writer.writeVarInt(reader.readVarInt());
+            }
+            case 17 -> writer.writeVarInt(reader.readVarInt());
+            case 18 -> writer.writeVarInt(reader.readVarInt());
+            default -> throw new IllegalArgumentException("未知のメタデータ型です: " + type);
+        }
+    }
+
+    /** Sound Effect（756 → 757）。音は両方とも素の VarInt ID。seed はどちらにも無い。 */
+    public static byte[] translateSoundEffect756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapSound756To757(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeInt(reader.readInt());
+            writer.writeInt(reader.readInt());
+            writer.writeInt(reader.readInt());
+            writer.writeFloat(reader.readFloat());
+            writer.writeFloat(reader.readFloat());
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Sound Effect（757 → 756）。 */
+    public static byte[] translateSoundEffect757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapSound757To756(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeInt(reader.readInt());
+            writer.writeInt(reader.readInt());
+            writer.writeInt(reader.readInt());
+            writer.writeFloat(reader.readFloat());
+            writer.writeFloat(reader.readFloat());
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Sound Effect（756 → 757）。 */
+    public static byte[] translateEntitySoundEffect756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapSound756To757(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeFloat(reader.readFloat());
+            writer.writeFloat(reader.readFloat());
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Sound Effect（757 → 756）。 */
+    public static byte[] translateEntitySoundEffect757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapSound757To756(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeFloat(reader.readFloat());
+            writer.writeFloat(reader.readFloat());
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Named Sound Effect（756 → 757）。名前で音を指定する形式。seed はどちらにも無い。 */
+    public static byte[] translateNamedSoundEffect756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String name = reader.readString();
+            int category = reader.readVarInt();
+            int x = reader.readInt();
+            int y = reader.readInt();
+            int z = reader.readInt();
+            float volume = reader.readFloat();
+            float pitch = reader.readFloat();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(RegistryRemapper.mapSoundName756To757(name));
+            writer.writeVarInt(category);
+            writer.writeInt(x);
+            writer.writeInt(y);
+            writer.writeInt(z);
+            writer.writeFloat(volume);
+            writer.writeFloat(pitch);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Named Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Named Sound Effect（757 → 756）。 */
+    public static byte[] translateNamedSoundEffect757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String name = reader.readString();
+            int category = reader.readVarInt();
+            int x = reader.readInt();
+            int y = reader.readInt();
+            int z = reader.readInt();
+            float volume = reader.readFloat();
+            float pitch = reader.readFloat();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(RegistryRemapper.mapSoundName757To756(name));
+            writer.writeVarInt(category);
+            writer.writeInt(x);
+            writer.writeInt(y);
+            writer.writeInt(z);
+            writer.writeFloat(volume);
+            writer.writeFloat(pitch);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Named Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Stop Sound（756 → 757）。
+     * flags の bit 0 は音源（VarInt）、bit 1 は音の名前（文字列）。
+     * 名前は 756 に無い音なら代替の音の名前にする。
+     */
+    public static byte[] translateStopSound756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int flags = reader.readByte();
+            Writer writer = new Writer();
+            writer.writeByte(flags);
+            if ((flags & 0x01) != 0) {
+                writer.writeVarInt(reader.readVarInt());
+            }
+            if ((flags & 0x02) != 0) {
+                writer.writeString(RegistryRemapper.mapSoundName756To757(reader.readString()));
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Stop Sound を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Stop Sound（757 → 756）。 */
+    public static byte[] translateStopSound757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int flags = reader.readByte();
+            Writer writer = new Writer();
+            writer.writeByte(flags);
+            if ((flags & 0x01) != 0) {
+                writer.writeVarInt(reader.readVarInt());
+            }
+            if ((flags & 0x02) != 0) {
+                writer.writeString(RegistryRemapper.mapSoundName757To756(reader.readString()));
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Stop Sound を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * 粒子1個の読み取り結果（756 <=> 757）。データの並びは読み側（送信元）の
+     * 番号で決まるため、読み側のIDを保持し、書き側はそれで分岐する。
+     * スロットとブロック状態は読み取り時に付け替え済みの値（書き側の番号）を保持する。
+     * blockState は、書き側がブロック状態データを書く粒子（block／
+     * falling_dust／block_marker）のときに使い、それ以外では読まない。
+     * barrier／light（756）から block_marker（757）への変換では
+     * ブロック状態 0（air）を合成する。
+     */
+    private static final class ParsedParticle756 {
+        int blockState;
+        float[] floats;
+        byte[] slotBytes;
+        long origin;
+        String positionType;
+        int destEntity;
+        long destPos;
+        int ticks;
+        boolean blockDest;
+    }
+
+    /**
+     * 756形式の粒子データ1個を読む（IDは呼び出し側で読む）。データを持つ粒子は
+     * 756の番号で分岐する（protocol.json の particleData で実測）。
+     * block=4・falling_dust=25：ブロック状態ID。
+     * dust=15：4 float。dust_color_transition=16：7 float。
+     * item=36：スロット。vibration=37：origin＋位置種別＋行き先＋tick数。
+     * barrier（2）・light（3）にデータは無い。
+     */
+    private static ParsedParticle756 readParticleData756(Reader reader, int id) {
+        ParsedParticle756 particle = new ParsedParticle756();
+        switch (id) {
+            case 4, 25 -> particle.blockState =
+                    RegistryRemapper.mapBlockState756To757(reader.readVarInt());
+            case 15 -> {
+                particle.floats = new float[4];
+                for (int i = 0; i < 4; i++) {
+                    particle.floats[i] = reader.readFloat();
+                }
+            }
+            case 16 -> {
+                particle.floats = new float[7];
+                for (int i = 0; i < 7; i++) {
+                    particle.floats[i] = reader.readFloat();
+                }
+            }
+            case 36 -> {
+                Writer slotWriter = new Writer();
+                translateSlot756To757(reader, slotWriter);
+                particle.slotBytes = slotWriter.bytes();
+            }
+            case 37 -> readVibration756(reader, particle);
+            default -> {
+                // その他の粒子にデータは無い。
+            }
+        }
+        return particle;
+    }
+
+    /**
+     * 757形式の粒子データ1個を読む（IDは呼び出し側で読む）。データを持つ粒子は
+     * 757の番号で分岐する（protocol.json の particleData で実測）。
+     * block=2・block_marker=3・falling_dust=24：ブロック状態ID。
+     * dust=14：4 float。dust_color_transition=15：7 float。
+     * item=35：スロット。vibration=36：origin＋位置種別＋行き先＋tick数。
+     */
+    private static ParsedParticle756 readParticleDataFrom757(Reader reader, int id) {
+        ParsedParticle756 particle = new ParsedParticle756();
+        switch (id) {
+            case 2, 3, 24 -> particle.blockState =
+                    RegistryRemapper.mapBlockState757To756(reader.readVarInt());
+            case 14 -> {
+                particle.floats = new float[4];
+                for (int i = 0; i < 4; i++) {
+                    particle.floats[i] = reader.readFloat();
+                }
+            }
+            case 15 -> {
+                particle.floats = new float[7];
+                for (int i = 0; i < 7; i++) {
+                    particle.floats[i] = reader.readFloat();
+                }
+            }
+            case 35 -> {
+                Writer slotWriter = new Writer();
+                translateSlot757To756(reader, slotWriter);
+                particle.slotBytes = slotWriter.bytes();
+            }
+            case 36 -> readVibration756(reader, particle);
+            default -> {
+                // その他の粒子にデータは無い。
+            }
+        }
+        return particle;
+    }
+
+    /** 756／757形式の vibration 粒子のデータを読む（両方とも origin 付き）。 */
+    private static void readVibration756(Reader reader, ParsedParticle756 particle) {
+        particle.origin = reader.readPositionRaw();
+        particle.positionType = reader.readString();
+        if ("minecraft:block".equals(particle.positionType)) {
+            particle.blockDest = true;
+            particle.destPos = reader.readPositionRaw();
+        } else if ("minecraft:entity".equals(particle.positionType)) {
+            particle.destEntity = reader.readVarInt();
+        }
+        particle.ticks = reader.readVarInt();
+    }
+
+    /**
+     * 756で読んだ粒子を757形式で書く（IDは呼び出し側で書く。targetId は
+     * 757 の粒子ID）。block_marker（3）にはブロック状態データを書く
+     * （barrier／light からの変換では 0 を合成する）。
+     */
+    private static void writeParticleDataTo757(Writer writer, ParsedParticle756 particle,
+            int targetId) {
+        switch (targetId) {
+            case 2, 3, 24 -> writer.writeVarInt(particle.blockState);
+            case 14, 15 -> {
+                for (float value : particle.floats) {
+                    writer.writeFloat(value);
+                }
+            }
+            case 35 -> writer.writeBytes(particle.slotBytes);
+            case 36 -> writeVibration756(writer, particle);
+            default -> {
+                // その他の粒子にデータは無い。
+            }
+        }
+    }
+
+    /**
+     * 757で読んだ粒子を756形式で書く（IDは呼び出し側で書く。targetId は
+     * 756 の粒子ID）。barrier（2）にはデータが無いため、block_marker の
+     * ブロック状態は読んで捨てる。
+     */
+    private static void writeParticleDataTo756(Writer writer, ParsedParticle756 particle,
+            int targetId) {
+        switch (targetId) {
+            case 4, 25 -> writer.writeVarInt(particle.blockState);
+            case 15, 16 -> {
+                for (float value : particle.floats) {
+                    writer.writeFloat(value);
+                }
+            }
+            case 36 -> writer.writeBytes(particle.slotBytes);
+            case 37 -> writeVibration756(writer, particle);
+            default -> {
+                // barrier／light など、その他の粒子にデータは無い。
+            }
+        }
+    }
+
+    /** vibration 粒子のデータを書く（756・757 とも origin 付きで同一形式）。 */
+    private static void writeVibration756(Writer writer, ParsedParticle756 particle) {
+        writer.writePositionRaw(particle.origin);
+        writer.writeString(particle.positionType);
+        if (particle.blockDest) {
+            writer.writePositionRaw(particle.destPos);
+        } else if ("minecraft:entity".equals(particle.positionType)) {
+            writer.writeVarInt(particle.destEntity);
+        }
+        writer.writeVarInt(particle.ticks);
+    }
+
+    /** 粒子1個（ID VarInt＋データ）を 756 → 757 向けに変換する。 */
+    private static void translateParticle756To757(Reader reader, Writer writer) {
+        int particleId = reader.readVarInt();
+        ParsedParticle756 particle = readParticleData756(reader, particleId);
+        int mapped = RegistryRemapper.mapParticle756To757(particleId);
+        writer.writeVarInt(mapped);
+        writeParticleDataTo757(writer, particle, mapped);
+    }
+
+    /** 粒子1個（ID VarInt＋データ）を 757 → 756 向けに変換する。 */
+    private static void translateParticle757To756(Reader reader, Writer writer) {
+        int particleId = reader.readVarInt();
+        ParsedParticle756 particle = readParticleDataFrom757(reader, particleId);
+        int mapped = RegistryRemapper.mapParticle757To756(particleId);
+        writer.writeVarInt(mapped);
+        writeParticleDataTo756(writer, particle, mapped);
+    }
+
+    /**
+     * World Particles（756 → 757）。パケットの粒子IDは両方とも i32。
+     * vibration の origin は粒子データの中にあるためそのまま通す。
+     */
+    public static byte[] translateWorldParticles756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int particleId = reader.readInt();
+            ParsedParticle756 particle = readParticleData756(reader, particleId);
+            boolean longDistance = reader.readBoolean();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            float offsetX = reader.readFloat();
+            float offsetY = reader.readFloat();
+            float offsetZ = reader.readFloat();
+            float speed = reader.readFloat();
+            int count = reader.readInt();
+            requireEnd(reader);
+            int mapped = RegistryRemapper.mapParticle756To757(particleId);
+            Writer writer = new Writer();
+            writer.writeInt(mapped);
+            writeParticleDataTo757(writer, particle, mapped);
+            writer.writeBoolean(longDistance);
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeFloat(offsetX);
+            writer.writeFloat(offsetY);
+            writer.writeFloat(offsetZ);
+            writer.writeFloat(speed);
+            writer.writeInt(count);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Particles を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** World Particles（757 → 756）。パケットの粒子IDは両方とも i32。 */
+    public static byte[] translateWorldParticles757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int particleId = reader.readInt();
+            ParsedParticle756 particle = readParticleDataFrom757(reader, particleId);
+            boolean longDistance = reader.readBoolean();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            float offsetX = reader.readFloat();
+            float offsetY = reader.readFloat();
+            float offsetZ = reader.readFloat();
+            float speed = reader.readFloat();
+            int count = reader.readInt();
+            requireEnd(reader);
+            int mapped = RegistryRemapper.mapParticle757To756(particleId);
+            Writer writer = new Writer();
+            writer.writeInt(mapped);
+            writeParticleDataTo756(writer, particle, mapped);
+            writer.writeBoolean(longDistance);
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeFloat(offsetX);
+            writer.writeFloat(offsetY);
+            writer.writeFloat(offsetZ);
+            writer.writeFloat(speed);
+            writer.writeInt(count);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Particles を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // サーバー行き（756 <=> 757）
+    // ------------------------------------------------------------------
+
+    /**
+     * Entity Destroy（756 → 757）。756 は [count varint][entityIds] の配列だが、
+     * 757 は [entityId varint] 1体だけのため、配列が1体だけのとき単体に直す。
+     * count 0 は消すものが無いので落として正しく、count 2以上は757の
+     * 1パケットでは表せないためパケットごと落とす（null を返す。
+     * 分割して送るには ProxySession 側の対応が要る）。
+     * 754→759の連鎖で必要（754→755→756の段で配列になった Entity Destroy を
+     * 757の単体形式に戻す。to757ServerPacketFrom756 に case が無く
+     * default で落とされていた既存の隙間）。
+     */
+    public static byte[] translateEntityDestroy756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Entity Destroy の件数が負です: " + count);
+            }
+            if (count != 1) {
+                LOG.warning("757 では表せない Entity Destroy（count=" + count + "）を落とします。");
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt()); // entityId
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Destroy を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Entity Destroy（757 → 756）。757 は [entityId varint] 1体だけだが、
+     * 756 は [count varint][entityIds] の配列のため、count 1 の配列にする
+     * （translateEntityDestroy755To756 と同じ段取り）。
+     * 呼び出し元は無い（757サーバー→756クライアントの汎用パケットは
+     * handleServerPlayFrom763 で落とす設計のため。変換器だけ作っておく）。
+     */
+    public static byte[] translateEntityDestroy757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(1); // count
+            writer.writeVarInt(reader.readVarInt()); // entityId
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Destroy を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Window Click（756 → 757）。変更スロットとカーソルを757向けにする。 */
+    public static byte[] translateWindowClick756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte());
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeShort(reader.readShort());
+            writer.writeByte(reader.readByte());
+            writer.writeVarInt(reader.readVarInt());
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Click の個数が負です: " + count);
+            }
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                writer.writeShort(reader.readShort());
+                translateSlot756To757(reader, writer);
+            }
+            translateSlot756To757(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Click を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Window Click（757 → 756）。変更スロットとカーソルを756向けにする。 */
+    public static byte[] translateWindowClick757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte());
+            writer.writeVarInt(reader.readVarInt());
+            writer.writeShort(reader.readShort());
+            writer.writeByte(reader.readByte());
+            writer.writeVarInt(reader.readVarInt());
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Click の個数が負です: " + count);
+            }
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                writer.writeShort(reader.readShort());
+                translateSlot757To756(reader, writer);
+            }
+            translateSlot757To756(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Click を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Creative Slot（756 → 757）。 */
+    public static byte[] translateSetCreativeSlot756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeShort(reader.readShort());
+            translateSlot756To757(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Creative Slot を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Creative Slot（757 → 756）。 */
+    public static byte[] translateSetCreativeSlot757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeShort(reader.readShort());
+            translateSlot757To756(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Creative Slot を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // 755 <=> 756（1.17 <=> 1.17.1）
+    // パケットIDは ProxySession が付け替える（Chunk Data 0x22／0x22、
+    // Set Slot 0x16／0x16、Window Items 0x14／0x14、Window Click 0x08／0x08、
+    // Entity Destroy 0x3a／0x3a。PacketIds.java の 755 列で実測。ID差分は0件）。
+    // [protocol.json の突き合わせ結果（実測）]
+    // mc-1.17-protocol.json と mc-1.17.1-protocol.json（minecraft-data）を
+    // 全状態・全方向で突き合わせた（.tmp-755/stage-b-chunk/compare-protocol.py）。
+    // IDの組は全件同一（play toClient 103件・toServer 48件、login 5件／3件、
+    // status・handshakingも同一）。フィールド構成の差分は全パケット中で
+    // 5件だけ：packet_set_slot、packet_window_items、packet_window_click、
+    // packet_destroy_entity、packet_edit_book。トップレベル types の差分は0件
+    // （slot 型は両方とも [present bool][id varint][個数 i8][任意の名前付き NBT]）。
+    // [差分5件の内訳（javap＋ViaVersionでも裏付け済み）]
+    // 公式 server_mappings.txt（piston-metaの sha1 照合済み）で求めた難読化
+    // クラス名で両バージョンの実バニラ server.jar を javap -c し、write
+    // メソッドの呼び出し順で確認した。ViaVersion の Protocol1_17To1_17_1
+    // および ItemPacketRewriter1_17_1 とも一致する。
+    // - Set Slot：755 は [windowId i8][slot i16][item]、756 は
+    //   [windowId i8][stateId varint][slot i16][item]。stateId を挿入／除去する。
+    //   755→756 の stateId は 0（ViaVersion の "Add arbitrary state id" と同じ）。
+    // - Window Items：755 は [windowId u8][count i16][items]、756 は
+    //   [windowId u8][stateId varint][count varint][items][carriedItem slot]。
+    //   stateId 0 を挿入／除去し、count の符号化を i16⇔varint で変換し、
+    //   carriedItem は 755→756 で absent スロットを補い、756→755 で落とす
+    //   （ViaVersion も carriedItem に null を書く）。
+    // - Window Click：755 は [windowId u8][slot i16][button i8][mode][count
+    //   varint][changedSlots][cursor]、756 は windowId の後に stateId varint
+    //   が付く。stateId 0 の挿入／除去だけ。mode は両方とも writeEnum
+    //   （varint の enum 序数）で同一。minecraft-data の pc/1.17 の
+    //   「mode i8」は誤り（javap -c で両方とも og.a(Enum)＝writeEnum を確認）。
+    // - Entity Destroy：755 は [entityId varint] 1体だけ（内部名
+    //   destroy_entity）、756 は [count varint][entityIds]（内部名
+    //   entity_destroy。ViaVersion の REMOVE_ENTITY→REMOVE_ENTITIES で
+    //   "back to an array again!" と確認）。755→756 は count 1 の配列にし、
+    //   756→755 は count 1 のときだけ単体に直す。count 0 は消すものが無いので
+    //   落として正しく、count 2以上は755の1パケットでは表せないため落とす
+    //   （null を返す。ProxySession は null をパケット破棄として扱う。
+    //   分割して送るには ProxySession 側の対応が要る）。
+    // - Edit Book（toServer 0x0b）：755 は [new_book slot][signing bool]
+    //   [hand varint]、756 は [hand varint][pages array<string>]
+    //   [title option<string>] で全面的に違う。ただし現状どこにも変換器が
+    //   無いためこの節では作らない。ProxySession 担当への申し送りとする。
+    // [チャンク形式は同一（実測）]
+    // packet_map_chunk は protocol.json で完全一致（{x i32, z i32,
+    // bitMap varint[i64], heightmaps NBT, biomes varint[1024],
+    // chunkData buffer, blockEntities varint[NBT]}）。
+    // 実バニラ 1.17／1.17.1 の Chunk Data パケットクラス（qw。どちらも
+    // ClientboundLevelChunkPacket）のフィールドは同一（x・z・BitSet・
+    // heightmaps NBT・int[1024] バイオーム・byte[]・List<NBT>）で、
+    // javap -c の差分は難読化クラス名の付け替え（cmw→cmx 等）のみ。
+    // 16セクション＋bitMap＋heightmaps NBT＋バイオーム int[1024]、
+    // BitStorage non-straddling は両バージョン共通（756節の実測と同じ形式）。
+    // レジストリ差分も0件（Stage A §11.1：ブロック状態 20,342件・ブロック
+    // 898件・アイテム 1,100件・音 1,190件・パーティクル 89件・エンティティ
+    // 113件とも同一順序・同一ID。reports／registries.json はバイト同一）。
+    // そのため Chunk Data・スロットは素通し（ペイロード unchanged）でよい。
+    // [作らない変換器（フィールド構成が同一のため）]
+    // 上記の突き合わせで差分が無かったもの：Multi Block Change、
+    // Set Cooldown（アイテムIDは同一のため付け替え無し）、Entity Equipment、
+    // Trade List、Tile Entity Data（action u8＋optionalNbt。756節と同一形式）、
+    // Entity Metadata、Sound Effect、Entity Sound Effect、Named Sound Effect、
+    // Stop Sound、World Particles、Update Light、Set Creative Slot。
+    // さらに756節の「作らない」一覧も同一のため作らない：Block Change、
+    // Spawn Entity／Spawn Entity Living／Named Entity Spawn、Open Window、
+    // Block Action、Entity Effect／Remove Entity Effect、Explosion、
+    // Update Attributes、Enchant Item、World Border系。
+    // ------------------------------------------------------------------
+
+    /** 755のスロット1個を756向けに読む。アイテムIDは同一のため付け替えない。 */
+    public static void translateSlot755To756(Reader reader, Writer writer) {
+        boolean present = reader.readBoolean();
+        writer.writeBoolean(present);
+        if (!present) {
+            return;
+        }
+        writer.writeVarInt(reader.readVarInt()); // アイテムIDは同一（レジストリ差分0件）
+        writer.writeByte(reader.readByte());
+        writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+    }
+
+    /** 756のスロット1個を755向けに読む。アイテムIDは同一のため付け替えない。 */
+    public static void translateSlot756To755(Reader reader, Writer writer) {
+        boolean present = reader.readBoolean();
+        writer.writeBoolean(present);
+        if (!present) {
+            return;
+        }
+        writer.writeVarInt(reader.readVarInt()); // アイテムIDは同一（レジストリ差分0件）
+        writer.writeByte(reader.readByte());
+        writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+    }
+
+    /**
+     * Chunk Data（755 → 756）。素通し（ペイロード unchanged）。
+     * 根拠：packet_map_chunk は protocol.json で完全一致し、実バニラ
+     * 1.17／1.17.1 の Chunk Data パケットクラス（qw）のフィールド・
+     * javap -c も同一（難読化名の付け替えのみ）。レジストリ差分も0件。
+     */
+    public static byte[] translateChunkData755To756(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Chunk Data（756 → 755）。素通し（ペイロード unchanged）。
+     * 根拠は {@link #translateChunkData755To756(byte[])} と同じ。
+     */
+    public static byte[] translateChunkData756To755(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Set Slot（755 → 756）。755 には無い stateId varint に 0 を入れる
+     * （ViaVersion の ItemPacketRewriter1_17_1 と同じ。stateId は
+     * コンテナ同期用の連番で、0 は任意の値として許容される）。
+     */
+    public static byte[] translateSetSlot755To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeByte(reader.readByte()); // windowId i8
+            writer.writeVarInt(0); // stateId（755には無い）
+            writer.writeShort(reader.readShort()); // slot i16
+            translateSlot755To756(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Slot を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Slot（756 → 755）。stateId varint を読んで捨てる。 */
+    public static byte[] translateSetSlot756To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeByte(reader.readByte()); // windowId i8
+            reader.readVarInt(); // stateId（755には無いため捨てる）
+            writer.writeShort(reader.readShort()); // slot i16
+            translateSlot756To755(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Slot を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Window Items（755 → 756）。stateId varint に 0 を入れ、count を
+     * i16 から varint に変換し、末尾に carriedItem として absent
+     * スロットを補う（755 には carriedItem が無い。ViaVersion も null を書く）。
+     */
+    public static byte[] translateWindowItems755To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte()); // windowId u8
+            writer.writeVarInt(0); // stateId（755には無い）
+            int count = reader.readShort(); // 755 の count は i16
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Items の件数が負です: " + count);
+            }
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                translateSlot755To756(reader, writer);
+            }
+            writer.writeBoolean(false); // carriedItem 無し
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Items を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Window Items（756 → 755）。stateId varint を読んで捨て、count を
+     * varint から i16 に変換し、末尾の carriedItem を読んで捨てる。
+     */
+    public static byte[] translateWindowItems756To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte()); // windowId u8
+            reader.readVarInt(); // stateId（755には無いため捨てる）
+            int count = reader.readVarInt();
+            if (count < 0 || count > 32767) {
+                throw new IllegalArgumentException("Window Items の件数が i16 に収まりません: " + count);
+            }
+            writer.writeShort(count);
+            for (int i = 0; i < count; i++) {
+                translateSlot756To755(reader, writer);
+            }
+            translateSlot756To755(reader, new Writer()); // carriedItem（755には無いため捨てる）
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Items を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Window Click（755 → 756）。755 には無い stateId varint に 0 を入れる。
+     * mode は両方とも varint（javap -c で両方とも writeEnum を確認。
+     * minecraft-data の「1.17 は i8」は誤り）のためそのまま写す。
+     */
+    public static byte[] translateWindowClick755To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte()); // windowId u8
+            writer.writeVarInt(0); // stateId（755には無い）
+            writer.writeShort(reader.readShort()); // slot i16
+            writer.writeByte(reader.readByte()); // button i8
+            writer.writeVarInt(reader.readVarInt()); // mode（両方とも varint）
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Click の個数が負です: " + count);
+            }
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                writer.writeShort(reader.readShort());
+                translateSlot755To756(reader, writer);
+            }
+            translateSlot755To756(reader, writer); // cursorItem
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Click を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Window Click（756 → 755）。stateId varint を読んで捨てる。mode は両方とも varint。 */
+    public static byte[] translateWindowClick756To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte()); // windowId u8
+            reader.readVarInt(); // stateId（755には無いため捨てる）
+            writer.writeShort(reader.readShort()); // slot i16
+            writer.writeByte(reader.readByte()); // button i8
+            writer.writeVarInt(reader.readVarInt()); // mode（両方とも varint）
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Click の個数が負です: " + count);
+            }
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                writer.writeShort(reader.readShort());
+                translateSlot756To755(reader, writer);
+            }
+            translateSlot756To755(reader, writer); // cursorItem
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Click を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Entity Destroy（755 → 756）。755 は [entityId varint] 1体だけだが、
+     * 756 は [count varint][entityIds] の配列のため、count 1 の配列にする。
+     */
+    public static byte[] translateEntityDestroy755To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(1); // count
+            writer.writeVarInt(reader.readVarInt()); // entityId
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Destroy を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Entity Destroy（756 → 755）。756 の配列が1体だけのとき単体に直す。
+     * count 0 は消すものが無いので落として正しく、count 2以上は755の
+     * 1パケットでは表せないためパケットごと落とす（null を返す。
+     * 分割して送るには ProxySession 側の対応が要る）。
+     */
+    public static byte[] translateEntityDestroy756To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Entity Destroy の件数が負です: " + count);
+            }
+            if (count != 1) {
+                LOG.warning("755 では表せない Entity Destroy（count=" + count + "）を落とします。");
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt()); // entityId
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Destroy を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // 754 <=> 755（1.16.5 <=> 1.17）
+    // パケットIDは ProxySession が付け替える（Chunk Data 0x20／0x22、
+    // Set Slot 0x15／0x16、Window Items 0x13／0x14、Window Click 0x09／0x08、
+    // Entity Destroy 0x36／0x3a、Edit Book 0x0c／0x0b。PacketIds.java の
+    // 754 列で実測。ID差分は120件・新規0件・削除1件。Stage A §8）。
+    // [protocol.json の突き合わせ結果（実測）]
+    // mc-1.16-protocol.json（pc/1.16.2）と mc-1.17-protocol.json
+    // （minecraft-data）を全状態・全方向で突き合わせた
+    // （detergentmc-protocol/tools/compare-754-755-protocol.py）。
+    // ID変更は120件（分割パケットの各分割先との比較を含む）。
+    // 1.16.5 にだけあるパケットは entity（0x2a。1.17で削除。ViaVersion
+    // でも落とされる）と、1.17 にだけあるのは sculk_vibration_signal
+    // （0x05。754では -1）。トップレベル types の差分は particleData
+    // だけ（パーティクルIDのずれと、1.17の新規 dust_color_transition・
+    // vibration）。スロット型は両方とも [present bool][id varint]
+    // [個数 i8][任意の名前付きNBT] で同一。
+    // フィールド構成の差分は、分割パケットの各分割先との比較を含めて
+    // 30件（スクリプトの出力）。この節に関係するもの：
+    // - Chunk Data：754 は [x i32][z i32][groundUp bool][bitMap varint]
+    //   [heightmaps NBT][biomes（groundUp のときだけ varint[1024]）]
+    //   [chunkData buffer][blockEntities varint[NBT]]、755 は [x i32]
+    //   [z i32][bitMap varint[i64]][heightmaps NBT][biomes varint[1024]]
+    //   [chunkData buffer][blockEntities varint[NBT]]。groundUp と
+    //   bitMap・biomes の有無が違う。
+    // - Set Slot：両方とも [windowId i8][slot i16][item] で同一。
+    //   stateId は無い（stateId は 756 で追加されたもの）。
+    // - Window Items：両方とも [windowId u8][count i16][items] で同一。
+    //   carriedItem は無い（756 で追加されたもの）。
+    // - Window Click：754 は [windowId u8][slot i16][button i8]
+    //   [action i16][mode][item slot]、755 は [windowId u8][slot i16]
+    //   [button i8][mode][changedSlots varint[{location i16, slot}]]
+    //   [cursorItem slot]。754 の action（uid）は 755 には無く、754 の
+    //   単一スロットは 755 の changedSlots＋cursorItem に対応する。
+    // - Entity Destroy：754 は [count varint][entityIds]（内部名
+    //   entity_destroy）、755 は [entityId varint] 1体だけ（内部名
+    //   destroy_entity）。756 の [count][entityIds] と同じ形。
+    // - Edit Book（toServer 0x0c／0x0b）：両方とも [new_book slot]
+    //   [signing bool][hand varint] で同一（minecraft-data・javap とも）。
+    //   755⇔756 のときのような全面的な違いは無い。ただしこの節では
+    //   変換器を作らない（下記の「作らない変換器」を参照）。
+    // この節に関係しない差分（PlayTranslator／ClientJoinFlow 担当の範囲）：
+    // combat_event→3分割、title→5分割、world_border→6分割、
+    // transaction→ping／pong、login の previousGameMode は u8⇔i8
+    // （ワイヤ上は同じ1バイト。Stage A §11.6 で実測済み）、position に
+    // dismountVehicle 追加、spawn_position に angle 追加、resource_pack_send
+    // に forced＋promptMessage 追加、settings に disableTextFiltering 追加、
+    // explosion の件数が i32⇔varint、entity_update_attributes の件数が
+    // i32⇔varint、declare_recipes の shaped の並び、tags の形式変更、
+    // map の trackingPosition 削除・icons の option 化・columns の i8⇔u8。
+    // [差分の裏付け（minecraft-data以外に2系統）]
+    // - javap：公式 server_mappings.txt（piston-metaの sha1 照合済み。
+    //   1.16.5 server.txt sha1 41285beda6d251d190f2bf33beadd4fee187df7a、
+    //   1.17 server.txt sha1 84d80036e14bc5c7894a4fad9dd9f367d3000334）で
+    //   求めた難読化クラス名で実バニラ server-1.16.5.jar／server-1.17.jar
+    //   の write／read メソッドを確認。Chunk Data（1.16.5 pt／1.17 qw）、
+    //   Set Slot（pi／qk）、Window Items（pg／qi）、Window Click
+    //   （sk／tw）、Entity Destroy（qm／rs）、Edit Book（sn／tz）、
+    //   Update Light（pw／qz）、Tile Entity Data（ow／py）の全差分が一致。
+    //   セクションは両版とも [blockCount i16][PalettedContainer] で、
+    //   PalettedContainer（1.16.5 cgo／1.17 cnd）の write は [BPE u8]
+    //   [パレット][long 配列] で同一。BitStorage（1.16.5 aer／1.17 agg）
+    //   は両版とも non-straddling（f＝64／bits、data 長＝(size＋f−1)／f、
+    //   get／set は1つの long の中だけで読む。境界をまたがない）。
+    // - ViaVersion：detergentmc-protocol/build/remap-data/via-version/
+    //   Protocol1_16_4To1_17.java と一致（SET_TITLES の5分割、
+    //   EXPLODE の件数 int→varint、RESOURCE_PACK の forced＋prompt、
+    //   SET_DEFAULT_SPAWN_POSITION の angle 0f、CLIENT_INFORMATION の
+    //   disableTextFiltering 除去、MAP_ITEM_DATA の trackingPosition 除去）。
+    //   ただしチャンク書き換えの WorldPacketRewriter1_17 はローカル
+    //   コピーに無いため、チャンクの ViaVersion 照合はしていない。
+    //   チャンク形式は javap と下記の生キャプチャで裏付けた。
+    // - 訂正1件：minecraft-data の「Window Click の mode は 1.16.5 で
+    //   i8」は誤り。javap -c で両バージョンとも readEnum／writeEnum
+    //   （varint の enum 序数）を確認（1.16.5 sk の a(nf)／b(nf)、
+    //   1.17 tw の tw(og)／a(og)）。mode は両方向とも varint のまま写す。
+    //   755 のときの「1.17 は i8」訂正と同じ罠。
+    // - 訂正2件目：1.16.5 の Window Click の単一スロットはカーソル
+    //   アイテムである。実バニラ 1.16.5 サーバーのハンドラ
+    //   （ServerGamePacketListenerImpl a(sk)）で、パケットの item
+    //   （sk.f()）をサーバー側で計算したクリック後のカーソルと比較し、
+    //   一致すれば ack（accepted=true）、不一致なら ack（accepted=false）
+    //   ＋再送している。1.17 のハンドラ（acj a(tw)）は changedSlots を
+    //   スロットに、carriedItem をカーソルにそのまま反映する。
+    //   そのため 754→755 は changedSlots を空にし、754 の単一スロットを
+    //   cursorItem にする。逆向きは cursorItem を 754 の単一スロットにし、
+    //   changedSlots は落とす（1.16.5 サーバーはクリックを自分で再計算し、
+    //   カーソルだけを検証するため）。
+    // [チャンク形式の実測（生キャプチャ）]
+    // 実バニラ 1.16.5 サーバー（Java 8、オフラインモード、圧縮 -1、
+    // view-distance 10、ポート 25571）から Python ソケットの偽クライアントで
+    // Chunk Data 0x20 を 5 件受信し、最初の groundUp=true のもの
+    // （チャンク -15,-7、10,633バイト）をテストリソース
+    // cap754-chunk-x-15-z-7.bin に保存した。パース結果：bitMap 0x000f
+    // （4セクション）、biomes 1024件（全て 50＝deep_frozen_ocean）、
+    // セクション y=0 は BPE 5・パレット 17・Data Array 長 342
+    // （non-straddling の (4096＋12−1)／12＝342。straddling 式だと 320）、
+    // y=1〜3 は BPE 4・Data Array 長 256、ブロックエンティティ 0件。
+    // 消費量はペイロード長と完全一致。BitStorage non-straddling は
+    // 生キャプチャでも確定した（755 の 1.17.1 キャプチャと同じ結論）。
+    // [決めたこと（落とすもの・補完値）と根拠]
+    // - 754→755 で groundUp=false のとき、755 には biomes が必須のため
+    //   1024件全てを平原（PLAINS_BIOME_755＝1）で補う。部分更新には
+    //   バイオーム情報が無いため。1.17 に部分更新パケットは無く、bitMap に
+    //   無いセクションは 755 クライアント側で空になる（制約。テストで確認）。
+    //   なお実バニラ 1.16.5 は通常 groundUp=true の全チャンクを送るため、
+    //   groundUp=false は稀な経路である。
+    // - 755→754 のブロックエンティティで、1.16.5 に無い sculk_sensor
+    //   （755 のブロックエンティティ種別 33。Stage A §11.1）は落とす。
+    //   ブロック自体は代替表で 754 のブロックに付け替わるため、NBT だけ
+    //   残すと対応するブロックエンティティが無い。754→755 は全て通す。
+    // - 754→755 の Entity Destroy は count 1 のときだけ単体に直す。
+    //   count 0 は消すものが無いので落として正しく、count 2以上は755の
+    //   1パケットでは表せないため落とす（null を返す。756→755 と同じ契約。
+    //   分割して送るには ProxySession 側の対応が要る）。
+    // - 755→754 の Window Click の action（uid）は 0 を補う。755 には
+    //   uid が無いため。1.17 クライアントは ack を期待しないので 0 でよい。
+    //   1.16.5 サーバーは uid を ack（ClientboundContainerAckPacket）に
+    //   そのまま返すため、ProxySession 側でその ack を落とす必要がある
+    //   （ProxySession 担当への申し送り）。
+    // - 変換失敗時は従来通り素通し（ペイロード unchanged）を返す。
+    //   ただし Entity Destroy の count 0／2以上だけは上記の通り null。
+    // - ブロック状態・アイテム・バイオームの表は全件写像（verify-754-tables.py
+    //   43/43）で、DROP（-1）は出ない。範囲外は RegistryRemapper が石／
+    //   平原の代替値を返す。755 側にだけあるブロック状態・バイオームは
+    //   代替表（ITEM_FALLBACK_754 等）で 754 のものに付け替わるため、
+    //   null で落とすことは無い。
+    // [作らない変換器（この節の範囲外。根拠と申し送り）]
+    // - Edit Book：フィールドは両版で同一（[new_book slot][signing bool]
+    //   [hand varint]。javap で確認）のため構造変換は不要。ただしスロット
+    //   のアイテムIDは 754⇔755 で付け替えが必要で、素通しでは 755 側の
+    //   アイテムIDが 754 クライアントに誤って届く。ProxySession 担当への
+    //   申し送り（スロットだけ付け替える素通しが必要）。
+    // - フィールド同一のため構造変換器を作らないもの（突き合わせで差分無し）：
+    //   Set Creative Slot。ただしスロットのアイテムIDは 754⇔755 で違うため
+    //   ProxySession の translateSetCreativeSlot754To755／755To754 で
+    //   付け替える（素通し＋パケットID付け替えだけでは誤ったIDが届く）。
+    // - 値の付け替え変換器（Stage B 統合時の残作業で追加。フィールド同一の
+    //   ため構造は変えず、レジストリIDだけ付け替える）：
+    //   Multi Block Change、Block Change、Set Cooldown、Entity Equipment、
+    //   Trade List、Block Entity Data（Tile Entity Data）、Entity Metadata、
+    //   Sound Effect、Entity Sound Effect、Named Sound Effect、Stop Sound、
+    //   World Particles、Spawn Entity。
+    //   作らないもの：Entity Effect（エフェクト 32件・同一順序のため恒等写像。
+    //   Stage A §11.1）、Open Window（メニュー 24件・同一順序のため恒等写像。
+    //   Stage A §11.1）。どちらもフィールド同一・ID同一のため素通しで正しい。
+    // - Update Light：フィールドが違う（1.16.5 はマスクが varint×4＋
+    //   data restBuffer、1.17 はマスクが BitSet 配列×4＋skyLight／blockLight
+    //   配列。javap pw／qz で確認）が、変換器は作っていない（未実装）。
+    //   ProxySession は両方向とも落とす（754→755 は to755ServerPacketFrom754
+    //   で落とし、755→754 は汎用経路が無いため届かない）。無理に作らない。
+    // - その他のフィールド差分パケット（combat_event／title／world_border
+    //   の分割、transaction⇔ping／pong、position／spawn_position／
+    //   settings／declare_recipes）は PlayTranslator／ClientJoinFlow
+    //   担当の範囲のためこの節では作らない。explosion／
+    //   entity_update_attributes／tags／map はこの節で作った。
+    //   resource_pack_send は PlayTranslator の754節で作った。
+    // - entity（1.16.5 のみ 0x2a）は 1.17 で削除されたため変換器は無い。
+    //   ViaVersion でも落とされる。sculk_vibration_signal（1.17 のみ）は
+    //   754 では -1 のため落とす。
+    // ------------------------------------------------------------------
+
+    /** 754のスロット1個を755向けに読む。アイテムIDは RegistryTables754 の表で付け替える。 */
+    public static void translateSlot754To755(Reader reader, Writer writer) {
+        boolean present = reader.readBoolean();
+        writer.writeBoolean(present);
+        if (!present) {
+            return;
+        }
+        writer.writeVarInt(RegistryRemapper.mapItem754To755(reader.readVarInt()));
+        writer.writeByte(reader.readByte());
+        writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+    }
+
+    /** 755のスロット1個を754向けに読む。アイテムIDは RegistryTables754 の表で付け替える。 */
+    public static void translateSlot755To754(Reader reader, Writer writer) {
+        boolean present = reader.readBoolean();
+        writer.writeBoolean(present);
+        if (!present) {
+            return;
+        }
+        writer.writeVarInt(RegistryRemapper.mapItem755To754(reader.readVarInt()));
+        writer.writeByte(reader.readByte());
+        writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+    }
+
+    /**
+     * 754 のブロックのパレット付きコンテナ1個を755向け（up=true）または
+     * 754向け（up=false）に読む。パレットのエントリ（BPE 0 の単一値と
+     * BPE 1〜8 のパレット）はブロック状態IDそのものなので付け替え、
+     * Data Array はパレット添字の列のためそのまま写す。直接パレット
+     * （BPE 9〜15）は Data Array がブロック状態IDそのものなのでほぐして
+     * 付け替えて詰め直す。BitStorage は両版とも non-straddling
+     * （生キャプチャで BPE 5 の Data Array 長 342 を確認）。
+     */
+    private static void translateBlockContainer754(Reader reader, Writer writer, boolean up) {
+        int bitsPerEntry = reader.readUnsignedByte();
+        if (bitsPerEntry > 15) {
+            throw new IllegalArgumentException("Bits Per Entry が大きすぎます: " + bitsPerEntry);
+        }
+        writer.writeUnsignedByte(bitsPerEntry);
+        if (bitsPerEntry == 0) {
+            int single = reader.readVarInt();
+            writer.writeVarInt(up ? RegistryRemapper.mapBlockState754To755(single)
+                    : RegistryRemapper.mapBlockState755To754(single));
+            int dataLength = reader.readVarInt();
+            if (dataLength != 0) {
+                throw new IllegalArgumentException(
+                        "シングルパレットの Data Array 長が 0 ではありません: " + dataLength);
+            }
+            writer.writeVarInt(0);
+            return;
+        }
+        if (bitsPerEntry <= 8) {
+            int paletteLength = reader.readVarInt();
+            if (paletteLength <= 0 || paletteLength > (1 << bitsPerEntry)) {
+                throw new IllegalArgumentException("パレット長が不正です: " + paletteLength);
+            }
+            writer.writeVarInt(paletteLength);
+            for (int i = 0; i < paletteLength; i++) {
+                int state = reader.readVarInt();
+                writer.writeVarInt(up ? RegistryRemapper.mapBlockState754To755(state)
+                        : RegistryRemapper.mapBlockState755To754(state));
+            }
+            copyNonStraddlingDataArray(reader, writer, 4096, bitsPerEntry);
+            return;
+        }
+        long[] longs = readNonStraddlingDataArray(reader, 4096, bitsPerEntry);
+        int[] entries = unpackNonStraddling(longs, bitsPerEntry, 4096);
+        for (int i = 0; i < entries.length; i++) {
+            entries[i] = up ? RegistryRemapper.mapBlockState754To755(entries[i])
+                    : RegistryRemapper.mapBlockState755To754(entries[i]);
+        }
+        long[] out = packNonStraddling(entries, bitsPerEntry);
+        writer.writeVarInt(out.length);
+        for (long value : out) {
+            writer.writeLong(value);
+        }
+    }
+
+    /**
+     * チャンクのブロックエンティティ列を読む。NBT は両版とも [id／x／y／z
+     * 付きの名前付き NBT] のためそのまま通す。ただし 755→754（up=false）の
+     * とき、1.16.5 に無い sculk_sensor は落とす。NBT がコンパウンドでない
+     * もの・id／x／y／z が無いものも落とす（756節と同じ扱い）。
+     */
+    private static List<Tag> readChunkBlockEntities754(Reader reader, boolean up) {
+        int count = reader.readVarInt();
+        if (count < 0) {
+            throw new IllegalArgumentException("ブロックエンティティの件数が負です: " + count);
+        }
+        List<Tag> kept = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            Tag tag = reader.readNamedNbt().tag();
+            if (!(tag instanceof Tag.CompoundTag compound)) {
+                LOG.warning("ブロックエンティティ NBT がコンパウンドではないため落とします。");
+                continue;
+            }
+            String id = compound.getString("id").orElse(null);
+            Integer x = blockEntityCoord(compound, "x");
+            Integer y = blockEntityCoord(compound, "y");
+            Integer z = blockEntityCoord(compound, "z");
+            if (id == null || x == null || y == null || z == null) {
+                LOG.warning("ブロックエンティティ NBT に id／x／y／z が無いため落とします。");
+                continue;
+            }
+            if (!up && "minecraft:sculk_sensor".equals(id)) {
+                LOG.warning("1.16.5 に無いブロックエンティティ（id=" + id + "）を落とします。");
+                continue;
+            }
+            kept.add(tag);
+        }
+        return kept;
+    }
+
+    /** 754 の bitMap（varint の16ビット）を 755 の BitSet long 配列に直す。 */
+    private static long[] bitMap754To755(int mask) {
+        if (mask == 0) {
+            return new long[0];
+        }
+        return new long[]{mask & 0xFFFFFFFFL};
+    }
+
+    /** 755 の BitSet long 配列を 754 の bitMap（varint の16ビット）に直す。16以上のビットは無いものとして落とす。 */
+    private static int bitMap755To754(long[] longs) {
+        int mask = 0;
+        for (int i = 0; i < 16; i++) {
+            int index = i / 64;
+            if (index < longs.length && (longs[index] & (1L << (i % 64))) != 0) {
+                mask |= (1 << i);
+            }
+        }
+        if (longs.length > 1) {
+            for (int i = 1; i < longs.length; i++) {
+                if (longs[i] != 0) {
+                    LOG.warning("755 の bitMap に16セクションを超えるビットがあるため落とします。");
+                    break;
+                }
+            }
+        }
+        return mask;
+    }
+
+    /**
+     * Chunk Data（754 0x20 → 755 0x22）。groundUp・bitMap・biomes の形式を
+     * 直し、セクション内のブロック状態IDとバイオームIDを付け替える。
+     * groundUp=false のとき 755 の biomes は平原（1）で補う（1.17 に
+     * 部分更新パケットは無いため、bitMap に無いセクションは 755 側で空になる）。
+     * heightmaps NBT はそのまま通す。読めない場合は素通しする。
+     */
+    public static byte[] translateChunkData754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int chunkX = reader.readInt();
+            int chunkZ = reader.readInt();
+            boolean groundUp = reader.readBoolean();
+            int bitMap = reader.readVarInt();
+            if ((bitMap & ~0xFFFF) != 0) {
+                LOG.warning("754 の bitMap に16セクションを超えるビットがあるため落とします。");
+                bitMap &= 0xFFFF;
+            }
+            Nbt.NamedResult heightmaps = reader.readNamedNbt();
+            int[] biomes = null;
+            if (groundUp) {
+                int biomeCount = reader.readVarInt();
+                if (biomeCount != 1024) {
+                    throw new IllegalArgumentException(
+                            "バイオーム配列の件数が 1024 ではありません: " + biomeCount);
+                }
+                biomes = new int[1024];
+                for (int i = 0; i < 1024; i++) {
+                    biomes[i] = RegistryRemapper.mapBiome754To755(reader.readVarInt());
+                }
+            } else {
+                logOnce("chunk754-nobiome",
+                        "754 の groundUp=false チャンクの biomes を平原で補います。");
+            }
+            int dataLength = reader.readVarInt();
+            byte[] chunkData = reader.readBytes(dataLength);
+            Reader sections = new Reader(chunkData);
+            Writer outSections = new Writer();
+            for (int s = 0; s < 16; s++) {
+                if ((bitMap & (1 << s)) == 0) {
+                    continue;
+                }
+                outSections.writeShort(sections.readShort());
+                translateBlockContainer754(sections, outSections, true);
+            }
+            if (sections.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "チャンクデータに余分なバイトがあります（残り=" + sections.remaining() + "）。");
+            }
+            List<Tag> blockEntities = readChunkBlockEntities754(reader, true);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeInt(chunkX);
+            writer.writeInt(chunkZ);
+            long[] outBitMap = bitMap754To755(bitMap);
+            writer.writeVarInt(outBitMap.length);
+            for (long value : outBitMap) {
+                writer.writeLong(value);
+            }
+            if (heightmaps.tag() == null) {
+                writer.writeByte(0);
+            } else {
+                writer.writeNamedNbt("", heightmaps.tag());
+            }
+            writer.writeVarInt(1024);
+            for (int i = 0; i < 1024; i++) {
+                writer.writeVarInt(biomes == null
+                        ? RegistryRemapper.PLAINS_BIOME_755 : biomes[i]);
+            }
+            writer.writeByteArray(outSections.bytes());
+            writer.writeVarInt(blockEntities.size());
+            for (Tag tag : blockEntities) {
+                writer.writeNamedNbt("", tag);
+            }
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chunk Data を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Chunk Data（755 0x22 → 754 0x20）。bitMap・biomes の形式を直し、
+     * セクション内のブロック状態IDとバイオームIDを付け替える。755 の
+     * チャンクは常に全チャンクのため groundUp=true で送る。sculk_sensor の
+     * ブロックエンティティは落とす。読めない場合は素通しする。
+     */
+    public static byte[] translateChunkData755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int chunkX = reader.readInt();
+            int chunkZ = reader.readInt();
+            int bitMapCount = reader.readVarInt();
+            if (bitMapCount < 0 || bitMapCount > 4) {
+                throw new IllegalArgumentException("bitMap の long 数が不正です: " + bitMapCount);
+            }
+            long[] bitMapLongs = new long[bitMapCount];
+            for (int i = 0; i < bitMapCount; i++) {
+                bitMapLongs[i] = reader.readLong();
+            }
+            int bitMap = bitMap755To754(bitMapLongs);
+            Nbt.NamedResult heightmaps = reader.readNamedNbt();
+            int biomeCount = reader.readVarInt();
+            if (biomeCount != 1024) {
+                throw new IllegalArgumentException(
+                        "バイオーム配列の件数が 1024 ではありません: " + biomeCount);
+            }
+            int[] biomes = new int[1024];
+            for (int i = 0; i < 1024; i++) {
+                biomes[i] = RegistryRemapper.mapBiome755To754(reader.readVarInt());
+            }
+            int dataLength = reader.readVarInt();
+            byte[] chunkData = reader.readBytes(dataLength);
+            Reader sections = new Reader(chunkData);
+            Writer outSections = new Writer();
+            for (int s = 0; s < 16; s++) {
+                if ((bitMap & (1 << s)) == 0) {
+                    continue;
+                }
+                outSections.writeShort(sections.readShort());
+                translateBlockContainer754(sections, outSections, false);
+            }
+            if (sections.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "チャンクデータに余分なバイトがあります（残り=" + sections.remaining() + "）。");
+            }
+            List<Tag> blockEntities = readChunkBlockEntities754(reader, false);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeInt(chunkX);
+            writer.writeInt(chunkZ);
+            writer.writeBoolean(true); // groundUp（755 のチャンクは常に全チャンク）
+            writer.writeVarInt(bitMap);
+            if (heightmaps.tag() == null) {
+                writer.writeByte(0);
+            } else {
+                writer.writeNamedNbt("", heightmaps.tag());
+            }
+            writer.writeVarInt(1024);
+            for (int i = 0; i < 1024; i++) {
+                writer.writeVarInt(biomes[i]);
+            }
+            writer.writeByteArray(outSections.bytes());
+            writer.writeVarInt(blockEntities.size());
+            for (Tag tag : blockEntities) {
+                writer.writeNamedNbt("", tag);
+            }
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chunk Data を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Set Slot（754 → 755）。フィールドは両版で同一（[windowId i8]
+     * [slot i16][item]。stateId は無い）ため、スロットのアイテムIDの
+     * 付け替えだけを行う。
+     */
+    public static byte[] translateSetSlot754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeByte(reader.readByte()); // windowId i8
+            writer.writeShort(reader.readShort()); // slot i16
+            translateSlot754To755(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Slot を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Slot（755 → 754）。フィールドは両版で同一のため、スロットのアイテムIDの付け替えだけを行う。 */
+    public static byte[] translateSetSlot755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeByte(reader.readByte()); // windowId i8
+            writer.writeShort(reader.readShort()); // slot i16
+            translateSlot755To754(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Slot を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Window Items（754 → 755）。フィールドは両版で同一（[windowId u8]
+     * [count i16][items]。stateId・carriedItem は無い）ため、スロットの
+     * アイテムIDの付け替えだけを行う。
+     */
+    public static byte[] translateWindowItems754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte()); // windowId u8
+            int count = reader.readShort(); // count は i16
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Items の件数が負です: " + count);
+            }
+            writer.writeShort(count);
+            for (int i = 0; i < count; i++) {
+                translateSlot754To755(reader, writer);
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Items を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Window Items（755 → 754）。フィールドは両版で同一のため、スロットのアイテムIDの付け替えだけを行う。 */
+    public static byte[] translateWindowItems755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte()); // windowId u8
+            int count = reader.readShort(); // count は i16
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Items の件数が負です: " + count);
+            }
+            writer.writeShort(count);
+            for (int i = 0; i < count; i++) {
+                translateSlot755To754(reader, writer);
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Items を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Window Click（754 → 755）。754 は [windowId u8][slot i16][button i8]
+     * [action i16][mode varint][item slot]、755 は [windowId u8][slot i16]
+     * [button i8][mode varint][changedSlots][cursorItem slot]。
+     * action（uid）は 755 には無いため落とす。754 の単一スロットは
+     * クリック後のカーソル（実バニラ 1.16.5 サーバーのハンドラで確認）のため
+     * cursorItem にし、changedSlots は空にする。mode は両方とも varint
+     * （javap -c で両方とも readEnum／writeEnum を確認。minecraft-data の
+     * 「1.16.5 は i8」は誤り）のためそのまま写す。
+     */
+    public static byte[] translateWindowClick754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte()); // windowId u8
+            writer.writeShort(reader.readShort()); // slot i16
+            writer.writeByte(reader.readByte()); // button i8
+            reader.readShort(); // action（uid。755には無いため捨てる）
+            writer.writeVarInt(reader.readVarInt()); // mode（両方とも varint）
+            writer.writeVarInt(0); // changedSlots 0件
+            translateSlot754To755(reader, writer); // cursorItem
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Click を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Window Click（755 → 754）。755 の changedSlots は落とし（1.16.5
+     * サーバーはクリックを自分で再計算し、カーソルだけを検証するため）、
+     * cursorItem を 754 の単一スロットにする。action（uid）は 755 には
+     * 無いため 0 を補う（1.17 クライアントは ack を期待しない）。
+     * mode は両方とも varint。
+     */
+    public static byte[] translateWindowClick755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte()); // windowId u8
+            writer.writeShort(reader.readShort()); // slot i16
+            writer.writeByte(reader.readByte()); // button i8
+            writer.writeShort(0); // action（uid。755には無いため 0 を補う）
+            writer.writeVarInt(reader.readVarInt()); // mode（両方とも varint）
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Click の個数が負です: " + count);
+            }
+            for (int i = 0; i < count; i++) {
+                reader.readShort(); // location（754には無いため捨てる）
+                translateSlot755To754(reader, new Writer()); // changedSlots のスロット（捨てる）
+            }
+            translateSlot755To754(reader, writer); // cursorItem
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Click を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Entity Destroy（754 → 755）。754 は [count varint][entityIds] の
+     * 配列だが、755 は [entityId varint] 1体だけのため、count 1 のときだけ
+     * 単体に直す。count 0 は消すものが無いので落として正しく、count 2以上は
+     * 755の1パケットでは表せないため落とす（null を返す。756→755 と同じ契約。
+     * 分割して送るには ProxySession 側の対応が要る）。
+     */
+    public static byte[] translateEntityDestroy754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Entity Destroy の件数が負です: " + count);
+            }
+            if (count != 1) {
+                LOG.warning("755 では表せない Entity Destroy（count=" + count + "）を落とします。");
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt()); // entityId
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Destroy を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Entity Destroy（755 → 754）。755 は [entityId varint] 1体だけだが、
+     * 754 は [count varint][entityIds] の配列のため、count 1 の配列にする。
+     */
+    public static byte[] translateEntityDestroy755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(1); // count
+            writer.writeVarInt(reader.readVarInt()); // entityId
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Destroy を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // フィールド差分パケット（754 <=> 755。Stage B 統合時の残作業分）
+    // ------------------------------------------------------------------
+
+    /**
+     * Explosion（754 → 755）。記録数の countType だけが i32→varint で、
+     * ほかのフィールドは同一（mc-1.16／mc-1.17-protocol.json で実測）。
+     * translateExplosion768To769 と同じ段取り（件数の型だけ直す）。
+     */
+    public static byte[] translateExplosion754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeFloat(reader.readFloat()); // x
+            writer.writeFloat(reader.readFloat()); // y
+            writer.writeFloat(reader.readFloat()); // z
+            writer.writeFloat(reader.readFloat()); // radius
+            int count = reader.readInt(); // i32
+            if (count < 0) {
+                throw new IllegalArgumentException("Explosion の件数が負です: " + count);
+            }
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                writer.writeByte(reader.readByte());
+                writer.writeByte(reader.readByte());
+                writer.writeByte(reader.readByte());
+            }
+            writer.writeFloat(reader.readFloat()); // playerMotionX
+            writer.writeFloat(reader.readFloat()); // playerMotionY
+            writer.writeFloat(reader.readFloat()); // playerMotionZ
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Explosion を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Explosion（755 → 754）。記録数の countType だけが varint→i32。 */
+    public static byte[] translateExplosion755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeFloat(reader.readFloat()); // x
+            writer.writeFloat(reader.readFloat()); // y
+            writer.writeFloat(reader.readFloat()); // z
+            writer.writeFloat(reader.readFloat()); // radius
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Explosion の件数が負です: " + count);
+            }
+            writer.writeInt(count); // i32
+            for (int i = 0; i < count; i++) {
+                writer.writeByte(reader.readByte());
+                writer.writeByte(reader.readByte());
+                writer.writeByte(reader.readByte());
+            }
+            writer.writeFloat(reader.readFloat()); // playerMotionX
+            writer.writeFloat(reader.readFloat()); // playerMotionY
+            writer.writeFloat(reader.readFloat()); // playerMotionZ
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Explosion を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Entity Update Attributes（754 → 755）。properties の件数だけが
+     * i32→varint。「key」→「name」は名前だけの違いで値は同じ文字列のため
+     * そのまま写す（mc-1.16／mc-1.17-protocol.json で実測）。
+     * modifiers の件数は両方とも varint。
+     */
+    public static byte[] translateEntityUpdateAttributes754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt()); // entityId
+            int count = reader.readInt(); // i32
+            if (count < 0) {
+                throw new IllegalArgumentException(
+                        "Entity Update Attributes の件数が負です: " + count);
+            }
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                writer.writeString(reader.readString()); // key／name
+                writer.writeDouble(reader.readDouble()); // value
+                int modifiers = reader.readVarInt();
+                if (modifiers < 0) {
+                    throw new IllegalArgumentException(
+                            "Entity Update Attributes の modifiers が負です: " + modifiers);
+                }
+                writer.writeVarInt(modifiers);
+                for (int j = 0; j < modifiers; j++) {
+                    writer.writeBytes(reader.readBytes(16)); // uuid
+                    writer.writeDouble(reader.readDouble()); // amount
+                    writer.writeByte(reader.readByte()); // operation
+                }
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Update Attributes を変換できなかったため素通しします: "
+                    + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Update Attributes（755 → 754）。properties の件数だけが varint→i32。 */
+    public static byte[] translateEntityUpdateAttributes755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt()); // entityId
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException(
+                        "Entity Update Attributes の件数が負です: " + count);
+            }
+            writer.writeInt(count); // i32
+            for (int i = 0; i < count; i++) {
+                writer.writeString(reader.readString()); // name／key
+                writer.writeDouble(reader.readDouble()); // value
+                int modifiers = reader.readVarInt();
+                if (modifiers < 0) {
+                    throw new IllegalArgumentException(
+                            "Entity Update Attributes の modifiers が負です: " + modifiers);
+                }
+                writer.writeVarInt(modifiers);
+                for (int j = 0; j < modifiers; j++) {
+                    writer.writeBytes(reader.readBytes(16)); // uuid
+                    writer.writeDouble(reader.readDouble()); // amount
+                    writer.writeByte(reader.readByte()); // operation
+                }
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Update Attributes を変換できなかったため素通しします: "
+                    + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Map（754 → 755）。trackingPosition bool を落とし、icons を
+     * option 化する。columns／rows／x／y は i8→u8 だがワイヤ上は同じ
+     * 1バイトのためそのまま写す（mc-1.16／mc-1.17-protocol.json で実測）。
+     * icons が0件のときは absent（false）にする（ViaVersion の
+     * Protocol1_16_4To1_17 の MAP_ITEM_DATA と同じ扱い）。
+     */
+    public static byte[] translateMap754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int itemDamage = reader.readVarInt();
+            int scale = reader.readByte();
+            reader.readBoolean(); // trackingPosition（755には無い）
+            boolean locked = reader.readBoolean();
+            int iconCount = reader.readVarInt();
+            if (iconCount < 0) {
+                throw new IllegalArgumentException("Map の icons が負です: " + iconCount);
+            }
+            Writer icons = new Writer();
+            for (int i = 0; i < iconCount; i++) {
+                copyMapIcon754(reader, icons);
+            }
+            byte columns = reader.readByte();
+            Writer writer = new Writer();
+            writer.writeVarInt(itemDamage);
+            writer.writeByte(scale);
+            writer.writeBoolean(locked);
+            writer.writeBoolean(iconCount != 0); // icons の option
+            if (iconCount != 0) {
+                writer.writeVarInt(iconCount);
+                writer.writeBytes(icons.bytes());
+            }
+            writer.writeByte(columns); // u8（同じ1バイト）
+            copyMapData754(reader, writer, columns);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Map を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Map（755 → 754）。icons の option を外し、trackingPosition を補う。
+     * trackingPosition の補完値は true。
+     * 根拠：未確認（ViaVersion の逆向き Protocol1_17To1_16_4 はローカルに無く
+     * 照合できていない）。1.17 の地図は通常プレイヤー位置を追跡するため true
+     * にする。false にすると754クライアントで地図上のプレイヤーマーカーが
+     * 出なくなる。見た目だけの違いで、接続には影響しない。
+     */
+    public static byte[] translateMap755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int itemDamage = reader.readVarInt();
+            int scale = reader.readByte();
+            boolean locked = reader.readBoolean();
+            boolean iconsPresent = reader.readBoolean();
+            int iconCount = 0;
+            Writer icons = new Writer();
+            if (iconsPresent) {
+                iconCount = reader.readVarInt();
+                if (iconCount < 0) {
+                    throw new IllegalArgumentException("Map の icons が負です: " + iconCount);
+                }
+                for (int i = 0; i < iconCount; i++) {
+                    copyMapIcon754(reader, icons);
+                }
+            }
+            byte columns = reader.readByte();
+            Writer writer = new Writer();
+            writer.writeVarInt(itemDamage);
+            writer.writeByte(scale);
+            writer.writeBoolean(true); // trackingPosition（755には無いため補う。未確認）
+            writer.writeBoolean(locked);
+            writer.writeVarInt(iconCount);
+            writer.writeBytes(icons.bytes());
+            writer.writeByte(columns); // i8（同じ1バイト）
+            copyMapData754(reader, writer, columns);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Map を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Map のアイコン1件をそのまま写す（754・755とも同一形式）。 */
+    private static void copyMapIcon754(Reader reader, Writer writer) {
+        writer.writeVarInt(reader.readVarInt()); // type
+        writer.writeByte(reader.readByte()); // x
+        writer.writeByte(reader.readByte()); // z
+        writer.writeUnsignedByte(reader.readUnsignedByte()); // direction
+        boolean hasName = reader.readBoolean(); // displayName の option
+        writer.writeBoolean(hasName);
+        if (hasName) {
+            writer.writeString(reader.readString());
+        }
+    }
+
+    /**
+     * Map の地図データ部分（columns 以降）をそのまま写す。columns が 0 の
+     * ときは rows／x／y／data は無い（754・755とも switch で同じ）。
+     */
+    private static void copyMapData754(Reader reader, Writer writer, byte columns) {
+        if (columns == 0) {
+            return;
+        }
+        writer.writeByte(reader.readByte()); // rows
+        writer.writeByte(reader.readByte()); // x
+        writer.writeByte(reader.readByte()); // y
+        writer.writeByteArray(reader.readByteArray()); // data
+    }
+
+    /**
+     * Tags（754 → 755）。754 は block／item／fluid／entity の4固定、
+     * 755 は {tagType, tags} の汎用配列。ViaVersion の
+     * Protocol1_16_4To1_17 の UPDATE_TAGS と同じく5件にし、末尾に
+     * game_event の空タグ列を付ける（754には game_event レジストリが無い）。
+     * タグのエントリ（レジストリID）は種別ごとに付け替える。fluid は
+     * 5件・同一順序のため付け替えない（実バニラ registries.json で実測）。
+     */
+    public static byte[] translateTags754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(5); // block／item／fluid／entity／game_event
+            copyTagGroup754To755(reader, writer, "minecraft:block",
+                    RegistryRemapper::mapBlock754To755);
+            copyTagGroup754To755(reader, writer, "minecraft:item",
+                    RegistryRemapper::mapItem754To755);
+            copyTagGroup754To755(reader, writer, "minecraft:fluid", id -> id);
+            copyTagGroup754To755(reader, writer, "minecraft:entity_type",
+                    RegistryRemapper::mapEntityType754To755);
+            writer.writeString("minecraft:game_event");
+            writer.writeVarInt(0); // 空タグ列（754には無い）
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Tags を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Tags の1グループ（754形式）を読み、tagType を付けて755形式で書く。 */
+    private static void copyTagGroup754To755(Reader reader, Writer writer, String tagType,
+            java.util.function.IntUnaryOperator mapEntry) {
+        writer.writeString(tagType);
+        int tagCount = reader.readVarInt();
+        if (tagCount < 0) {
+            throw new IllegalArgumentException("Tags の件数が負です: " + tagCount);
+        }
+        writer.writeVarInt(tagCount);
+        for (int i = 0; i < tagCount; i++) {
+            writer.writeString(reader.readString()); // tagName
+            int entryCount = reader.readVarInt();
+            if (entryCount < 0) {
+                throw new IllegalArgumentException("Tags のエントリが負です: " + entryCount);
+            }
+            writer.writeVarInt(entryCount);
+            for (int j = 0; j < entryCount; j++) {
+                writer.writeVarInt(mapEntry.applyAsInt(reader.readVarInt()));
+            }
+        }
+    }
+
+    /**
+     * Tags（755 → 754）。汎用配列から block／item／fluid／entity_type
+     * を拾い、754の4固定に戻す。game_event と未知の tagType は落とす
+     * （754には無い）。無い種別は空タグ列にする。
+     */
+    public static byte[] translateTags755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Tags の件数が負です: " + count);
+            }
+            byte[] block = null;
+            byte[] item = null;
+            byte[] fluid = null;
+            byte[] entity = null;
+            for (int i = 0; i < count; i++) {
+                String tagType = reader.readString();
+                java.util.function.IntUnaryOperator mapper = switch (tagType) {
+                    case "minecraft:block" -> RegistryRemapper::mapBlock755To754;
+                    case "minecraft:item" -> RegistryRemapper::mapItem755To754;
+                    case "minecraft:fluid" -> id -> id;
+                    case "minecraft:entity_type" -> RegistryRemapper::mapEntityType755To754;
+                    default -> null; // game_event・未知の種別は落とす
+                };
+                Writer group = new Writer();
+                readTagGroup755To754(reader, group, mapper);
+                byte[] bytes = group.bytes();
+                switch (tagType) {
+                    case "minecraft:block" -> block = bytes;
+                    case "minecraft:item" -> item = bytes;
+                    case "minecraft:fluid" -> fluid = bytes;
+                    case "minecraft:entity_type" -> entity = bytes;
+                    default -> {
+                        // game_event・未知の種別は落とす（読んで捨てた）。
+                    }
+                }
+            }
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeBytes(block != null ? block : emptyTagGroup754());
+            writer.writeBytes(item != null ? item : emptyTagGroup754());
+            writer.writeBytes(fluid != null ? fluid : emptyTagGroup754());
+            writer.writeBytes(entity != null ? entity : emptyTagGroup754());
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Tags を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Tags の1グループ（755形式）を読み、754形式で書く。mapper が null なら読んで捨てる。 */
+    private static void readTagGroup755To754(Reader reader, Writer writer,
+            java.util.function.IntUnaryOperator mapper) {
+        int tagCount = reader.readVarInt();
+        if (tagCount < 0) {
+            throw new IllegalArgumentException("Tags の件数が負です: " + tagCount);
+        }
+        if (mapper == null) {
+            for (int i = 0; i < tagCount; i++) {
+                reader.readString(); // tagName
+                int entryCount = reader.readVarInt();
+                if (entryCount < 0) {
+                    throw new IllegalArgumentException("Tags のエントリが負です: " + entryCount);
+                }
+                for (int j = 0; j < entryCount; j++) {
+                    reader.readVarInt();
+                }
+            }
+            return;
+        }
+        writer.writeVarInt(tagCount);
+        for (int i = 0; i < tagCount; i++) {
+            writer.writeString(reader.readString()); // tagName
+            int entryCount = reader.readVarInt();
+            if (entryCount < 0) {
+                throw new IllegalArgumentException("Tags のエントリが負です: " + entryCount);
+            }
+            writer.writeVarInt(entryCount);
+            for (int j = 0; j < entryCount; j++) {
+                writer.writeVarInt(mapper.applyAsInt(reader.readVarInt()));
+            }
+        }
+    }
+
+    /** 空のタググループ（件数 0）1個分のバイト列。 */
+    private static byte[] emptyTagGroup754() {
+        return new byte[]{0};
+    }
+
+    // ------------------------------------------------------------------
+    // 埋め込みレジストリIDの値付け替え（754 <=> 755。Stage B 統合時の残作業分）
+    // フィールド構成は754・755で同一のため、レジストリIDだけ付け替える。
+    // 前例は to759ServerPacketFrom757 の translateSetCooldown757To759 等。
+    // 作らないもの：Entity Effect（エフェクト 32件・同一順序のため恒等写像。
+    // Stage A §11.1）、Open Window（メニュー 24件・同一順序のため恒等写像。
+    // Stage A §11.1）。どちらもフィールド同一・ID同一のため素通しで正しい。
+    // Update Light は変換器なし（マスク形式が違う。落とす）。
+    // ------------------------------------------------------------------
+
+    /** Set Cooldown（754 → 755）：アイテムIDだけ変換する。 */
+    public static byte[] translateSetCooldown754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int item = reader.readVarInt();
+            int ticks = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapItem754To755(item));
+            writer.writeVarInt(ticks);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Cooldown を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Cooldown（755 → 754）：アイテムIDだけ変換する。 */
+    public static byte[] translateSetCooldown755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int item = reader.readVarInt();
+            int ticks = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapItem755To754(item));
+            writer.writeVarInt(ticks);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Cooldown を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Equipment（754 → 755）。スロット列は上位ビットが終端。 */
+    public static byte[] translateEntityEquipment754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt());
+            while (true) {
+                int slotByte = reader.readUnsignedByte();
+                writer.writeUnsignedByte(slotByte);
+                translateSlot754To755(reader, writer);
+                if ((slotByte & 0x80) == 0) {
+                    break;
+                }
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Equipment を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Equipment（755 → 754）。スロット列は上位ビットが終端。 */
+    public static byte[] translateEntityEquipment755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt());
+            while (true) {
+                int slotByte = reader.readUnsignedByte();
+                writer.writeUnsignedByte(slotByte);
+                translateSlot755To754(reader, writer);
+                if ((slotByte & 0x80) == 0) {
+                    break;
+                }
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Equipment を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Trade List（754 → 755）。754・755とも inputItem2 は option slot、
+     * trades の件数は u8 で同一のため、スロットのアイテムIDだけ付け替える
+     * （mc-1.16／mc-1.17-protocol.json で実測）。
+     */
+    public static byte[] translateTradeList754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt()); // windowId
+            int count = reader.readUnsignedByte();
+            writer.writeUnsignedByte(count);
+            for (int i = 0; i < count; i++) {
+                translateTrade754(reader, writer, true);
+            }
+            writer.writeVarInt(reader.readVarInt()); // villagerLevel
+            writer.writeVarInt(reader.readVarInt()); // experience
+            writer.writeBoolean(reader.readBoolean()); // isRegularVillager
+            writer.writeBoolean(reader.readBoolean()); // canRestock
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Trade List を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Trade List（755 → 754）。スロットのアイテムIDだけ付け替える。 */
+    public static byte[] translateTradeList755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt()); // windowId
+            int count = reader.readUnsignedByte();
+            writer.writeUnsignedByte(count);
+            for (int i = 0; i < count; i++) {
+                translateTrade754(reader, writer, false);
+            }
+            writer.writeVarInt(reader.readVarInt()); // villagerLevel
+            writer.writeVarInt(reader.readVarInt()); // experience
+            writer.writeBoolean(reader.readBoolean()); // isRegularVillager
+            writer.writeBoolean(reader.readBoolean()); // canRestock
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Trade List を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Trade List の取引1件。up=true は754→755、false は755→754。 */
+    private static void translateTrade754(Reader reader, Writer writer, boolean up) {
+        if (up) {
+            translateSlot754To755(reader, writer);
+            translateSlot754To755(reader, writer);
+        } else {
+            translateSlot755To754(reader, writer);
+            translateSlot755To754(reader, writer);
+        }
+        boolean present = reader.readBoolean(); // inputItem2 の option
+        writer.writeBoolean(present);
+        if (present) {
+            if (up) {
+                translateSlot754To755(reader, writer);
+            } else {
+                translateSlot755To754(reader, writer);
+            }
+        }
+        writer.writeBoolean(reader.readBoolean()); // tradeDisabled
+        writer.writeInt(reader.readInt()); // nbTradeUses
+        writer.writeInt(reader.readInt()); // maximumNbTradeUses
+        writer.writeInt(reader.readInt()); // xp
+        writer.writeInt(reader.readInt()); // specialPrice
+        writer.writeFloat(reader.readFloat()); // priceMultiplier
+        writer.writeInt(reader.readInt()); // demand
+    }
+
+    /** Sound Effect（754 → 755）。音IDだけ変換する（seed は無い。両方とも素の VarInt ID）。 */
+    public static byte[] translateSoundEffect754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapSound754To755(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt()); // soundCategory
+            writer.writeInt(reader.readInt()); // x
+            writer.writeInt(reader.readInt()); // y
+            writer.writeInt(reader.readInt()); // z
+            writer.writeFloat(reader.readFloat()); // volume
+            writer.writeFloat(reader.readFloat()); // pitch
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Sound Effect（755 → 754）。音IDだけ変換する。 */
+    public static byte[] translateSoundEffect755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapSound755To754(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt()); // soundCategory
+            writer.writeInt(reader.readInt()); // x
+            writer.writeInt(reader.readInt()); // y
+            writer.writeInt(reader.readInt()); // z
+            writer.writeFloat(reader.readFloat()); // volume
+            writer.writeFloat(reader.readFloat()); // pitch
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Sound Effect（754 → 755）。音IDだけ変換する。 */
+    public static byte[] translateEntitySoundEffect754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapSound754To755(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt()); // soundCategory
+            writer.writeVarInt(reader.readVarInt()); // entityId
+            writer.writeFloat(reader.readFloat()); // volume
+            writer.writeFloat(reader.readFloat()); // pitch
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Sound Effect（755 → 754）。音IDだけ変換する。 */
+    public static byte[] translateEntitySoundEffect755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapSound755To754(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt()); // soundCategory
+            writer.writeVarInt(reader.readVarInt()); // entityId
+            writer.writeFloat(reader.readFloat()); // volume
+            writer.writeFloat(reader.readFloat()); // pitch
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Named Sound Effect（754 → 755）。音の名前だけ変換する。 */
+    public static byte[] translateNamedSoundEffect754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String name = reader.readString();
+            int category = reader.readVarInt();
+            int x = reader.readInt();
+            int y = reader.readInt();
+            int z = reader.readInt();
+            float volume = reader.readFloat();
+            float pitch = reader.readFloat();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(RegistryRemapper.mapSoundName754To755(name));
+            writer.writeVarInt(category);
+            writer.writeInt(x);
+            writer.writeInt(y);
+            writer.writeInt(z);
+            writer.writeFloat(volume);
+            writer.writeFloat(pitch);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Named Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Named Sound Effect（755 → 754）。音の名前だけ変換する。 */
+    public static byte[] translateNamedSoundEffect755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String name = reader.readString();
+            int category = reader.readVarInt();
+            int x = reader.readInt();
+            int y = reader.readInt();
+            int z = reader.readInt();
+            float volume = reader.readFloat();
+            float pitch = reader.readFloat();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(RegistryRemapper.mapSoundName755To754(name));
+            writer.writeVarInt(category);
+            writer.writeInt(x);
+            writer.writeInt(y);
+            writer.writeInt(z);
+            writer.writeFloat(volume);
+            writer.writeFloat(pitch);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Named Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Stop Sound（754 → 755）。flags の bit 0 は音源（VarInt）、bit 1 は
+     * 音の名前（文字列）。名前だけ付け替える。
+     */
+    public static byte[] translateStopSound754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int flags = reader.readByte();
+            Writer writer = new Writer();
+            writer.writeByte(flags);
+            if ((flags & 0x01) != 0) {
+                writer.writeVarInt(reader.readVarInt());
+            }
+            if ((flags & 0x02) != 0) {
+                writer.writeString(RegistryRemapper.mapSoundName754To755(reader.readString()));
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Stop Sound を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Stop Sound（755 → 754）。flags の bit 1 の音の名前だけ付け替える。 */
+    public static byte[] translateStopSound755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int flags = reader.readByte();
+            Writer writer = new Writer();
+            writer.writeByte(flags);
+            if ((flags & 0x01) != 0) {
+                writer.writeVarInt(reader.readVarInt());
+            }
+            if ((flags & 0x02) != 0) {
+                writer.writeString(RegistryRemapper.mapSoundName755To754(reader.readString()));
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Stop Sound を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * 粒子1個の読み取り結果（754 <=> 755 用）。データの並びは読み側
+     * （送信元）の番号で決まるため、読み側のIDを保持する。ブロック状態と
+     * スロットは読み取り時に付け替え済みの値（書き側の番号）を保持する。
+     */
+    private static final class ParsedParticle754 {
+        int id;
+        int blockState;
+        float[] floats;
+        byte[] slotBytes;
+        String positionType;
+        long destPos;
+        int destEntity;
+        int ticks;
+        boolean blockDest;
+    }
+
+    /**
+     * 754形式の粒子データ1個を読む（IDは呼び出し側で読む）。データを持つ粒子は
+     * 754の番号で分岐する（mc-1.16-protocol.json の particleData で実測）。
+     * block=3・falling_dust=23：ブロック状態ID。dust=14：4 float。
+     * item=34：スロット。
+     */
+    private static ParsedParticle754 readParticleData754(Reader reader, int id) {
+        ParsedParticle754 particle = new ParsedParticle754();
+        particle.id = id;
+        switch (id) {
+            case 3, 23 -> particle.blockState =
+                    RegistryRemapper.mapBlockState754To755(reader.readVarInt());
+            case 14 -> {
+                particle.floats = new float[4];
+                for (int i = 0; i < 4; i++) {
+                    particle.floats[i] = reader.readFloat();
+                }
+            }
+            case 34 -> {
+                Writer slotWriter = new Writer();
+                translateSlot754To755(reader, slotWriter);
+                particle.slotBytes = slotWriter.bytes();
+            }
+            default -> {
+                // その他の粒子にデータは無い。
+            }
+        }
+        return particle;
+    }
+
+    /** 754で読んだ粒子を755形式で書く（IDは呼び出し側で書く）。 */
+    private static void writeParticleData755(Writer writer, ParsedParticle754 particle) {
+        switch (particle.id) {
+            case 3, 23 -> writer.writeVarInt(particle.blockState);
+            case 14 -> {
+                for (float value : particle.floats) {
+                    writer.writeFloat(value);
+                }
+            }
+            case 34 -> writer.writeBytes(particle.slotBytes);
+            default -> {
+                // その他の粒子にデータは無い。
+            }
+        }
+    }
+
+    /**
+     * 755形式の粒子データ1個を読む（IDは呼び出し側で読む）。データを持つ粒子は
+     * 755の番号で分岐する（mc-1.17-protocol.json の particleData で実測）。
+     * block=4・falling_dust=25：ブロック状態ID。dust=15：4 float。
+     * dust_color_transition=16：7 float（754の dust へは先頭4つだけ使う）。
+     * item=36：スロット。vibration=37：origin＋位置種別＋行き先＋tick数
+     * （754の代替先 note にはデータが無いため読んで捨てる）。
+     */
+    private static ParsedParticle754 readParticleData755(Reader reader, int id) {
+        ParsedParticle754 particle = new ParsedParticle754();
+        particle.id = id;
+        switch (id) {
+            case 4, 25 -> particle.blockState =
+                    RegistryRemapper.mapBlockState755To754(reader.readVarInt());
+            case 15 -> {
+                particle.floats = new float[4];
+                for (int i = 0; i < 4; i++) {
+                    particle.floats[i] = reader.readFloat();
+                }
+            }
+            case 16 -> {
+                particle.floats = new float[7];
+                for (int i = 0; i < 7; i++) {
+                    particle.floats[i] = reader.readFloat();
+                }
+            }
+            case 36 -> {
+                Writer slotWriter = new Writer();
+                translateSlot755To754(reader, slotWriter);
+                particle.slotBytes = slotWriter.bytes();
+            }
+            case 37 -> readVibration755(reader, particle);
+            default -> {
+                // その他の粒子にデータは無い。
+            }
+        }
+        return particle;
+    }
+
+    /** 755形式の vibration 粒子のデータを読む（protocol.json で実測）。代替先にはデータが無いため捨てる。 */
+    private static void readVibration755(Reader reader, ParsedParticle754 particle) {
+        reader.readPositionRaw(); // origin（754には無い）
+        particle.positionType = reader.readString();
+        if ("minecraft:block".equals(particle.positionType)) {
+            particle.blockDest = true;
+            particle.destPos = reader.readPositionRaw();
+        } else if ("minecraft:entity".equals(particle.positionType)) {
+            particle.destEntity = reader.readVarInt();
+        }
+        particle.ticks = reader.readVarInt();
+    }
+
+    /**
+     * 755で読んだ粒子を754形式で書く（IDは呼び出し側で書く）。
+     * dust_color_transition は dust へ写るため先頭4 float（fromRed／fromGreen／
+     * fromBlue／scale）だけ書く。vibration は note へ写るためデータは書かない。
+     */
+    private static void writeParticleData754(Writer writer, ParsedParticle754 particle) {
+        switch (particle.id) {
+            case 4, 25 -> writer.writeVarInt(particle.blockState);
+            case 15 -> {
+                for (float value : particle.floats) {
+                    writer.writeFloat(value);
+                }
+            }
+            case 16 -> {
+                for (int i = 0; i < 4; i++) {
+                    writer.writeFloat(particle.floats[i]);
+                }
+            }
+            case 36 -> writer.writeBytes(particle.slotBytes);
+            default -> {
+                // vibration（37）等、代替先にデータは無い。
+            }
+        }
+    }
+
+    /** 粒子1個（ID VarInt＋データ）を 754 → 755 向けに変換する。 */
+    private static void translateParticle754To755(Reader reader, Writer writer) {
+        int particleId = reader.readVarInt();
+        ParsedParticle754 particle = readParticleData754(reader, particleId);
+        writer.writeVarInt(RegistryRemapper.mapParticle754To755(particleId));
+        writeParticleData755(writer, particle);
+    }
+
+    /** 粒子1個（ID VarInt＋データ）を 755 → 754 向けに変換する。 */
+    private static void translateParticle755To754(Reader reader, Writer writer) {
+        int particleId = reader.readVarInt();
+        ParsedParticle754 particle = readParticleData755(reader, particleId);
+        writer.writeVarInt(RegistryRemapper.mapParticle755To754(particleId));
+        writeParticleData754(writer, particle);
+    }
+
+    /**
+     * World Particles（754 → 755）。粒子IDは両方とも i32。データはパケット末尾
+     * （count の後）にある（mc-1.16／mc-1.17-protocol.json で実測。1.18／1.19／
+     * 1.20.1 も実バニラ jar の javap で同じく末尾と確認済み）。
+     */
+    public static byte[] translateWorldParticles754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int particleId = reader.readInt();
+            boolean longDistance = reader.readBoolean();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            float offsetX = reader.readFloat();
+            float offsetY = reader.readFloat();
+            float offsetZ = reader.readFloat();
+            float speed = reader.readFloat();
+            int count = reader.readInt();
+            ParsedParticle754 particle = readParticleData754(reader, particleId);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeInt(RegistryRemapper.mapParticle754To755(particleId));
+            writer.writeBoolean(longDistance);
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeFloat(offsetX);
+            writer.writeFloat(offsetY);
+            writer.writeFloat(offsetZ);
+            writer.writeFloat(speed);
+            writer.writeInt(count);
+            writeParticleData755(writer, particle);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Particles を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** World Particles（755 → 754）。粒子IDは両方とも i32。データはパケット末尾。 */
+    public static byte[] translateWorldParticles755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int particleId = reader.readInt();
+            boolean longDistance = reader.readBoolean();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            float offsetX = reader.readFloat();
+            float offsetY = reader.readFloat();
+            float offsetZ = reader.readFloat();
+            float speed = reader.readFloat();
+            int count = reader.readInt();
+            ParsedParticle754 particle = readParticleData755(reader, particleId);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeInt(RegistryRemapper.mapParticle755To754(particleId));
+            writer.writeBoolean(longDistance);
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeFloat(offsetX);
+            writer.writeFloat(offsetY);
+            writer.writeFloat(offsetZ);
+            writer.writeFloat(speed);
+            writer.writeInt(count);
+            writeParticleData754(writer, particle);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Particles を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Entity Metadata（754 → 755）。メタデータの型番号と形式は 754・755 で同一
+     * （mc-1.16／mc-1.17-protocol.json の entityMetadataItem が両方とも同じ定義）のため、
+     * 番号はそのまま通し、スロット・ブロック状態・粒子だけ番号を付け替える。
+     * 型13がブロック状態、型15が粒子（757⇔759の14／17とは番号が違うため注意）。
+     */
+    public static byte[] translateEntityMetadata754To755(byte[] payload) {
+        return translateEntityMetadata754(payload, true);
+    }
+
+    /** Entity Metadata（755 → 754）。 */
+    public static byte[] translateEntityMetadata755To754(byte[] payload) {
+        return translateEntityMetadata754(payload, false);
+    }
+
+    /** Entity Metadata を 754<=>755 向けに変換する。up=true は754→755、false は755→754。 */
+    private static byte[] translateEntityMetadata754(byte[] payload, boolean up) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt());
+            while (true) {
+                int index = reader.readUnsignedByte();
+                if (index == 0xFF) {
+                    writer.writeUnsignedByte(0xFF);
+                    break;
+                }
+                int type = reader.readVarInt();
+                writer.writeUnsignedByte(index);
+                writer.writeVarInt(type);
+                translateMetadataValue754(reader, writer, type, up);
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Metadata を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * メタデータの値1個を 754<=>755 向けに変換する。型番号は 754・755 で同一。
+     * 村人データ（16）の種別・職業・レベルは両版とも同一順序（実バニラ
+     * registries.json で実測：職業15件・種別7件とも順序一致）のためそのまま通す。
+     */
+    private static void translateMetadataValue754(Reader reader, Writer writer, int type,
+            boolean up) {
+        switch (type) {
+            case 0 -> writer.writeByte(reader.readByte());
+            case 1 -> writer.writeVarInt(reader.readVarInt());
+            case 2 -> writer.writeFloat(reader.readFloat());
+            case 3, 4 -> writer.writeString(reader.readString());
+            case 5 -> {
+                boolean present = reader.readBoolean();
+                writer.writeBoolean(present);
+                if (present) {
+                    writer.writeString(reader.readString());
+                }
+            }
+            case 6 -> {
+                if (up) {
+                    translateSlot754To755(reader, writer);
+                } else {
+                    translateSlot755To754(reader, writer);
+                }
+            }
+            case 7 -> writer.writeBoolean(reader.readBoolean());
+            case 8 -> {
+                writer.writeFloat(reader.readFloat());
+                writer.writeFloat(reader.readFloat());
+                writer.writeFloat(reader.readFloat());
+            }
+            case 9 -> writer.writePositionRaw(reader.readPositionRaw());
+            case 10 -> {
+                boolean present = reader.readBoolean();
+                writer.writeBoolean(present);
+                if (present) {
+                    writer.writePositionRaw(reader.readPositionRaw());
+                }
+            }
+            case 11 -> writer.writeVarInt(reader.readVarInt());
+            case 12 -> {
+                boolean present = reader.readBoolean();
+                writer.writeBoolean(present);
+                if (present) {
+                    writer.writeBytes(reader.readBytes(16));
+                }
+            }
+            case 13 -> writer.writeVarInt(up
+                    ? RegistryRemapper.mapBlockState754To755(reader.readVarInt())
+                    : RegistryRemapper.mapBlockState755To754(reader.readVarInt()));
+            case 14 -> writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+            case 15 -> {
+                if (up) {
+                    translateParticle754To755(reader, writer);
+                } else {
+                    translateParticle755To754(reader, writer);
+                }
+            }
+            case 16 -> {
+                // 村人データ（種別・職業・レベル）。両版とも同一順序のためそのまま通す。
+                writer.writeVarInt(reader.readVarInt());
+                writer.writeVarInt(reader.readVarInt());
+                writer.writeVarInt(reader.readVarInt());
+            }
+            case 17 -> writer.writeVarInt(reader.readVarInt());
+            case 18 -> writer.writeVarInt(reader.readVarInt());
+            default -> throw new IllegalArgumentException("未知のメタデータ型です: " + type);
+        }
+    }
+
+    /** falling_block のエンティティ種別ID（実バニラ registries.json で実測）。754=26、755=27。 */
+    private static final int FALLING_BLOCK_754 = 26;
+    private static final int FALLING_BLOCK_755 = 27;
+
+    /**
+     * Spawn Entity（754 → 755）。種別IDを変換する。754・755とも
+     * headPitch は無く objectData は i32 のため、落とすものは無い
+     * （mc-1.16／mc-1.17-protocol.json で実測）。
+     * falling_block の objectData はブロック状態IDなので一緒に変換する。
+     */
+    public static byte[] translateSpawnEntity754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            byte[] uuid = reader.readBytes(16);
+            int type = reader.readVarInt();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            int pitch = reader.readByte();
+            int yaw = reader.readByte();
+            int objectData = reader.readInt();
+            int velX = reader.readShort();
+            int velY = reader.readShort();
+            int velZ = reader.readShort();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeBytes(uuid);
+            writer.writeVarInt(RegistryRemapper.mapEntityType754To755(type));
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeByte(pitch);
+            writer.writeByte(yaw);
+            writer.writeInt(type == FALLING_BLOCK_754
+                    ? RegistryRemapper.mapBlockState754To755(objectData) : objectData);
+            writer.writeShort(velX);
+            writer.writeShort(velY);
+            writer.writeShort(velZ);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Spawn Entity（755 → 754）。種別IDと falling_block の objectData を変換する。 */
+    public static byte[] translateSpawnEntity755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            byte[] uuid = reader.readBytes(16);
+            int type = reader.readVarInt();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            int pitch = reader.readByte();
+            int yaw = reader.readByte();
+            int objectData = reader.readInt();
+            int velX = reader.readShort();
+            int velY = reader.readShort();
+            int velZ = reader.readShort();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeBytes(uuid);
+            writer.writeVarInt(RegistryRemapper.mapEntityType755To754(type));
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeByte(pitch);
+            writer.writeByte(yaw);
+            writer.writeInt(type == FALLING_BLOCK_755
+                    ? RegistryRemapper.mapBlockState755To754(objectData) : objectData);
+            writer.writeShort(velX);
+            writer.writeShort(velY);
+            writer.writeShort(velZ);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Block Change（754 → 755）：位置＋ブロック状態ID。 */
+    public static byte[] translateBlockChange754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long position = reader.readPositionRaw();
+            int state = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writePositionRaw(position);
+            writer.writeVarInt(RegistryRemapper.mapBlockState754To755(state));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Block Change を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Block Change（755 → 754）：位置＋ブロック状態ID。 */
+    public static byte[] translateBlockChange755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long position = reader.readPositionRaw();
+            int state = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writePositionRaw(position);
+            writer.writeVarInt(RegistryRemapper.mapBlockState755To754(state));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Block Change を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Multi Block Change（754 → 755）。レコードは両方とも varlong で、
+     * 詰め方（ブロック状態ID << 12｜局所座標）も同じ（mc-1.16／
+     * mc-1.17-protocol.json で実測）。ブロック状態IDだけ付け替える。
+     */
+    public static byte[] translateMultiBlockChange754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long chunkCoordinates = reader.readLong();
+            boolean notTrustEdges = reader.readBoolean();
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Multi Block Change の件数が負です: " + count);
+            }
+            Writer writer = new Writer();
+            writer.writeLong(chunkCoordinates);
+            writer.writeBoolean(notTrustEdges);
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                long record = reader.readVarLong();
+                int state = (int) (record >>> 12);
+                int local = (int) (record & 0xFFF);
+                writer.writeVarLong(
+                        ((long) RegistryRemapper.mapBlockState754To755(state) << 12) | local);
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Multi Block Change を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Multi Block Change（755 → 754）。レコードは両方とも varlong。 */
+    public static byte[] translateMultiBlockChange755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long chunkCoordinates = reader.readLong();
+            boolean notTrustEdges = reader.readBoolean();
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Multi Block Change の件数が負です: " + count);
+            }
+            Writer writer = new Writer();
+            writer.writeLong(chunkCoordinates);
+            writer.writeBoolean(notTrustEdges);
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                long record = reader.readVarLong();
+                int state = (int) (record >>> 12);
+                int local = (int) (record & 0xFFF);
+                writer.writeVarLong(
+                        ((long) RegistryRemapper.mapBlockState755To754(state) << 12) | local);
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Multi Block Change を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Block Entity Data（754 → 755）。action は u8 のブロックエンティティ
+     * 種別ID。754・755とも 0〜32 は同一のため、そのまま通すものも含めて
+     * 表で付け替える。NBT は両版とも名前付きの任意 NBT。
+     */
+    public static byte[] translateBlockEntityData754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long position = reader.readPositionRaw();
+            int type = reader.readUnsignedByte();
+            Tag nbt = readOptionalNamedNbt(reader);
+            requireEnd(reader);
+            int mapped = RegistryRemapper.mapBlockEntityType754To755(type);
+            if (mapped == RegistryRemapper.DROP) {
+                LOG.warning("755に無いブロックエンティティ種別（754 type=" + type
+                        + "）の Block Entity Data を落とします。");
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writePositionRaw(position);
+            writer.writeUnsignedByte(mapped);
+            writeOptionalNamedNbt(writer, nbt);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Block Entity Data を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Block Entity Data（755 → 754）。755 にだけある sculk_sensor（33）は
+     * 1.16.5 には無いためパケットごと落とす（{@code null} を返す）。
+     */
+    public static byte[] translateBlockEntityData755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long position = reader.readPositionRaw();
+            int type = reader.readUnsignedByte();
+            Tag nbt = readOptionalNamedNbt(reader);
+            requireEnd(reader);
+            int mapped = RegistryRemapper.mapBlockEntityType755To754(type);
+            if (mapped == RegistryRemapper.DROP) {
+                LOG.warning("754に無いブロックエンティティ種別（755 type=" + type
+                        + "）の Block Entity Data を落とします。");
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writePositionRaw(position);
+            writer.writeUnsignedByte(mapped);
+            writeOptionalNamedNbt(writer, nbt);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Block Entity Data を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // 753 <=> 754（1.16.3 <=> 1.16.5）
+    // 恒等写像の節。この節の変換器はすべて入力をそのまま返す（パケット版は
+    // ペイロードをそのまま返し、スロット版は読んだ内容をそのまま書く）。
+    // [恒等写像である根拠（実測。753ノート §8.1・§11.1・§11.6）]
+    // - パケットID差分 0件：754↔753 は変更 0・新規 0・削除 0（全272件同一。
+    //   packet-ids-753.json。Join Game 0x24、Chunk Data 0x20、Set Slot 0x15、
+    //   Window Items 0x13、Window Click 0x09、Entity Destroy 0x36 は両版同一）。
+    // - レジストリ差分 0件：実バニラ 1.16.3 の registries.json（272,499バイト）
+    //   と blocks レポート（3,477,609バイト）は 1.16.5 版とバイト単位で完全一致。
+    //   ブロック状態 17,112・ブロック 763・アイテム 976・バイオーム 79・
+    //   エンティティ 108・音 992・パーティクル 72・メニュー 24・属性 13・
+    //   エンチャント 38・エフェクト 32・ブロックエンティティ 33 はすべて同一
+    //   （RegistryTables753 は 754 に対する恒等写像。verify-753-tables.py 43/43）。
+    //   そのためブロック状態・アイテム・バイオームの表は全件恒等写像で、
+    //   DROP は出ない。754⇔755 のような grass_path→dirt_path の改名も無い。
+    // - チャンク形式も同一：754 は [groundUp bool][bitMap varint]
+    //   [biomes は groundUp のときだけ]、セクションは [blockCount i16]
+    //   [PalettedContainer] で BitStorage は non-straddling。753 も同じ。
+    //   実バニラ 1.16.3 サーバーから Chunk Data 0x20 を 482件受信済み
+    //   （753ノート §11.6）。Join Game も 30,847バイトで 1.16.5 と同一。
+    // - スロット型も同一：両版とも [present bool][id varint][個数 i8]
+    //   [任意の名前付き NBT]（NBT 時代。データコンポーネントは無い）。
+    // - Entity Destroy も同一：両版とも [count varint][entityIds] の配列形式
+    //   （754→755 のような単体化は不要。count 2以上もそのまま通す）。
+    // - Window Click も同一：両版とも [windowId u8][slot i16][button i8]
+    //   [action i16][mode varint][item slot]。action（uid）も両版にあるため
+    //   落とさず、そのまま通す（754→755 のような 0補完は不要）。
+    // [作らない変換器（値付け替えは不要。すべて恒等写像のため変換器は不要）]
+    //   SetCooldown・EntityEquipment・TradeList・Sound系（Sound Effect／
+    //   Entity Sound Effect／Named Sound Effect／Stop Sound）・World Particles・
+    //   Entity Metadata・Spawn Entity・Block Change・Multi Block Change・
+    //   Block Entity Data・Tags・Map・Explosion・EntityUpdateAttributes・
+    //   Edit Book・Update Light。根拠は上記の通り RegistryTables753 が
+    //   754 に対する恒等写像（verify-753-tables.py 43/43）で、フィールド構成も
+    //   パケットID差分 0件のため同一であること。素通し（パケットIDの付け替え
+    //   だけ）で正しい。754⇔755 節のような付け替え・落とし・補完は一切無い。
+    //   なお Update Light は 754⇔755 でも未実装で両方向とも落とす扱いだが、
+    //   753⇔754 では形式が同一のため落とす理由は無い。落とす・作るの判断は
+    //   ProxySession 担当に委ね、この節では変換器を作らない。
+    // ------------------------------------------------------------------
+
+    /** 753のスロット1個を754向けに読む。レジストリ同一のため恒等写像。 */
+    public static void translateSlot753To754(Reader reader, Writer writer) {
+        boolean present = reader.readBoolean();
+        writer.writeBoolean(present);
+        if (!present) {
+            return;
+        }
+        writer.writeVarInt(reader.readVarInt());
+        writer.writeByte(reader.readByte());
+        writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+    }
+
+    /** 754のスロット1個を753向けに読む。レジストリ同一のため恒等写像。 */
+    public static void translateSlot754To753(Reader reader, Writer writer) {
+        boolean present = reader.readBoolean();
+        writer.writeBoolean(present);
+        if (!present) {
+            return;
+        }
+        writer.writeVarInt(reader.readVarInt());
+        writer.writeByte(reader.readByte());
+        writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+    }
+
+    /**
+     * Chunk Data（753 0x20 → 754 0x20）。パケットID・チャンク形式・レジストリが
+     * すべて同一のため恒等写像。入力ペイロードをそのまま返す。
+     */
+    public static byte[] translateChunkData753To754(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Chunk Data（754 0x20 → 753 0x20）。パケットID・チャンク形式・レジストリが
+     * すべて同一のため恒等写像。入力ペイロードをそのまま返す。
+     */
+    public static byte[] translateChunkData754To753(byte[] payload) {
+        return payload;
+    }
+
+    /** Set Slot（753 → 754）。フィールド・スロットとも同一のため恒等写像。 */
+    public static byte[] translateSetSlot753To754(byte[] payload) {
+        return payload;
+    }
+
+    /** Set Slot（754 → 753）。フィールド・スロットとも同一のため恒等写像。 */
+    public static byte[] translateSetSlot754To753(byte[] payload) {
+        return payload;
+    }
+
+    /** Window Items（753 → 754）。フィールド・スロットとも同一のため恒等写像。 */
+    public static byte[] translateWindowItems753To754(byte[] payload) {
+        return payload;
+    }
+
+    /** Window Items（754 → 753）。フィールド・スロットとも同一のため恒等写像。 */
+    public static byte[] translateWindowItems754To753(byte[] payload) {
+        return payload;
+    }
+
+    /** Window Click（753 → 754）。action（uid）も両版にあるため恒等写像。 */
+    public static byte[] translateWindowClick753To754(byte[] payload) {
+        return payload;
+    }
+
+    /** Window Click（754 → 753）。action（uid）も両版にあるため恒等写像。 */
+    public static byte[] translateWindowClick754To753(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Entity Destroy（753 → 754）。両版とも [count varint][entityIds] の
+     * 配列形式のため恒等写像。count 2以上もそのまま通す。
+     */
+    public static byte[] translateEntityDestroy753To754(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Entity Destroy（754 → 753）。両版とも [count varint][entityIds] の
+     * 配列形式のため恒等写像。count 2以上もそのまま通す。
+     */
+    public static byte[] translateEntityDestroy754To753(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // 751 <=> 753（1.16.2 <=> 1.16.3）
+    // 恒等写像の節。この節の変換器はすべて入力をそのまま返す（パケット版は
+    // ペイロードをそのまま返し、スロット版は読んだ内容をそのまま書く）。
+    // [恒等写像である根拠（実測。751ノート §8.1・§11.2・§11.6）]
+    // - パケットID差分 0件：753↔751 は変更 0・新規 0・削除 0（全272件同一。
+    //   packet-ids-751.json。Join Game 0x24、Chunk Data 0x20、Set Slot 0x15、
+    //   Window Items 0x13、Window Click 0x09、Entity Destroy 0x36 は両版同一）。
+    // - レジストリ差分 0件：実バニラ 1.16.2 の registries.json（272,499バイト）
+    //   と blocks レポート（3,477,609バイト）は 1.16.3 版とバイト単位で完全一致。
+    //   ブロック状態 17,112・ブロック 763・アイテム 976・バイオーム 79・
+    //   エンティティ 108・音 992・パーティクル 72・メニュー 24・属性 13・
+    //   エンチャント 38・エフェクト 32・ブロックエンティティ 33 はすべて同一
+    //   （RegistryTables751 は 753 に対する恒等写像。verify-751-tables.py 43/43）。
+    //   そのためブロック状態・アイテム・バイオームの表は全件恒等写像で、
+    //   DROP は出ない。754⇔755 のような grass_path→dirt_path の改名も無い。
+    // - チャンク形式も同一：753 は [groundUp bool][bitMap varint]
+    //   [biomes は groundUp のときだけ]、セクションは [blockCount i16]
+    //   [PalettedContainer] で BitStorage は non-straddling。751 も同じ。
+    //   実バニラ 1.16.2 サーバーから Chunk Data 0x20 を 462件受信済み
+    //   （751ノート §11.6）。Join Game も 30,847バイトで 1.16.3 と同一。
+    // - スロット型も同一：両版とも [present bool][id varint][個数 i8]
+    //   [任意の名前付き NBT]（NBT 時代。データコンポーネントは無い）。
+    // - Entity Destroy も同一：両版とも [count varint][entityIds] の配列形式
+    //   （754→755 のような単体化は不要。count 2以上もそのまま通す）。
+    // - Window Click も同一：両版とも [windowId u8][slot i16][button i8]
+    //   [action i16][mode varint][item slot]。action（uid）も両版にあるため
+    //   落とさず、そのまま通す（754→755 のような 0補完は不要）。
+    // [作らない変換器（値付け替えは不要。すべて恒等写像のため変換器は不要）]
+    //   SetCooldown・EntityEquipment・TradeList・Sound系（Sound Effect／
+    //   Entity Sound Effect／Named Sound Effect／Stop Sound）・World Particles・
+    //   Entity Metadata・Spawn Entity・Block Change・Multi Block Change・
+    //   Block Entity Data・Tags・Map・Explosion・EntityUpdateAttributes・
+    //   Edit Book・Update Light。根拠は上記の通り RegistryTables751 が
+    //   753 に対する恒等写像（verify-751-tables.py 43/43）で、フィールド構成も
+    //   パケットID差分 0件のため同一であること。素通し（パケットIDの付け替え
+    //   だけ）で正しい。754⇔755 節のような付け替え・落とし・補完は一切無い。
+    //   なお Update Light は 754⇔755 でも未実装で両方向とも落とす扱いだが、
+    //   751⇔753 では形式が同一のため落とす理由は無い。落とす・作るの判断は
+    //   ProxySession 担当に委ね、この節では変換器を作らない。
+    // ------------------------------------------------------------------
+
+    /** 751のスロット1個を753向けに読む。レジストリ同一のため恒等写像。 */
+    public static void translateSlot751To753(Reader reader, Writer writer) {
+        boolean present = reader.readBoolean();
+        writer.writeBoolean(present);
+        if (!present) {
+            return;
+        }
+        writer.writeVarInt(reader.readVarInt());
+        writer.writeByte(reader.readByte());
+        writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+    }
+
+    /** 753のスロット1個を751向けに読む。レジストリ同一のため恒等写像。 */
+    public static void translateSlot753To751(Reader reader, Writer writer) {
+        boolean present = reader.readBoolean();
+        writer.writeBoolean(present);
+        if (!present) {
+            return;
+        }
+        writer.writeVarInt(reader.readVarInt());
+        writer.writeByte(reader.readByte());
+        writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+    }
+
+    /**
+     * Chunk Data（751 0x20 → 753 0x20）。パケットID・チャンク形式・レジストリが
+     * すべて同一のため恒等写像。入力ペイロードをそのまま返す。
+     */
+    public static byte[] translateChunkData751To753(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Chunk Data（753 0x20 → 751 0x20）。パケットID・チャンク形式・レジストリが
+     * すべて同一のため恒等写像。入力ペイロードをそのまま返す。
+     */
+    public static byte[] translateChunkData753To751(byte[] payload) {
+        return payload;
+    }
+
+    /** Set Slot（751 → 753）。フィールド・スロットとも同一のため恒等写像。 */
+    public static byte[] translateSetSlot751To753(byte[] payload) {
+        return payload;
+    }
+
+    /** Set Slot（753 → 751）。フィールド・スロットとも同一のため恒等写像。 */
+    public static byte[] translateSetSlot753To751(byte[] payload) {
+        return payload;
+    }
+
+    /** Window Items（751 → 753）。フィールド・スロットとも同一のため恒等写像。 */
+    public static byte[] translateWindowItems751To753(byte[] payload) {
+        return payload;
+    }
+
+    /** Window Items（753 → 751）。フィールド・スロットとも同一のため恒等写像。 */
+    public static byte[] translateWindowItems753To751(byte[] payload) {
+        return payload;
+    }
+
+    /** Window Click（751 → 753）。action（uid）も両版にあるため恒等写像。 */
+    public static byte[] translateWindowClick751To753(byte[] payload) {
+        return payload;
+    }
+
+    /** Window Click（753 → 751）。action（uid）も両版にあるため恒等写像。 */
+    public static byte[] translateWindowClick753To751(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Entity Destroy（751 → 753）。両版とも [count varint][entityIds] の
+     * 配列形式のため恒等写像。count 2以上もそのまま通す。
+     */
+    public static byte[] translateEntityDestroy751To753(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Entity Destroy（753 → 751）。両版とも [count varint][entityIds] の
+     * 配列形式のため恒等写像。count 2以上もそのまま通す。
+     */
+    public static byte[] translateEntityDestroy753To751(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // 736 <=> 751（1.16.1 <=> 1.16.2）
+    // パケットIDは ProxySession が付け替える（Chunk Data 0x21／0x20、
+    // Set Slot 0x16／0x15、Window Items 0x14／0x13、Window Click 0x09／0x09、
+    // Entity Destroy 0x37／0x36、Update Light 0x24／0x23、Edit Book 0x0c／0x0c。
+    // packet-ids-736.json で実測。ID差分は変更62・新規0・削除1
+    // （PLAY_DISPLAYED_RECIPE。Stage A §8）。レジストリ差分はブロック状態
+    // 12,381件・アイテム249件・エンティティ47件・音405件が非恒等（Stage A §11）。
+    // ブロック763・パーティクル72・メニュー24・属性13・エンチャント38・
+    // エフェクト32・ブロックエンティティ33は同一順序。バイオーム79件は両版とも
+    // 同じ id・同じ名前のため恒等写像（Maps736 の BIOME_UP_736_CORRECTIONS
+    // は 0件）。piglin_brute（アイテム 751=790・エンティティ）は 736 に無い。
+    // [protocol.json の突き合わせ結果（実測）]
+    // mc-1.16.1-protocol.json と mc-1.16.2-protocol.json（minecraft-data）
+    // を全状態・全方向で突き合わせた。PLAY／クライアント行きは 86件が同一・
+    // 6件が違う（declare_recipes・login（Join Game）・map_chunk・
+    // multi_block_change・respawn・unlock_recipes）。PLAY／サーバー行きは
+    // 46件が同一・0件が違う。1.16.1 にだけあるのは crafting_book_data
+    // （0x1e。1.16.2 では recipe_book＋displayed_recipe に分割）、
+    // 1.16.2 にだけあるのは displayed_recipe（0x1f）・recipe_book（0x1e）。
+    // この節に関係するもの：
+    // - Chunk Data：736 は [x i32][z i32][groundUp bool][ignoreOldData bool]
+    //   [bitMap varint][heightmaps NBT][biomes（groundUp のときだけ i32×1024）]
+    //   [chunkData buffer][blockEntities varint[NBT]]、751 は [x i32]
+    //   [z i32][groundUp bool][bitMap varint][heightmaps NBT]
+    //   [biomes（groundUp のときだけ [count varint][varint×1024]）]
+    //   [chunkData buffer][blockEntities varint[NBT]]。ignoreOldData の有無と
+    //   biomes の符号化（i32×1024・件数接頭辞なし ⇔ varint配列・件数接頭辞あり）
+    //   が違う。bitMap は両版とも varint の16ビット。
+    // - Set Slot：両方とも [windowId i8][slot i16][item] で同一。
+    //   stateId は無い（stateId は 756 で追加されたもの）。
+    // - Window Items：両方とも [windowId u8][count i16][items] で同一。
+    //   carriedItem は無い（756 で追加されたもの）。
+    // - Window Click：両方とも [windowId u8][slot i16][button i8]
+    //   [action i16][mode][item slot] で同一。754⇔755 のような changedSlots／
+    //   cursorItem への組み替えは不要。スロットのアイテムID付け替えだけ。
+    // - Entity Destroy：両方とも [count varint][entityIds] の配列形式で同一。
+    //   754→755 のような単体化は不要。count 2以上もそのまま通す。
+    // - Edit Book（toServer 0x0c／0x0c）：両方とも [new_book slot]
+    //   [signing bool][hand varint] で同一（minecraft-data・javap とも）。
+    //   この節では変換器を作らない（下記の「作らない変換器」を参照）。
+    // - Update Light：両方とも [chunkX varint][chunkZ varint][trustEdges bool]
+    //   [skyLightMask／blockLightMask／emptySkyLightMask／emptyBlockLightMask
+    //   varint][マスクで決まる byte[] 列] で同一（下記の「作らない変換器」を参照）。
+    // この節に関係しない差分（PlayTranslator／ClientJoinFlow 担当の範囲）：
+    // multi_block_change（1.16.1 は [chunkX i32][chunkZ i32][records
+    // varint[{horizontalPos u8, y u8, blockId varint}]]、1.16.2 は
+    // [chunkCoordinates bitfield 22/22/20][notTrustEdges bool][records
+    // varint[varlong]]。全面的に違う。変換器は本節の末尾に追加した
+    // （チャンク系パケットのため ChunkTranslator に置く。736→751 は
+    // セクションごとに分けて複数パケットになる）、declare_recipes（shaped
+    // の材料の入れ子の記述が minecraft-data では 1.16.1 は [width][height]・
+    // 1.16.2 は [height][width] で違うが、実バニラ 1.16.1／1.16.2 の
+    // ShapedRecipe$Serializer#toNetwork／fromNetwork の javap では両版とも
+    // width・height・group の後に材料をフラットに書くためワイヤ同一。
+    // 変換器不要（754⇔755 のときと同じ結論）。当初の「転置」という記述は
+    // 誤りのため訂正する）、
+    // respawn／Join Game（dimension が 1.16.1 は文字列・1.16.2 は NBT。
+    // Join Game は isHardcore の有無と maxPlayers u8⇔varint も違う。
+    // Stage A §11.6）、unlock_recipes（1.16.2 で blastFurnace／smoker の
+    // bool 4個が追加）、crafting_book_data→recipe_book＋displayed_recipe
+    // の分割（ViaVersion Protocol1_16_1To1_16_2 でも同じ分割）。
+    // [差分の裏付け（minecraft-data以外に2系統）]
+    // - javap：公式 server_mappings.txt（piston-metaの sha1 照合済み。
+    //   1.16.1 server_mappings.txt sha1 11120c39da4df293c4bd020896391fb9ddd6c2ba）
+    //   で求めた難読化クラス名で実バニラ server-1.16.1.jar を確認。
+    //   Chunk Data（ot）、Set Slot（oi）、Window Items（og）、Window Click
+    //   （rj）、Entity Destroy（pm）、Update Light（ow）、Tile Entity Data
+    //   （nv）の全差分が protocol.json の突き合わせと一致。
+    //   1.16.2 側は server-1.16.2.jar の定数プールから特定したクラスで確認
+    //   （Chunk Data pt・Window Click sk・BitStorage aep・PalettedContainer cgl。
+    //   1.16.2 の server_mappings.txt は手元に無いため、文字列
+    //   "Chunk Packet trying to allocate too much memory on read."・
+    //   "PICKUP_ALL"・"Received invalid biome id:" で特定）。
+    //   Chunk Data：1.16.1 ot の read は readInt x・readInt z・readBoolean
+    //   groundUp・readBoolean ignoreOldData・readVarInt bitMap・readNamedNbt
+    //   heightmaps・groundUp のとき new ChunkBiomeContainer(mg)・
+    //   readVarInt 長＋readBytes・readVarInt 件数＋readNamedNbt 列。
+    //   ChunkBiomeContainer（cgz）のコンストラクタは 1024回 readInt、
+    //   write（cgz.a）は 1024回 writeInt（biomes は i32×1024・件数接頭辞なし）。
+    //   1.16.2 pt の read は readInt x・readInt z・readBoolean groundUp・
+    //   readVarInt bitMap・readNamedNbt heightmaps・groundUp のとき
+    //   nf.c(1024)（readVarIntArray。件数 varint＋varint 要素）・
+    //   readVarInt 長＋readBytes・readVarInt 件数＋readNamedNbt 列。
+    //   ignoreOldData は 1.16.2 には無い。write 側も同じ順序。
+    //   セクションは両版とも [blockCount i16][PalettedContainer] で、
+    //   PalettedContainer（1.16.1 chq／1.16.2 cgl）の write は [BPE u8]
+    //   [パレット][long 配列] で同一。BitStorage（1.16.1 adj／1.16.2 aep）
+    //   は両版とも non-straddling（get は1つの long だけを laload して読む。
+    //   境界をまたがない。両版とも同じバイトコード構造）。
+    // - ViaVersion：Protocol1_16_1To1_16_2.java に UPDATE_LIGHT の登録は無く、
+    //   WorldPacketRewriter1_16_2 もチャンクの biomes／ignoreOldData には
+    //   触れない（recipe_book の分割と tags だけ）。チャンクの形式差分は
+    //   javap と下記の生キャプチャで裏付けた。
+    // - 訂正1件：minecraft-data の「Window Click の mode は 1.16.1／1.16.2 で
+    //   i8」は誤り。javap -c で両バージョンとも readEnum／writeEnum
+    //   （varint の enum 序数）を確認（1.16.1 rj の a(Class bgq)／a(Enum)、
+    //   1.16.2 sk の a(Class bih)／a(Enum)）。mode は両方向とも varint のまま写す。
+    //   754 のときの「1.16.5 は i8」訂正と同じ罠。
+    // - 訂正の補足：1.16.1 の Window Click の単一スロットがカーソルアイテム
+    //   であることは実バニラ 1.16.1 サーバーのハンドラ
+    //   （ServerGamePacketListenerImpl zv.a(rj)）で確認（コンテナのクリック結果
+    //   とパケットの item（rj.f()）を比較し、ack（oe）を返す。754 の 1.16.5
+    //   と同じ構造）。ただし 736⇔751 では両版とも単一スロット形式のため、
+    //   754⇔755 のような changedSlots／cursorItem への組み替えは不要で、
+    //   この確認は 736⇔751 の変換には影響しない。記録のみ。
+    // [チャンク形式の実測（生キャプチャ）]
+    // 実バニラ 1.16.1 サーバー（Java 8、オフラインモード、圧縮 -1、
+    // view-distance 10、ポート 25569。ワールドは Stage A 後に削除されたため
+    // 再生成）から Python ソケットの偽クライアント（/tmp/cap736_chunk.py。
+    // fake_client_736.py と同じ段取り）で Chunk Data 0x21 を 3件受信し、
+    // 最初の groundUp=true のもの（チャンク -17,-23、15,083バイト）を
+    // テストリソース cap736-chunk-x--17-z--23.bin に保存した。パース結果：
+    // groundUp=true、ignoreOldData=true、bitMap 0x001f（5セクション）、
+    // biomes 1024件（全て 1＝平原。i32 で読んで初めて意味のある値になる。
+    // varint で読むと壊れる）、heightmaps は MOTION_BLOCKING＋WORLD_SURFACE、
+    // セクション y=0〜4 は BPE 4・Data Array 長 256、ブロックエンティティ 0件。
+    // 消費量はペイロード長と完全一致。残り2件（-17,-22：15,771バイト／
+    // -17,-21：15,773バイト）も同じ形式で、y=1 は BPE 5・パレット 17・
+    // Data Array 長 342（non-straddling の (4096＋12−1)／12＝342。
+    // straddling 式だと 320）。BitStorage non-straddling は生キャプチャでも
+    // 確定した（754 の 1.16.5 キャプチャと同じ結論）。
+    // サーバーは起動したまま（停止していない。ワールドは run/server-736/world
+    // に再生成された）。
+    // [決めたこと（落とすもの・補完値）と根拠]
+    // - 736→751 で groundUp=false のとき、751 の biomes は無い（書かない）。
+    //   754→755 の前例（平原で補完）は 751 には当てはまらない。755 には
+    //   groundUp が無く biomes が必須だが、751 の biomes は groundUp のとき
+    //   だけ（minecraft-data・javap pt.a(nf) の `ifeq 58` で確認。751⇔753 節の
+    //   「753 は [groundUp bool][bitMap varint][biomes は groundUp のときだけ]」
+    //   とも一致）。groundUp=false の 751 チャンクに biomes を書くと、実バニラ
+    //   1.16.2 クライアントは件数 varint を chunkData 長と誤読して壊れる
+    //   （テストで往復不一致として検出済み）。部分更新にはバイオーム情報が無く、
+    //   クライアントは既存のバイオームを保持するため、補完は不要。
+    //   なお実バニラ 1.16.1 は通常 groundUp=true の全チャンクを送るため、
+    //   groundUp=false は稀な経路である。
+    // - 751→736 の ignoreOldData は true を補う。実バニラ 1.16.1 サーバーは
+    //   全チャンク送出（ChunkMap yp）で true、部分更新（ChunkHolder yo）で
+    //   false を送る。751 のチャンクは常に全チャンクのため true が正しい。
+    //   751→736 で groundUp=false が来た場合（通常は無い）は false を補う。
+    // - ブロックエンティティは両方向とも全て通す。736 と 751 のブロック
+    //   エンティティ種別は 33件・同一順序で、NBT の id は文字列のため付け替えは
+    //   不要。754→755 の sculk_sensor のような落としは無い。ただし NBT が
+    //   コンパウンドでないもの・id／x／y／z が無いものは落とす（754節と同じ扱い）。
+    // - 変換失敗時は従来通り素通し（ペイロード unchanged）を返す。
+    // - ブロック状態・アイテム・バイオームの表は全件写像（verify-736-tables.py
+    //   43/43）で、DROP（-1）は出ない。範囲外は RegistryRemapper が石／
+    //   平原の代替値を返す。751 側にだけあるブロック状態・アイテムは
+    //   代替表で 736 のものに付け替わるため、null で落とすことは無い。
+    //   バイオームは両版とも同じ 79件・同じ id のため、実質は恒等写像。
+    // [作らない変換器（この節の範囲外。根拠と申し送り）]
+    // - Edit Book：フィールドは両版で同一（[new_book slot][signing bool]
+    //   [hand varint]。minecraft-data・javap とも）のため構造変換は不要。
+    //   ただしスロットのアイテムIDは 736⇔751 で付け替えが必要で、素通しでは
+    //   751 側のアイテムIDが 736 クライアントに誤って届く。
+    //   Stage B フォローアップで translateEditBook736To751／751To736 を
+    //   本節の末尾に追加し、ProxySession から呼ぶ（754節と同じ申し送りの解消）。
+    // - Update Light：フィールドは両版で同一（上記参照。minecraft-data・
+    //   1.16.1 の javap（ow）・ViaVersion の未登録の3系統で確認）のため
+    //   構造変換は不要で、素通し（パケットIDの付け替えだけ）で正しい。
+    //   754⇔755 では 1.16.5（マスク varint×4＋data restBuffer）と 1.17
+    //   （BitSet 配列＋skyLight／blockLight配列）で形式が違ったため落としていたが、
+    //   736⇔751 では形式が同一のため落とす理由は無い。751⇔753 節と同じ扱い。
+    //   Stage B フォローアップで translateUpdateLight736To751／751To736
+    //   （恒等写像）を本節の末尾に追加し、ProxySession の
+    //   to751ServerPacketFrom736 に明示の case を載せた。
+    //   任務文の「Update Light は未実装なら落とす（754の前例）」は 754 の
+    //   形式差分が前提のため、この節では素通しを採用した。
+    // - 値の付け替え変換器（Stage B フォローアップで本節の末尾に追加した。
+    //   フィールド同一のため構造は変えず、レジストリIDだけ付け替える。
+    //   いずれも protocol.json の突き合わせで 1.16.1⇔1.16.2 が同一であることを
+    //   確認済み）：Block Change、Set Cooldown、Entity Equipment、Trade List、
+    //   Block Entity Data（Tile Entity Data）、Entity Metadata、Sound Effect、
+    //   Entity Sound Effect、Named Sound Effect、Stop Sound、World Particles、
+    //   Spawn Entity。Multi Block Change はフィールド自体が違うため
+    //   別項（本節の末尾の Multi Block Change の節）に置いた。
+    //   作らないもの：Entity Effect（エフェクト 32件・同一順序のため恒等写像。
+    //   Stage A §11.1）、Open Window（メニュー 24件・同一順序のため恒等写像。
+    //   Stage A §11.1）。どちらもフィールド同一・ID同一のため素通しで正しい。
+    // - その他のフィールド差分パケット（declare_recipes／respawn／
+    //   unlock_recipes／crafting_book_data の分割、Join Game）は
+    //   PlayTranslator／ClientJoinFlow 担当の範囲のためこの節では作らない。
+    //   Multi Block Change は本節の末尾に追加した（上記参照）。
+    // - entity（1.16.1 のみ 0x2b）は 1.17 で削除されたため変換器は無い。
+    //   ViaVersion でも落とされる。sculk_vibration_signal（1.17 のみ）は
+    //   736 では -1 のため落とす。displayed_recipe（751 のみ 0x1f）は
+    //   736 では -1 のため落とす（Stage A §8.1 の削除1件）。
+    // ------------------------------------------------------------------
+
+    /** 736のスロット1個を751向けに読む。アイテムIDは RegistryTables736 の表で付け替える。 */
+    public static void translateSlot736To751(Reader reader, Writer writer) {
+        boolean present = reader.readBoolean();
+        writer.writeBoolean(present);
+        if (!present) {
+            return;
+        }
+        writer.writeVarInt(RegistryRemapper.mapItem736To751(reader.readVarInt()));
+        writer.writeByte(reader.readByte());
+        writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+    }
+
+    /** 751のスロット1個を736向けに読む。アイテムIDは RegistryTables736 の表で付け替える。 */
+    public static void translateSlot751To736(Reader reader, Writer writer) {
+        boolean present = reader.readBoolean();
+        writer.writeBoolean(present);
+        if (!present) {
+            return;
+        }
+        writer.writeVarInt(RegistryRemapper.mapItem751To736(reader.readVarInt()));
+        writer.writeByte(reader.readByte());
+        writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+    }
+
+    /**
+     * 736 のブロックのパレット付きコンテナ1個を751向け（up=true）または
+     * 736向け（up=false）に読む。パレットのエントリ（BPE 0 の単一値と
+     * BPE 1〜8 のパレット）はブロック状態IDそのものなので付け替え、
+     * Data Array はパレット添字の列のためそのまま写す。直接パレット
+     * （BPE 9〜15）は Data Array がブロック状態IDそのものなのでほぐして
+     * 付け替えて詰め直す。BitStorage は両版とも non-straddling
+     * （生キャプチャで BPE 5 の Data Array 長 342 を確認）。
+     */
+    private static void translateBlockContainer736(Reader reader, Writer writer, boolean up) {
+        int bitsPerEntry = reader.readUnsignedByte();
+        if (bitsPerEntry > 15) {
+            throw new IllegalArgumentException("Bits Per Entry が大きすぎます: " + bitsPerEntry);
+        }
+        writer.writeUnsignedByte(bitsPerEntry);
+        if (bitsPerEntry == 0) {
+            int single = reader.readVarInt();
+            writer.writeVarInt(up ? RegistryRemapper.mapBlockState736To751(single)
+                    : RegistryRemapper.mapBlockState751To736(single));
+            int dataLength = reader.readVarInt();
+            if (dataLength != 0) {
+                throw new IllegalArgumentException(
+                        "シングルパレットの Data Array 長が 0 ではありません: " + dataLength);
+            }
+            writer.writeVarInt(0);
+            return;
+        }
+        if (bitsPerEntry <= 8) {
+            int paletteLength = reader.readVarInt();
+            if (paletteLength <= 0 || paletteLength > (1 << bitsPerEntry)) {
+                throw new IllegalArgumentException("パレット長が不正です: " + paletteLength);
+            }
+            writer.writeVarInt(paletteLength);
+            for (int i = 0; i < paletteLength; i++) {
+                int state = reader.readVarInt();
+                writer.writeVarInt(up ? RegistryRemapper.mapBlockState736To751(state)
+                        : RegistryRemapper.mapBlockState751To736(state));
+            }
+            copyNonStraddlingDataArray(reader, writer, 4096, bitsPerEntry);
+            return;
+        }
+        long[] longs = readNonStraddlingDataArray(reader, 4096, bitsPerEntry);
+        int[] entries = unpackNonStraddling(longs, bitsPerEntry, 4096);
+        for (int i = 0; i < entries.length; i++) {
+            entries[i] = up ? RegistryRemapper.mapBlockState736To751(entries[i])
+                    : RegistryRemapper.mapBlockState751To736(entries[i]);
+        }
+        long[] out = packNonStraddling(entries, bitsPerEntry);
+        writer.writeVarInt(out.length);
+        for (long value : out) {
+            writer.writeLong(value);
+        }
+    }
+
+    /**
+     * チャンクのブロックエンティティ列を読む。NBT は両版とも [id／x／y／z
+     * 付きの名前付き NBT] のためそのまま通す。736 と 751 のブロックエンティティ
+     * 種別は 33件・同一順序のため、落とすものは無い（754節の sculk_sensor の
+     * ような落としは無い）。NBT がコンパウンドでないもの・id／x／y／z が
+     * 無いものは落とす（754節と同じ扱い）。
+     */
+    private static List<Tag> readChunkBlockEntities736(Reader reader) {
+        int count = reader.readVarInt();
+        if (count < 0) {
+            throw new IllegalArgumentException("ブロックエンティティの件数が負です: " + count);
+        }
+        List<Tag> kept = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            Tag tag = reader.readNamedNbt().tag();
+            if (!(tag instanceof Tag.CompoundTag compound)) {
+                LOG.warning("ブロックエンティティ NBT がコンパウンドではないため落とします。");
+                continue;
+            }
+            String id = compound.getString("id").orElse(null);
+            Integer x = blockEntityCoord(compound, "x");
+            Integer y = blockEntityCoord(compound, "y");
+            Integer z = blockEntityCoord(compound, "z");
+            if (id == null || x == null || y == null || z == null) {
+                LOG.warning("ブロックエンティティ NBT に id／x／y／z が無いため落とします。");
+                continue;
+            }
+            kept.add(tag);
+        }
+        return kept;
+    }
+
+    /**
+     * Chunk Data（736 0x21 → 751 0x20）。ignoreOldData を落とし、biomes の
+     * 符号化を i32×1024 から [count varint][varint×1024] に直し、セクション内の
+     * ブロック状態IDとバイオームIDを付け替える。groundUp=false のとき 751 の
+     * biomes は無い（書かない。751 の biomes は groundUp のときだけのため。
+     * 754→755 の平原補完は 755 には groundUp が無いための前例で、751 には
+     * 当てはまらない）。heightmaps NBT はそのまま通す。読めない場合は素通しする。
+     */
+    public static byte[] translateChunkData736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int chunkX = reader.readInt();
+            int chunkZ = reader.readInt();
+            boolean groundUp = reader.readBoolean();
+            reader.readBoolean(); // ignoreOldData（751には無いため捨てる）
+            int bitMap = reader.readVarInt();
+            if ((bitMap & ~0xFFFF) != 0) {
+                LOG.warning("736 の bitMap に16セクションを超えるビットがあるため落とします。");
+                bitMap &= 0xFFFF;
+            }
+            Nbt.NamedResult heightmaps = reader.readNamedNbt();
+            int[] biomes = null;
+            if (groundUp) {
+                biomes = new int[1024];
+                for (int i = 0; i < 1024; i++) {
+                    biomes[i] = RegistryRemapper.mapBiome736To751(reader.readInt());
+                }
+            }
+            int dataLength = reader.readVarInt();
+            byte[] chunkData = reader.readBytes(dataLength);
+            Reader sections = new Reader(chunkData);
+            Writer outSections = new Writer();
+            for (int s = 0; s < 16; s++) {
+                if ((bitMap & (1 << s)) == 0) {
+                    continue;
+                }
+                outSections.writeShort(sections.readShort());
+                translateBlockContainer736(sections, outSections, true);
+            }
+            if (sections.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "チャンクデータに余分なバイトがあります（残り=" + sections.remaining() + "）。");
+            }
+            List<Tag> blockEntities = readChunkBlockEntities736(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeInt(chunkX);
+            writer.writeInt(chunkZ);
+            writer.writeBoolean(groundUp);
+            writer.writeVarInt(bitMap);
+            if (heightmaps.tag() == null) {
+                writer.writeByte(0);
+            } else {
+                writer.writeNamedNbt("", heightmaps.tag());
+            }
+            if (groundUp) {
+                writer.writeVarInt(1024);
+                for (int i = 0; i < 1024; i++) {
+                    writer.writeVarInt(biomes[i]);
+                }
+            }
+            writer.writeByteArray(outSections.bytes());
+            writer.writeVarInt(blockEntities.size());
+            for (Tag tag : blockEntities) {
+                writer.writeNamedNbt("", tag);
+            }
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chunk Data を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Chunk Data（751 0x20 → 736 0x21）。biomes の符号化を
+     * [count varint][varint×1024] から i32×1024 に直し、ignoreOldData を補い、
+     * セクション内のブロック状態IDとバイオームIDを付け替える。751 のチャンクは
+     * 常に全チャンクのため ignoreOldData は true を補う（実バニラ 1.16.1
+     * サーバーの全チャンク送出と同じ値）。読めない場合は素通しする。
+     */
+    public static byte[] translateChunkData751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int chunkX = reader.readInt();
+            int chunkZ = reader.readInt();
+            boolean groundUp = reader.readBoolean();
+            int bitMap = reader.readVarInt();
+            if ((bitMap & ~0xFFFF) != 0) {
+                LOG.warning("751 の bitMap に16セクションを超えるビットがあるため落とします。");
+                bitMap &= 0xFFFF;
+            }
+            Nbt.NamedResult heightmaps = reader.readNamedNbt();
+            int[] biomes = null;
+            if (groundUp) {
+                int biomeCount = reader.readVarInt();
+                if (biomeCount != 1024) {
+                    throw new IllegalArgumentException(
+                            "バイオーム配列の件数が 1024 ではありません: " + biomeCount);
+                }
+                biomes = new int[1024];
+                for (int i = 0; i < 1024; i++) {
+                    biomes[i] = RegistryRemapper.mapBiome751To736(reader.readVarInt());
+                }
+            }
+            int dataLength = reader.readVarInt();
+            byte[] chunkData = reader.readBytes(dataLength);
+            Reader sections = new Reader(chunkData);
+            Writer outSections = new Writer();
+            for (int s = 0; s < 16; s++) {
+                if ((bitMap & (1 << s)) == 0) {
+                    continue;
+                }
+                outSections.writeShort(sections.readShort());
+                translateBlockContainer736(sections, outSections, false);
+            }
+            if (sections.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "チャンクデータに余分なバイトがあります（残り=" + sections.remaining() + "）。");
+            }
+            List<Tag> blockEntities = readChunkBlockEntities736(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeInt(chunkX);
+            writer.writeInt(chunkZ);
+            writer.writeBoolean(groundUp);
+            writer.writeBoolean(groundUp); // ignoreOldData（751には無い。751のチャンクは常に全チャンクのため true）
+            writer.writeVarInt(bitMap);
+            if (heightmaps.tag() == null) {
+                writer.writeByte(0);
+            } else {
+                writer.writeNamedNbt("", heightmaps.tag());
+            }
+            if (groundUp) {
+                for (int i = 0; i < 1024; i++) {
+                    writer.writeInt(biomes[i]);
+                }
+            }
+            writer.writeByteArray(outSections.bytes());
+            writer.writeVarInt(blockEntities.size());
+            for (Tag tag : blockEntities) {
+                writer.writeNamedNbt("", tag);
+            }
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chunk Data を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Set Slot（736 → 751）。フィールドは両版で同一（[windowId i8]
+     * [slot i16][item]。stateId は無い）ため、スロットのアイテムIDの
+     * 付け替えだけを行う。
+     */
+    public static byte[] translateSetSlot736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeByte(reader.readByte()); // windowId i8
+            writer.writeShort(reader.readShort()); // slot i16
+            translateSlot736To751(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Slot を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Slot（751 → 736）。フィールドは両版で同一のため、スロットのアイテムIDの付け替えだけを行う。 */
+    public static byte[] translateSetSlot751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeByte(reader.readByte()); // windowId i8
+            writer.writeShort(reader.readShort()); // slot i16
+            translateSlot751To736(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Slot を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Window Items（736 → 751）。フィールドは両版で同一（[windowId u8]
+     * [count i16][items]。stateId・carriedItem は無い）ため、スロットの
+     * アイテムIDの付け替えだけを行う。
+     */
+    public static byte[] translateWindowItems736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte()); // windowId u8
+            int count = reader.readShort(); // count は i16
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Items の件数が負です: " + count);
+            }
+            writer.writeShort(count);
+            for (int i = 0; i < count; i++) {
+                translateSlot736To751(reader, writer);
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Items を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Window Items（751 → 736）。フィールドは両版で同一のため、スロットのアイテムIDの付け替えだけを行う。 */
+    public static byte[] translateWindowItems751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte()); // windowId u8
+            int count = reader.readShort(); // count は i16
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Items の件数が負です: " + count);
+            }
+            writer.writeShort(count);
+            for (int i = 0; i < count; i++) {
+                translateSlot751To736(reader, writer);
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Items を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Window Click（736 → 751）。フィールドは両版で同一（[windowId u8]
+     * [slot i16][button i8][action i16][mode varint][item slot]）ため、
+     * スロットのアイテムIDの付け替えだけを行う。mode は両方とも varint
+     * （javap -c で両方とも readEnum／writeEnum を確認。minecraft-data の
+     * 「1.16.1／1.16.2 は i8」は誤り）のためそのまま写す。action（uid）も
+     * 両版にあるため落とさない。754⇔755 のような changedSlots／cursorItem
+     * への組み替えは不要。
+     */
+    public static byte[] translateWindowClick736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte()); // windowId u8
+            writer.writeShort(reader.readShort()); // slot i16
+            writer.writeByte(reader.readByte()); // button i8
+            writer.writeShort(reader.readShort()); // action i16
+            writer.writeVarInt(reader.readVarInt()); // mode（両方とも varint）
+            translateSlot736To751(reader, writer); // 単一スロット
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Click を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Window Click（751 → 736）。フィールドは両版で同一のため、スロットの
+     * アイテムIDの付け替えだけを行う。action（uid）も両版にあるため 0補完は
+     * 不要。mode は両方とも varint。
+     */
+    public static byte[] translateWindowClick751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte()); // windowId u8
+            writer.writeShort(reader.readShort()); // slot i16
+            writer.writeByte(reader.readByte()); // button i8
+            writer.writeShort(reader.readShort()); // action i16
+            writer.writeVarInt(reader.readVarInt()); // mode（両方とも varint）
+            translateSlot751To736(reader, writer); // 単一スロット
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Click を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Entity Destroy（736 → 751）。両版とも [count varint][entityIds] の
+     * 配列形式のため恒等写像。count 2以上もそのまま通す。
+     */
+    public static byte[] translateEntityDestroy736To751(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Entity Destroy（751 → 736）。両版とも [count varint][entityIds] の
+     * 配列形式のため恒等写像。count 2以上もそのまま通す。
+     */
+    public static byte[] translateEntityDestroy751To736(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // 埋め込みレジストリIDの値付け替え（736 <=> 751。Stage B フォローアップ）
+    // フィールド構成は736・751で同一のため、レジストリIDだけ付け替える。
+    // （mc-1.16.1-protocol.json と mc-1.16.2-protocol.json の突き合わせで実測。
+    // block_change・set_cooldown・entity_equipment・trade_list・tile_entity_data・
+    // entity_metadata・sound_effect・entity_sound_effect・named_sound_effect・
+    // stop_sound・world_particles・spawn_entity は両版でフィールド完全同一。
+    // entityMetadataItem の型番号も両版とも 0〜18 で同一（13＝ブロック状態、
+    // 15＝粒子。754節と同じ）。particleData のデータ持ち粒子も両版とも
+    // block=3・falling_dust=23・dust=14・item=34 で同一。
+    // Multi Block Change・Update Light・Edit Book もここに置く。
+    // 前例は ChunkTranslator の754節（translateSetCooldown754To755 等）と
+    // ProxySession の to755ServerPacketFrom754 の値付け替え一覧。
+    // 作らないもの：Entity Effect（エフェクト 32件・同一順序のため恒等写像。
+    // Stage A §11.1）、Open Window（メニュー 24件・同一順序のため恒等写像。
+    // Stage A §11.1）。どちらもフィールド同一・ID同一のため素通しで正しい。
+    // 変換失敗時は従来通り素通し（ペイロード unchanged）を返す。
+    // ただし Multi Block Change の736→751だけは例外で、変換できない場合は
+    // 空リスト（落とす）を返す。素通しすると736形式のまま751クライアントに
+    // 届いて誤読されるため（下記の translateMultiBlockChange736To751List 参照）。
+    // ------------------------------------------------------------------
+
+    /** Block Change（736 → 751）：位置＋ブロック状態ID。 */
+    public static byte[] translateBlockChange736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long position = reader.readPositionRaw();
+            int state = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writePositionRaw(position);
+            writer.writeVarInt(RegistryRemapper.mapBlockState736To751(state));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Block Change を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Block Change（751 → 736）：位置＋ブロック状態ID。 */
+    public static byte[] translateBlockChange751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long position = reader.readPositionRaw();
+            int state = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writePositionRaw(position);
+            writer.writeVarInt(RegistryRemapper.mapBlockState751To736(state));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Block Change を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Cooldown（736 → 751）：アイテムIDだけ変換する。 */
+    public static byte[] translateSetCooldown736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int item = reader.readVarInt();
+            int ticks = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapItem736To751(item));
+            writer.writeVarInt(ticks);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Cooldown を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Cooldown（751 → 736）：アイテムIDだけ変換する。 */
+    public static byte[] translateSetCooldown751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int item = reader.readVarInt();
+            int ticks = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapItem751To736(item));
+            writer.writeVarInt(ticks);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Cooldown を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Equipment（736 → 751）。スロット列は上位ビットが終端。 */
+    public static byte[] translateEntityEquipment736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt());
+            while (true) {
+                int slotByte = reader.readUnsignedByte();
+                writer.writeUnsignedByte(slotByte);
+                translateSlot736To751(reader, writer);
+                if ((slotByte & 0x80) == 0) {
+                    break;
+                }
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Equipment を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Equipment（751 → 736）。スロット列は上位ビットが終端。 */
+    public static byte[] translateEntityEquipment751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt());
+            while (true) {
+                int slotByte = reader.readUnsignedByte();
+                writer.writeUnsignedByte(slotByte);
+                translateSlot751To736(reader, writer);
+                if ((slotByte & 0x80) == 0) {
+                    break;
+                }
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Equipment を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Trade List（736 → 751）。736・751とも inputItem2 は option slot、
+     * trades の件数は u8 で同一のため、スロットのアイテムIDだけ付け替える
+     * （mc-1.16.1／mc-1.16.2-protocol.json で実測）。
+     */
+    public static byte[] translateTradeList736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt()); // windowId
+            int count = reader.readUnsignedByte();
+            writer.writeUnsignedByte(count);
+            for (int i = 0; i < count; i++) {
+                translateTrade736(reader, writer, true);
+            }
+            writer.writeVarInt(reader.readVarInt()); // villagerLevel
+            writer.writeVarInt(reader.readVarInt()); // experience
+            writer.writeBoolean(reader.readBoolean()); // isRegularVillager
+            writer.writeBoolean(reader.readBoolean()); // canRestock
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Trade List を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Trade List（751 → 736）。スロットのアイテムIDだけ付け替える。 */
+    public static byte[] translateTradeList751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt()); // windowId
+            int count = reader.readUnsignedByte();
+            writer.writeUnsignedByte(count);
+            for (int i = 0; i < count; i++) {
+                translateTrade736(reader, writer, false);
+            }
+            writer.writeVarInt(reader.readVarInt()); // villagerLevel
+            writer.writeVarInt(reader.readVarInt()); // experience
+            writer.writeBoolean(reader.readBoolean()); // isRegularVillager
+            writer.writeBoolean(reader.readBoolean()); // canRestock
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Trade List を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Trade List の取引1件。up=true は736→751、false は751→736。 */
+    private static void translateTrade736(Reader reader, Writer writer, boolean up) {
+        if (up) {
+            translateSlot736To751(reader, writer);
+            translateSlot736To751(reader, writer);
+        } else {
+            translateSlot751To736(reader, writer);
+            translateSlot751To736(reader, writer);
+        }
+        boolean present = reader.readBoolean(); // inputItem2 の option
+        writer.writeBoolean(present);
+        if (present) {
+            if (up) {
+                translateSlot736To751(reader, writer);
+            } else {
+                translateSlot751To736(reader, writer);
+            }
+        }
+        writer.writeBoolean(reader.readBoolean()); // tradeDisabled
+        writer.writeInt(reader.readInt()); // nbTradeUses
+        writer.writeInt(reader.readInt()); // maximumNbTradeUses
+        writer.writeInt(reader.readInt()); // xp
+        writer.writeInt(reader.readInt()); // specialPrice
+        writer.writeFloat(reader.readFloat()); // priceMultiplier
+        writer.writeInt(reader.readInt()); // demand
+    }
+
+    /**
+     * Block Entity Data（736 → 751）。[位置][種別 u8][任意の名前付き NBT]。
+     * ブロックエンティティ種別は 33件・同一順序のため実質は恒等写像だが、
+     * 表で付け替える（Stage A §11.1）。範囲外（DROP）は落とす（null を返す）。
+     */
+    public static byte[] translateBlockEntityData736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long position = reader.readPositionRaw();
+            int type = reader.readUnsignedByte();
+            Tag nbt = readOptionalNamedNbt(reader);
+            requireEnd(reader);
+            int mapped = RegistryRemapper.mapBlockEntityType736To751(type);
+            if (mapped == RegistryRemapper.DROP) {
+                LOG.warning("751に無いブロックエンティティ種別（736 type=" + type
+                        + "）の Block Entity Data を落とします。");
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writePositionRaw(position);
+            writer.writeUnsignedByte(mapped);
+            writeOptionalNamedNbt(writer, nbt);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Block Entity Data を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Block Entity Data（751 → 736）。種別は表で付け替える。範囲外（DROP）は落とす。 */
+    public static byte[] translateBlockEntityData751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long position = reader.readPositionRaw();
+            int type = reader.readUnsignedByte();
+            Tag nbt = readOptionalNamedNbt(reader);
+            requireEnd(reader);
+            int mapped = RegistryRemapper.mapBlockEntityType751To736(type);
+            if (mapped == RegistryRemapper.DROP) {
+                LOG.warning("736に無いブロックエンティティ種別（751 type=" + type
+                        + "）の Block Entity Data を落とします。");
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writePositionRaw(position);
+            writer.writeUnsignedByte(mapped);
+            writeOptionalNamedNbt(writer, nbt);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Block Entity Data を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Sound Effect（736 → 751）。音IDだけ変換する（seed は無い。両方とも素の VarInt ID）。 */
+    public static byte[] translateSoundEffect736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapSound736To751(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt()); // soundCategory
+            writer.writeInt(reader.readInt()); // x
+            writer.writeInt(reader.readInt()); // y
+            writer.writeInt(reader.readInt()); // z
+            writer.writeFloat(reader.readFloat()); // volume
+            writer.writeFloat(reader.readFloat()); // pitch
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Sound Effect（751 → 736）。音IDだけ変換する。 */
+    public static byte[] translateSoundEffect751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapSound751To736(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt()); // soundCategory
+            writer.writeInt(reader.readInt()); // x
+            writer.writeInt(reader.readInt()); // y
+            writer.writeInt(reader.readInt()); // z
+            writer.writeFloat(reader.readFloat()); // volume
+            writer.writeFloat(reader.readFloat()); // pitch
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Sound Effect（736 → 751）。音IDだけ変換する。 */
+    public static byte[] translateEntitySoundEffect736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapSound736To751(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt()); // soundCategory
+            writer.writeVarInt(reader.readVarInt()); // entityId
+            writer.writeFloat(reader.readFloat()); // volume
+            writer.writeFloat(reader.readFloat()); // pitch
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Entity Sound Effect（751 → 736）。音IDだけ変換する。 */
+    public static byte[] translateEntitySoundEffect751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(RegistryRemapper.mapSound751To736(reader.readVarInt()));
+            writer.writeVarInt(reader.readVarInt()); // soundCategory
+            writer.writeVarInt(reader.readVarInt()); // entityId
+            writer.writeFloat(reader.readFloat()); // volume
+            writer.writeFloat(reader.readFloat()); // pitch
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Named Sound Effect（736 → 751）。音の名前だけ変換する。 */
+    public static byte[] translateNamedSoundEffect736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String name = reader.readString();
+            int category = reader.readVarInt();
+            int x = reader.readInt();
+            int y = reader.readInt();
+            int z = reader.readInt();
+            float volume = reader.readFloat();
+            float pitch = reader.readFloat();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(RegistryRemapper.mapSoundName736To751(name));
+            writer.writeVarInt(category);
+            writer.writeInt(x);
+            writer.writeInt(y);
+            writer.writeInt(z);
+            writer.writeFloat(volume);
+            writer.writeFloat(pitch);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Named Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Named Sound Effect（751 → 736）。音の名前だけ変換する。 */
+    public static byte[] translateNamedSoundEffect751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String name = reader.readString();
+            int category = reader.readVarInt();
+            int x = reader.readInt();
+            int y = reader.readInt();
+            int z = reader.readInt();
+            float volume = reader.readFloat();
+            float pitch = reader.readFloat();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(RegistryRemapper.mapSoundName751To736(name));
+            writer.writeVarInt(category);
+            writer.writeInt(x);
+            writer.writeInt(y);
+            writer.writeInt(z);
+            writer.writeFloat(volume);
+            writer.writeFloat(pitch);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Named Sound Effect を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Stop Sound（736 → 751）。flags の bit 0 は音源（VarInt）、bit 1 は
+     * 音の名前（文字列）。名前だけ付け替える。
+     */
+    public static byte[] translateStopSound736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int flags = reader.readByte();
+            Writer writer = new Writer();
+            writer.writeByte(flags);
+            if ((flags & 0x01) != 0) {
+                writer.writeVarInt(reader.readVarInt());
+            }
+            if ((flags & 0x02) != 0) {
+                writer.writeString(RegistryRemapper.mapSoundName736To751(reader.readString()));
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Stop Sound を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Stop Sound（751 → 736）。flags の bit 1 の音の名前だけ付け替える。 */
+    public static byte[] translateStopSound751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int flags = reader.readByte();
+            Writer writer = new Writer();
+            writer.writeByte(flags);
+            if ((flags & 0x01) != 0) {
+                writer.writeVarInt(reader.readVarInt());
+            }
+            if ((flags & 0x02) != 0) {
+                writer.writeString(RegistryRemapper.mapSoundName751To736(reader.readString()));
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Stop Sound を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * 粒子1個の読み取り結果（736 <=> 751 用）。データの並びは読み側
+     * （送信元）の番号で決まるため、読み側のIDを保持する。ブロック状態と
+     * スロットは読み取り時に付け替え済みの値（書き側の番号）を保持する。
+     */
+    private static final class ParsedParticle736 {
+        int id;
+        int blockState;
+        float[] floats;
+        byte[] slotBytes;
+    }
+
+    /**
+     * 736／751形式の粒子データ1個を読む（IDは呼び出し側で読む）。データを持つ粒子は
+     * 両版とも同じ番号（mc-1.16.1／mc-1.16.2-protocol.json の particleData で実測）。
+     * block=3・falling_dust=23：ブロック状態ID。dust=14：4 float。
+     * item=34：スロット。up=true は736→751、false は751→736。
+     */
+    private static ParsedParticle736 readParticleData736(Reader reader, int id, boolean up) {
+        ParsedParticle736 particle = new ParsedParticle736();
+        particle.id = id;
+        switch (id) {
+            case 3, 23 -> particle.blockState = up
+                    ? RegistryRemapper.mapBlockState736To751(reader.readVarInt())
+                    : RegistryRemapper.mapBlockState751To736(reader.readVarInt());
+            case 14 -> {
+                particle.floats = new float[4];
+                for (int i = 0; i < 4; i++) {
+                    particle.floats[i] = reader.readFloat();
+                }
+            }
+            case 34 -> {
+                Writer slotWriter = new Writer();
+                if (up) {
+                    translateSlot736To751(reader, slotWriter);
+                } else {
+                    translateSlot751To736(reader, slotWriter);
+                }
+                particle.slotBytes = slotWriter.bytes();
+            }
+            default -> {
+                // その他の粒子にデータは無い。
+            }
+        }
+        return particle;
+    }
+
+    /** 736／751形式の粒子データ1個を書く（IDは呼び出し側で書く）。 */
+    private static void writeParticleData736(Writer writer, ParsedParticle736 particle) {
+        switch (particle.id) {
+            case 3, 23 -> writer.writeVarInt(particle.blockState);
+            case 14 -> {
+                for (float value : particle.floats) {
+                    writer.writeFloat(value);
+                }
+            }
+            case 34 -> writer.writeBytes(particle.slotBytes);
+            default -> {
+                // その他の粒子にデータは無い。
+            }
+        }
+    }
+
+    /** 粒子1個（ID VarInt＋データ）を 736 → 751 向けに変換する。 */
+    private static void translateParticle736To751(Reader reader, Writer writer) {
+        int particleId = reader.readVarInt();
+        ParsedParticle736 particle = readParticleData736(reader, particleId, true);
+        writer.writeVarInt(RegistryRemapper.mapParticle736To751(particleId));
+        writeParticleData736(writer, particle);
+    }
+
+    /** 粒子1個（ID VarInt＋データ）を 751 → 736 向けに変換する。 */
+    private static void translateParticle751To736(Reader reader, Writer writer) {
+        int particleId = reader.readVarInt();
+        ParsedParticle736 particle = readParticleData736(reader, particleId, false);
+        writer.writeVarInt(RegistryRemapper.mapParticle751To736(particleId));
+        writeParticleData736(writer, particle);
+    }
+
+    /**
+     * World Particles（736 → 751）。粒子IDは両方とも i32。データはパケット末尾
+     * （count の後）にある（mc-1.16.1／mc-1.16.2-protocol.json で実測）。
+     */
+    public static byte[] translateWorldParticles736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int particleId = reader.readInt();
+            boolean longDistance = reader.readBoolean();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            float offsetX = reader.readFloat();
+            float offsetY = reader.readFloat();
+            float offsetZ = reader.readFloat();
+            float speed = reader.readFloat();
+            int count = reader.readInt();
+            ParsedParticle736 particle = readParticleData736(reader, particleId, true);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeInt(RegistryRemapper.mapParticle736To751(particleId));
+            writer.writeBoolean(longDistance);
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeFloat(offsetX);
+            writer.writeFloat(offsetY);
+            writer.writeFloat(offsetZ);
+            writer.writeFloat(speed);
+            writer.writeInt(count);
+            writeParticleData736(writer, particle);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Particles を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** World Particles（751 → 736）。粒子IDは両方とも i32。データはパケット末尾。 */
+    public static byte[] translateWorldParticles751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int particleId = reader.readInt();
+            boolean longDistance = reader.readBoolean();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            float offsetX = reader.readFloat();
+            float offsetY = reader.readFloat();
+            float offsetZ = reader.readFloat();
+            float speed = reader.readFloat();
+            int count = reader.readInt();
+            ParsedParticle736 particle = readParticleData736(reader, particleId, false);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeInt(RegistryRemapper.mapParticle751To736(particleId));
+            writer.writeBoolean(longDistance);
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeFloat(offsetX);
+            writer.writeFloat(offsetY);
+            writer.writeFloat(offsetZ);
+            writer.writeFloat(speed);
+            writer.writeInt(count);
+            writeParticleData736(writer, particle);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Particles を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Entity Metadata（736 → 751）。メタデータの型番号と形式は 736・751 で同一
+     * （mc-1.16.1／mc-1.16.2-protocol.json の entityMetadataItem が両方とも同じ定義）のため、
+     * 番号はそのまま通し、スロット・ブロック状態・粒子だけ番号を付け替える。
+     * 型13がブロック状態、型15が粒子（757⇔759の14／17とは番号が違うため注意）。
+     */
+    public static byte[] translateEntityMetadata736To751(byte[] payload) {
+        return translateEntityMetadata736(payload, true);
+    }
+
+    /** Entity Metadata（751 → 736）。 */
+    public static byte[] translateEntityMetadata751To736(byte[] payload) {
+        return translateEntityMetadata736(payload, false);
+    }
+
+    /** Entity Metadata を 736<=>751 向けに変換する。up=true は736→751、false は751→736。 */
+    private static byte[] translateEntityMetadata736(byte[] payload, boolean up) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeVarInt(reader.readVarInt());
+            while (true) {
+                int index = reader.readUnsignedByte();
+                if (index == 0xFF) {
+                    writer.writeUnsignedByte(0xFF);
+                    break;
+                }
+                int type = reader.readVarInt();
+                writer.writeUnsignedByte(index);
+                writer.writeVarInt(type);
+                translateMetadataValue736(reader, writer, type, up);
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Entity Metadata を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * メタデータの値1個を 736<=>751 向けに変換する。型番号は 736・751 で同一。
+     * 村人データ（16）の種別・職業・レベルは両版とも同一順序（実バニラ
+     * registries.json で実測：職業15件・種別7件とも順序一致）のためそのまま通す。
+     * （754節の translateMetadataValue754 と同じ段取り。型17（optvarint）は
+     * 754節と同じく varint として読んで書く。）
+     */
+    private static void translateMetadataValue736(Reader reader, Writer writer, int type,
+            boolean up) {
+        switch (type) {
+            case 0 -> writer.writeByte(reader.readByte());
+            case 1 -> writer.writeVarInt(reader.readVarInt());
+            case 2 -> writer.writeFloat(reader.readFloat());
+            case 3, 4 -> writer.writeString(reader.readString());
+            case 5 -> {
+                boolean present = reader.readBoolean();
+                writer.writeBoolean(present);
+                if (present) {
+                    writer.writeString(reader.readString());
+                }
+            }
+            case 6 -> {
+                if (up) {
+                    translateSlot736To751(reader, writer);
+                } else {
+                    translateSlot751To736(reader, writer);
+                }
+            }
+            case 7 -> writer.writeBoolean(reader.readBoolean());
+            case 8 -> {
+                writer.writeFloat(reader.readFloat());
+                writer.writeFloat(reader.readFloat());
+                writer.writeFloat(reader.readFloat());
+            }
+            case 9 -> writer.writePositionRaw(reader.readPositionRaw());
+            case 10 -> {
+                boolean present = reader.readBoolean();
+                writer.writeBoolean(present);
+                if (present) {
+                    writer.writePositionRaw(reader.readPositionRaw());
+                }
+            }
+            case 11 -> writer.writeVarInt(reader.readVarInt());
+            case 12 -> {
+                boolean present = reader.readBoolean();
+                writer.writeBoolean(present);
+                if (present) {
+                    writer.writeBytes(reader.readBytes(16));
+                }
+            }
+            case 13 -> writer.writeVarInt(up
+                    ? RegistryRemapper.mapBlockState736To751(reader.readVarInt())
+                    : RegistryRemapper.mapBlockState751To736(reader.readVarInt()));
+            case 14 -> writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+            case 15 -> {
+                if (up) {
+                    translateParticle736To751(reader, writer);
+                } else {
+                    translateParticle751To736(reader, writer);
+                }
+            }
+            case 16 -> {
+                // 村人データ（種別・職業・レベル）。両版とも同一順序のためそのまま通す。
+                writer.writeVarInt(reader.readVarInt());
+                writer.writeVarInt(reader.readVarInt());
+                writer.writeVarInt(reader.readVarInt());
+            }
+            case 17 -> writer.writeVarInt(reader.readVarInt());
+            case 18 -> writer.writeVarInt(reader.readVarInt());
+            default -> throw new IllegalArgumentException("未知のメタデータ型です: " + type);
+        }
+    }
+
+    /** falling_block のエンティティ種別ID（実バニラ registries.json で実測）。736=26、751=26。 */
+    private static final int FALLING_BLOCK_736 = 26;
+    private static final int FALLING_BLOCK_751 = 26;
+
+    /**
+     * Spawn Entity（736 → 751）。種別IDを変換する。736・751とも
+     * headPitch は無く objectData は i32 のため、落とすものは無い
+     * （mc-1.16.1／mc-1.16.2-protocol.json で実測）。
+     * falling_block の objectData はブロック状態IDなので一緒に変換する。
+     */
+    public static byte[] translateSpawnEntity736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            byte[] uuid = reader.readBytes(16);
+            int type = reader.readVarInt();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            int pitch = reader.readByte();
+            int yaw = reader.readByte();
+            int objectData = reader.readInt();
+            int velX = reader.readShort();
+            int velY = reader.readShort();
+            int velZ = reader.readShort();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeBytes(uuid);
+            writer.writeVarInt(RegistryRemapper.mapEntityType736To751(type));
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeByte(pitch);
+            writer.writeByte(yaw);
+            writer.writeInt(type == FALLING_BLOCK_736
+                    ? RegistryRemapper.mapBlockState736To751(objectData) : objectData);
+            writer.writeShort(velX);
+            writer.writeShort(velY);
+            writer.writeShort(velZ);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Spawn Entity（751 → 736）。種別IDと falling_block の objectData を変換する。 */
+    public static byte[] translateSpawnEntity751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            byte[] uuid = reader.readBytes(16);
+            int type = reader.readVarInt();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            int pitch = reader.readByte();
+            int yaw = reader.readByte();
+            int objectData = reader.readInt();
+            int velX = reader.readShort();
+            int velY = reader.readShort();
+            int velZ = reader.readShort();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeBytes(uuid);
+            writer.writeVarInt(RegistryRemapper.mapEntityType751To736(type));
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeByte(pitch);
+            writer.writeByte(yaw);
+            writer.writeInt(type == FALLING_BLOCK_751
+                    ? RegistryRemapper.mapBlockState751To736(objectData) : objectData);
+            writer.writeShort(velX);
+            writer.writeShort(velY);
+            writer.writeShort(velZ);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Multi Block Change（736 <=> 751）
+    // 736：[chunkX i32][chunkZ i32][records varint[{horizontalPos u8, y u8,
+    // blockId varint}]]。horizontalPos は (局所X<<4)|局所Z、y は絶対Y（0〜255）。
+    // （mc-1.16.1-protocol.json で実測。実バニラ1.16.1 jar の
+    // ClientboundChunkBlocksUpdatePacket（ob）の javap でも確認：
+    // readInt×2・readVarInt 件数・ループで readShort＋ブロック状態ID varint。
+    // 短い位置（ob$a）は (short>>12)&15 が局所X、short&255 が絶対Y、
+    // (short>>8)&15 が局所Z。short の上位バイトが horizontalPos、下位が y。）
+    // 751：[chunkCoordinates bitfield][notTrustEdges bool][records varint[varlong]]。
+    // chunkCoordinates は SectionPos.asLong（(chunkX & 0x3FFFFF)<<42 |
+    // (chunkZ & 0x3FFFFF)<<20 | (sectionY & 0xFFFFF)）。実バニラ1.16.2 jar の
+    // ClientboundSectionBlocksUpdatePacket（qr）と SectionPos（gp）の javap で確認。
+    // varlong は (ブロック状態ID<<12) | 12ビット局所位置（(局所X<<8)|(局所Z<<4)|局所Y）。
+    // （qr の read：varlong & 4095 が短い位置、varlong>>>12 がブロック状態ID。）
+    // ViaVersion の WorldPacketRewriter1_16_2 も同じ段取りで、736の1パケットを
+    // セクションごとに分けて複数の SECTION_BLOCKS_UPDATE にして送る
+    // （notTrustEdges は false を補う。「Ignore light updates」の注記付き）。
+    // そのため 736→751 は1パケットが複数パケットになることがあり、List版が本体で、
+    // 単一パケット版は1セクションだけのときに使う（複数セクション・0件は null）。
+    // 751→736 は1対1（notTrustEdges は落とす。736に相当が無いため）。
+    // ------------------------------------------------------------------
+
+    /** セクション位置を751形式の chunkCoordinates（SectionPos.asLong）に詰める。 */
+    private static long packSectionPos736(int chunkX, int sectionY, int chunkZ) {
+        return ((long) (chunkX & 0x3FFFFF) << 42)
+                | ((long) (chunkZ & 0x3FFFFF) << 20)
+                | (long) (sectionY & 0xFFFFF);
+    }
+
+    /**
+     * Multi Block Change（736 → 751）。セクションが1つだけのときにその751パケットを返す。
+     * 複数セクションに跨る場合と0件の場合は {@code null} を返す
+     * （{@link #translateMultiBlockChange736To751List(byte[])} を使うこと。
+     * ProxySession の handleServerPlayFrom736 は List版で分割して送る）。
+     */
+    public static byte[] translateMultiBlockChange736To751(byte[] payload) {
+        List<byte[]> list = translateMultiBlockChange736To751List(payload);
+        return list.size() == 1 ? list.get(0) : null;
+    }
+
+    /**
+     * Multi Block Change（736 → 751。List版・本体）。736の1パケットをセクション
+     * （絶対Y>>4）ごとに分けて751形式のパケット列にする（セクション昇順。
+     * セクション内の記録順は元のまま）。notTrustEdges は false を補う
+     * （ViaVersion の WorldPacketRewriter1_16_2 と同じ）。
+     * 変換できない場合は空リストを返す（落とす）。素通しはしない
+     * （736形式のまま751クライアントに届くと誤読されるため）。
+     */
+    public static List<byte[]> translateMultiBlockChange736To751List(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int chunkX = reader.readInt();
+            int chunkZ = reader.readInt();
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Multi Block Change の件数が負です: " + count);
+            }
+            List<List<Long>> bySection = new ArrayList<>();
+            for (int i = 0; i < 16; i++) {
+                bySection.add(new ArrayList<>());
+            }
+            for (int i = 0; i < count; i++) {
+                int horizontalPos = reader.readUnsignedByte();
+                int y = reader.readUnsignedByte();
+                int blockId = reader.readVarInt();
+                int localX = (horizontalPos >> 4) & 0xF;
+                int localZ = horizontalPos & 0xF;
+                int sectionY = y >> 4;
+                int localY = y & 0xF;
+                long record = ((long) RegistryRemapper.mapBlockState736To751(blockId) << 12)
+                        | (long) ((localX << 8) | (localZ << 4) | localY);
+                bySection.get(sectionY).add(record);
+            }
+            requireEnd(reader);
+            List<byte[]> out = new ArrayList<>();
+            for (int sectionY = 0; sectionY < 16; sectionY++) {
+                List<Long> records = bySection.get(sectionY);
+                if (records.isEmpty()) {
+                    continue;
+                }
+                Writer writer = new Writer();
+                writer.writeLong(packSectionPos736(chunkX, sectionY, chunkZ));
+                writer.writeBoolean(false); // notTrustEdges（736に無い。ViaVersion と同じく false）
+                writer.writeVarInt(records.size());
+                for (long record : records) {
+                    writer.writeVarLong(record);
+                }
+                out.add(writer.bytes());
+            }
+            return out;
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Multi Block Change を変換できなかったため落とします: " + e.getMessage());
+            return List.of();
+        }
+    }
+
+    /**
+     * Multi Block Change（751 → 736）。[chunkCoordinates bitfield][notTrustEdges bool]
+     * [records varint[varlong]] を [chunkX i32][chunkZ i32][records varint
+     * [{horizontalPos u8, y u8, blockId varint}]] に直す。notTrustEdges は落とす
+     * （736に相当が無いため）。sectionY が 0〜15 の範囲外の場合は変換できず素通しする。
+     */
+    public static byte[] translateMultiBlockChange751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long chunkCoordinates = reader.readLong();
+            reader.readBoolean(); // notTrustEdges（736に無いため捨てる）
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Multi Block Change の件数が負です: " + count);
+            }
+            int chunkX = (int) (chunkCoordinates >> 42);
+            if ((chunkX & 0x200000) != 0) {
+                chunkX |= ~0x3FFFFF;
+            }
+            int chunkZ = (int) ((chunkCoordinates >> 20) & 0x3FFFFF);
+            if ((chunkZ & 0x200000) != 0) {
+                chunkZ |= ~0x3FFFFF;
+            }
+            int sectionY = (int) (chunkCoordinates & 0xFFFFF);
+            if (sectionY < 0 || sectionY > 15) {
+                throw new IllegalArgumentException(
+                        "Multi Block Change の sectionY が範囲外です: " + sectionY);
+            }
+            Writer writer = new Writer();
+            writer.writeInt(chunkX);
+            writer.writeInt(chunkZ);
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                long record = reader.readVarLong();
+                int state = (int) (record >>> 12);
+                int local = (int) (record & 0xFFF);
+                int localX = (local >> 8) & 0xF;
+                int localZ = (local >> 4) & 0xF;
+                int localY = local & 0xF;
+                writer.writeUnsignedByte((localX << 4) | localZ); // horizontalPos
+                writer.writeUnsignedByte((sectionY << 4) | localY); // y（絶対Y）
+                writer.writeVarInt(RegistryRemapper.mapBlockState751To736(state));
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Multi Block Change を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Update Light（736 <=> 751。素通し・ID付け替えのみ）
+    // フィールド同一のため変換器は恒等写像（入力ペイロードをそのまま返す）。
+    // 根拠は3系統：
+    // - mc-1.16.1-protocol.json と mc-1.16.2-protocol.json の update_light が
+    //   バイト単位で同一の定義（[chunkX varint][chunkZ varint][trustEdges bool]
+    //   [skyLightMask／blockLightMask／emptySkyLightMask／emptyBlockLightMask varint]
+    //   [data restBuffer]）。
+    // - 実バニラ jar の javap：1.16.1 の ClientboundLightUpdatePacket（ow）と
+    //   1.16.2 の同パケット（pw）の read／write の呼び出し列が同一
+    //   （readVarInt×2・readBoolean・readVarInt×4・byte[]×2、write側も同じ順序）。
+    // - ViaVersion の Protocol1_16_1To1_16_2.java に UPDATE_LIGHT の登録は無い
+    //   （WorldPacketRewriter1_16_2 も UPDATE_LIGHT に触れない）。
+    // 754⇔755 では 1.16.5（マスク varint×4＋data restBuffer）と 1.17
+    // （BitSet 配列＋skyLight／blockLight配列）で形式が違ったため落としていたが、
+    // 736⇔751 では形式が同一のため落とす理由は無い。751⇔753 節と同じ扱い。
+    // ProxySession の to751ServerPacketFrom736 で明示の case に載せる。
+    // ------------------------------------------------------------------
+
+    /**
+     * Update Light（736 → 751）。フィールド同一のため恒等写像。
+     * 根拠は本節の冒頭（protocol.json・javap・ViaVersion の3系統で同一を確認）。
+     */
+    public static byte[] translateUpdateLight736To751(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Update Light（751 → 736）。フィールド同一のため恒等写像。
+     * 根拠は {@link #translateUpdateLight736To751(byte[])} と同じ。
+     */
+    public static byte[] translateUpdateLight751To736(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // Edit Book（736 <=> 751。サーバー行き。スロットのアイテムID付け替えだけ）
+    // フィールドは両版で同一（[new_book slot][signing bool][hand varint]。
+    // mc-1.16.1／mc-1.16.2-protocol.json で実測）。ただしスロットの
+    // アイテムIDは 736⇔751 で付け替えが必要で、素通しでは751側のアイテムIDが
+    // 736クライアントに誤って届く（754節と同じ申し送り。
+    // ViaVersion の ItemPacketRewriter1_16_2 もサーバー行き EDIT_BOOK の
+    // アイテムを付け替える登録がある）。ProxySession の
+    // to751ClientPacketFrom736／to736ClientPacketFrom751 から呼ぶ。
+    // Set Creative Slot は ProxySession の private ヘルパー（translateSlot
+    // を直接呼ぶ）が既にあるため、ここでは作らない。
+    // ------------------------------------------------------------------
+
+    /** Edit Book（736 → 751）。スロットのアイテムIDだけ付け替える。 */
+    public static byte[] translateEditBook736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            translateSlot736To751(reader, writer);
+            writer.writeBoolean(reader.readBoolean()); // signing
+            writer.writeVarInt(reader.readVarInt()); // hand
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Edit Book を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Edit Book（751 → 736）。スロットのアイテムIDだけ付け替える。 */
+    public static byte[] translateEditBook751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            translateSlot751To736(reader, writer);
+            writer.writeBoolean(reader.readBoolean()); // signing
+            writer.writeVarInt(reader.readVarInt()); // hand
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Edit Book を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
 }
