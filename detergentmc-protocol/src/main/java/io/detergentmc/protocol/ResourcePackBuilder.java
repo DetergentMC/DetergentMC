@@ -43,6 +43,83 @@ import javax.imageio.ImageIO;
  * block. It is likewise only a look + a mapping table — vanilla has no
  * such block id, so no new block id is ever sent to a client.
  *
+ * <h2>1.16.3 variant (protocol 753, {@code pack_format} 6)</h2>
+ *
+ * <p>The same demo assets are also built as a 1.16.3 pack
+ * ({@link #build753(Path)}): the only difference is
+ * {@code pack.mcmeta} ({@code pack_format} 6 instead of 22).
+ * 1.16.3 uses the plain {@code pack_format} integer form: the 1.16.3
+ * server jar's {@code PackMetadataSectionSerializer} (obfuscated
+ * {@code abn}) reads only {@code description} and {@code pack_format},
+ * and no class in the jar mentions {@code min_format} /
+ * {@code max_format} (those arrived with the range form in a later
+ * version), so the plain form is the correct one here — unlike 26.3,
+ * which needs the range form. The jar's {@code version.json} says
+ * {@code pack_version: 6} (a single number, not a range).
+ * The 753 pack carries a version-specific description
+ * ("DetergentMC resource pack (1.16.3)"), so its zip — and its
+ * SHA-1 — differ from the 754 pack even though both use format 6
+ * (see {@code PACK_MCMETA_753}).
+ *
+ * <h2>1.16.4 / 1.16.5 variant (protocol 754, {@code pack_format} 6)</h2>
+ *
+ * <p>The same demo assets are also built as a 1.16.4 / 1.16.5 pack
+ * ({@link #build754(Path)}): the only difference is
+ * {@code pack.mcmeta} ({@code pack_format} 6 instead of 22).
+ * 1.16.5 uses the plain {@code pack_format} integer form: the 1.16.5
+ * server jar's {@code PackMetadataSectionSerializer} (obfuscated
+ * {@code abp}) reads only {@code description} and {@code pack_format},
+ * and no class in the jar mentions {@code min_format} /
+ * {@code max_format} (those arrived with the range form in a later
+ * version), so the plain form is the correct one here — unlike 26.3,
+ * which needs the range form. The jar's {@code version.json} says
+ * {@code pack_version: 6} (a single number, not a range).
+ * One pack serves both 1.16.4 and 1.16.5: they share protocol 754
+ * and format 6.
+ *
+ * <h2>1.17 variant (protocol 755, {@code pack_format} 7)</h2>
+ *
+ * <p>The same demo assets are also built as a 1.17 pack
+ * ({@link #build755(Path)}): the only difference is
+ * {@code pack.mcmeta} ({@code pack_format} 7 instead of 22).
+ * 1.17 uses the plain {@code pack_format} integer form: the 1.17
+ * server jar's {@code PackMetadataSectionSerializer} (obfuscated
+ * {@code adb}) reads only {@code description} and {@code pack_format},
+ * and no class in the jar mentions {@code min_format} /
+ * {@code max_format} (those arrived with the range form in a later
+ * version), so the plain form is the correct one here — unlike 26.3,
+ * which needs the range form. The jar's {@code SharedConstants}
+ * (obfuscated {@code ab}) carries the format as 7, and its
+ * {@code version.json} says {@code pack_version.resource: 7}.
+ *
+ * <h2>1.17.1 variant (protocol 756, {@code pack_format} 7)</h2>
+ *
+ * <p>The same demo assets are also built as a 1.17.1 pack
+ * ({@link #build756(Path)}): the only difference is
+ * {@code pack.mcmeta} ({@code pack_format} 7 instead of 22).
+ * 1.17.1 uses the plain {@code pack_format} integer form: the 1.17.1
+ * server jar's {@code PackMetadataSectionSerializer} (obfuscated
+ * {@code adb}) reads only {@code description} and {@code pack_format},
+ * and no class in the jar mentions {@code min_format} /
+ * {@code max_format} (those arrived with the range form in a later
+ * version), so the plain form is the correct one here — unlike 26.3,
+ * which needs the range form. The jar's {@code SharedConstants}
+ * (obfuscated {@code ab}) carries the format as 7, and its
+ * {@code version.json} says {@code pack_version.resource: 7}.
+ *
+ * <h2>1.18 / 1.18.1 variant (protocol 757, {@code pack_format} 8)</h2>
+ *
+ * <p>The same demo assets are also built as a 1.18 / 1.18.1 pack
+ * ({@link #build757(Path)}): the only difference is
+ * {@code pack.mcmeta} ({@code pack_format} 8 instead of 22).
+ * 1.18 uses the plain {@code pack_format} integer form: the 1.18
+ * server jar's {@code PackMetadataSectionSerializer} reads only
+ * {@code description} and {@code pack_format}, and no class in the jar
+ * mentions {@code min_format} / {@code max_format} (those arrived with
+ * the range form in a later version), so the plain form is the correct
+ * one here — unlike 26.3, which needs the range form. One pack serves
+ * both 1.18 and 1.18.1: they share protocol 757 and format 8.
+ *
  * <h2>1.19 variant (protocol 759, {@code pack_format} 9)</h2>
  *
  * <p>The same demo assets are also built as a 1.19 pack
@@ -220,6 +297,56 @@ import javax.imageio.ImageIO;
 public final class ResourcePackBuilder {
 
     /**
+     * Minecraft 1.16.3 resource-pack format. 1.16.3 server jar
+     * (javap): {@code version.json} says {@code pack_version: 6}, and
+     * {@code PackMetadataSectionSerializer} (obfuscated {@code abn})
+     * reads only {@code description} and {@code pack_format} — the
+     * plain integer form. Same value as 1.16.4 / 1.16.5.
+     */
+    public static final int PACK_FORMAT_1_16_3 = 6;
+
+    /**
+     * Minecraft 1.16.4 / 1.16.5 resource-pack format. 1.16.5 server jar
+     * (javap): {@code version.json} says {@code pack_version: 6}, and
+     * {@code PackMetadataSectionSerializer} (obfuscated {@code abp})
+     * reads only {@code description} and {@code pack_format} — the
+     * plain integer form. One pack serves both versions: they share
+     * protocol 754 and format 6.
+     */
+    public static final int PACK_FORMAT_1_16_5 = 6;
+
+    /**
+     * Minecraft 1.17 resource-pack format. 1.17 server jar
+     * (javap): {@code SharedConstants} (obfuscated {@code ab}) carries
+     * the resource-pack format as 7 ({@code h = 7}, {@code i = 7}),
+     * {@code version.json} says {@code pack_version.resource: 7}, and
+     * {@code PackMetadataSectionSerializer} (obfuscated {@code adb})
+     * reads only {@code description} and {@code pack_format} — the
+     * plain integer form. Same value as 1.17.1.
+     */
+    public static final int PACK_FORMAT_1_17 = 7;
+
+    /**
+     * Minecraft 1.17.1 resource-pack format. 1.17.1 server jar
+     * (javap): {@code SharedConstants} (obfuscated {@code ab}) carries
+     * the resource-pack format as 7, {@code version.json} says
+     * {@code pack_version.resource: 7}, and
+     * {@code PackMetadataSectionSerializer} (obfuscated {@code adb})
+     * reads only {@code description} and {@code pack_format} — the
+     * plain integer form.
+     */
+    public static final int PACK_FORMAT_1_17_1 = 7;
+
+    /**
+     * Minecraft 1.18 / 1.18.1 resource-pack format. 1.18 server jar
+     * (javap): {@code SharedConstants.RESOURCE_PACK_FORMAT = 8}, and
+     * {@code PackMetadataSectionSerializer.fromJson} reads only
+     * {@code description} and {@code pack_format} — the plain integer
+     * form. One pack serves both versions: they share protocol 757.
+     */
+    public static final int PACK_FORMAT_1_18 = 8;
+
+    /**
      * Minecraft 1.19 resource-pack format (Minecraft Wiki: pack_format 9).
      * 1.19 and 1.19.1 / 1.19.2 share the format, so this is the same
      * value as {@link #PACK_FORMAT_1_19_1}; it exists so 759 call sites
@@ -277,6 +404,27 @@ public final class ResourcePackBuilder {
 
     /** File name of the generated pack inside the output directory. */
     public static final String PACK_FILE_NAME = "detergentmc-pack.zip";
+
+    /** File name of the generated 1.16.3 pack inside the output directory. */
+    public static final String PACK_FILE_NAME_753 = "detergentmc-pack-1.16.3.zip";
+
+    /** File name of the generated 1.16.4 / 1.16.5 pack inside the output directory.
+     * One pack serves both versions: they share protocol 754 and
+     * resource-pack format 6.
+     */
+    public static final String PACK_FILE_NAME_754 = "detergentmc-pack-1.16.5.zip";
+
+    /** File name of the generated 1.17 pack inside the output directory. */
+    public static final String PACK_FILE_NAME_755 = "detergentmc-pack-1.17.zip";
+
+    /** File name of the generated 1.17.1 pack inside the output directory. */
+    public static final String PACK_FILE_NAME_756 = "detergentmc-pack-1.17.1.zip";
+
+    /** File name of the generated 1.18 / 1.18.1 pack inside the output directory.
+     * One pack serves both versions: they share protocol 757 and
+     * resource-pack format 8.
+     */
+    public static final String PACK_FILE_NAME_757 = "detergentmc-pack-1.18.zip";
 
     /** File name of the generated 1.19 pack inside the output directory. */
     public static final String PACK_FILE_NAME_759 = "detergentmc-pack-1.19.zip";
@@ -372,6 +520,39 @@ public final class ResourcePackBuilder {
     private static final String PACK_MCMETA = "{\"pack\":{\"pack_format\":22,"
             + "\"description\":\"DetergentMC resource pack\"}}";
 
+    /** The 1.16.4 / 1.16.5 {@code pack.mcmeta} (plain {@code pack_format} 6). */
+    private static final String PACK_MCMETA_754 = "{\"pack\":{\"pack_format\":6,"
+            + "\"description\":\"DetergentMC resource pack\"}}";
+
+    /**
+     * The 1.16.3 {@code pack.mcmeta} (plain {@code pack_format} 6).
+     * Same format as {@code PACK_MCMETA_754}, but with a
+     * version-specific description ("DetergentMC resource pack
+     * (1.16.3)") so the 753 zip — and its SHA-1 — differ from the
+     * 754 zip. {@link #writePack(Path, int)} switches on the format
+     * number, so it cannot tell 753 from 754: it keeps using
+     * {@code PACK_MCMETA_754} for format 6, and
+     * {@link #build753(Path)} / {@link #writePack753(Path)} pass this
+     * mcmeta explicitly instead.
+     */
+    private static final String PACK_MCMETA_753 = "{\"pack\":{\"pack_format\":6,"
+            + "\"description\":\"DetergentMC resource pack (1.16.3)\"}}";
+
+    /**
+     * The 1.17 {@code pack.mcmeta} (plain {@code pack_format} 7).
+     * Identical to {@code PACK_MCMETA_756}: both versions use format 7,
+     * and {@link #writePack(Path, int)} has a single case 7 serving
+     * both (two case labels with value 7 would not compile).
+     */
+    private static final String PACK_MCMETA_755 = "{\"pack\":{\"pack_format\":7,"
+            + "\"description\":\"DetergentMC resource pack\"}}";
+
+    private static final String PACK_MCMETA_756 = "{\"pack\":{\"pack_format\":7,"
+            + "\"description\":\"DetergentMC resource pack\"}}";
+
+    private static final String PACK_MCMETA_757 = "{\"pack\":{\"pack_format\":8,"
+            + "\"description\":\"DetergentMC resource pack\"}}";
+
     private static final String PACK_MCMETA_760 = "{\"pack\":{\"pack_format\":9,"
             + "\"description\":\"DetergentMC resource pack\"}}";
 
@@ -439,7 +620,8 @@ public final class ResourcePackBuilder {
 
     /**
      * The resource-pack format for a client protocol version:
-     * 9 for 759 (1.19) and 760 (1.19.1 / 1.19.2), 12 for 761 (1.19.3), 13 for 762 (1.19.4), 15 for 763 (1.20.1), 18 for 764 (1.20.2), 22 for 765 (1.20.4),
+     * 6 for 753 (1.16.3) and 754 (1.16.4 / 1.16.5),
+     * 7 for 755 (1.17) and 756 (1.17.1), 8 for 757 (1.18 / 1.18.1), 9 for 759 (1.19) and 760 (1.19.1 / 1.19.2), 12 for 761 (1.19.3), 13 for 762 (1.19.4), 15 for 763 (1.20.1), 18 for 764 (1.20.2), 22 for 765 (1.20.4),
      * 32 for 766 (1.20.5 / 1.20.6), 34 for 767 (1.21 / 1.21.1),
      * 42 for 768 (1.21.2 / 1.21.3), 46 for 769 (1.21.4),
      * 55 for 770 (1.21.5), 63 for 771 (1.21.6), 64 for 772 (1.21.7／1.21.8),
@@ -449,6 +631,11 @@ public final class ResourcePackBuilder {
      */
     public static int packFormatForProtocol(int protocolVersion) {
         return switch (protocolVersion) {
+            case ProtocolVersion.V1_16_3 -> PACK_FORMAT_1_16_3;
+            case ProtocolVersion.V1_16_5 -> PACK_FORMAT_1_16_5;
+            case ProtocolVersion.V1_17 -> PACK_FORMAT_1_17;
+            case ProtocolVersion.V1_17_1 -> PACK_FORMAT_1_17_1;
+            case ProtocolVersion.V1_18 -> PACK_FORMAT_1_18;
             case ProtocolVersion.V1_19 -> PACK_FORMAT_1_19;
             case ProtocolVersion.V1_19_1 -> PACK_FORMAT_1_19_1;
             case ProtocolVersion.V1_19_3 -> PACK_FORMAT_1_19_3;
@@ -479,6 +666,65 @@ public final class ResourcePackBuilder {
      */
     public BuiltPack build(Path outputDir) throws IOException {
         return build(outputDir, PACK_FORMAT_1_20_4, PACK_FILE_NAME);
+    }
+
+    /**
+     * Builds the 1.16.3 variant of the pack into
+     * {@code outputDir/detergentmc-pack-1.16.3.zip} and returns the file
+     * plus its SHA-1. Same demo assets as {@link #build(Path)}, only
+     * {@code pack.mcmeta} differs ({@code pack_format} 6, plain integer
+     * form — 1.16.3 has no {@code min_format} / {@code max_format}).
+     * Its description names 1.16.3, so its SHA-1 differs from the
+     * 754 pack even though both use format 6.
+     */
+    public BuiltPack build753(Path outputDir) throws IOException {
+        return build(outputDir, PACK_FORMAT_1_16_3, PACK_FILE_NAME_753, PACK_MCMETA_753);
+    }
+
+    /**
+     * Builds the 1.16.4 / 1.16.5 variant of the pack into
+     * {@code outputDir/detergentmc-pack-1.16.5.zip} and returns the file
+     * plus its SHA-1. Same demo assets as {@link #build(Path)}, only
+     * {@code pack.mcmeta} differs ({@code pack_format} 6, plain integer
+     * form — 1.16.5 has no {@code min_format} / {@code max_format}).
+     * One pack serves both versions: they share protocol 754.
+     */
+    public BuiltPack build754(Path outputDir) throws IOException {
+        return build(outputDir, PACK_FORMAT_1_16_5, PACK_FILE_NAME_754);
+    }
+
+    /**
+     * Builds the 1.17 variant of the pack into
+     * {@code outputDir/detergentmc-pack-1.17.zip} and returns the file
+     * plus its SHA-1. Same demo assets as {@link #build(Path)}, only
+     * {@code pack.mcmeta} differs ({@code pack_format} 7, plain integer
+     * form — 1.17 has no {@code min_format} / {@code max_format}).
+     */
+    public BuiltPack build755(Path outputDir) throws IOException {
+        return build(outputDir, PACK_FORMAT_1_17, PACK_FILE_NAME_755);
+    }
+
+    /**
+     * Builds the 1.17.1 variant of the pack into
+     * {@code outputDir/detergentmc-pack-1.17.1.zip} and returns the file
+     * plus its SHA-1. Same demo assets as {@link #build(Path)}, only
+     * {@code pack.mcmeta} differs ({@code pack_format} 7, plain integer
+     * form — 1.17.1 has no {@code min_format} / {@code max_format}).
+     */
+    public BuiltPack build756(Path outputDir) throws IOException {
+        return build(outputDir, PACK_FORMAT_1_17_1, PACK_FILE_NAME_756);
+    }
+
+    /**
+     * Builds the 1.18 / 1.18.1 variant of the pack into
+     * {@code outputDir/detergentmc-pack-1.18.zip} and returns the file
+     * plus its SHA-1. Same demo assets as {@link #build(Path)}, only
+     * {@code pack.mcmeta} differs ({@code pack_format} 8, plain integer
+     * form — 1.18 has no {@code min_format} / {@code max_format}).
+     * One pack serves both versions: they share protocol 757.
+     */
+    public BuiltPack build757(Path outputDir) throws IOException {
+        return build(outputDir, PACK_FORMAT_1_18, PACK_FILE_NAME_757);
     }
 
     /**
@@ -650,18 +896,48 @@ public final class ResourcePackBuilder {
 
     private BuiltPack build(Path outputDir, int packFormat, String fileName)
             throws IOException {
+        return build(outputDir, packFormat, fileName, mcmetaForFormat(packFormat));
+    }
+
+    private BuiltPack build(Path outputDir, int packFormat, String fileName, String mcmeta)
+            throws IOException {
         if (outputDir == null) {
             throw new IllegalArgumentException("outputDir is required");
         }
         Files.createDirectories(outputDir);
         Path file = outputDir.resolve(fileName);
-        writePack(file, packFormat);
+        writePack(file, packFormat, mcmeta);
         return new BuiltPack(file, sha1Hex(file));
     }
 
     /** Writes the pack zip to {@code file}. */
     public void writePack(Path file) throws IOException {
         writePack(file, PACK_FORMAT_1_20_4);
+    }
+
+    /** Writes the 1.16.3 variant of the pack zip to {@code file}. */
+    public void writePack753(Path file) throws IOException {
+        writePack(file, PACK_FORMAT_1_16_3, PACK_MCMETA_753);
+    }
+
+    /** Writes the 1.16.4 / 1.16.5 variant of the pack zip to {@code file}. */
+    public void writePack754(Path file) throws IOException {
+        writePack(file, PACK_FORMAT_1_16_5);
+    }
+
+    /** Writes the 1.17 variant of the pack zip to {@code file}. */
+    public void writePack755(Path file) throws IOException {
+        writePack(file, PACK_FORMAT_1_17);
+    }
+
+    /** Writes the 1.17.1 variant of the pack zip to {@code file}. */
+    public void writePack756(Path file) throws IOException {
+        writePack(file, PACK_FORMAT_1_17_1);
+    }
+
+    /** Writes the 1.18 / 1.18.1 variant of the pack zip to {@code file}. */
+    public void writePack757(Path file) throws IOException {
+        writePack(file, PACK_FORMAT_1_18);
     }
 
     /** Writes the 1.19 variant of the pack zip to {@code file}. */
@@ -741,7 +1017,20 @@ public final class ResourcePackBuilder {
 
     /** Writes the pack zip with the given {@code pack_format} to {@code file}. */
     public void writePack(Path file, int packFormat) throws IOException {
-        String mcmeta = switch (packFormat) {
+        writePack(file, packFormat, mcmetaForFormat(packFormat));
+    }
+
+    /**
+     * The {@code pack.mcmeta} for a {@code pack_format} number. Format 6
+     * always yields the 1.16.4 / 1.16.5 text: 753 packs pass their own
+     * mcmeta explicitly (see {@link #writePack753(Path)}) because the
+     * format number alone cannot tell them apart.
+     */
+    private static String mcmetaForFormat(int packFormat) {
+        return switch (packFormat) {
+            case PACK_FORMAT_1_16_5 -> PACK_MCMETA_754;
+            case PACK_FORMAT_1_17_1 -> PACK_MCMETA_756;
+            case PACK_FORMAT_1_18 -> PACK_MCMETA_757;
             case PACK_FORMAT_1_19_1 -> PACK_MCMETA_760;
             case PACK_FORMAT_1_19_3 -> PACK_MCMETA_761;
             case PACK_FORMAT_1_19_4 -> PACK_MCMETA_762;
@@ -761,6 +1050,10 @@ public final class ResourcePackBuilder {
             default -> throw new IllegalArgumentException(
                     "Unknown resource-pack format: " + packFormat);
         };
+    }
+
+    /** Writes the pack zip with the given {@code pack_format} and {@code pack.mcmeta} to {@code file}. */
+    private void writePack(Path file, int packFormat, String mcmeta) throws IOException {
         byte[] png = bubblePngBytes();
         try (ZipOutputStream zip = new ZipOutputStream(Files.newOutputStream(file))) {
             addTextEntry(zip, "pack.mcmeta", mcmeta);
