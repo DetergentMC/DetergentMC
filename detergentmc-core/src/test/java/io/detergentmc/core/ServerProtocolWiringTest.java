@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.detergentmc.adapter.v1_20_4.V1204Adapter;
 import io.detergentmc.protocol.ClientProxy;
@@ -407,6 +408,64 @@ class ServerProtocolWiringTest {
             assertSame(server.resourcePack770(), server.hostResourcePack());
         } finally {
             server.stopResourcePack();
+        }
+    }
+
+    /**
+     * minecraft-version 1.20.4（内部765）のとき、プロキシには本物の757パック
+     * （ループバックでビルドしたもの）が渡される。以前は packFor757Clients
+     * が null で、ProxySession が757クライアントに pack759 を落として出していた。
+     */
+    @Test
+    void clientProxyFor1204PassesReal757Pack() throws Exception {
+        DetergentServer server = serverWith(Map.of(
+                "minecraft-version", "1.20.4",
+                "resource-pack", Map.of("enabled", true, "port", 0, "required", false)));
+        try {
+            assertNotNull(server.startResourcePack());
+            ClientProxy proxy = server.createClientProxy(
+                    freePort(), freePort(), false, ProxyAuthConfig.defaults());
+            assertEquals(765, proxy.internalProtocol());
+            // The real 757 pack (built by startResourcePack), not null and
+            // not the placeholder from ClientProxy757Test.
+            // (ResourcePackServer.pack757() builds a fresh instance per
+            // call, so compare by value, not identity.)
+            assertNotNull(proxy.pack757());
+            assertEquals(server.resourcePackServer().pack757(), proxy.pack757());
+            assertTrue(proxy.pack757().url().endsWith("/detergentmc-pack-1.18.zip"),
+                    proxy.pack757().url());
+            // The 775 pack is passed the same way.
+            assertNotNull(proxy.pack775());
+            assertEquals(server.resourcePackServer().pack775(), proxy.pack775());
+        } finally {
+            server.stopResourcePack();
+        }
+    }
+
+    /**
+     * minecraft-version 1.18／1.18.1（内部757）のとき、プロキシには757パックを渡さない
+     * （ネイティブの757クライアントはリレーでバニラのパックがそのまま通る）。
+     */
+    @Test
+    void clientProxyFor118UsesInternalProtocol757AndNoPack757() throws Exception {
+        for (String version : new String[]{"1.18", "1.18.1"}) {
+            DetergentServer server = serverWith(Map.of(
+                    "minecraft-version", version,
+                    "resource-pack", Map.of("enabled", true, "port", 0, "required", false)));
+            try {
+                assertNotNull(server.startResourcePack());
+                ClientProxy proxy = server.createClientProxy(
+                        freePort(), freePort(), false, ProxyAuthConfig.defaults());
+                assertEquals(757, proxy.internalProtocol());
+                assertNull(proxy.pack757());
+                // 内部が775でないため、775クライアント用の差し替えパックは渡す。
+                assertNotNull(proxy.pack775());
+                assertEquals(server.resourcePackServer().pack775(), proxy.pack775());
+                // バニラ（内部757）に渡すパックは757用。
+                assertEquals(server.resourcePackServer().pack757(), server.hostResourcePack());
+            } finally {
+                server.stopResourcePack();
+            }
         }
     }
 

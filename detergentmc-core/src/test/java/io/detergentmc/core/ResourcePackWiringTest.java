@@ -364,6 +364,58 @@ class ResourcePackWiringTest {
     }
 
     @Test
+    void enabledConfigBuildsAndServes757Pack() throws Exception {
+        DetergentServer server = serverWith(Map.of(
+                "resource-pack", Map.of("enabled", true, "port", 0, "required", false)));
+        try {
+            ResourcePack pack = server.startResourcePack();
+            assertNotNull(pack);
+            // The 1.18 / 1.18.1 variant is built, served and offered alongside.
+            ResourcePack pack757 = server.resourcePackServer().pack757();
+            assertNotNull(pack757);
+            assertNotEquals(pack.sha1(), pack757.sha1());
+            assertNotEquals(pack.url(), pack757.url());
+            assertTrue(pack757.url().endsWith("/detergentmc-pack-1.18.zip"), pack757.url());
+            assertTrue(Files.exists(tempDir.resolve("data").resolve("resource-pack")
+                    .resolve("detergentmc-pack-1.18.zip")));
+
+            HttpURLConnection connection = (HttpURLConnection)
+                    URI.create(pack757.url()).toURL().openConnection();
+            try {
+                assertEquals(200, connection.getResponseCode());
+                byte[] body = connection.getInputStream().readAllBytes();
+                assertEquals(pack757.sha1(),
+                        io.detergentmc.protocol.ResourcePackBuilder.sha1Hex(body));
+            } finally {
+                connection.disconnect();
+            }
+        } finally {
+            server.stopResourcePack();
+        }
+        assertNull(server.resourcePack());
+        assertNull(server.resourcePackServer());
+    }
+
+    @Test
+    void hostResourcePackIs757PackFor118Server() throws Exception {
+        // The internal vanilla server offers the pack matching its own
+        // version in server.properties: 757 (pack_format 8) for a
+        // 1.18 / 1.18.1 server, 765 (pack_format 22) otherwise.
+        for (String version : new String[]{"1.18", "1.18.1"}) {
+            DetergentServer server = serverWith(Map.of(
+                    "minecraft-version", version,
+                    "resource-pack", Map.of("enabled", true, "port", 0, "required", false)));
+            try {
+                assertNotNull(server.startResourcePack());
+                assertNotNull(server.resourcePackServer().pack757());
+                assertEquals(server.resourcePackServer().pack757(), server.hostResourcePack());
+            } finally {
+                server.stopResourcePack();
+            }
+        }
+    }
+
+    @Test
     void hostResourcePackIs767PackFor121And1211Servers() throws Exception {
         // The internal vanilla server offers the pack matching its own
         // version in server.properties: 767 (pack_format 34) for a

@@ -133,6 +133,10 @@ class VanillaServerHostTest {
         assertEquals(expected, VanillaServerHost.javaBinaryFor("1.20.4"));
         assertEquals(expected, VanillaServerHost.javaBinaryFor("1.20.1"));
         assertEquals(expected, VanillaServerHost.javaBinaryFor("1.20.2"));
+        // 1.18／1.18.1 は Java 17 を要求し（version.json 実測）、DetergentMC 自身も
+        // Java 17 で動くため、Java 25／Java 21 の分岐には入らず現在の Java を使う。
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.18"));
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.18.1"));
     }
 
     @Test

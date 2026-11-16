@@ -2,6 +2,7 @@ rootProject.name = 'detergentmc'
 
 include 'detergentmc-api'
 include 'detergentmc-core'
+include 'detergentmc-adapter-v1_18'
 include 'detergentmc-adapter-v1_19'
 include 'detergentmc-adapter-v1_19_1'
 include 'detergentmc-adapter-v1_19_3'

@@ -48,6 +48,9 @@ import java.util.zip.ZipOutputStream;
  */
 public final class DatapackGenerator {
 
+    /** Minecraft 1.18 / 1.18.1 datapack format (1.18 server jar version.json: pack data 8; 1.18 and 1.18.1 share protocol 757 and the format). */
+    public static final int PACK_FORMAT_1_18 = 8;
+
     /** Minecraft 1.19.1 / 1.19.2 datapack format (Minecraft Wiki: 10 = 1.19–1.19.3). */
     public static final int PACK_FORMAT_1_19_1 = 10;
 
@@ -96,8 +99,11 @@ public final class DatapackGenerator {
     /** Minecraft 26.1 datapack format (26.1 server jar version.json: data 101.1; 26.1.1 / 26.1.2 share it). */
     public static final int PACK_FORMAT_26_1 = 101;
 
-    /** Datapack format for a Minecraft version ("1.19.1" / "1.19.2" -&gt; 10, "1.19.3" -&gt; 10, "1.19.4" -&gt; 12, "1.20.1" -&gt; 15, "1.20.2" -&gt; 18, "1.20.4" -&gt; 26, "1.20.5" / "1.20.6" -&gt; 41, "1.21" / "1.21.1" -&gt; 48, "1.21.2" / "1.21.3" -&gt; 57, "1.21.4" -&gt; 61, "1.21.5" -&gt; 71, "1.21.6" -&gt; 80, "1.21.7" / "1.21.8" -&gt; 81, "1.21.9" / "1.21.10" -&gt; 88, "1.21.11" -&gt; 94, "26.1" / "26.1.1" / "26.1.2" -&gt; 101). */
+    /** Datapack format for a Minecraft version ("1.18" / "1.18.1" -&gt; 8, "1.19.1" / "1.19.2" -&gt; 10, "1.19.3" -&gt; 10, "1.19.4" -&gt; 12, "1.20.1" -&gt; 15, "1.20.2" -&gt; 18, "1.20.4" -&gt; 26, "1.20.5" / "1.20.6" -&gt; 41, "1.21" / "1.21.1" -&gt; 48, "1.21.2" / "1.21.3" -&gt; 57, "1.21.4" -&gt; 61, "1.21.5" -&gt; 71, "1.21.6" -&gt; 80, "1.21.7" / "1.21.8" -&gt; 81, "1.21.9" / "1.21.10" -&gt; 88, "1.21.11" -&gt; 94, "26.1" / "26.1.1" / "26.1.2" -&gt; 101). */
     public static int packFormatFor(String minecraftVersion) {
+        if ("1.18".equals(minecraftVersion) || "1.18.1".equals(minecraftVersion)) {
+            return PACK_FORMAT_1_18;
+        }
         if ("1.19.1".equals(minecraftVersion) || "1.19.2".equals(minecraftVersion)) {
             return PACK_FORMAT_1_19_1;
         }

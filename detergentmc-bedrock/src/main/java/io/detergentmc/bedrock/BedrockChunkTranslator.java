@@ -84,9 +84,13 @@ public final class BedrockChunkTranslator {
      * Java のブロック状態IDを 765 に正規化する（Bedrock 変換の共通の入口）。
      * 765 はそのまま、764／766 は RegistryRemapper の上向き表、767 は
      * 767→765 表、768 は 768→765 表、769 は 769→765 表、770 は 770→765 表、
-     * 771 は 771→765 表、772 は 772→765 表、773 は 773→765 表、774 は 774→765 表、775 は 775→765 表、763 は
+     * 771 は 771→765 表、772 は 772→765 表、773 は 773→765 表、774 は 774→765 表、775 は 775→765 表、757 は
+     * 757→759→760→761→762→763→765 の連鎖（mapBlockState757To765 は
+     * RegistryRemapper に無いため、このクラスで既存の隣接表と 763→765 の
+     * 逆引き表を繋いで作る。RegistryRemapper には追加しない）、763 は
      * 765→763 表の逆引き。
-     * 範囲外は石（765 の 1）。
+     * 範囲外は石（765 の 1）。757 の 20,342 状態は 759 で全件カバーされる
+     * （Stage A §11.1 実測）ため、連鎖で石に落ちるのは範囲外の番号だけ。
      */
     public static int normalizeBlockState(int stateId, int serverProtocol) {
         return switch (serverProtocol) {
@@ -108,8 +112,30 @@ public final class BedrockChunkTranslator {
             case RegistryRemapper.PROTOCOL_773 -> RegistryRemapper.mapBlockState773To765(stateId);
             case RegistryRemapper.PROTOCOL_774 -> RegistryRemapper.mapBlockState774To765(stateId);
             case RegistryRemapper.PROTOCOL_775 -> RegistryRemapper.mapBlockState775To765(stateId);
+            case RegistryRemapper.PROTOCOL_757 -> mapBlockState757To765(stateId);
             default -> stateId;
         };
+    }
+
+    /**
+     * 757 のブロック状態IDを 765 に正規化する。RegistryRemapper に
+     * mapBlockState757To765 は無いため、既存の隣接表の連鎖
+     * 757→759→760→761→762→763 と、763→765 の逆引き表
+     * （{@link #BLOCK_STATE_763_TO_765}）を繋ぐ。各段で範囲外は石に
+     * 落ちる（隣接表の代替）。757 の 20,342 状態は 759 で全件カバーされる
+     * （Stage A §11.1 実測）ため、連鎖で石に落ちるのは範囲外の番号だけ。
+     */
+    static int mapBlockState757To765(int stateId) {
+        int id759 = RegistryRemapper.mapBlockState757To759(stateId);
+        int id760 = RegistryRemapper.mapBlockState759To760(id759);
+        int id761 = RegistryRemapper.mapBlockState760To761(id760);
+        int id762 = RegistryRemapper.mapBlockState761To762(id761);
+        int id763 = RegistryRemapper.mapBlockState762To763(id762);
+        if (id763 < 0 || id763 >= BLOCK_STATE_763_TO_765.length) {
+            return 1;
+        }
+        int mapped = BLOCK_STATE_763_TO_765[id763];
+        return mapped < 0 ? 1 : mapped;
     }
 
     /** Java のブロック状態ID（そのままのプロトコル番号）-> Bedrock のランタイムID。 */
@@ -160,6 +186,9 @@ public final class BedrockChunkTranslator {
                 reader.readBytes(dataLength * 8);
             }
         } else {
+            // 757／759／764／765／766／767／768／769 の heightmap は NBT。
+            // 757 は実バニラ 1.18 の ClientboundLevelChunkPacketData.write の
+            // バイトコードで確認（2026-11-15：heightmaps を NBT で書く）。
             reader.readAnonymousNbt();
         }
         int dataLength = reader.readVarInt();
@@ -174,6 +203,12 @@ public final class BedrockChunkTranslator {
         List<int[]> biomeSections = new ArrayList<>(sectionCount);
         PacketIO.Reader sections = new PacketIO.Reader(sectionBytes);
         for (int i = 0; i < sectionCount && sections.remaining() > 0; i++) {
+            // 757 はセクション先頭の short が 1 個（blockCount）で正しい。
+            // 実バニラ 1.18 の LevelChunkSection.write のバイトコードで確認
+            // （2026-11-15：nonEmptyBlockCount の次に 2 つのコンテナが続く。
+            // fluidCount は 1.18 には無い）。770〜775 もここでは 1 short
+            // しか読まないが、実バニラ 26.1 では fluidCount があるため疑わしい。
+            // 770〜775 はここでは触らない（判断待ち）。
             int blockCount = sections.readShort(); // blockCount（使わない）
             blockSections.add(readPalettedContainer(sections, true,
                     input.serverProtocol()));
@@ -262,13 +297,24 @@ public final class BedrockChunkTranslator {
         } else {
             palette = null;
         }
-        // バニラの BitStorage はエントリを long の境界をまたいで連続して詰める
-        // ため、long 数は (entryCount * bitsPerEntry + 63) / 64 である。
-        // 旧式の (entryCount + perLong - 1) / perLong（perLong = 64 / bits）は
-        // bits が 64 を割り切らないとき（3・5・6・7・9…）に多めに数えてしまい、
-        // 後続のコンテナがずれて読めなくなる（2026-11-14、26.1のマトリクスで発覚。
-        // バイオーム 3 ビットで 4 long 読んで 1 long 余計に進んでいた）。
-        int expected = (entryCount * bitsPerEntry + 63) / 64;
+        // 【757 のみ例外】実バニラ 1.18 の SimpleBitStorage のバイトコードで確認したところ、
+        // 757 の BitStorage は long の境界をまたがない（1 long あたり floor(64 / bits) 個。
+        // long 数は (entryCount + valuesPerLong - 1) / valuesPerLong）。
+        // Data Array には長さの varint 接頭辞がある（FriendlyByteBuf.writeLongArray
+        // が長さを varint で書く。PalettedContainer$Data.write のバイトコードで確認）。
+        // （2026-11-15、server-1.18.jar の javap で確認。生キャプチャでも裏付ける。）
+        int expected;
+        if (serverProtocol == RegistryRemapper.PROTOCOL_757) {
+            int valuesPerLong = 64 / bitsPerEntry;
+            expected = (entryCount + valuesPerLong - 1) / valuesPerLong;
+        } else {
+            // 770〜775 以外の既存の前提：エントリを long の境界をまたいで連続して
+            // 詰めるため、long 数は (entryCount * bitsPerEntry + 63) / 64。
+            // （2026-11-14 のコメントの通り。ただし実バニラ 1.18／26.1 の
+            // SimpleBitStorage はまたがないため、この前提は 757 とは別に
+            // 770〜775 についても疑わしい。770〜775 はここでは触らない。）
+            expected = (entryCount * bitsPerEntry + 63) / 64;
+        }
         int dataLength;
         if (serverProtocol == RegistryRemapper.PROTOCOL_770
                 || serverProtocol == RegistryRemapper.PROTOCOL_771
@@ -294,6 +340,19 @@ public final class BedrockChunkTranslator {
         }
         int[] values = new int[entryCount];
         long mask = (1L << bitsPerEntry) - 1;
+        if (serverProtocol == RegistryRemapper.PROTOCOL_757) {
+            // 757 の BitStorage は long の境界をまたがない（SimpleBitStorage.get：
+            // cellIndex = index / valuesPerLong、bitIndex = (index % valuesPerLong) * bits）。
+            // 実バニラ 1.18 のバイトコードで確認（2026-11-15）。
+            int valuesPerLong = 64 / bitsPerEntry;
+            for (int index = 0; index < entryCount; index++) {
+                int cellIndex = index / valuesPerLong;
+                int bitIndex = (index % valuesPerLong) * bitsPerEntry;
+                int entry = (int) ((longs[cellIndex] >>> bitIndex) & mask);
+                values[index] = indirect ? palette[entry] : entry;
+            }
+            return values;
+        }
         // エントリは long の境界をまたぐことがある（bits が 64 を割り切らないとき）。
         // BitStorage.get と同じく、またぐ分は次の long の下位ビットから取る。
         // 旧式の「1 long あたり perLong 個を先頭から読む」は、またぐエントリの
