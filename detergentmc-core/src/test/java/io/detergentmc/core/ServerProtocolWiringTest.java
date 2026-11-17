@@ -43,6 +43,48 @@ class ServerProtocolWiringTest {
     }
 
     @Test
+    void minecraftVersion1143SelectsInternalProtocol490() throws Exception {
+        DetergentServer server = serverWith(Map.of("minecraft-version", "1.14.3"));
+        assertEquals(490, server.serverProtocol());
+    }
+
+    @Test
+    void minecraftVersion1141SelectsInternalProtocol480() throws Exception {
+        DetergentServer server = serverWith(Map.of("minecraft-version", "1.14.1"));
+        assertEquals(480, server.serverProtocol());
+    }
+
+    @Test
+    void minecraftVersion1143SelectsInternalProtocol485() throws Exception {
+        DetergentServer server = serverWith(Map.of("minecraft-version", "1.14.2"));
+        assertEquals(485, server.serverProtocol());
+    }
+
+    @Test
+    void minecraftVersion1144SelectsInternalProtocol498() throws Exception {
+        DetergentServer server = serverWith(Map.of("minecraft-version", "1.14.4"));
+        assertEquals(498, server.serverProtocol());
+    }
+
+    @Test
+    void minecraftVersion115SelectsInternalProtocol573() throws Exception {
+        DetergentServer server = serverWith(Map.of("minecraft-version", "1.15"));
+        assertEquals(573, server.serverProtocol());
+    }
+
+    @Test
+    void minecraftVersion1151SelectsInternalProtocol575() throws Exception {
+        DetergentServer server = serverWith(Map.of("minecraft-version", "1.15.1"));
+        assertEquals(575, server.serverProtocol());
+    }
+
+    @Test
+    void minecraftVersion1152SelectsInternalProtocol578() throws Exception {
+        DetergentServer server = serverWith(Map.of("minecraft-version", "1.15.2"));
+        assertEquals(578, server.serverProtocol());
+    }
+
+    @Test
     void minecraftVersion1194SelectsInternalProtocol762() throws Exception {
         DetergentServer server = serverWith(Map.of("minecraft-version", "1.19.4"));
         assertEquals(762, server.serverProtocol());

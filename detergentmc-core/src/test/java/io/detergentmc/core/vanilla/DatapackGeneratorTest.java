@@ -111,6 +111,94 @@ class DatapackGeneratorTest {
     }
 
     @Test
+    void packFormatFor1143Is4() throws Exception {
+        // 実バニラ 1.14.3 jar の version.json：pack_version = 4。
+        assertEquals(4, DatapackGenerator.packFormatFor("1.14.3"));
+        Path vanillaDir = tempDir.resolve("vanilla-1-14-3");
+        Path file = new DatapackGenerator()
+                .build(vanillaDir, DatapackGenerator.packFormatFor("1.14.3"));
+        Map<String, String> entries = readZip(file);
+        assertEquals("{\"pack\":{\"pack_format\":4,\"description\":\"DetergentMC\"}}",
+                entries.get("pack.mcmeta"));
+    }
+
+    @Test
+    void packFormatFor1141Is4() throws Exception {
+        // 実バニラ 1.14.1 jar の version.json：pack_version = 4。
+        assertEquals(4, DatapackGenerator.packFormatFor("1.14.1"));
+        Path vanillaDir = tempDir.resolve("vanilla-1-14-1");
+        Path file = new DatapackGenerator()
+                .build(vanillaDir, DatapackGenerator.packFormatFor("1.14.1"));
+        Map<String, String> entries = readZip(file);
+        assertEquals("{\"pack\":{\"pack_format\":4,\"description\":\"DetergentMC\"}}",
+                entries.get("pack.mcmeta"));
+    }
+
+    @Test
+    void packFormatFor1142Is4() throws Exception {
+        // 実バニラ 1.14.2 jar の version.json：pack_version = 4。
+        assertEquals(4, DatapackGenerator.packFormatFor("1.14.2"));
+        Path vanillaDir = tempDir.resolve("vanilla-1-14-2");
+        Path file = new DatapackGenerator()
+                .build(vanillaDir, DatapackGenerator.packFormatFor("1.14.2"));
+        Map<String, String> entries = readZip(file);
+        assertEquals("{\"pack\":{\"pack_format\":4,\"description\":\"DetergentMC\"}}",
+                entries.get("pack.mcmeta"));
+    }
+
+    @Test
+    void packFormatFor1144Is4() throws Exception {
+        // 実バニラ 1.14.4 jar の version.json：pack_version = 4。
+        assertEquals(4, DatapackGenerator.PACK_FORMAT_1_14_4, "1.14.4 datapack format");
+        assertEquals(4, DatapackGenerator.packFormatFor("1.14.4"));
+        Path vanillaDir = tempDir.resolve("vanilla-1-14-4");
+        Path file = new DatapackGenerator()
+                .build(vanillaDir, DatapackGenerator.packFormatFor("1.14.4"));
+        Map<String, String> entries = readZip(file);
+        assertEquals("{\"pack\":{\"pack_format\":4,\"description\":\"DetergentMC\"}}",
+                entries.get("pack.mcmeta"));
+    }
+
+    @Test
+    void packFormatFor115Is5() throws Exception {
+        // 実バニラ 1.15 jar の version.json：pack_version = 5。
+        assertEquals(5, DatapackGenerator.PACK_FORMAT_1_15, "1.15 datapack format");
+        assertEquals(5, DatapackGenerator.packFormatFor("1.15"));
+        Path vanillaDir = tempDir.resolve("vanilla-1-15");
+        Path file = new DatapackGenerator()
+                .build(vanillaDir, DatapackGenerator.packFormatFor("1.15"));
+        Map<String, String> entries = readZip(file);
+        assertEquals("{\"pack\":{\"pack_format\":5,\"description\":\"DetergentMC\"}}",
+                entries.get("pack.mcmeta"));
+    }
+
+    @Test
+    void packFormatFor1151Is5() throws Exception {
+        // 実バニラ 1.15.1 jar の version.json：pack_version = 5。
+        assertEquals(5, DatapackGenerator.PACK_FORMAT_1_15_1, "1.15.1 datapack format");
+        assertEquals(5, DatapackGenerator.packFormatFor("1.15.1"));
+        Path vanillaDir = tempDir.resolve("vanilla-1-15-1");
+        Path file = new DatapackGenerator()
+                .build(vanillaDir, DatapackGenerator.packFormatFor("1.15.1"));
+        Map<String, String> entries = readZip(file);
+        assertEquals("{\"pack\":{\"pack_format\":5,\"description\":\"DetergentMC\"}}",
+                entries.get("pack.mcmeta"));
+    }
+
+    @Test
+    void packFormatFor1152Is5() throws Exception {
+        // 実バニラ 1.15.2 jar の version.json：pack_version.data = 5。
+        assertEquals(5, DatapackGenerator.PACK_FORMAT_1_15_2, "1.15.2 datapack format");
+        assertEquals(5, DatapackGenerator.packFormatFor("1.15.2"));
+        Path vanillaDir = tempDir.resolve("vanilla-1-15-2");
+        Path file = new DatapackGenerator()
+                .build(vanillaDir, DatapackGenerator.packFormatFor("1.15.2"));
+        Map<String, String> entries = readZip(file);
+        assertEquals("{\"pack\":{\"pack_format\":5,\"description\":\"DetergentMC\"}}",
+                entries.get("pack.mcmeta"));
+    }
+
+    @Test
     void packFormatFor1202Is18() throws Exception {
         assertEquals(18, DatapackGenerator.PACK_FORMAT_1_20_2, "1.20.2 datapack format");
         assertEquals(18, DatapackGenerator.packFormatFor("1.20.2"));

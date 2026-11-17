@@ -71,6 +71,17 @@ public final class DetergentServer {
     private BedrockServer bedrockServer;
     private ResourcePackServer resourcePackServer;
     private ResourcePack resourcePack;
+    /** 578クライアントに送るリソースパック（pack_format 5）。無ければ null。 */
+    private ResourcePack resourcePack477;
+    private ResourcePack resourcePack480;
+    private ResourcePack resourcePack485;
+    private ResourcePack resourcePack490;
+    private ResourcePack resourcePack498;
+    private ResourcePack resourcePack573;
+    private ResourcePack resourcePack575;
+    private ResourcePack resourcePack578;
+    /** 758クライアントに送るリソースパック（pack_format 8）。無ければ null。 */
+    private ResourcePack resourcePack758;
     /** 759クライアントに送るリソースパック（pack_format 9）。無ければ null。 */
     private ResourcePack resourcePack759;
     /** 760クライアントに送るリソースパック（pack_format 9）。無ければ null。 */
@@ -103,6 +114,8 @@ public final class DetergentServer {
     private ResourcePack resourcePack774;
     /** 775クライアントに送るリソースパック（pack_format 84）。無ければ null。26.1／26.1.1／26.1.2で共用。 */
     private ResourcePack resourcePack775;
+    /** 776クライアントに送るリソースパック（pack_format 88）。無ければ null。26.2にホットフィックスは無い。 */
+    private ResourcePack resourcePack776;
     private GameBridge gameBridge;
     private PlayerRegistry playerRegistry;
 
@@ -317,6 +330,33 @@ public final class DetergentServer {
      * <p>Package-private for tests.
      */
     ResourcePack hostResourcePack() {
+        if (serverProtocol == ProtocolVersion.V1_14 && resourcePack477 != null) {
+            return resourcePack477;
+        }
+        if (serverProtocol == ProtocolVersion.V1_14_1 && resourcePack480 != null) {
+            return resourcePack480;
+        }
+        if (serverProtocol == ProtocolVersion.V1_14_2 && resourcePack485 != null) {
+            return resourcePack485;
+        }
+        if (serverProtocol == ProtocolVersion.V1_14_3 && resourcePack490 != null) {
+            return resourcePack490;
+        }
+        if (serverProtocol == ProtocolVersion.V1_14_4 && resourcePack498 != null) {
+            return resourcePack498;
+        }
+        if (serverProtocol == ProtocolVersion.V1_15 && resourcePack573 != null) {
+            return resourcePack573;
+        }
+        if (serverProtocol == ProtocolVersion.V1_15_1 && resourcePack575 != null) {
+            return resourcePack575;
+        }
+        if (serverProtocol == ProtocolVersion.V1_15_2 && resourcePack578 != null) {
+            return resourcePack578;
+        }
+        if (serverProtocol == ProtocolVersion.V1_18_2 && resourcePack758 != null) {
+            return resourcePack758;
+        }
         if (serverProtocol == ProtocolVersion.V1_19 && resourcePack759 != null) {
             return resourcePack759;
         }
@@ -365,6 +405,9 @@ public final class DetergentServer {
         if (serverProtocol == ProtocolVersion.V26_1 && resourcePack775 != null) {
             return resourcePack775;
         }
+        if (serverProtocol == ProtocolVersion.V26_2 && resourcePack776 != null) {
+            return resourcePack776;
+        }
         return resourcePack;
     }
 
@@ -399,7 +442,9 @@ public final class DetergentServer {
      * unless the internal server is 1.21.11, for the same reason
      * (native 774 clients relay the vanilla pack untouched). The 775 pack is passed
      * unless the internal server is 26.1, for the same reason
-     * (native 775 clients relay the vanilla pack untouched).
+     * (native 775 clients relay the vanilla pack untouched). The 758 pack is passed
+     * unless the internal server is 1.18.2, for the same reason
+     * (native 758 clients relay the vanilla pack untouched).
      *
      * <p>Package-private for tests (the wiring tests call this directly
      * without starting a vanilla server).
@@ -410,6 +455,8 @@ public final class DetergentServer {
                 (serverProtocol == ProtocolVersion.V1_20_1
                         || serverProtocol == ProtocolVersion.V1_20_2)
                         ? resourcePack : null;
+        ResourcePack packFor758Clients =
+                serverProtocol == ProtocolVersion.V1_18_2 ? null : resourcePack758;
         ResourcePack packFor759Clients =
                 serverProtocol == ProtocolVersion.V1_19 ? null : resourcePack759;
         ResourcePack packFor760Clients =
@@ -438,11 +485,42 @@ public final class DetergentServer {
                 serverProtocol == ProtocolVersion.V1_21_11 ? null : resourcePack774;
         ResourcePack packFor775Clients =
                 serverProtocol == ProtocolVersion.V26_1 ? null : resourcePack775;
-        return new ClientProxy(port, "127.0.0.1", internalPort, onlineMode,
-                packFor759Clients, packFor760Clients, packFor761Clients, packFor762Clients, resourcePack763, resourcePack764, authConfig,
+        ResourcePack packFor776Clients =
+                serverProtocol == ProtocolVersion.V26_2 ? null : resourcePack776;
+        ClientProxy proxy = new ClientProxy(port, "127.0.0.1", internalPort, onlineMode,
+                packFor758Clients, packFor759Clients, packFor760Clients, packFor761Clients, packFor762Clients, resourcePack763, resourcePack764, authConfig,
                 packFor765Clients, packFor766Clients, packFor767Clients,
                 packFor768Clients, packFor769Clients, packFor770Clients, packFor771Clients,
-                packFor772Clients, packFor773Clients, packFor774Clients, packFor775Clients, serverProtocol);
+                packFor772Clients, packFor773Clients, packFor774Clients, packFor775Clients, packFor776Clients, serverProtocol);
+        // 578 pack is passed unless the internal server is 1.15.2
+        // (native 578 clients relay the vanilla pack untouched).
+        proxy.setPack477(serverProtocol == ProtocolVersion.V1_14
+                ? null : resourcePack477);
+        proxy.setPack480(serverProtocol == ProtocolVersion.V1_14_1
+                ? null : resourcePack480);
+        proxy.setPack485(serverProtocol == ProtocolVersion.V1_14_2
+                ? null : resourcePack485);
+        proxy.setPack490(serverProtocol == ProtocolVersion.V1_14_3
+                ? null : resourcePack490);
+        proxy.setPack498(serverProtocol == ProtocolVersion.V1_14_4
+                ? null : resourcePack498);
+        proxy.setPack573(serverProtocol == ProtocolVersion.V1_15
+                ? null : resourcePack573);
+        proxy.setPack575(serverProtocol == ProtocolVersion.V1_15_1
+                ? null : resourcePack575);
+        proxy.setPack578(serverProtocol == ProtocolVersion.V1_15_2
+                ? null : resourcePack578);
+        // Surfactant forwarding (batch 4): when forwarding.secret is set,
+        // logins must arrive through Surfactant with a verified forwarding
+        // payload; the forwarded identity (UUID, name, IP, properties)
+        // becomes the identity DetergentMC's layer uses for the player.
+        String forwardingSecret = config.getString("forwarding.secret", "");
+        if (forwardingSecret != null && !forwardingSecret.isBlank()) {
+            proxy.setForwardingSecret(forwardingSecret);
+            LOG.info(() -> "Surfactant forwarding is enabled (forwarding.secret): "
+                    + "only connections verified through Surfactant can log in.");
+        }
+        return proxy;
     }
 
     /**
@@ -511,8 +589,9 @@ public final class DetergentServer {
      * {@code resource-pack.url-771} / {@code resource-pack.sha1-771},
      * {@code resource-pack.url-772} / {@code resource-pack.sha1-772},
      * {@code resource-pack.url-773} / {@code resource-pack.sha1-773},
-     * {@code resource-pack.url-774} / {@code resource-pack.sha1-774} and
-     * {@code resource-pack.url-775} / {@code resource-pack.sha1-775}
+     * {@code resource-pack.url-774} / {@code resource-pack.sha1-774},
+     * {@code resource-pack.url-775} / {@code resource-pack.sha1-775} and
+     * {@code resource-pack.url-776} / {@code resource-pack.sha1-776}
      * when both are valid. The proxy offers the 1.19.3 pack to 761
      * clients, the 1.19.4 pack to 762
      * clients, the 1.20.1 pack to 763
@@ -522,7 +601,7 @@ public final class DetergentServer {
      * clients, the 1.21.5 pack to 770 clients, the 1.21.6 pack to 771
      * clients, the 1.21.7／1.21.8 pack to 772 clients, the 1.21.9／1.21.10
      * pack to 773 clients, the 1.21.11 pack to 774 clients, the 26.1 pack
-     * to 775 clients, and the 1.20.4 pack to 765
+     * to 775 clients, the 26.2 pack to 776 clients, and the 1.20.4 pack to 765
      * clients. The pack written into {@code server.properties} is chosen by
      * {@link #hostResourcePack()}: the 761 pack when the vanilla server
      * itself is 1.19.3, the 762 pack when the vanilla server
@@ -582,10 +661,30 @@ public final class DetergentServer {
                         config.getString("resource-pack.sha1-774", ""),
                         config.getString("resource-pack.url-775", ""),
                         config.getString("resource-pack.sha1-775", ""),
+                        config.getString("resource-pack.url-776", ""),
+                        config.getString("resource-pack.sha1-776", ""),
                         config.getString("resource-pack.url-760", ""),
                         config.getString("resource-pack.sha1-760", ""),
                         config.getString("resource-pack.url-759", ""),
                         config.getString("resource-pack.sha1-759", ""),
+                        config.getString("resource-pack.url-758", ""),
+                        config.getString("resource-pack.sha1-758", ""),
+                        config.getString("resource-pack.url-578", ""),
+                        config.getString("resource-pack.sha1-578", ""),
+                        config.getString("resource-pack.url-575", ""),
+                        config.getString("resource-pack.sha1-575", ""),
+                        config.getString("resource-pack.url-573", ""),
+                        config.getString("resource-pack.sha1-573", ""),
+                        config.getString("resource-pack.url-498", ""),
+                        config.getString("resource-pack.sha1-498", ""),
+                        config.getString("resource-pack.url-490", ""),
+                        config.getString("resource-pack.sha1-490", ""),
+                        config.getString("resource-pack.url-485", ""),
+                        config.getString("resource-pack.sha1-485", ""),
+                        config.getString("resource-pack.url-480", ""),
+                        config.getString("resource-pack.sha1-480", ""),
+                        config.getString("resource-pack.url-477", ""),
+                        config.getString("resource-pack.sha1-477", ""),
                         required, promptKey);
         if (decision.problem() != null) {
             LOG.warning(() -> translator.translate(
@@ -601,6 +700,15 @@ public final class DetergentServer {
                                 "resource-pack.required-failed", decision.problem()));
                     }
                     resourcePack = null;
+                    resourcePack477 = null;
+                    resourcePack480 = null;
+                    resourcePack485 = null;
+                    resourcePack490 = null;
+                    resourcePack498 = null;
+                    resourcePack573 = null;
+                    resourcePack575 = null;
+                    resourcePack578 = null;
+                    resourcePack758 = null;
                     resourcePack759 = null;
                     resourcePack760 = null;
                     resourcePack761 = null;
@@ -617,11 +725,57 @@ public final class DetergentServer {
                     resourcePack773 = null;
                     resourcePack774 = null;
                     resourcePack775 = null;
+                    resourcePack776 = null;
                     return null;
                 }
                 LOG.info(() -> translator.translate(
                         "resource-pack.external-enabled", decision.pack().url()));
                 resourcePack = decision.pack();
+                resourcePack477 = decision.pack477();
+                if (resourcePack477 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack477.url()));
+                }
+                resourcePack480 = decision.pack480();
+                if (resourcePack480 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack480.url()));
+                }
+                resourcePack485 = decision.pack485();
+                if (resourcePack485 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack485.url()));
+                }
+                resourcePack490 = decision.pack490();
+                if (resourcePack490 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack490.url()));
+                }
+                resourcePack498 = decision.pack498();
+                if (resourcePack498 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack498.url()));
+                }
+                resourcePack573 = decision.pack573();
+                if (resourcePack573 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack573.url()));
+                }
+                resourcePack575 = decision.pack575();
+                if (resourcePack575 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack575.url()));
+                }
+                resourcePack578 = decision.pack578();
+                if (resourcePack578 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack578.url()));
+                }
+                resourcePack758 = decision.pack758();
+                if (resourcePack758 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack758.url()));
+                }
                 resourcePack759 = decision.pack759();
                 if (resourcePack759 != null) {
                     LOG.info(() -> translator.translate(
@@ -702,6 +856,11 @@ public final class DetergentServer {
                     LOG.info(() -> translator.translate(
                             "resource-pack.external-enabled", resourcePack775.url()));
                 }
+                resourcePack776 = decision.pack776();
+                if (resourcePack776 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack776.url()));
+                }
                 return resourcePack;
             }
             case LOOPBACK -> {
@@ -710,7 +869,8 @@ public final class DetergentServer {
         }
         int port = config.getInt("resource-pack.port", 25567);
         try {
-            // 1.20.4用（pack_format 22）と1.19用（pack_format 9）、
+            // 1.20.4用（pack_format 22）と1.18.2用（pack_format 8）、
+            // 1.19用（pack_format 9）、
             // 1.19.1／1.19.2用（pack_format 9）、
             // 1.19.3用（pack_format 12）、1.19.4用（pack_format 13）、
             // 1.20.1用（pack_format 15）、1.20.2用（pack_format 18）、
@@ -720,19 +880,38 @@ public final class DetergentServer {
             // 1.21.4用（pack_format 46）、1.21.5用（pack_format 55）、
             // 1.21.6用（pack_format 63）、1.21.7／1.21.8用（pack_format 64）、
             // 1.21.9／1.21.10用（pack_format 69）、1.21.11用（pack_format 75）、
-            // 26.1用（pack_format 84、26.1／26.1.1／26.1.2で共用）の
-            // 17つを生成し、同じHTTPサーバー（同じ25567番ポート）で配信する。
-            // 765クライアントには前者、759クライアントには2番目、
-            // 760クライアントには3番目、
-            // 761クライアントには4番目、762クライアントには5番目、
-            // 763クライアントには6番目、764クライアントには7番目、
-            // 766クライアントには8番目、767クライアントには9番目、
-            // 768クライアントには10番目、769クライアントには11番目、
-            // 770クライアントには12番目、771クライアントには13番目、
-            // 772クライアントには14番目、773クライアントには15番目、
-            // 774クライアントには16番目、775クライアントには17番目をプロキシが出し分ける。
+            // 1.18.2用（pack_format 8）、26.1用（pack_format 84、26.1／26.1.1／26.1.2で共用）、
+            // 26.2用（pack_format 88）の
+            // 19つを生成し、同じHTTPサーバー（同じ25567番ポート）で配信する。
+            // 765クライアントには前者、758クライアントには2番目、
+            // 759クライアントには3番目、760クライアントには4番目、
+            // 761クライアントには5番目、762クライアントには6番目、
+            // 763クライアントには7番目、764クライアントには8番目、
+            // 766クライアントには9番目、767クライアントには10番目、
+            // 768クライアントには11番目、769クライアントには12番目、
+            // 770クライアントには13番目、771クライアントには14番目、
+            // 772クライアントには15番目、773クライアントには16番目、
+            // 774クライアントには17番目、775クライアントには18番目、776クライアントには19番目をプロキシが出し分ける。
             ResourcePackBuilder.BuiltPack built = new ResourcePackBuilder()
                     .build(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built477 = new ResourcePackBuilder()
+                    .build477(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built480 = new ResourcePackBuilder()
+                    .build480(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built485 = new ResourcePackBuilder()
+                    .build485(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built490 = new ResourcePackBuilder()
+                    .build490(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built498 = new ResourcePackBuilder()
+                    .build498(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built573 = new ResourcePackBuilder()
+                    .build573(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built575 = new ResourcePackBuilder()
+                    .build575(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built578 = new ResourcePackBuilder()
+                    .build578(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built758 = new ResourcePackBuilder()
+                    .build758(workingDir.resolve("data").resolve("resource-pack"));
             ResourcePackBuilder.BuiltPack built759 = new ResourcePackBuilder()
                     .build759(workingDir.resolve("data").resolve("resource-pack"));
             ResourcePackBuilder.BuiltPack built760 = new ResourcePackBuilder()
@@ -765,12 +944,23 @@ public final class DetergentServer {
                     .build774(workingDir.resolve("data").resolve("resource-pack"));
             ResourcePackBuilder.BuiltPack built775 = new ResourcePackBuilder()
                     .build775(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built776 = new ResourcePackBuilder()
+                    .build776(workingDir.resolve("data").resolve("resource-pack"));
             resourcePackServer = new ResourcePackServer(
-                    built, built759, built760, built761, built762, built763, built764, built766, built767, built768, built769,
-                    built770, built771, built772, built773, built774, built775, port, required,
+                    built, built477, built480, built485, built490, built498, built573, built575, built578, built758, built759, built760, built761, built762, built763, built764, built766, built767, built768, built769,
+                    built770, built771, built772, built773, built774, built775, built776, port, required,
                     promptKey.isBlank()
                             ? ResourcePackServer.DEFAULT_PROMPT_KEY : promptKey.trim());
             resourcePack = resourcePackServer.start();
+            resourcePack477 = resourcePackServer.pack477();
+            resourcePack480 = resourcePackServer.pack480();
+            resourcePack485 = resourcePackServer.pack485();
+            resourcePack490 = resourcePackServer.pack490();
+            resourcePack498 = resourcePackServer.pack498();
+            resourcePack573 = resourcePackServer.pack573();
+            resourcePack575 = resourcePackServer.pack575();
+            resourcePack578 = resourcePackServer.pack578();
+            resourcePack758 = resourcePackServer.pack758();
             resourcePack759 = resourcePackServer.pack759();
             resourcePack760 = resourcePackServer.pack760();
             resourcePack761 = resourcePackServer.pack761();
@@ -787,6 +977,7 @@ public final class DetergentServer {
             resourcePack773 = resourcePackServer.pack773();
             resourcePack774 = resourcePackServer.pack774();
             resourcePack775 = resourcePackServer.pack775();
+            resourcePack776 = resourcePackServer.pack776();
             LOG.info(() -> translator.translate("resource-pack.enabled", resourcePack.url()));
             return resourcePack;
         } catch (IOException e) {
@@ -815,9 +1006,10 @@ public final class DetergentServer {
     Path generateDatapack() {
         try {
             // The datapack format follows the running vanilla version:
+            // 9 for 1.18.2, 10 for 1.19 / 1.19.1 / 1.19.2 / 1.19.3, 12 for 1.19.4,
             // 15 for 1.20.1, 18 for 1.20.2, 26 for 1.20.4,
             // 41 for 1.20.5 / 1.20.6, 48 for 1.21 / 1.21.1,
-            // 57 for 1.21.2 / 1.21.3, 61 for 1.21.4, 71 for 1.21.5, 80 for 1.21.6, 81 for 1.21.7／1.21.8, 88 for 1.21.9／1.21.10, 94 for 1.21.11, 101 for 26.1 / 26.1.1 / 26.1.2.
+            // 57 for 1.21.2 / 1.21.3, 61 for 1.21.4, 71 for 1.21.5, 80 for 1.21.6, 81 for 1.21.7／1.21.8, 88 for 1.21.9／1.21.10, 94 for 1.21.11, 101 for 26.1 / 26.1.1 / 26.1.2, 107 for 26.2.
             int packFormat = DatapackGenerator.packFormatFor(
                     config.getString("minecraft-version", "1.20.4"));
             Path file = new DatapackGenerator()
@@ -837,6 +1029,15 @@ public final class DetergentServer {
             resourcePackServer = null;
         }
         resourcePack = null;
+        resourcePack477 = null;
+        resourcePack480 = null;
+        resourcePack485 = null;
+        resourcePack490 = null;
+        resourcePack498 = null;
+        resourcePack573 = null;
+        resourcePack575 = null;
+        resourcePack578 = null;
+        resourcePack758 = null;
         resourcePack759 = null;
         resourcePack760 = null;
         resourcePack761 = null;
@@ -853,6 +1054,7 @@ public final class DetergentServer {
         resourcePack773 = null;
         resourcePack774 = null;
         resourcePack775 = null;
+        resourcePack776 = null;
     }
 
     /**
@@ -902,6 +1104,51 @@ public final class DetergentServer {
     /** The resource pack currently offered to clients, or {@code null}. */
     public ResourcePack resourcePack() {
         return resourcePack;
+    }
+
+    /** The 1.14 resource pack offered to 477 clients, or {@code null}. */
+    public ResourcePack resourcePack477() {
+        return resourcePack477;
+    }
+
+    /** The 1.14.1 resource pack offered to 480 clients, or {@code null}. */
+    public ResourcePack resourcePack480() {
+        return resourcePack480;
+    }
+
+    /** The 1.14.2 resource pack offered to 485 clients, or {@code null}. */
+    public ResourcePack resourcePack485() {
+        return resourcePack485;
+    }
+
+    /** The 1.14.3 resource pack offered to 490 clients, or {@code null}. */
+    public ResourcePack resourcePack490() {
+        return resourcePack490;
+    }
+
+    /** The 1.14.4 resource pack offered to 498 clients, or {@code null}. */
+    public ResourcePack resourcePack498() {
+        return resourcePack498;
+    }
+
+    /** The 1.15 resource pack offered to 573 clients, or {@code null}. */
+    public ResourcePack resourcePack573() {
+        return resourcePack573;
+    }
+
+    /** The 1.15.1 resource pack offered to 575 clients, or {@code null}. */
+    public ResourcePack resourcePack575() {
+        return resourcePack575;
+    }
+
+    /** The 1.15.2 resource pack offered to 578 clients, or {@code null}. */
+    public ResourcePack resourcePack578() {
+        return resourcePack578;
+    }
+
+    /** The 1.18.2 resource pack offered to 758 clients, or {@code null}. */
+    public ResourcePack resourcePack758() {
+        return resourcePack758;
     }
 
     /** The 1.19 resource pack offered to 759 clients, or {@code null}. */

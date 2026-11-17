@@ -151,25 +151,20 @@ final class TestJavaChunk {
     }
 
     /**
-     * エントリ列をバニラの BitStorage と同じ連続詰めで long 列にする。
-     * 旧式の「1 long あたり 64 / bits 個」は bits が 64 を割り切らないとき
-     * （3・5・6・7・9…）に long 数を多めに数え、またぐエントリの上位ビットを
-     * 落とす（2026-11-14、26.1のBedrockマトリクスで発覚）。テストビルダーも
-     * 本物のバニラと同じ詰め方にする。
+     * エントリ列をバニラの BitStorage と同じ詰め方で long 列にする。
+     * 1 long あたり 64 / bits 個を詰め、long の境界をまたがない。
+     * 2026-11-14 に「連続詰め」に変えたが、実バニラ 1.20.1 のワイヤ
+     * （b=5 で 342 long）が旧式であることを示したため旧式に戻す
+     * （2026-11-15、Bedrock マトリクス 9 件失敗の調査）。
      */
-    private static long[] packContinuous(int[] entries, int bits) {
-        long[] longs = new long[(entries.length * bits + 63) / 64];
+    private static long[] packPerLong(int[] entries, int bits) {
+        int perLong = 64 / bits;
+        long[] longs = new long[(entries.length + perLong - 1) / perLong];
         long mask = (1L << bits) - 1;
-        int bitPos = 0;
-        for (int entry : entries) {
-            int cellIndex = bitPos >> 6;
-            int bitIndex = bitPos & 63;
-            longs[cellIndex] |= ((long) entry & mask) << bitIndex;
-            if (bitIndex + bits > 64) {
-                int lowBits = 64 - bitIndex;
-                longs[cellIndex + 1] |= ((long) entry & mask) >>> lowBits;
-            }
-            bitPos += bits;
+        for (int i = 0; i < entries.length; i++) {
+            int cellIndex = i / perLong;
+            int bitIndex = (i % perLong) * bits;
+            longs[cellIndex] |= ((long) entries[i] & mask) << bitIndex;
         }
         return longs;
     }
@@ -191,7 +186,7 @@ final class TestJavaChunk {
         if (direct) {
             int bits = blocks ? 15 : 4;
             out.write(bits);
-            long[] packed = packContinuous(values, bits);
+            long[] packed = packPerLong(values, bits);
             writeVarInt(out, packed.length);
             for (long value : packed) {
                 writeLong(out, value);
@@ -212,7 +207,7 @@ final class TestJavaChunk {
         for (int i = 0; i < entryCount; i++) {
             indices[i] = palette.get(values[i]);
         }
-        long[] packed = packContinuous(indices, bits);
+        long[] packed = packPerLong(indices, bits);
         writeVarInt(out, packed.length);
         for (long value : packed) {
             writeLong(out, value);

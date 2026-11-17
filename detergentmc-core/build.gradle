@@ -10,6 +10,16 @@ dependencies {
 
     // Version adapters are runtime-only: the core picks one by the
     // minecraft-version in detergentmc.yml.
+    // 1.18.2 is protocol 758 and lives in one module.
+    runtimeOnly project(':detergentmc-adapter-v1_14')
+    runtimeOnly project(':detergentmc-adapter-v1_14_1')
+    runtimeOnly project(':detergentmc-adapter-v1_14_2')
+    runtimeOnly project(':detergentmc-adapter-v1_14_3')
+    runtimeOnly project(':detergentmc-adapter-v1_14_4')
+    runtimeOnly project(':detergentmc-adapter-v1_15')
+    runtimeOnly project(':detergentmc-adapter-v1_15_1')
+    runtimeOnly project(':detergentmc-adapter-v1_15_2')
+    runtimeOnly project(':detergentmc-adapter-v1_18_2')
     // 1.19 is protocol 759 and lives in one module.
     runtimeOnly project(':detergentmc-adapter-v1_19')
     // 1.19.1 and 1.19.2 share protocol 760 and live in one module.
@@ -39,12 +49,33 @@ dependencies {
     runtimeOnly project(':detergentmc-adapter-v1_21_11')
     // 26.1, 26.1.1 and 26.1.2 share protocol 775 and live in one module.
     runtimeOnly project(':detergentmc-adapter-v1_26_1')
+    // 26.2 has no hotfix releases: one adapter (protocol 776).
+    runtimeOnly project(':detergentmc-adapter-v1_26_2')
 
     testImplementation project(':detergentmc-api')
     // Bedrock (Geyser風＋Floodgate風) の統合テストで使う。
     testImplementation project(':detergentmc-bedrock')
     testImplementation project(':detergentmc-adapter-v1_20_4')
     testRuntimeOnly project(':detergentmc-adapter-v1_20_4')
+    // And the 1.18.2 adapter (protocol 758, one module).
+    testImplementation project(':detergentmc-adapter-v1_14')
+    testImplementation project(':detergentmc-adapter-v1_14_1')
+    testImplementation project(':detergentmc-adapter-v1_14_2')
+    testImplementation project(':detergentmc-adapter-v1_14_3')
+    testImplementation project(':detergentmc-adapter-v1_14_4')
+    testImplementation project(':detergentmc-adapter-v1_15')
+    testImplementation project(':detergentmc-adapter-v1_15_1')
+    testImplementation project(':detergentmc-adapter-v1_15_2')
+    testImplementation project(':detergentmc-adapter-v1_18_2')
+    testRuntimeOnly project(':detergentmc-adapter-v1_14')
+    testRuntimeOnly project(':detergentmc-adapter-v1_14_1')
+    testRuntimeOnly project(':detergentmc-adapter-v1_14_2')
+    testRuntimeOnly project(':detergentmc-adapter-v1_14_3')
+    testRuntimeOnly project(':detergentmc-adapter-v1_14_4')
+    testRuntimeOnly project(':detergentmc-adapter-v1_15')
+    testRuntimeOnly project(':detergentmc-adapter-v1_15_1')
+    testRuntimeOnly project(':detergentmc-adapter-v1_15_2')
+    testRuntimeOnly project(':detergentmc-adapter-v1_18_2')
     // And the 1.19 adapter (protocol 759, one module).
     testImplementation project(':detergentmc-adapter-v1_19')
     testRuntimeOnly project(':detergentmc-adapter-v1_19')
@@ -93,6 +124,9 @@ dependencies {
     // And the 26.1 / 26.1.1 / 26.1.2 adapters (protocol 775, one module).
     testImplementation project(':detergentmc-adapter-v1_26_1')
     testRuntimeOnly project(':detergentmc-adapter-v1_26_1')
+    // And the 26.2 adapter (protocol 776, one module, no hotfixes).
+    testImplementation project(':detergentmc-adapter-v1_26_2')
+    testRuntimeOnly project(':detergentmc-adapter-v1_26_2')
     testImplementation project(':bubbles:hello-bubble')
 }
 
@@ -205,8 +239,57 @@ tasks.register('fatJar', Jar) {
     from(layout.buildDirectory.dir('merged-services'))
 }
 
+// Versioned jars: `DetergentMC-1.20.4-1.jar` and friends.
+//
+// The fat jar above is universal: one jar runs every supported Minecraft
+// version (each version's adapter is inside). The per-version files made
+// here are copies of that same jar, renamed per Minecraft version so a
+// download page can offer one file per version:
+//   DetergentMC-<minecraft-version>-<build>.jar
+// e.g. DetergentMC-1.20.4-1.jar, DetergentMC-1.19.2-1.jar.
+//
+// The build number is PER VERSION, read from the root
+// `build-numbers.properties` (one counter per Minecraft version, each
+// independent: 26.2 at build 2 does not make 26.3 build 3, it starts at 1).
+// A version missing from that file means 1. Bump only the version whose
+// jar is rebuilt for release. New versions start at 1.
+// The version list must match the supported versions in docs/VERSIONS.md
+// (and the version branches on GitHub): update it when a version is added.
+tasks.register('versionedJars') {
+    group = 'build'
+    description = 'Copies the fat jar to per-Minecraft-version files (DetergentMC-<version>-<build>.jar, one build counter per version).'
+    dependsOn tasks.named('fatJar')
+    def fatJarFile = tasks.named('fatJar').flatMap { it.archiveFile }
+    def buildNumbersFile = rootProject.file('build-numbers.properties')
+    def buildNumbers = new Properties()
+    if (buildNumbersFile.exists()) {
+        buildNumbersFile.withInputStream { buildNumbers.load(it) }
+    }
+    def buildNumberFor = { mcVersion -> buildNumbers.getProperty(mcVersion, '1') }
+    def versions = [
+        '1.14', '1.14.1', '1.14.2', '1.14.3', '1.14.4',
+        '1.15', '1.15.1', '1.15.2',
+        '1.18.2',
+        '1.19', '1.19.1', '1.19.2', '1.19.3', '1.19.4',
+        '1.20', '1.20.1', '1.20.2', '1.20.3', '1.20.4', '1.20.5', '1.20.6',
+        '1.21', '1.21.1', '1.21.2', '1.21.3', '1.21.4', '1.21.5', '1.21.6',
+        '1.21.7', '1.21.8', '1.21.9', '1.21.10', '1.21.11',
+        '26.1', '26.1.1', '26.1.2', '26.2',
+    ]
+    doLast {
+        def src = fatJarFile.get().asFile
+        def outDir = rootProject.layout.buildDirectory.dir('libs').get().asFile
+        versions.each { mcVersion ->
+            def dest = new File(outDir, "DetergentMC-${mcVersion}-${buildNumberFor(mcVersion)}.jar")
+            dest.bytes = src.bytes
+        }
+        println "Versioned jars (${versions.size()} files): ${versions.collect { "DetergentMC-${it}-${buildNumberFor(it)}.jar" }.join(', ')}"
+    }
+}
+
 // The fat jar is part of a normal build so `./gradlew build` always
 // produces the runnable artifact.
 tasks.named('build') {
     dependsOn tasks.named('fatJar')
+    dependsOn tasks.named('versionedJars')
 }

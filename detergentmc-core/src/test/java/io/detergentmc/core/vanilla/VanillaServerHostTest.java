@@ -128,6 +128,43 @@ class VanillaServerHostTest {
     }
 
     @Test
+    void javaBinaryFor1152PrefersConfiguredJava8Home() {
+        String original = System.getProperty("detergentmc.java8.home");
+        System.setProperty("detergentmc.java8.home", "/opt/example-jdk-8");
+        try {
+            assertEquals(Path.of("/opt/example-jdk-8", "bin", "java").toString(),
+                    VanillaServerHost.javaBinaryFor("1.15.2"));
+            // 1.15 も同じ Java 8 世代。
+            assertEquals(Path.of("/opt/example-jdk-8", "bin", "java").toString(),
+                    VanillaServerHost.javaBinaryFor("1.15"));
+            // 1.15.1 も同じ Java 8 世代。
+            assertEquals(Path.of("/opt/example-jdk-8", "bin", "java").toString(),
+                    VanillaServerHost.javaBinaryFor("1.15.1"));
+            // 1.14.4 も同じ Java 8 世代。
+            assertEquals(Path.of("/opt/example-jdk-8", "bin", "java").toString(),
+                    VanillaServerHost.javaBinaryFor("1.14.4"));
+            // 1.14.3 も同じ Java 8 世代。
+            assertEquals(Path.of("/opt/example-jdk-8", "bin", "java").toString(),
+                    VanillaServerHost.javaBinaryFor("1.14.3"));
+            // 1.14.2 も同じ Java 8 世代。
+            assertEquals(Path.of("/opt/example-jdk-8", "bin", "java").toString(),
+                    VanillaServerHost.javaBinaryFor("1.14.2"));
+            // 1.14.1 も同じ Java 8 世代。
+            assertEquals(Path.of("/opt/example-jdk-8", "bin", "java").toString(),
+                    VanillaServerHost.javaBinaryFor("1.14.1"));
+            // 1.20.4 には Java 8 の指定は使わない。
+            assertEquals(Path.of(System.getProperty("java.home"), "bin", "java").toString(),
+                    VanillaServerHost.javaBinaryFor("1.20.4"));
+        } finally {
+            if (original == null) {
+                System.clearProperty("detergentmc.java8.home");
+            } else {
+                System.setProperty("detergentmc.java8.home", original);
+            }
+        }
+    }
+
+    @Test
     void javaBinaryFor1204UsesCurrentJavaHome() {
         String expected = Path.of(System.getProperty("java.home"), "bin", "java").toString();
         assertEquals(expected, VanillaServerHost.javaBinaryFor("1.20.4"));
@@ -146,6 +183,9 @@ class VanillaServerHostTest {
                     VanillaServerHost.javaBinaryFor("26.1.1"));
             assertEquals(Path.of("/opt/example-jdk-25", "bin", "java").toString(),
                     VanillaServerHost.javaBinaryFor("26.1.2"));
+            // 26.2 も Java 25 が必要（26.1 と同じ）。
+            assertEquals(Path.of("/opt/example-jdk-25", "bin", "java").toString(),
+                    VanillaServerHost.javaBinaryFor("26.2"));
             // 1.20.4 には Java 25 の指定は使わない。
             assertEquals(Path.of(System.getProperty("java.home"), "bin", "java").toString(),
                     VanillaServerHost.javaBinaryFor("1.20.4"));

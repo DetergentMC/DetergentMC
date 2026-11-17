@@ -233,6 +233,245 @@ class ResourcePackWiringTest {
     }
 
     @Test
+    void enabledConfigBuildsAndServes480Pack() throws Exception {
+        DetergentServer server = serverWith(Map.of(
+                "resource-pack", Map.of("enabled", true, "port", 0, "required", false)));
+        try {
+            ResourcePack pack = server.startResourcePack();
+            assertNotNull(pack);
+            // 1.14.1 用（pack_format 4）も一緒にビルド・配信される。
+            ResourcePack pack480 = server.resourcePack480();
+            assertNotNull(pack480);
+            assertTrue(pack480.url().endsWith("/detergentmc-pack-1.14.1.zip"), pack480.url());
+            assertTrue(Files.exists(tempDir.resolve("data").resolve("resource-pack")
+                    .resolve("detergentmc-pack-1.14.1.zip")));
+            HttpURLConnection connection = (HttpURLConnection)
+                    URI.create(pack480.url()).toURL().openConnection();
+            try {
+                assertEquals(200, connection.getResponseCode());
+                byte[] body = connection.getInputStream().readAllBytes();
+                assertEquals(pack480.sha1(),
+                        io.detergentmc.protocol.ResourcePackBuilder.sha1Hex(body));
+            } finally {
+                connection.disconnect();
+            }
+        } finally {
+            server.stopResourcePack();
+        }
+        assertNull(server.resourcePack480());
+    }
+
+    @Test
+    void enabledConfigBuildsAndServes485Pack() throws Exception {
+        DetergentServer server = serverWith(Map.of(
+                "resource-pack", Map.of("enabled", true, "port", 0, "required", false)));
+        try {
+            ResourcePack pack = server.startResourcePack();
+            assertNotNull(pack);
+            // 1.14.2 用（pack_format 4）も一緒にビルド・配信される。
+            ResourcePack pack485 = server.resourcePack485();
+            assertNotNull(pack485);
+            assertTrue(pack485.url().endsWith("/detergentmc-pack-1.14.2.zip"), pack485.url());
+            assertTrue(Files.exists(tempDir.resolve("data").resolve("resource-pack")
+                    .resolve("detergentmc-pack-1.14.2.zip")));
+            HttpURLConnection connection = (HttpURLConnection)
+                    URI.create(pack485.url()).toURL().openConnection();
+            try {
+                assertEquals(200, connection.getResponseCode());
+                byte[] body = connection.getInputStream().readAllBytes();
+                assertEquals(pack485.sha1(),
+                        io.detergentmc.protocol.ResourcePackBuilder.sha1Hex(body));
+            } finally {
+                connection.disconnect();
+            }
+        } finally {
+            server.stopResourcePack();
+        }
+        assertNull(server.resourcePack485());
+    }
+
+    @Test
+    void enabledConfigBuildsAndServes490Pack() throws Exception {
+        DetergentServer server = serverWith(Map.of(
+                "resource-pack", Map.of("enabled", true, "port", 0, "required", false)));
+        try {
+            ResourcePack pack = server.startResourcePack();
+            assertNotNull(pack);
+            // 1.14.3 用（pack_format 4）も一緒にビルド・配信される。
+            ResourcePack pack490 = server.resourcePack490();
+            assertNotNull(pack490);
+            assertTrue(pack490.url().endsWith("/detergentmc-pack-1.14.3.zip"), pack490.url());
+            assertTrue(Files.exists(tempDir.resolve("data").resolve("resource-pack")
+                    .resolve("detergentmc-pack-1.14.3.zip")));
+            HttpURLConnection connection = (HttpURLConnection)
+                    URI.create(pack490.url()).toURL().openConnection();
+            try {
+                assertEquals(200, connection.getResponseCode());
+                byte[] body = connection.getInputStream().readAllBytes();
+                assertEquals(pack490.sha1(),
+                        io.detergentmc.protocol.ResourcePackBuilder.sha1Hex(body));
+            } finally {
+                connection.disconnect();
+            }
+        } finally {
+            server.stopResourcePack();
+        }
+        assertNull(server.resourcePack490());
+    }
+
+    @Test
+    void enabledConfigBuildsAndServes498Pack() throws Exception {
+        DetergentServer server = serverWith(Map.of(
+                "resource-pack", Map.of("enabled", true, "port", 0, "required", false)));
+        try {
+            ResourcePack pack = server.startResourcePack();
+            assertNotNull(pack);
+            // 1.14.4 用（pack_format 4）も一緒にビルド・配信される。
+            ResourcePack pack498 = server.resourcePack498();
+            assertNotNull(pack498);
+            assertTrue(pack498.url().endsWith("/detergentmc-pack-1.14.4.zip"), pack498.url());
+            assertTrue(Files.exists(tempDir.resolve("data").resolve("resource-pack")
+                    .resolve("detergentmc-pack-1.14.4.zip")));
+            HttpURLConnection connection = (HttpURLConnection)
+                    URI.create(pack498.url()).toURL().openConnection();
+            try {
+                assertEquals(200, connection.getResponseCode());
+                byte[] body = connection.getInputStream().readAllBytes();
+                assertEquals(pack498.sha1(),
+                        io.detergentmc.protocol.ResourcePackBuilder.sha1Hex(body));
+            } finally {
+                connection.disconnect();
+            }
+        } finally {
+            server.stopResourcePack();
+        }
+        assertNull(server.resourcePack498());
+    }
+
+    @Test
+    void enabledConfigBuildsAndServes573Pack() throws Exception {
+        DetergentServer server = serverWith(Map.of(
+                "resource-pack", Map.of("enabled", true, "port", 0, "required", false)));
+        try {
+            ResourcePack pack = server.startResourcePack();
+            assertNotNull(pack);
+            // 1.15 用（pack_format 5）も一緒にビルド・配信される。
+            ResourcePack pack573 = server.resourcePack573();
+            assertNotNull(pack573);
+            assertTrue(pack573.url().endsWith("/detergentmc-pack-1.15.zip"), pack573.url());
+            assertTrue(Files.exists(tempDir.resolve("data").resolve("resource-pack")
+                    .resolve("detergentmc-pack-1.15.zip")));
+            HttpURLConnection connection = (HttpURLConnection)
+                    URI.create(pack573.url()).toURL().openConnection();
+            try {
+                assertEquals(200, connection.getResponseCode());
+                byte[] body = connection.getInputStream().readAllBytes();
+                assertEquals(pack573.sha1(),
+                        io.detergentmc.protocol.ResourcePackBuilder.sha1Hex(body));
+            } finally {
+                connection.disconnect();
+            }
+        } finally {
+            server.stopResourcePack();
+        }
+        assertNull(server.resourcePack573());
+    }
+
+    @Test
+    void enabledConfigBuildsAndServes575Pack() throws Exception {
+        DetergentServer server = serverWith(Map.of(
+                "resource-pack", Map.of("enabled", true, "port", 0, "required", false)));
+        try {
+            ResourcePack pack = server.startResourcePack();
+            assertNotNull(pack);
+            // 1.15.1 用（pack_format 5）も一緒にビルド・配信される。
+            ResourcePack pack575 = server.resourcePack575();
+            assertNotNull(pack575);
+            assertTrue(pack575.url().endsWith("/detergentmc-pack-1.15.1.zip"), pack575.url());
+            assertTrue(Files.exists(tempDir.resolve("data").resolve("resource-pack")
+                    .resolve("detergentmc-pack-1.15.1.zip")));
+            HttpURLConnection connection = (HttpURLConnection)
+                    URI.create(pack575.url()).toURL().openConnection();
+            try {
+                assertEquals(200, connection.getResponseCode());
+                byte[] body = connection.getInputStream().readAllBytes();
+                assertEquals(pack575.sha1(),
+                        io.detergentmc.protocol.ResourcePackBuilder.sha1Hex(body));
+            } finally {
+                connection.disconnect();
+            }
+        } finally {
+            server.stopResourcePack();
+        }
+        assertNull(server.resourcePack575());
+    }
+
+    @Test
+    void enabledConfigBuildsAndServes578Pack() throws Exception {
+        DetergentServer server = serverWith(Map.of(
+                "resource-pack", Map.of("enabled", true, "port", 0, "required", false)));
+        try {
+            ResourcePack pack = server.startResourcePack();
+            assertNotNull(pack);
+            // 1.15.2 用（pack_format 5）も一緒にビルド・配信される。
+            ResourcePack pack578 = server.resourcePack578();
+            assertNotNull(pack578);
+            assertNotEquals(pack.sha1(), pack578.sha1());
+            assertTrue(pack578.url().endsWith("/detergentmc-pack-1.15.2.zip"), pack578.url());
+            assertTrue(Files.exists(tempDir.resolve("data").resolve("resource-pack")
+                    .resolve("detergentmc-pack-1.15.2.zip")));
+            HttpURLConnection connection = (HttpURLConnection)
+                    URI.create(pack578.url()).toURL().openConnection();
+            try {
+                assertEquals(200, connection.getResponseCode());
+                byte[] body = connection.getInputStream().readAllBytes();
+                assertEquals(pack578.sha1(),
+                        io.detergentmc.protocol.ResourcePackBuilder.sha1Hex(body));
+            } finally {
+                connection.disconnect();
+            }
+        } finally {
+            server.stopResourcePack();
+        }
+        assertNull(server.resourcePack578());
+    }
+
+    @Test
+    void enabledConfigBuildsAndServes758Pack() throws Exception {
+        DetergentServer server = serverWith(Map.of(
+                "resource-pack", Map.of("enabled", true, "port", 0, "required", false)));
+        try {
+            ResourcePack pack = server.startResourcePack();
+            assertNotNull(pack);
+            // The 1.18.2 variant (pack_format 8) is built, served and
+            // offered alongside.
+            ResourcePack pack758 = server.resourcePack758();
+            assertNotNull(pack758);
+            assertNotEquals(pack.sha1(), pack758.sha1());
+            assertNotEquals(pack.url(), pack758.url());
+            assertTrue(pack758.url().endsWith("/detergentmc-pack-1.18.2.zip"), pack758.url());
+            assertTrue(Files.exists(tempDir.resolve("data").resolve("resource-pack")
+                    .resolve("detergentmc-pack-1.18.2.zip")));
+
+            HttpURLConnection connection = (HttpURLConnection)
+                    URI.create(pack758.url()).toURL().openConnection();
+            try {
+                assertEquals(200, connection.getResponseCode());
+                byte[] body = connection.getInputStream().readAllBytes();
+                assertEquals(pack758.sha1(),
+                        io.detergentmc.protocol.ResourcePackBuilder.sha1Hex(body));
+            } finally {
+                connection.disconnect();
+            }
+        } finally {
+            server.stopResourcePack();
+        }
+        assertNull(server.resourcePack());
+        assertNull(server.resourcePack758());
+        assertNull(server.resourcePackServer());
+    }
+
+    @Test
     void enabledConfigBuildsAndServesAllThreePacks() throws Exception {
         DetergentServer server = serverWith(Map.of(
                 "resource-pack", Map.of("enabled", true, "port", 0, "required", false)));

@@ -90,6 +90,96 @@ public final class BedrockEntityTranslator {
      */
     public static int normalizeEntityType(int typeId, int serverProtocol) {
         return switch (serverProtocol) {
+            case RegistryRemapper.PROTOCOL_477 -> {
+                // 477 → 758 表で寄せてから 758 と同じ経路を辿る。
+                int id763 = entityType758To763(
+                        RegistryRemapper.mapEntityType477To758(typeId));
+                if (id763 < 0 || id763 >= ENTITY_TYPE_763_TO_765.length) {
+                    yield PIG_TYPE_765;
+                }
+                int mapped = ENTITY_TYPE_763_TO_765[id763];
+                yield mapped < 0 ? PIG_TYPE_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_480 -> {
+                // 480 → 758 表で寄せてから 758 と同じ経路を辿る。
+                int id763 = entityType758To763(
+                        RegistryRemapper.mapEntityType480To758(typeId));
+                if (id763 < 0 || id763 >= ENTITY_TYPE_763_TO_765.length) {
+                    yield PIG_TYPE_765;
+                }
+                int mapped = ENTITY_TYPE_763_TO_765[id763];
+                yield mapped < 0 ? PIG_TYPE_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_485 -> {
+                // 485 → 758 表で寄せてから 758 と同じ経路を辿る。
+                int id763 = entityType758To763(
+                        RegistryRemapper.mapEntityType485To758(typeId));
+                if (id763 < 0 || id763 >= ENTITY_TYPE_763_TO_765.length) {
+                    yield PIG_TYPE_765;
+                }
+                int mapped = ENTITY_TYPE_763_TO_765[id763];
+                yield mapped < 0 ? PIG_TYPE_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_498 -> {
+                // 498 → 758 表で寄せてから 758 と同じ経路を辿る。
+                int id763 = entityType758To763(
+                        RegistryRemapper.mapEntityType498To758(typeId));
+                if (id763 < 0 || id763 >= ENTITY_TYPE_763_TO_765.length) {
+                    yield PIG_TYPE_765;
+                }
+                int mapped = ENTITY_TYPE_763_TO_765[id763];
+                yield mapped < 0 ? PIG_TYPE_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_490 -> {
+                // 490 → 758 表で寄せてから 758 と同じ経路を辿る。
+                int id763 = entityType758To763(
+                        RegistryRemapper.mapEntityType490To758(typeId));
+                if (id763 < 0 || id763 >= ENTITY_TYPE_763_TO_765.length) {
+                    yield PIG_TYPE_765;
+                }
+                int mapped = ENTITY_TYPE_763_TO_765[id763];
+                yield mapped < 0 ? PIG_TYPE_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_573 -> {
+                // 573 → 758 表で寄せてから 758 と同じ経路を辿る。
+                int id763 = entityType758To763(
+                        RegistryRemapper.mapEntityType573To758(typeId));
+                if (id763 < 0 || id763 >= ENTITY_TYPE_763_TO_765.length) {
+                    yield PIG_TYPE_765;
+                }
+                int mapped = ENTITY_TYPE_763_TO_765[id763];
+                yield mapped < 0 ? PIG_TYPE_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_575 -> {
+                // 575 → 758 表で寄せてから 758 と同じ経路を辿る。
+                int id763 = entityType758To763(
+                        RegistryRemapper.mapEntityType575To758(typeId));
+                if (id763 < 0 || id763 >= ENTITY_TYPE_763_TO_765.length) {
+                    yield PIG_TYPE_765;
+                }
+                int mapped = ENTITY_TYPE_763_TO_765[id763];
+                yield mapped < 0 ? PIG_TYPE_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_578 -> {
+                // 578 → 758 表で寄せてから 758 と同じ経路を辿る。
+                int id763 = entityType758To763(
+                        RegistryRemapper.mapEntityType578To758(typeId));
+                if (id763 < 0 || id763 >= ENTITY_TYPE_763_TO_765.length) {
+                    yield PIG_TYPE_765;
+                }
+                int mapped = ENTITY_TYPE_763_TO_765[id763];
+                yield mapped < 0 ? PIG_TYPE_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_758 -> {
+                // 758 は 763 と同一ではない（758→759 で +1〜+5 ずれる）ため、
+                // 758→759→760→761→762→763 と辿ってから 763→765 表を使う。
+                int id763 = entityType758To763(typeId);
+                if (id763 < 0 || id763 >= ENTITY_TYPE_763_TO_765.length) {
+                    yield PIG_TYPE_765;
+                }
+                int mapped = ENTITY_TYPE_763_TO_765[id763];
+                yield mapped < 0 ? PIG_TYPE_765 : mapped;
+            }
             case RegistryRemapper.PROTOCOL_763 -> {
                 if (typeId < 0 || typeId >= ENTITY_TYPE_763_TO_765.length) {
                     yield PIG_TYPE_765;
@@ -119,6 +209,8 @@ public final class BedrockEntityTranslator {
                     RegistryRemapper.mapEntityType774To765(typeId);
             case RegistryRemapper.PROTOCOL_775 ->
                     RegistryRemapper.mapEntityType775To765(typeId);
+            case RegistryRemapper.PROTOCOL_776 ->
+                    RegistryRemapper.mapEntityType776To765(typeId);
             default -> (typeId < 0 || typeId > RegistryRemapper.MAX_ENTITY_TYPE_765)
                     ? PIG_TYPE_765 : typeId;
         };
@@ -130,6 +222,88 @@ public final class BedrockEntityTranslator {
      */
     public static int normalizeItem(int itemId, int serverProtocol) {
         return switch (serverProtocol) {
+            case RegistryRemapper.PROTOCOL_477 -> {
+                // 477 → 758 表で寄せてから 758 と同じ経路を辿る。
+                int id763 = item758To763(RegistryRemapper.mapItem477To758(itemId));
+                if (id763 < 0 || id763 >= ITEM_763_TO_765.length) {
+                    yield STONE_ITEM_765;
+                }
+                int mapped = ITEM_763_TO_765[id763];
+                yield mapped < 0 ? STONE_ITEM_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_480 -> {
+                // 480 → 758 表で寄せてから 758 と同じ経路を辿る。
+                int id763 = item758To763(RegistryRemapper.mapItem480To758(itemId));
+                if (id763 < 0 || id763 >= ITEM_763_TO_765.length) {
+                    yield STONE_ITEM_765;
+                }
+                int mapped = ITEM_763_TO_765[id763];
+                yield mapped < 0 ? STONE_ITEM_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_485 -> {
+                // 485 → 758 表で寄せてから 758 と同じ経路を辿る。
+                int id763 = item758To763(RegistryRemapper.mapItem485To758(itemId));
+                if (id763 < 0 || id763 >= ITEM_763_TO_765.length) {
+                    yield STONE_ITEM_765;
+                }
+                int mapped = ITEM_763_TO_765[id763];
+                yield mapped < 0 ? STONE_ITEM_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_490 -> {
+                // 490 → 758 表で寄せてから 758 と同じ経路を辿る。
+                int id763 = item758To763(RegistryRemapper.mapItem490To758(itemId));
+                if (id763 < 0 || id763 >= ITEM_763_TO_765.length) {
+                    yield STONE_ITEM_765;
+                }
+                int mapped = ITEM_763_TO_765[id763];
+                yield mapped < 0 ? STONE_ITEM_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_498 -> {
+                // 498 → 758 表で寄せてから 758 と同じ経路を辿る。
+                int id763 = item758To763(RegistryRemapper.mapItem498To758(itemId));
+                if (id763 < 0 || id763 >= ITEM_763_TO_765.length) {
+                    yield STONE_ITEM_765;
+                }
+                int mapped = ITEM_763_TO_765[id763];
+                yield mapped < 0 ? STONE_ITEM_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_573 -> {
+                // 573 → 758 表で寄せてから 758 と同じ経路を辿る。
+                int id763 = item758To763(RegistryRemapper.mapItem573To758(itemId));
+                if (id763 < 0 || id763 >= ITEM_763_TO_765.length) {
+                    yield STONE_ITEM_765;
+                }
+                int mapped = ITEM_763_TO_765[id763];
+                yield mapped < 0 ? STONE_ITEM_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_575 -> {
+                // 575 → 758 表で寄せてから 758 と同じ経路を辿る。
+                int id763 = item758To763(RegistryRemapper.mapItem575To758(itemId));
+                if (id763 < 0 || id763 >= ITEM_763_TO_765.length) {
+                    yield STONE_ITEM_765;
+                }
+                int mapped = ITEM_763_TO_765[id763];
+                yield mapped < 0 ? STONE_ITEM_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_578 -> {
+                // 578 → 758 表で寄せてから 758 と同じ経路を辿る。
+                int id763 = item758To763(RegistryRemapper.mapItem578To758(itemId));
+                if (id763 < 0 || id763 >= ITEM_763_TO_765.length) {
+                    yield STONE_ITEM_765;
+                }
+                int mapped = ITEM_763_TO_765[id763];
+                yield mapped < 0 ? STONE_ITEM_765 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_758 -> {
+                // 758 は 763 と同一ではない（758→759 で最大 +12 ずれる）ため、
+                // 758→759→760→761→762→763 と辿ってから 763→765 表を使う。
+                int id763 = item758To763(itemId);
+                if (id763 < 0 || id763 >= ITEM_763_TO_765.length) {
+                    yield STONE_ITEM_765;
+                }
+                int mapped = ITEM_763_TO_765[id763];
+                yield mapped < 0 ? STONE_ITEM_765 : mapped;
+            }
             case RegistryRemapper.PROTOCOL_763 -> {
                 if (itemId < 0 || itemId >= ITEM_763_TO_765.length) {
                     yield STONE_ITEM_765;
@@ -148,6 +322,7 @@ public final class BedrockEntityTranslator {
             case RegistryRemapper.PROTOCOL_773 -> RegistryRemapper.mapItem773To765(itemId);
             case RegistryRemapper.PROTOCOL_774 -> RegistryRemapper.mapItem774To765(itemId);
             case RegistryRemapper.PROTOCOL_775 -> RegistryRemapper.mapItem775To765(itemId);
+            case RegistryRemapper.PROTOCOL_776 -> RegistryRemapper.mapItem776To765(itemId);
             default -> (itemId < 0 || itemId > RegistryRemapper.MAX_ITEM_765)
                     ? STONE_ITEM_765 : itemId;
         };
@@ -160,7 +335,8 @@ public final class BedrockEntityTranslator {
      */
     public static int normalizeEffectTo765(int effectId, int serverProtocol) {
         return switch (serverProtocol) {
-            case RegistryRemapper.PROTOCOL_763 -> {
+            // 758 のエフェクトは 763 と同じく 1 ベース（Speed=1）のため 1 引く。
+            case RegistryRemapper.PROTOCOL_758, RegistryRemapper.PROTOCOL_763 -> {
                 int mapped = effectId - 1;
                 yield (mapped < 0 || mapped > RegistryRemapper.MAX_EFFECT_765)
                         ? RegistryRemapper.SPEED_EFFECT_765 : mapped;
@@ -170,12 +346,14 @@ public final class BedrockEntityTranslator {
             // エフェクトは 767⇔768⇔769⇔770⇔771⇔772⇔773 で同一のため 768／769／770／771／772／773 も同じ表でよい。
             // 774 は BreathOfTheNautilus（39）が末尾追加のため専用の表を使う。
             // 775 のエフェクトは 774 と同一の 40 件のため 774 と同じ表を使う。
+            // 776 のエフェクトも 774／775 と同一の 40 件のため同じ表を使う。
             case RegistryRemapper.PROTOCOL_767, RegistryRemapper.PROTOCOL_768,
                     RegistryRemapper.PROTOCOL_769, RegistryRemapper.PROTOCOL_770,
                     RegistryRemapper.PROTOCOL_771, RegistryRemapper.PROTOCOL_772,
                     RegistryRemapper.PROTOCOL_773 ->
                     RegistryRemapper.mapEffect767To765(effectId);
-            case RegistryRemapper.PROTOCOL_774, RegistryRemapper.PROTOCOL_775 ->
+            case RegistryRemapper.PROTOCOL_774, RegistryRemapper.PROTOCOL_775,
+                    RegistryRemapper.PROTOCOL_776 ->
                     RegistryRemapper.mapEffect774To765(effectId);
             default -> (effectId < 0 || effectId > RegistryRemapper.MAX_EFFECT_765)
                     ? RegistryRemapper.SPEED_EFFECT_765 : effectId;
@@ -200,6 +378,15 @@ public final class BedrockEntityTranslator {
      */
     private static int normalizeParticleTo765(int particleId, int serverProtocol) {
         return switch (serverProtocol) {
+            case RegistryRemapper.PROTOCOL_758 -> {
+                // 758→759→760→761→762→763 と辿ってから 763→765 表を使う。
+                int id763 = particle758To763(particleId);
+                if (id763 < 0 || id763 >= PARTICLE_763_TO_765.length) {
+                    yield 0;
+                }
+                int mapped = PARTICLE_763_TO_765[id763];
+                yield mapped < 0 ? 0 : mapped;
+            }
             case RegistryRemapper.PROTOCOL_763 -> {
                 if (particleId < 0 || particleId >= PARTICLE_763_TO_765.length) {
                     yield 0;
@@ -229,9 +416,38 @@ public final class BedrockEntityTranslator {
                     RegistryRemapper.mapParticle774To765(particleId);
             case RegistryRemapper.PROTOCOL_775 ->
                     RegistryRemapper.mapParticle775To765(particleId);
+            case RegistryRemapper.PROTOCOL_776 ->
+                    RegistryRemapper.mapParticle776To765(particleId);
             default -> (particleId < 0 || particleId > RegistryRemapper.MAX_PARTICLE_765)
                     ? 0 : particleId;
         };
+    }
+
+    /** 758 のエンティティ種別ID → 763 のエンティティ種別ID（758→759→760→761→762→763）。 */
+    private static int entityType758To763(int id758) {
+        return RegistryRemapper.mapEntityType762To763(
+                RegistryRemapper.mapEntityType761To762(
+                RegistryRemapper.mapEntityType760To761(
+                RegistryRemapper.mapEntityType759To760(
+                RegistryRemapper.mapEntityType758To759(id758)))));
+    }
+
+    /** 758 のアイテムID → 763 のアイテムID（758→759→760→761→762→763）。 */
+    private static int item758To763(int id758) {
+        return RegistryRemapper.mapItem762To763(
+                RegistryRemapper.mapItem761To762(
+                RegistryRemapper.mapItem760To761(
+                RegistryRemapper.mapItem759To760(
+                RegistryRemapper.mapItem758To759(id758)))));
+    }
+
+    /** 758 のパーティクルID → 763 のパーティクルID（758→759→760→761→762→763）。 */
+    private static int particle758To763(int id758) {
+        return RegistryRemapper.mapParticle762To763(
+                RegistryRemapper.mapParticle761To762(
+                RegistryRemapper.mapParticle760To761(
+                RegistryRemapper.mapParticle759To760(
+                RegistryRemapper.mapParticle758To759(id758)))));
     }
 
     // ---- 角度・速度 ----
@@ -276,6 +492,30 @@ public final class BedrockEntityTranslator {
         double z = reader.readDouble();
         int pitch = reader.readByte();
         int yaw = reader.readByte();
+        if (serverProtocol == RegistryRemapper.PROTOCOL_758
+                || serverProtocol == RegistryRemapper.PROTOCOL_578
+                || serverProtocol == RegistryRemapper.PROTOCOL_575
+                || serverProtocol == RegistryRemapper.PROTOCOL_573
+                || serverProtocol == RegistryRemapper.PROTOCOL_498
+                || serverProtocol == RegistryRemapper.PROTOCOL_490
+                || serverProtocol == RegistryRemapper.PROTOCOL_485
+                || serverProtocol == RegistryRemapper.PROTOCOL_480
+                || serverProtocol == RegistryRemapper.PROTOCOL_477) {
+            // 758／578 の Spawn Entity には headPitch が無く、objectData は i32
+            // （minecraft-data 1.18.2／1.15.2 protocol.json）。headPitch は yaw で代用する。
+            int objectData = reader.readInt();
+            int velX = reader.readShort();
+            int velY = reader.readShort();
+            int velZ = reader.readShort();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException("Spawn Entity の余りがあります。");
+            }
+            return new SpawnEntity(entityId,
+                    new UUID(bytesToLong(uuidBytes, 0), bytesToLong(uuidBytes, 8)),
+                    type, x, y, z, byteToAngle(pitch), byteToAngle(yaw), byteToAngle(yaw),
+                    objectData, shortVelocityToFloat(velX), shortVelocityToFloat(velY),
+                    shortVelocityToFloat(velZ));
+        }
         int headPitch = reader.readByte();
         int objectData = reader.readVarInt();
         int velX = reader.readShort();
@@ -289,6 +529,113 @@ public final class BedrockEntityTranslator {
                 type, x, y, z, byteToAngle(pitch), byteToAngle(yaw), byteToAngle(headPitch),
                 objectData, shortVelocityToFloat(velX), shortVelocityToFloat(velY),
                 shortVelocityToFloat(velZ));
+    }
+
+    /**
+     * Spawn Entity Living（758 のみ、0x02）を読む。1.18.2 ではモブはこのパケットで
+     * 送られる。形式：{entityId varint, uuid, type varint, x, y, z, yaw i8,
+     * pitch i8, headPitch i8, velX, velY, velZ i16}（yaw が pitch より先）。
+     */
+    public static SpawnEntity parseSpawnEntityLiving758(byte[] payload) {
+        return parseSpawnEntityLiving(payload, RegistryRemapper.PROTOCOL_758);
+    }
+
+    /**
+     * Spawn Entity Living（498）を読む。形式は 578 と同じだが、
+     * 末尾にエンティティメタデータが付く（ここでは読み飛ばす）。
+     */
+    public static SpawnEntity parseSpawnEntityLiving498(byte[] payload) {
+        PacketIO.Reader reader = new PacketIO.Reader(payload);
+        int entityId = reader.readVarInt();
+        byte[] uuidBytes = reader.readBytes(16);
+        int type = normalizeEntityType(reader.readVarInt(), RegistryRemapper.PROTOCOL_498);
+        double x = reader.readDouble();
+        double y = reader.readDouble();
+        double z = reader.readDouble();
+        int yaw = reader.readByte();
+        int pitch = reader.readByte();
+        int headPitch = reader.readByte();
+        int velX = reader.readShort();
+        int velY = reader.readShort();
+        int velZ = reader.readShort();
+        // 末尾のメタデータは読み飛ばす（Bedrock 変換では使わない）。
+        return new SpawnEntity(entityId,
+                new UUID(bytesToLong(uuidBytes, 0), bytesToLong(uuidBytes, 8)),
+                type, x, y, z, byteToAngle(pitch), byteToAngle(yaw), byteToAngle(headPitch),
+                0, shortVelocityToFloat(velX), shortVelocityToFloat(velY),
+                shortVelocityToFloat(velZ));
+    }
+
+    /** Spawn Entity Living（578、0x03）を読む。形式は 758 と同一。 */
+    public static SpawnEntity parseSpawnEntityLiving578(byte[] payload) {
+        return parseSpawnEntityLiving(payload, RegistryRemapper.PROTOCOL_578);
+    }
+
+    private static SpawnEntity parseSpawnEntityLiving(byte[] payload, int serverProtocol) {
+        PacketIO.Reader reader = new PacketIO.Reader(payload);
+        int entityId = reader.readVarInt();
+        byte[] uuidBytes = reader.readBytes(16);
+        int type = normalizeEntityType(reader.readVarInt(), serverProtocol);
+        double x = reader.readDouble();
+        double y = reader.readDouble();
+        double z = reader.readDouble();
+        int yaw = reader.readByte();
+        int pitch = reader.readByte();
+        int headPitch = reader.readByte();
+        int objectData = 0;
+        int velX = reader.readShort();
+        int velY = reader.readShort();
+        int velZ = reader.readShort();
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException("Spawn Entity Living の余りがあります。");
+        }
+        return new SpawnEntity(entityId,
+                new UUID(bytesToLong(uuidBytes, 0), bytesToLong(uuidBytes, 8)),
+                type, x, y, z, byteToAngle(pitch), byteToAngle(yaw), byteToAngle(headPitch),
+                objectData, shortVelocityToFloat(velX), shortVelocityToFloat(velY),
+                shortVelocityToFloat(velZ));
+    }
+
+    /**
+     * Named Entity Spawn（758〜763、0x04）を読む。1.18.2 では他プレイヤーはこの
+     * パケットで送られる。形式：{entityId varint, uuid, x, y, z, yaw i8, pitch i8}。
+     * 種別はプレイヤー（765 で 124）。
+     */
+    public static SpawnEntity parseNamedEntitySpawn758(byte[] payload) {
+        PacketIO.Reader reader = new PacketIO.Reader(payload);
+        int entityId = reader.readVarInt();
+        byte[] uuidBytes = reader.readBytes(16);
+        double x = reader.readDouble();
+        double y = reader.readDouble();
+        double z = reader.readDouble();
+        int yaw = reader.readByte();
+        int pitch = reader.readByte();
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException("Named Entity Spawn の余りがあります。");
+        }
+        return new SpawnEntity(entityId,
+                new UUID(bytesToLong(uuidBytes, 0), bytesToLong(uuidBytes, 8)),
+                TYPE_PLAYER, x, y, z, byteToAngle(pitch), byteToAngle(yaw), byteToAngle(yaw),
+                0, 0.0, 0.0, 0.0);
+    }
+
+    /**
+     * Named Entity Spawn（578）を読む。形式は 758 と同じだが、末尾に
+     * エンティティメタデータが付く（ここでは読み飛ばす）。
+     */
+    public static SpawnEntity parseNamedEntitySpawn578(byte[] payload) {
+        PacketIO.Reader reader = new PacketIO.Reader(payload);
+        int entityId = reader.readVarInt();
+        byte[] uuidBytes = reader.readBytes(16);
+        double x = reader.readDouble();
+        double y = reader.readDouble();
+        double z = reader.readDouble();
+        int yaw = reader.readByte();
+        int pitch = reader.readByte();
+        return new SpawnEntity(entityId,
+                new UUID(bytesToLong(uuidBytes, 0), bytesToLong(uuidBytes, 8)),
+                TYPE_PLAYER, x, y, z, byteToAngle(pitch), byteToAngle(yaw), byteToAngle(yaw),
+                0, 0.0, 0.0, 0.0);
     }
 
     private static long bytesToLong(byte[] bytes, int offset) {
@@ -491,7 +838,8 @@ public final class BedrockEntityTranslator {
                 || serverProtocol == RegistryRemapper.PROTOCOL_772
                 || serverProtocol == RegistryRemapper.PROTOCOL_773
                 || serverProtocol == RegistryRemapper.PROTOCOL_774
-                || serverProtocol == RegistryRemapper.PROTOCOL_775) {
+                || serverProtocol == RegistryRemapper.PROTOCOL_775
+                || serverProtocol == RegistryRemapper.PROTOCOL_776) {
             count = reader.readVarInt();
             int addCount = reader.readVarInt();
             int removeCount = reader.readVarInt();
@@ -578,6 +926,14 @@ public final class BedrockEntityTranslator {
         int amplifier = reader.readByte();
         int duration = reader.readVarInt();
         int flags = reader.readByte();
+        if (serverProtocol == RegistryRemapper.PROTOCOL_758) {
+            // 758 の Entity Effect には factorCodec が無い（minecraft-data 1.18.2
+            // protocol.json）。余分な boolean を読むと末尾超過で落ちるため読まない。
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException("Entity Effect の余りがあります。");
+            }
+            return new EntityEffect(entityId, effect, amplifier, duration, (flags & 0x02) != 0);
+        }
         boolean hasFactor = reader.readBoolean();
         if (hasFactor) {
             if (serverProtocol == RegistryRemapper.PROTOCOL_763) {
@@ -615,8 +971,8 @@ public final class BedrockEntityTranslator {
      * Update Attributes を読む。763 は属性キーが番号（0＝最大体力、
      * 2＝ノックバック耐性、3＝移動速度。minecraft-data 1.20 の
      * attributes.json の並びによる）、764／765 は識別子文字列、
-     * 766／767／768／769／770／771／772／773／774／775 は番号（属性名の表で識別子に直す）。
-     * 767／768／769／770／771／772／773／774／775 は modifier の UUID が文字列（766 までは 16 バイトの UUID）。
+     * 766／767／768／769／770／771／772／773／774／775／776 は番号（属性名の表で識別子に直す）。
+     * 767／768／769／770／771／772／773／774／775／776 は modifier の UUID が文字列（766 までは 16 バイトの UUID）。
      * 768 は一部の属性名から接頭辞が外れた（generic.burning_time →
      * burning_time 等。protocol.json の Update Attributes キー表による）。
      * 769／770 の属性名は 768 と同一（attributeName769／attributeName770 は
@@ -626,6 +982,9 @@ public final class BedrockEntityTranslator {
      * （attributeName772／attributeName773 は771と同じ内容）。
      * 774 の属性名は 773 と同一（attributeName774 は773と同じ内容）。
      * 775 の属性名は 774 と同一（attributeName775 は774と同じ内容）。
+     * 776 の属性名は 775 とは違う（air_drag_modifier が 0番、below_name_distance が
+     * 6番、bounciness が 9番、friction_modifier が 17番、name_tag_distance が 27番に挿入。
+     * attributeName776 は776専用の表）。
      */
     public static UpdateAttributes parseUpdateAttributes(byte[] payload, int serverProtocol) {
         PacketIO.Reader reader = new PacketIO.Reader(payload);
@@ -654,13 +1013,16 @@ public final class BedrockEntityTranslator {
                     || serverProtocol == RegistryRemapper.PROTOCOL_772
                     || serverProtocol == RegistryRemapper.PROTOCOL_773
                     || serverProtocol == RegistryRemapper.PROTOCOL_774
-                    || serverProtocol == RegistryRemapper.PROTOCOL_775) {
-                // 766／767／768／769／770／771／772／773／774／775 は属性キーが番号。名前表で識別子に直す。
+                    || serverProtocol == RegistryRemapper.PROTOCOL_775
+                    || serverProtocol == RegistryRemapper.PROTOCOL_776) {
+                // 766／767／768／769／770／771／772／773／774／775／776 は属性キーが番号。名前表で識別子に直す。
                 // 表は "generic.movement_speed" のような平文の名前なので、
                 // 下の比較（"minecraft:generic.movement_speed"）に合わせるため
                 // "minecraft:" を付ける。
                 int keyId = reader.readVarInt();
-                String name = serverProtocol == RegistryRemapper.PROTOCOL_775
+                String name = serverProtocol == RegistryRemapper.PROTOCOL_776
+                        ? RegistryRemapper.attributeName776(keyId)
+                        : serverProtocol == RegistryRemapper.PROTOCOL_775
                         ? RegistryRemapper.attributeName775(keyId)
                         : serverProtocol == RegistryRemapper.PROTOCOL_774
                         ? RegistryRemapper.attributeName774(keyId)
@@ -697,8 +1059,9 @@ public final class BedrockEntityTranslator {
                         || serverProtocol == RegistryRemapper.PROTOCOL_772
                         || serverProtocol == RegistryRemapper.PROTOCOL_773
                         || serverProtocol == RegistryRemapper.PROTOCOL_774
-                        || serverProtocol == RegistryRemapper.PROTOCOL_775) {
-                    reader.readString(); // modifier UUID（767／768／769／770／771／772／773／774／775 は文字列）
+                        || serverProtocol == RegistryRemapper.PROTOCOL_775
+                        || serverProtocol == RegistryRemapper.PROTOCOL_776) {
+                    reader.readString(); // modifier UUID（767／768／769／770／771／772／773／774／775／776 は文字列）
                 } else {
                     reader.readBytes(16); // modifier UUID
                 }

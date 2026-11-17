@@ -57,6 +57,27 @@ server:
   # サーバーリストに表示される MOTD。
   motd: "DetergentMC 1.20.4"
 
+# Surfactant forwarding / Surfactant からの転送
+# When this DetergentMC sits behind the Surfactant proxy, set the same
+# shared secret here that the Surfactant backend entry uses
+# (forwarding-secret in surfactant.yml, or the global forwarding.secret
+# there). Surfactant then forwards each player's verified identity
+# (UUID, name, IP address, profile properties) with an HMAC signature
+# during login, and DetergentMC adopts it as the player's identity.
+# Surfactant の後ろに置く場合は、Surfactant 側のバックエンド設定
+# （forwarding-secret、または全体の forwarding.secret）と同じ秘密を
+# ここにも設定してください。ログインのたびに Surfactant が署名付きで
+# プレイヤーの素性（UUID・名前・IP・プロパティ）を転送し、
+# DetergentMC はそれをそのプレイヤーの素性として採用します。
+# WARNING: while a secret is set, EVERY login must come through
+# Surfactant and pass verification. Direct connections are rejected.
+# 注意：秘密を設定している間は、ログインはすべて Surfactant 経由で
+# 検証を通る必要があります。直接の接続は拒否されます。
+# Empty (default) disables forwarding; direct connections work as usual.
+# 空（既定）なら転送は無効で、従来通りに直接接続できます。
+forwarding:
+  secret: ""
+
 # Vanilla server settings / バニラサーバーの設定
 vanilla:
   # Maximum heap for the vanilla server process, in megabytes.
@@ -106,6 +127,26 @@ resource-pack:
   # 違う場合、クライアント側でパックが拒否されます。ファイルを
   # 差し替えたらこの値も一緒に更新してください。
   sha1: ""
+  # 1.18.2 pack for 758 clients (optional; external mode only).
+  # When the 1.18.2 variant of the pack (pack_format 8) is hosted
+  # separately, write its https:// URL and SHA-1 here and the proxy
+  # offers it to 1.18.2 clients instead of the 1.19 pack below.
+  # Leave both empty to offer the 1.19 pack (when configured),
+  # the 1.19.1 / 1.19.2 pack (when configured), the 1.19.3 pack
+  # (when configured), the 1.19.4 pack (when configured),
+  # the 1.20.1 pack (when configured) or the 1.20.4 pack to 758 clients.
+  # In loopback mode these two
+  # are ignored: all variants are generated and served locally.
+  # 758クライアント向けの1.18.2用パック（任意・外部配信時のみ）。
+  # pack_format 8 のパックを別途ホストした場合は、その https:// URL
+  # とSHA-1をここに書くと、プロキシが1.18.2クライアントにこちらを
+  # 出します。空のままなら758クライアントには1.19用パック
+  # （設定時のみ）、1.19.1／1.19.2用パック（設定時のみ）、1.19.3用パック
+  # （設定時のみ）、1.19.4用パック（設定時のみ）、1.20.1用パック
+  # （設定時のみ）または1.20.4用パックを出します。
+  # ループバック配信では無視されます（全バリアントを自動生成・配信します）。
+  url-758: ""
+  sha1-758: ""
   # 1.19.3 pack for 761 clients (optional; external mode only).
   # 1.19 pack for 759 clients (optional; external mode only).
   # When the 1.19 variant of the pack (pack_format 9) is hosted
@@ -334,14 +375,14 @@ resource-pack:
   # pack_format 75 (the 1.21.9 pack, format 69, is NOT shared with
   # 774 clients: a 1.21.11 client shows it as incompatible).
   # Leave both empty to offer the 1.20.4 pack to 774 clients.
-  # In loopback mode these two are ignored: all seventeen packs are
+  # In loopback mode these two are ignored: all eighteen packs are
   # generated and served locally.
   # 774クライアント向けの1.21.11用パック（任意・外部配信時のみ）。
   # url-773 / sha1-773 と同じ決まりですが、ホストするパックは
   # pack_format 75 のものが必要です。1.21.9用パック（format 69）は
   # 774クライアントには流用しません（「互換性なし」と表示されます）。
   # 空のままなら774クライアントにも1.20.4用パックを出します。
-  # ループバック配信では無視されます（17つとも自動生成・配信します）。
+  # ループバック配信では無視されます（18つとも自動生成・配信します）。
   url-774: ""
   sha1-774: ""
   # 26.1 pack for 775 clients (optional; external mode only).
@@ -350,7 +391,7 @@ resource-pack:
   # 775 clients: a 26.1 client shows it as incompatible).
   # One pack serves 26.1 / 26.1.1 / 26.1.2 (protocol 775).
   # Leave both empty to offer the 1.20.4 pack to 775 clients.
-  # In loopback mode these two are ignored: all seventeen packs are
+  # In loopback mode these two are ignored: all eighteen packs are
   # generated and served locally.
   # 775クライアント向けの26.1用パック（任意・外部配信時のみ）。
   # url-774 / sha1-774 と同じ決まりですが、ホストするパックは
@@ -358,9 +399,18 @@ resource-pack:
   # 775クライアントには流用しません（「互換性なし」と表示されます）。
   # 26.1／26.1.1／26.1.2は1パックで共用します（プロトコル775）。
   # 空のままなら775クライアントにも1.20.4用パックを出します。
-  # ループバック配信では無視されます（17つとも自動生成・配信します）。
+  # ループバック配信では無視されます（18つとも自動生成・配信します）。
   url-775: ""
   sha1-775: ""
+  # 776クライアント向けの26.2用パック（任意・外部配信時のみ）。
+  # url-775 / sha1-775 と同じ決まりですが、ホストするパックは
+  # pack_format 88 のものが必要です。26.1用パック（format 84）は
+  # 776クライアントには流用しません（「互換性なし」と表示されます）。
+  # 26.2にホットフィックスはありません（プロトコル776）。
+  # 空のままなら776クライアントにも1.20.4用パックを出します。
+  # ループバック配信では無視されます（18つとも自動生成・配信します）。
+  url-776: ""
+  sha1-776: ""
   # Translation key for the prompt shown to the player (optional).
   # Empty means the default prompt (resource-pack.prompt).
   # クライアントに表示するプロンプトの翻訳キー（任意）。
