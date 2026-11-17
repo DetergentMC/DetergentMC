@@ -78,98 +78,6 @@
     <section class="section">
       <h2>対応マトリクス</h2>
       <p class="sub">どのバージョンのプレイヤーが、どのバージョンのサーバーに接続できるかの一覧です。ViaVersionのような追加プラグインは不要です。新しいバージョンのプレイヤーは古いサーバーに参加できますが、古いプレイヤーが新しいサーバーに参加できない組み合わせもあります。</p>
-      <div class="compare">
-        <table class="matrix">
-          <thead>
-            <tr>
-              <th rowspan="2" colspan="2" class="corner" aria-hidden="true"></th>
-              <th colspan="7" class="col-title">プレイヤーが接続できるバージョン</th>
-            </tr>
-            <tr>
-              <th>1.16.x</th>
-              <th>1.17.x</th>
-              <th>1.18.x</th>
-              <th>1.19.x</th>
-              <th>1.20.x</th>
-              <th>1.21.x</th>
-              <th>26.x</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th rowspan="7" class="row-title">サーバーのバージョン</th>
-              <th class="server">1.16.x</th>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-            </tr>
-            <tr>
-              <th class="server">1.17.x</th>
-              <td><span class="partial" aria-label="一部の組み合わせのみ参加できる">△</span></td>
-              <td><span class="partial" aria-label="一部の組み合わせのみ参加できる">△</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-            </tr>
-            <tr>
-              <th class="server">1.18.x</th>
-              <td><span class="cross" aria-label="参加できない">✕</span></td>
-              <td><span class="cross" aria-label="参加できない">✕</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-            </tr>
-            <tr>
-              <th class="server">1.19.x</th>
-              <td><span class="cross" aria-label="参加できない">✕</span></td>
-              <td><span class="cross" aria-label="参加できない">✕</span></td>
-              <td><span class="cross" aria-label="参加できない">✕</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-            </tr>
-            <tr>
-              <th class="server">1.20.x</th>
-              <td><span class="cross" aria-label="参加できない">✕</span></td>
-              <td><span class="cross" aria-label="参加できない">✕</span></td>
-              <td><span class="cross" aria-label="参加できない">✕</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-            </tr>
-            <tr>
-              <th class="server">1.21.x</th>
-              <td><span class="cross" aria-label="参加できない">✕</span></td>
-              <td><span class="cross" aria-label="参加できない">✕</span></td>
-              <td><span class="cross" aria-label="参加できない">✕</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-            </tr>
-            <tr>
-              <th class="server">26.x</th>
-              <td><span class="cross" aria-label="参加できない">✕</span></td>
-              <td><span class="cross" aria-label="参加できない">✕</span></td>
-              <td><span class="cross" aria-label="参加できない">✕</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-              <td><span class="check" aria-label="参加できる">✓</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
       <p class="legend"><span class="check sm" aria-hidden="true">✓</span> 参加できる（追加プラグイン不要） <span class="partial sm" aria-hidden="true">△</span> 一部の組み合わせのみ参加できる <span class="cross sm" aria-hidden="true">✕</span> 参加できない</p>
       <p class="note">△は、グループ内の組み合わせによって参加できるものとできないものが混ざっているセルです。1.17.xサーバー×1.16.xクライアントは1.17サーバー（755）の場合のみ参加でき、1.17.1サーバー（756）には参加できません。1.17.xサーバー×1.17.xクライアントは、1.17クライアント→1.17.1サーバーの組み合わせを除いて参加できます。</p>
       <p class="note">26.xの✕は、26.1（775）サーバーで古いクライアントが参加できないことを確認したものです。26.3（777）・26.2（776）サーバーと古いクライアントの組み合わせは未確認です。26.xの✓と1.18.xのセルも、26.2（776）・1.18.2（758）の組み合わせは未確認です。</p>
@@ -177,6 +85,10 @@
       <figure class="matrix-figure">
         <img src="matrix.svg" alt="対応マトリクス表（サーバーのバージョン×プレイヤーが接続できるバージョン）" />
         <figcaption>画像版：<a href="matrix.svg">SVG</a> ／ <a href="matrix.png">PNG</a></figcaption>
+      </figure>
+      <figure class="matrix-figure">
+        <img src="matrix-en.svg" alt="Compatibility matrix (server version × player version)" />
+        <figcaption>英語版：<a href="matrix-en.svg">SVG</a> ／ <a href="matrix-en.png">PNG</a></figcaption>
       </figure>
     </section>
 

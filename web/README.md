@@ -12,6 +12,8 @@ DetergentMC の公式ウェブサイトです。静的 HTML だけで作られ�
 | `versions.html` | 対応バージョン一覧（Java 28 プロトコル＋ Bedrock 33 プロトコル＋対応マトリクス＋今後の予定） |
 | `matrix.svg` | 対応マトリクス表の画像版（SVG。versions.html から表示） |
 | `matrix.png` | 対応マトリクス表の画像版（PNG。ダウンロード用） |
+| `matrix-en.svg` | 対応マトリクス表の画像版・英語版（SVG。versions.html から表示） |
+| `matrix-en.png` | 対応マトリクス表の画像版・英語版（PNG。ダウンロード用） |
 | `how.html` | 仕組み（3つのポート、バージョン間アダプター、Bedrock 対応） |
 | `products.html` | DetergentMC 本体とプラグイン「バブル」の説明 |
 | `roadmap.html` | これまでの道のりと今後の予定 |

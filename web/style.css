@@ -164,15 +164,6 @@ table.versions td:first-child { white-space: normal; color: var(--fg); }
 @media (max-width: 640px) { .footgrid { grid-template-columns: 1fr; } }
 
 /* --- compatibility matrix (versions.html) --- */
-table.matrix { min-width: 720px; }
-table.matrix th, table.matrix td { text-align: center; padding: 10px 8px; vertical-align: middle; }
-table.matrix th.col-title { font-size: 1.05rem; color: var(--fg); }
-table.matrix th.corner { background: transparent; border-bottom: 1px solid var(--line); }
-table.matrix th.server { text-align: left; white-space: nowrap; color: var(--fg); }
-table.matrix th.row-title {
-  writing-mode: vertical-rl; text-orientation: mixed;
-  text-align: center; color: var(--fg-2); font-size: 1rem; letter-spacing: 0.12em;
-}
 .check, .partial, .cross {
   display: inline-grid; place-items: center;
   width: 34px; height: 34px; border-radius: 50%;
