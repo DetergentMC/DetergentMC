@@ -58,8 +58,8 @@ class ProtocolVersion775Test {
 
     @Test
     void latestKnownIs775AndDefaultIsUnchanged() {
-        assertEquals(775, ProtocolVersion.LATEST_KNOWN);
-        assertEquals(ProtocolVersion.V26_1, ProtocolVersion.LATEST_KNOWN);
+        assertEquals(776, ProtocolVersion.LATEST_KNOWN);
+        assertEquals(ProtocolVersion.V26_2, ProtocolVersion.LATEST_KNOWN);
         // The default server version stays 1.20.4 (765): 26.1 is opt-in
         // via minecraft-version, not the new default.
         assertEquals("1.20.4", ProtocolVersion.DEFAULT_MINECRAFT_VERSION);

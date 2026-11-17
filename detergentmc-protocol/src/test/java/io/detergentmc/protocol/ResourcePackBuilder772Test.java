@@ -107,6 +107,6 @@ class ResourcePackBuilder772Test {
     @Test
     void packFormatForProtocolRejectsUnknownProtocol() {
         assertThrows(IllegalArgumentException.class,
-                () -> ResourcePackBuilder.packFormatForProtocol(776));
+                () -> ResourcePackBuilder.packFormatForProtocol(777));
     }
 }

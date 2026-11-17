@@ -38,7 +38,7 @@ class ClientProxy775Test {
         ClientProxy proxy = new ClientProxy(freePort(), "127.0.0.1", freePort(), false,
                 null, null, null, null, null, null,
                 ProxyAuthConfig.defaults(), null, null, null, null, null, null, null, null, null,
-                null, pack, 775);
+                null, pack, null, 775);
         assertEquals(775, proxy.internalProtocol());
         assertEquals(pack, proxy.pack775());
     }
@@ -48,7 +48,7 @@ class ClientProxy775Test {
         ClientProxy proxy = new ClientProxy(freePort(), "127.0.0.1", freePort(), false,
                 null, null, null, null, null, null,
                 ProxyAuthConfig.defaults(), null, null, null, null, null, null, null, null, null,
-                null, null, 775);
+                null, null, null, 775);
         assertEquals(775, proxy.internalProtocol());
         assertNull(proxy.pack775());
     }
@@ -59,25 +59,25 @@ class ClientProxy775Test {
         ClientProxy proxy774 = new ClientProxy(freePort(), "127.0.0.1", freePort(), false,
                 null, null, null, null, null, null,
                 ProxyAuthConfig.defaults(), null, null, null, null, null, null, null, null, null,
-                null, pack, 774);
+                null, pack, null, 774);
         assertEquals(774, proxy774.internalProtocol());
         assertEquals(pack, proxy774.pack775());
     }
 
     @Test
-    void internalProtocol776IsStillRejected() throws Exception {
+    void internalProtocol777IsStillRejected() throws Exception {
         try {
             new ClientProxy(freePort(), "127.0.0.1", freePort(), false,
                     null, null, null, null, null, null,
                     ProxyAuthConfig.defaults(), null, null, null, null, null, null, null, null,
-                    null, null, null, 776);
-            throw new AssertionError("expected IllegalArgumentException for 776");
+                    null, null, null, null, 777);
+            throw new AssertionError("expected IllegalArgumentException for 777");
         } catch (IllegalArgumentException expected) {
-            assertTrue(expected.getMessage().contains("775"), expected.getMessage());
+            assertTrue(expected.getMessage().contains("776"), expected.getMessage());
         }
-        // 中間コンストラクタ経由でも 776 は拒否される。
+        // 中間コンストラクタ経由でも 777 は拒否される。
         assertThrows(IllegalArgumentException.class, () -> new ClientProxy(
                 freePort(), "127.0.0.1", freePort(), false,
-                null, null, null, ProxyAuthConfig.defaults(), null, null, null, 776));
+                null, null, null, ProxyAuthConfig.defaults(), null, null, null, 777));
     }
 }

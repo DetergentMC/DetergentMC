@@ -46,7 +46,7 @@ class ClientAdapterTest {
 
     @Test
     void rejectsNewerClients() {
-        Handshake handshake = ClientAdapter.decide(776);
+        Handshake handshake = ClientAdapter.decide(777);
         assertEquals(Decision.REJECT_TOO_NEW, handshake.decision());
         assertFalse(handshake.accepted());
     }
@@ -61,7 +61,7 @@ class ClientAdapterTest {
 
     @Test
     void supportedProtocolsAre1201And1202And1204() {
-        assertEquals(List.of(759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775), ClientAdapter.supportedClientProtocols());
+        assertEquals(List.of(480, 485, 490, 498, 573, 575, 578, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776), ClientAdapter.supportedClientProtocols());
     }
 
     @Test

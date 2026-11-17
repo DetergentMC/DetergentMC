@@ -37,7 +37,7 @@ class PacketIds772Test {
     @Test
     void tableKnows772() {
         assertTrue(PacketIds.isSupported(V772));
-        assertEquals(List.of(759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775),
+        assertEquals(List.of(480, 485, 490, 498, 573, 575, 578, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776),
                 PacketIds.supportedProtocols());
     }
 
