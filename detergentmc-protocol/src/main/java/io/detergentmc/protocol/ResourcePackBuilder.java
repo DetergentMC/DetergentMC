@@ -43,6 +43,23 @@ import javax.imageio.ImageIO;
  * block. It is likewise only a look + a mapping table — vanilla has no
  * such block id, so no new block id is ever sent to a client.
  *
+ * <h2>1.18.2 variant (protocol 758, {@code pack_format} 8)</h2>
+ *
+ * <p>The same demo assets are also built as a 1.18.2 pack
+ * ({@link #build758(Path)}): the only difference is
+ * {@code pack.mcmeta} ({@code pack_format} 8 instead of 22).
+ * The 1.18.2 resource-pack format is 8: the real vanilla 1.18.2
+ * server jar (SHA-1 c8f83c5655308435b3dcf03c06d9fe8740a77469) reports
+ * {@code pack_version.resource} 8 in its {@code version.json}.
+ * The demo assets themselves contain no 1.19-only constructs — the
+ * {@code item/generated} parent and the {@code custom_model_data}
+ * override predicate have existed since long before 1.18.2 — so nothing
+ * has to be removed or replaced for 1.18.2; the format number is what
+ * a 1.18.2 client checks. A 1.18.2 client offered the format-9 pack
+ * would show it as incompatible, which is why the proxy offers each
+ * client the pack matching its protocol version
+ * (see {@link PlayTranslator#buildPlayResourcePack763}).
+ *
  * <h2>1.19 variant (protocol 759, {@code pack_format} 9)</h2>
  *
  * <p>The same demo assets are also built as a 1.19 pack
@@ -220,6 +237,67 @@ import javax.imageio.ImageIO;
 public final class ResourcePackBuilder {
 
     /**
+     * Minecraft 1.14.4 resource-pack format (real vanilla 1.14.4 server
+     * jar {@code version.json}: {@code pack_version} 4; the 1.14.4
+     * version.json carries a single pack_version for resource and data).
+     */
+    /**
+     * Minecraft 1.14.3 resource-pack format (real vanilla 1.14.3 server
+     * jar {@code version.json}: {@code pack_version} 4; same value as
+     * 1.14.4).
+     */
+    /**
+     * Minecraft 1.14.2 resource-pack format (real vanilla 1.14.2 server
+     * jar {@code version.json}: {@code pack_version} 4; same value as
+     * 1.14.3).
+     */
+    /**
+     * Minecraft 1.14.1 resource-pack format (real vanilla 1.14.1 server
+     * jar {@code version.json}: {@code pack_version} 4; same value as
+     * 1.14.2).
+     */
+    /**
+     * Minecraft 1.14 resource-pack format (real vanilla 1.14 server
+     * jar {@code version.json}: {@code pack_version} 4; same value as
+     * 1.14.1).
+     */
+    public static final int PACK_FORMAT_1_14 = 4;
+
+    public static final int PACK_FORMAT_1_14_1 = 4;
+
+    public static final int PACK_FORMAT_1_14_2 = 4;
+
+    public static final int PACK_FORMAT_1_14_3 = 4;
+
+    public static final int PACK_FORMAT_1_14_4 = 4;
+
+    /**
+     * Minecraft 1.15 resource-pack format (real vanilla 1.15 server
+     * jar {@code version.json}: {@code pack_version} 5; the 1.15.x
+     * version.json carries a single pack_version for resource and data).
+     */
+    public static final int PACK_FORMAT_1_15 = 5;
+
+    /**
+     * Minecraft 1.15.1 resource-pack format (real vanilla 1.15.1 server
+     * jar {@code version.json}: {@code pack_version} 5; the 1.15.x
+     * version.json carries a single pack_version for resource and data).
+     */
+    public static final int PACK_FORMAT_1_15_1 = 5;
+
+    /**
+     * Minecraft 1.15.2 resource-pack format (real vanilla 1.15.2 server
+     * jar {@code version.json}: {@code pack_version.resource} 5).
+     */
+    public static final int PACK_FORMAT_1_15_2 = 5;
+
+    /**
+     * Minecraft 1.18.2 resource-pack format (real vanilla 1.18.2 server
+     * jar {@code version.json}: {@code pack_version.resource} 8).
+     */
+    public static final int PACK_FORMAT_1_18_2 = 8;
+
+    /**
      * Minecraft 1.19 resource-pack format (Minecraft Wiki: pack_format 9).
      * 1.19 and 1.19.1 / 1.19.2 share the format, so this is the same
      * value as {@link #PACK_FORMAT_1_19_1}; it exists so 759 call sites
@@ -275,8 +353,38 @@ public final class ResourcePackBuilder {
     /** Minecraft 26.1 resource-pack format (26.1 server jar version.json: pack resource 84.0). */
     public static final int PACK_FORMAT_26_1 = 84;
 
+    /** Minecraft 26.2 resource-pack format (26.2 server jar version.json: pack resource 88.0). */
+    public static final int PACK_FORMAT_26_2 = 88;
+
     /** File name of the generated pack inside the output directory. */
     public static final String PACK_FILE_NAME = "detergentmc-pack.zip";
+
+    /** File name of the generated 1.14.4 pack inside the output directory. */
+    /** File name of the generated 1.14.3 pack inside the output directory. */
+    /** File name of the generated 1.14.2 pack inside the output directory. */
+    /** File name of the generated 1.14.1 pack inside the output directory. */
+    /** File name of the generated 1.14 pack inside the output directory. */
+    public static final String PACK_FILE_NAME_477 = "detergentmc-pack-1.14.zip";
+
+    public static final String PACK_FILE_NAME_480 = "detergentmc-pack-1.14.1.zip";
+
+    public static final String PACK_FILE_NAME_485 = "detergentmc-pack-1.14.2.zip";
+
+    public static final String PACK_FILE_NAME_490 = "detergentmc-pack-1.14.3.zip";
+
+    public static final String PACK_FILE_NAME_498 = "detergentmc-pack-1.14.4.zip";
+
+    /** File name of the generated 1.15 pack inside the output directory. */
+    public static final String PACK_FILE_NAME_573 = "detergentmc-pack-1.15.zip";
+
+    /** File name of the generated 1.15.1 pack inside the output directory. */
+    public static final String PACK_FILE_NAME_575 = "detergentmc-pack-1.15.1.zip";
+
+    /** File name of the generated 1.15.2 pack inside the output directory. */
+    public static final String PACK_FILE_NAME_578 = "detergentmc-pack-1.15.2.zip";
+
+    /** File name of the generated 1.18.2 pack inside the output directory. */
+    public static final String PACK_FILE_NAME_758 = "detergentmc-pack-1.18.2.zip";
 
     /** File name of the generated 1.19 pack inside the output directory. */
     public static final String PACK_FILE_NAME_759 = "detergentmc-pack-1.19.zip";
@@ -354,6 +462,11 @@ public final class ResourcePackBuilder {
      */
     public static final String PACK_FILE_NAME_775 = "detergentmc-pack-26.1.zip";
 
+    /** File name of the generated 26.2 pack inside the output directory
+     * (protocol 776, resource-pack format 88). 26.2 has no hotfix releases.
+     */
+    public static final String PACK_FILE_NAME_776 = "detergentmc-pack-26.2.zip";
+
     /** Path of the bubble texture inside the pack. */
     public static final String BUBBLE_TEXTURE_PATH =
             "assets/detergentmc/textures/item/bubble.png";
@@ -370,6 +483,15 @@ public final class ResourcePackBuilder {
     public static final int BUBBLE_CUSTOM_MODEL_DATA = 1;
 
     private static final String PACK_MCMETA = "{\"pack\":{\"pack_format\":22,"
+            + "\"description\":\"DetergentMC resource pack\"}}";
+
+    private static final String PACK_MCMETA_498 = "{\"pack\":{\"pack_format\":4,"
+            + "\"description\":\"DetergentMC resource pack\"}}";
+
+    private static final String PACK_MCMETA_578 = "{\"pack\":{\"pack_format\":5,"
+            + "\"description\":\"DetergentMC resource pack\"}}";
+
+    private static final String PACK_MCMETA_758 = "{\"pack\":{\"pack_format\":8,"
             + "\"description\":\"DetergentMC resource pack\"}}";
 
     private static final String PACK_MCMETA_760 = "{\"pack\":{\"pack_format\":9,"
@@ -417,6 +539,9 @@ public final class ResourcePackBuilder {
     private static final String PACK_MCMETA_775 = "{\"pack\":{\"pack_format\":84,"
             + "\"description\":\"DetergentMC resource pack\"}}";
 
+    private static final String PACK_MCMETA_776 = "{\"pack\":{\"pack_format\":88,"
+            + "\"description\":\"DetergentMC resource pack\"}}";
+
     private static final String BUBBLE_MODEL_JSON = "{\"parent\":\"item/generated\","
             + "\"textures\":{\"layer0\":\"detergentmc:item/bubble\"}}";
 
@@ -439,16 +564,26 @@ public final class ResourcePackBuilder {
 
     /**
      * The resource-pack format for a client protocol version:
-     * 9 for 759 (1.19) and 760 (1.19.1 / 1.19.2), 12 for 761 (1.19.3), 13 for 762 (1.19.4), 15 for 763 (1.20.1), 18 for 764 (1.20.2), 22 for 765 (1.20.4),
+     * 8 for 758 (1.18.2), 9 for 759 (1.19) and 760 (1.19.1 / 1.19.2), 12 for 761 (1.19.3), 13 for 762 (1.19.4), 15 for 763 (1.20.1), 18 for 764 (1.20.2), 22 for 765 (1.20.4),
      * 32 for 766 (1.20.5 / 1.20.6), 34 for 767 (1.21 / 1.21.1),
      * 42 for 768 (1.21.2 / 1.21.3), 46 for 769 (1.21.4),
      * 55 for 770 (1.21.5), 63 for 771 (1.21.6), 64 for 772 (1.21.7／1.21.8),
-     * 69 for 773 (1.21.9／1.21.10), 75 for 774 (1.21.11), 84 for 775 (26.1).
+     * 69 for 773 (1.21.9／1.21.10), 75 for 774 (1.21.11), 84 for 775 (26.1),
+     * 88 for 776 (26.2).
      *
      * @throws IllegalArgumentException for any other protocol version
      */
     public static int packFormatForProtocol(int protocolVersion) {
         return switch (protocolVersion) {
+            case ProtocolVersion.V1_14 -> PACK_FORMAT_1_14;
+            case ProtocolVersion.V1_14_1 -> PACK_FORMAT_1_14_1;
+            case ProtocolVersion.V1_14_2 -> PACK_FORMAT_1_14_2;
+            case ProtocolVersion.V1_14_3 -> PACK_FORMAT_1_14_3;
+            case ProtocolVersion.V1_14_4 -> PACK_FORMAT_1_14_4;
+            case ProtocolVersion.V1_15 -> PACK_FORMAT_1_15;
+            case ProtocolVersion.V1_15_1 -> PACK_FORMAT_1_15_1;
+            case ProtocolVersion.V1_15_2 -> PACK_FORMAT_1_15_2;
+            case ProtocolVersion.V1_18_2 -> PACK_FORMAT_1_18_2;
             case ProtocolVersion.V1_19 -> PACK_FORMAT_1_19;
             case ProtocolVersion.V1_19_1 -> PACK_FORMAT_1_19_1;
             case ProtocolVersion.V1_19_3 -> PACK_FORMAT_1_19_3;
@@ -466,6 +601,7 @@ public final class ResourcePackBuilder {
             case ProtocolVersion.V1_21_9 -> PACK_FORMAT_1_21_9;
             case ProtocolVersion.V1_21_11 -> PACK_FORMAT_1_21_11;
             case ProtocolVersion.V26_1 -> PACK_FORMAT_26_1;
+            case ProtocolVersion.V26_2 -> PACK_FORMAT_26_2;
             default -> throw new IllegalArgumentException(
                     "No resource-pack format known for protocol " + protocolVersion);
         };
@@ -479,6 +615,102 @@ public final class ResourcePackBuilder {
      */
     public BuiltPack build(Path outputDir) throws IOException {
         return build(outputDir, PACK_FORMAT_1_20_4, PACK_FILE_NAME);
+    }
+
+    /**
+     * Builds the 1.15 variant of the pack into
+     * {@code outputDir/detergentmc-pack-1.15.zip} and returns the file
+     * plus its SHA-1. Same demo assets as {@link #build(Path)}, only
+     * {@code pack.mcmeta} differs ({@code pack_format} 5, identical
+     * content to the 1.15.1/1.15.2 variants).
+     */
+    /**
+     * Builds the 1.14.4 variant of the pack into
+     * {@code outputDir/detergentmc-pack-1.14.4.zip} and returns the file
+     * plus its SHA-1. Same demo assets as {@link #build(Path)}, only
+     * {@code pack.mcmeta} differs ({@code pack_format} 4).
+     */
+    /**
+     * Builds the 1.14.3 variant of the pack into
+     * {@code outputDir/detergentmc-pack-1.14.3.zip} and returns the file
+     * plus its SHA-1. Same demo assets as {@link #build(Path)}, only
+     * {@code pack.mcmeta} differs ({@code pack_format} 4, identical
+     * content to the 1.14.4 variant).
+     */
+    /**
+     * Builds the 1.14.2 variant of the pack into
+     * {@code outputDir/detergentmc-pack-1.14.2.zip} and returns the file
+     * plus its SHA-1. Same demo assets as {@link #build(Path)}, only
+     * {@code pack.mcmeta} differs ({@code pack_format} 4, identical
+     * content to the 1.14.3 variant).
+     */
+    /**
+     * Builds the 1.14.1 variant of the pack into
+     * {@code outputDir/detergentmc-pack-1.14.1.zip} and returns the file
+     * plus its SHA-1. Same demo assets as {@link #build(Path)}, only
+     * {@code pack.mcmeta} differs ({@code pack_format} 4, identical
+     * content to the 1.14.2 variant).
+     */
+    /**
+     * Builds the 1.14 variant of the pack into
+     * {@code outputDir/detergentmc-pack-1.14.zip} and returns the file
+     * plus its SHA-1. Same demo assets as {@link #build(Path)}, only
+     * {@code pack.mcmeta} differs ({@code pack_format} 4, identical
+     * content to the 1.14.1 variant).
+     */
+    public BuiltPack build477(Path outputDir) throws IOException {
+        return build(outputDir, PACK_FORMAT_1_14, PACK_FILE_NAME_477);
+    }
+
+    public BuiltPack build480(Path outputDir) throws IOException {
+        return build(outputDir, PACK_FORMAT_1_14_1, PACK_FILE_NAME_480);
+    }
+
+    public BuiltPack build485(Path outputDir) throws IOException {
+        return build(outputDir, PACK_FORMAT_1_14_2, PACK_FILE_NAME_485);
+    }
+
+    public BuiltPack build490(Path outputDir) throws IOException {
+        return build(outputDir, PACK_FORMAT_1_14_3, PACK_FILE_NAME_490);
+    }
+
+    public BuiltPack build498(Path outputDir) throws IOException {
+        return build(outputDir, PACK_FORMAT_1_14_4, PACK_FILE_NAME_498);
+    }
+
+    public BuiltPack build573(Path outputDir) throws IOException {
+        return build(outputDir, PACK_FORMAT_1_15, PACK_FILE_NAME_573);
+    }
+
+    /**
+     * Builds the 1.15.1 variant of the pack into
+     * {@code outputDir/detergentmc-pack-1.15.1.zip} and returns the file
+     * plus its SHA-1. Same demo assets as {@link #build(Path)}, only
+     * {@code pack.mcmeta} differs ({@code pack_format} 5, identical
+     * content to the 1.15.2 variant).
+     */
+    public BuiltPack build575(Path outputDir) throws IOException {
+        return build(outputDir, PACK_FORMAT_1_15_1, PACK_FILE_NAME_575);
+    }
+
+    /**
+     * Builds the 1.15.2 variant of the pack into
+     * {@code outputDir/detergentmc-pack-1.15.2.zip} and returns the file
+     * plus its SHA-1. Same demo assets as {@link #build(Path)}, only
+     * {@code pack.mcmeta} differs ({@code pack_format} 5).
+     */
+    public BuiltPack build578(Path outputDir) throws IOException {
+        return build(outputDir, PACK_FORMAT_1_15_2, PACK_FILE_NAME_578);
+    }
+
+    /**
+     * Builds the 1.18.2 variant of the pack into
+     * {@code outputDir/detergentmc-pack-1.18.2.zip} and returns the file
+     * plus its SHA-1. Same demo assets as {@link #build(Path)}, only
+     * {@code pack.mcmeta} differs ({@code pack_format} 8).
+     */
+    public BuiltPack build758(Path outputDir) throws IOException {
+        return build(outputDir, PACK_FORMAT_1_18_2, PACK_FILE_NAME_758);
     }
 
     /**
@@ -648,6 +880,17 @@ public final class ResourcePackBuilder {
         return build(outputDir, PACK_FORMAT_26_1, PACK_FILE_NAME_775);
     }
 
+    /**
+     * Builds the 26.2 variant of the pack into
+     * {@code outputDir/detergentmc-pack-26.2.zip} and returns the file
+     * plus its SHA-1. Same demo assets as {@link #build(Path)}, only
+     * {@code pack.mcmeta} differs ({@code pack_format} 88). 26.2 has no
+     * hotfix releases, so one pack serves all of 26.2: protocol 776.
+     */
+    public BuiltPack build776(Path outputDir) throws IOException {
+        return build(outputDir, PACK_FORMAT_26_2, PACK_FILE_NAME_776);
+    }
+
     private BuiltPack build(Path outputDir, int packFormat, String fileName)
             throws IOException {
         if (outputDir == null) {
@@ -662,6 +905,51 @@ public final class ResourcePackBuilder {
     /** Writes the pack zip to {@code file}. */
     public void writePack(Path file) throws IOException {
         writePack(file, PACK_FORMAT_1_20_4);
+    }
+
+    /** Writes the 1.14.2 variant of the pack zip to {@code file}. */
+    /** Writes the 1.14.1 variant of the pack zip to {@code file}. */
+    /** Writes the 1.14 variant of the pack zip to {@code file}. */
+    public void writePack477(Path file) throws IOException {
+        writePack(file, PACK_FORMAT_1_14);
+    }
+
+    public void writePack480(Path file) throws IOException {
+        writePack(file, PACK_FORMAT_1_14_1);
+    }
+
+    public void writePack485(Path file) throws IOException {
+        writePack(file, PACK_FORMAT_1_14_2);
+    }
+
+    /** Writes the 1.14.3 variant of the pack zip to {@code file}. */
+    public void writePack490(Path file) throws IOException {
+        writePack(file, PACK_FORMAT_1_14_3);
+    }
+
+    /** Writes the 1.14.4 variant of the pack zip to {@code file}. */
+    public void writePack498(Path file) throws IOException {
+        writePack(file, PACK_FORMAT_1_14_4);
+    }
+
+    /** Writes the 1.15 variant of the pack zip to {@code file}. */
+    public void writePack573(Path file) throws IOException {
+        writePack(file, PACK_FORMAT_1_15);
+    }
+
+    /** Writes the 1.15.1 variant of the pack zip to {@code file}. */
+    public void writePack575(Path file) throws IOException {
+        writePack(file, PACK_FORMAT_1_15_1);
+    }
+
+    /** Writes the 1.15.2 variant of the pack zip to {@code file}. */
+    public void writePack578(Path file) throws IOException {
+        writePack(file, PACK_FORMAT_1_15_2);
+    }
+
+    /** Writes the 1.18.2 variant of the pack zip to {@code file}. */
+    public void writePack758(Path file) throws IOException {
+        writePack(file, PACK_FORMAT_1_18_2);
     }
 
     /** Writes the 1.19 variant of the pack zip to {@code file}. */
@@ -739,9 +1027,17 @@ public final class ResourcePackBuilder {
         writePack(file, PACK_FORMAT_26_1);
     }
 
+    /** Writes the 26.2 variant of the pack zip to {@code file}. */
+    public void writePack776(Path file) throws IOException {
+        writePack(file, PACK_FORMAT_26_2);
+    }
+
     /** Writes the pack zip with the given {@code pack_format} to {@code file}. */
     public void writePack(Path file, int packFormat) throws IOException {
         String mcmeta = switch (packFormat) {
+            case PACK_FORMAT_1_14_4 -> PACK_MCMETA_498;
+            case PACK_FORMAT_1_15_2 -> PACK_MCMETA_578;
+            case PACK_FORMAT_1_18_2 -> PACK_MCMETA_758;
             case PACK_FORMAT_1_19_1 -> PACK_MCMETA_760;
             case PACK_FORMAT_1_19_3 -> PACK_MCMETA_761;
             case PACK_FORMAT_1_19_4 -> PACK_MCMETA_762;
@@ -758,6 +1054,7 @@ public final class ResourcePackBuilder {
             case PACK_FORMAT_1_21_9 -> PACK_MCMETA_773;
             case PACK_FORMAT_1_21_11 -> PACK_MCMETA_774;
             case PACK_FORMAT_26_1 -> PACK_MCMETA_775;
+            case PACK_FORMAT_26_2 -> PACK_MCMETA_776;
             default -> throw new IllegalArgumentException(
                     "Unknown resource-pack format: " + packFormat);
         };
