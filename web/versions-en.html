@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Supported versions — DetergentMC</title>
-  <meta name="description" content="DetergentMC supported version list. 28 protocols supported, from 1.16 to 26.3. 1.15.x and earlier are planned.">
+  <meta name="description" content="DetergentMC supported version list. 35 protocols supported, from 1.14.1 to 26.3. 1.14 is in final verification.">
   <meta property="og:title" content="Supported versions — DetergentMC">
-  <meta property="og:description" content="DetergentMC supported version list. 28 protocols supported, from 1.16 to 26.3. 1.15.x and earlier are planned.">
+  <meta property="og:description" content="DetergentMC supported version list. 35 protocols supported, from 1.14.1 to 26.3. 1.14 is in final verification.">
   <meta property="og:type" content="website">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
@@ -31,9 +31,9 @@
 
     <section class="page-head">
       <h1>Supported versions</h1>
-      <p class="lead">From 1.16 to 26.3, <strong>28 protocols</strong> are supported. Client × server is 28 × 28 = <strong>784 combinations</strong>. The final goal is to support every version from 1.0 to the latest.</p>
+      <p class="lead">From 1.14.1 to 26.3, <strong>35 protocols</strong> are supported. Client × server is 35 × 35 = <strong>1,225 combinations</strong>. 1.14 (477) is in final verification. The final goal is to support every version from 1.0 to the latest.</p>
       <p class="legend"><span class="badge done">Supported</span> Verified at the protocol level <span class="badge wip">In progress</span> Under development <span class="badge plan">Planned</span> Not started</p>
-      <p class="note">"Supported" means protocol-level verification (tests with a fake client and a genuine vanilla server) has passed. No combination has been checked with a real game client yet. Of the 784 combinations, 6 cells including 1.18.2 have been confirmed in integration tests, and the rest are being checked in turn.</p>
+      <p class="note">"Supported" means protocol-level verification (tests with a fake client and a genuine vanilla server) has passed. No combination has been checked with a real game client yet. Of the 1,225 combinations, only some have been confirmed in integration tests (6 cells including 1.18.2, and a few cells for each of 1.14.x and 1.15.x). The rest are checked with unit tests.</p>
     </section>
 
     <section class="section">
@@ -42,6 +42,14 @@
         <table class="versions">
           <thead><tr><th>Version</th><th>Protocol</th><th>Status</th><th>Java</th><th>Resource pack format</th><th>Notes</th></tr></thead>
           <tbody>
+            <tr><td>1.14</td><td>477</td><td><span class="badge wip">In progress</span></td><td>8</td><td>4</td><td>In final verification</td></tr>
+            <tr><td>1.14.1</td><td>480</td><td><span class="badge done">Supported</span></td><td>8</td><td>4</td><td>Wire format identical to 1.14.2</td></tr>
+            <tr><td>1.14.2</td><td>485</td><td><span class="badge done">Supported</span></td><td>8</td><td>4</td><td></td></tr>
+            <tr><td>1.14.3</td><td>490</td><td><span class="badge done">Supported</span></td><td>8</td><td>4</td><td></td></tr>
+            <tr><td>1.14.4</td><td>498</td><td><span class="badge done">Supported</span></td><td>8</td><td>4</td><td>Packets and formats differ from the 1.15 series</td></tr>
+            <tr><td>1.15</td><td>573</td><td><span class="badge done">Supported</span></td><td>8</td><td>5</td><td>The 1.15 series shares one wire format</td></tr>
+            <tr><td>1.15.1</td><td>575</td><td><span class="badge done">Supported</span></td><td>8</td><td>5</td><td></td></tr>
+            <tr><td>1.15.2</td><td>578</td><td><span class="badge done">Supported</span></td><td>8</td><td>5</td><td></td></tr>
             <tr><td>1.16</td><td>735</td><td><span class="badge done">Supported</span></td><td>8</td><td>5</td><td></td></tr>
             <tr><td>1.16.1</td><td>736</td><td><span class="badge done">Supported</span></td><td>8</td><td>5</td><td></td></tr>
             <tr><td>1.16.2</td><td>751</td><td><span class="badge done">Supported</span></td><td>8</td><td>6</td><td></td></tr>
@@ -104,7 +112,7 @@
         <table class="versions">
           <thead><tr><th>Version</th><th>Status</th><th>Notes</th></tr></thead>
           <tbody>
-            <tr><td>1.15.x and earlier (1.0–1.15.x)</td><td><span class="badge plan">Planned</span></td><td>Supported up to 1.16. Next we will decide whether to go back to 1.15.x and earlier</td></tr>
+            <tr><td>1.13.x and earlier (1.0–1.13.x)</td><td><span class="badge plan">Planned</span></td><td>Work is descending one version at a time from 578, complete down to 480 (1.14.1). The goal is 335 (1.12)</td></tr>
             <tr><td>April Fools versions (2.0, 15w14a, 20w14∞, 24w14potato, 25w14craftmine, etc.)</td><td><span class="badge plan">Planned</span></td><td>Because both the protocol and the contents differ from normal releases, each needs its own dedicated support</td></tr>
           </tbody>
         </table>

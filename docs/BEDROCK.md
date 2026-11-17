@@ -233,6 +233,22 @@ Bedrock クライアントに、スポーン周辺の地形が見える。Java �
      （`BedrockMatrixIntegrationTest.matrixAgainst1_21_5` で発覚）。
      minecraft-data の protocol.json は chunkData を不透明な ByteArray として
      扱うため、この変更は protocol.json には現れない。
+   - **26.1（775）／26.2（776）のセクションは blockCount の後に 2 バイトの
+     追加フィールドがある**（実バニラ 26.1／26.2 のスポーンチャンクをダンプして
+     確認。値は変わる：26.2 のセクション 0 で 14。内容は未確認のため
+     `BedrockChunkTranslator` は読み飛ばす。770〜774 には無い）。これを
+     読まないとセクションがずれ、全セクションが壊れる（2026-11-15、
+     `matrixAgainst26_1` が 9 件失敗の残り 1 件だった原因）。
+   - **BitStorage の詰め方は旧式（1 long あたり 64 / bits 個、long の境界を
+     またがない）**。long 数は `(entryCount + perLong - 1) / perLong`
+     （perLong = 64 / bits）。2026-11-14 に「連続詰め
+     （`(entryCount * bits + 63) / 64`）」に変えたが誤診だった：実バニラ
+     1.20.1（763）のワイヤは b=5 で 342 long（=旧式）であり、26.2 の
+     チャンクも旧式でなければ読めない（新式ではセクション 9 で壊れる）。
+     接頭辞あり（758〜769）ではワイヤの長さを見て両方式に対応する。
+     なお Java 側の `ChunkTranslator` は同じ 11-14 の新式の仮定を共有して
+     おり、ブロック値の誤訳の疑いがある（別途調査が必要。Java の統合テストは
+     Join Game の到達だけを見るため気付かない）。
    - 列は常に次元いっぱい（オーバーワールド 24 サブチャンク Y -4..19、
      ネザー 8、エンド 16）。光データは送らない（Bedrock 側が明るさを計算する）。
    - Java のブロック順序（x | z<<4 | y<<8）を Bedrock の XZY 順
