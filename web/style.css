@@ -182,4 +182,7 @@ table.matrix th.row-title {
 .partial { background: var(--accent-2); color: #0b0f14; }
 .cross { background: var(--rust); color: #fff; }
 .check.sm, .partial.sm, .cross.sm { width: 24px; height: 24px; font-size: 0.85rem; }
+.matrix-figure { margin: 18px 0 0; }
+.matrix-figure img { max-width: 100%; height: auto; display: block; background: #fff; }
+.matrix-figure figcaption { margin-top: 8px; color: var(--fg-2); font-size: 0.95rem; }
 
