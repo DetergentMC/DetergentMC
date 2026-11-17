@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Roadmap — DetergentMC</title>
+  <meta name="description" content="DetergentMC's journey so far and what's next. From 1.20.4 to 1.21.11, the 1.19 series, 26.1, 26.2, the 1.18 series, the 1.17 series, the 1.16 series, and 26.3. Next: 1.15.x and earlier, Bedrock back to 1.8, or real-client testing.">
+  <meta property="og:title" content="Roadmap — DetergentMC">
+  <meta property="og:description" content="DetergentMC's journey so far and what's next. From 1.20.4 to 1.21.11, the 1.19 series, 26.1, 26.2, the 1.18 series, the 1.17 series, the 1.16 series, and 26.3. Next: 1.15.x and earlier, Bedrock back to 1.8, or real-client testing.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="index-en.html" aria-label="DetergentMC">
+      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="7" fill="var(--accent)"/><path d="M10 9h6.5a6.5 7 0 0 1 0 14H10z" fill="none" stroke="#0b0f14" stroke-width="3.2"/></svg>
+      <span>DetergentMC</span>
+    </a>
+    <nav>
+      <a href="index-en.html">Home</a>
+      <a href="how-en.html">How it works</a>
+      <a href="products-en.html">Products</a>
+      <a href="roadmap-en.html" class="active">Roadmap</a>
+      <a href="versions-en.html">Versions</a>
+      <a href="https://github.com/DetergentMC/DetergentMC" rel="noopener">GitHub</a>
+      <a href="roadmap.html" class="lang">日本語</a>
+    </nav>
+  </header>
+  <main>
+
+    <section class="page-head">
+      <h1>Roadmap</h1>
+      <p class="lead">Starting from 1.20.4, we went up to 1.21.11, back to the 1.19 series, through 26.1 and 26.2, back to the 1.18, 1.17, and 1.16 series, and reached 26.3. The final goal is support for every version from 1.0 to the latest.</p>
+    </section>
+
+    <section class="section">
+      <h2>The journey so far</h2>
+      <div class="phases">
+        <div class="phase">
+          <span class="phase-no">2026-11-08</span>
+          <h3>Starting from 1.20.4</h3>
+          <p>We chose our own path built on vanilla and named it DetergentMC. With the proxy, internal vanilla, and resource pack delivery setup, we reached a playable minimum.</p>
+        </div>
+        <div class="phase">
+          <span class="phase-no">2026-11-08 – 09</span>
+          <h3>Cross-connecting the 1.20 series</h3>
+          <p>Mutual connections between client × server, 16 combinations, from 1.20.1 (763) to 1.20.5 / 1.20.6 (766). The reverse direction (a newer client joining an older server) is supported too.</p>
+        </div>
+        <div class="phase">
+          <span class="phase-no">2026-11-10</span>
+          <h3>Bedrock support</h3>
+          <p>Support for 30 RakNet protocols. Translation of chunks, block states, and entities, and started accepting Bedrock clients.</p>
+        </div>
+        <div class="phase">
+          <span class="phase-no">2026-11-10 – 13</span>
+          <h3>1.21 to 1.21.11</h3>
+          <p>Supported versions in order from 1.21 (767) to 1.21.11 (774). Tests reached 2,314.</p>
+        </div>
+        <div class="phase">
+          <span class="phase-no">2026-11-13 – 14</span>
+          <h3>Going back to the 1.19 series</h3>
+          <p>Completed the four 1.19-series protocols, from 1.19.4 (762) to 1.19 (759). 16 protocols, and the matrix reached 256 combinations.</p>
+        </div>
+        <div class="phase">
+          <span class="phase-no">2026-11-15</span>
+          <h3>Supporting 26.1</h3>
+          <p>Completed 26.1 (775). 17 protocols, 289 matrix combinations, and 2,866 tests. The internal server requires Java 25.</p>
+        </div>
+        <div class="phase">
+          <span class="phase-no">2026-11-15</span>
+          <h3>Supporting 26.3</h3>
+          <p>Completed 26.3 (777). The internal server requires Java 25.</p>
+        </div>
+        <div class="phase">
+          <span class="phase-no">2026-11-15 – 16</span>
+          <h3>Going back from the 1.18 series to 1.16</h3>
+          <p>Completed the 8 protocols 757, 756, 755, 754, 753, 751, 736, and 735. By 2026-11-17, all 28 versions had been confirmed to start with fat jars.</p>
+        </div>
+        <div class="phase">
+          <span class="phase-no">2026-11-17</span>
+          <h3>Making every version playable</h3>
+          <p>Startup confirmed for all 28 versions from 735 to 777 with 2 fat jars. Joining with a real game client is still unconfirmed.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>What's next — not decided yet</h2>
+      <p class="sub">What to do next hasn't been decided yet. There are three candidates:</p>
+      <ol class="steps">
+        <li><strong>Go further back (1.15.x and earlier)</strong> — go back to 1.15.x and earlier to widen support. Protocol numbers, Java requirements, and resource pack formats need to be checked before starting.</li>
+        <li><strong>Take Bedrock back to 1.8</strong> — a loop going back one version at a time from the latest; currently supported back to 1.19.70.</li>
+        <li><strong>Real-client testing</strong> — testing with real game clients. No combination has been done yet. Confirming two players joining at the same time is the most important remaining verification.</li>
+      </ol>
+      <p class="note">Once it's decided, this page will be updated too.</p>
+    </section>
+  </main>
+  <footer>
+    <div class="footgrid">
+      <div>
+        <strong>DetergentMC</strong>
+        <p>Built on vanilla, with our own API, for every version.</p>
+      </div>
+      <div>
+        <a href="how-en.html">How it works</a> · <a href="products-en.html">Products</a> · <a href="roadmap-en.html">Roadmap</a> · <a href="versions-en.html">Versions</a><br>
+        <a href="https://github.com/DetergentMC/DetergentMC" rel="noopener">DetergentMC (source code)</a> · <a href="https://github.com/DetergentMC/DetergentWeb" rel="noopener">Site source</a>
+      </div>
+    </div>
+    <p class="disclaimer">© 2026 DetergentMC · DetergentMC is not an official Mojang Studios / Microsoft product, and is not approved by them. "Minecraft" is a trademark of Mojang Synergies AB.</p>
+  </footer>
+</body>
+</html>

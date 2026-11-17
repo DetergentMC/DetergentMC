@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Products — DetergentMC</title>
+  <meta name="description" content="About DetergentMC itself and the plugin called “Bubble”. A free, open project.">
+  <meta property="og:title" content="Products — DetergentMC">
+  <meta property="og:description" content="About DetergentMC itself and the plugin called “Bubble”. A free, open project.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="index-en.html" aria-label="DetergentMC">
+      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="7" fill="var(--accent)"/><path d="M10 9h6.5a6.5 7 0 0 1 0 14H10z" fill="none" stroke="#0b0f14" stroke-width="3.2"/></svg>
+      <span>DetergentMC</span>
+    </a>
+    <nav>
+      <a href="index-en.html">Home</a>
+      <a href="how-en.html">How it works</a>
+      <a href="products-en.html" class="active">Products</a>
+      <a href="roadmap-en.html">Roadmap</a>
+      <a href="versions-en.html">Versions</a>
+      <a href="https://github.com/DetergentMC/DetergentMC" rel="noopener">GitHub</a>
+      <a href="products.html" class="lang">日本語</a>
+    </nav>
+  </header>
+  <main>
+
+    <section class="page-head">
+      <h1>Products</h1>
+      <p class="lead">DetergentMC is a single project. The main software and the plugin system are all developed open and free.</p>
+    </section>
+
+    <section class="section">
+      <h2>DetergentMC</h2>
+      <p class="sub">A Minecraft server software built on Mojang's vanilla server. Written in Java. MIT licensed, with source code published on GitHub.</p>
+      <div class="grid">
+        <div class="card"><h3>Vanilla-based</h3><p>World generation, chunks, and ticks are handled by Mojang's vanilla server itself. DetergentMC adds a proxy layer in front of it.</p></div>
+        <div class="card"><h3>Its own API only</h3><p>The API is DetergentMC's own, and only that. There is no compatibility with other server software's APIs. The goal is to support newer APIs even on older versions.</p></div>
+        <div class="card"><h3>Aiming to support all versions</h3><p>28 protocols from 1.16 to 26.3 are supported, and the final goal is to support everything from 1.0 to the latest. See <a href="versions-en.html">Versions</a> for details.</p></div>
+        <div class="card"><h3>Starting in Japanese, expanding to other languages</h3><p>Built on Japanese documentation, settings, and support, expanding to English and other languages.</p></div>
+      </div>
+      <p class="note">Java is required to run it. The required Java version depends on the Minecraft version (1.16 series: Java 8; 1.17 / 1.18 series: Java 16; 1.19 series: Java 17; 1.20.5 and later: Java 21; 26.1, 26.2, and 26.3: Java 25).</p>
+    </section>
+
+    <section class="section">
+      <h2>Bubbles — what plugins are called</h2>
+      <p class="sub">In DetergentMC, plugins are called “Bubbles”, named after detergent bubbles. They are made for DetergentMC's own API.</p>
+      <dl class="faq">
+        <dt>What is a Bubble?</dt>
+        <dd>A plugin that adds features to DetergentMC. Write settings in <code>bubble.yml</code> and place it in the <code>bubbles/</code> folder.</dd>
+        <dt>Can I use plugins from other server software?</dt>
+        <dd>No. DetergentMC has only its own API, with no compatibility with other APIs. Making Bubbles made for newer versions usable on older versions, too, is what DetergentMC aims for.</dd>
+        <dt>Where can I get Bubbles?</dt>
+        <dd>The distribution system has not been decided yet. As this is still in development, finishing the main software comes first.</dd>
+      </dl>
+    </section>
+
+    <section class="section">
+      <h2>Honest notes</h2>
+      <ul class="facts">
+        <li><strong>Still in development.</strong> Real game clients have not been tested yet; the tests are protocol-level verification.</li>
+        <li><strong>There is no paid version.</strong> DetergentMC is a free, open project.</li>
+      </ul>
+      <div class="cta" style="margin-top: 28px;">
+        <a class="btn primary" href="https://github.com/DetergentMC/DetergentMC" rel="noopener">View source code<span class="tag">MIT · Open</span></a>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <div class="footgrid">
+      <div>
+        <strong>DetergentMC</strong>
+        <p>Built on vanilla, with our own API, for every version.</p>
+      </div>
+      <div>
+        <a href="how-en.html">How it works</a> · <a href="products-en.html">Products</a> · <a href="roadmap-en.html">Roadmap</a> · <a href="versions-en.html">Versions</a><br>
+        <a href="https://github.com/DetergentMC/DetergentMC" rel="noopener">DetergentMC (source code)</a> · <a href="https://github.com/DetergentMC/DetergentWeb" rel="noopener">Site source</a>
+      </div>
+    </div>
+    <p class="disclaimer">© 2026 DetergentMC · DetergentMC is not an official Mojang Studios / Microsoft product, and has not been approved or endorsed by them. "Minecraft" is a trademark of Mojang Synergies AB.</p>
+  </footer>
+</body>
+</html>

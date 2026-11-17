@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How it works — DetergentMC</title>
+  <meta name="description" content="How DetergentMC works: the three ports — proxy, internal vanilla, and resource pack delivery — plus the cross-version adapter and Bedrock support.">
+  <meta property="og:title" content="How it works — DetergentMC">
+  <meta property="og:description" content="How DetergentMC works: the three ports — proxy, internal vanilla, and resource pack delivery — plus the cross-version adapter and Bedrock support.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="index-en.html" aria-label="DetergentMC">
+      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="7" fill="var(--accent)"/><path d="M10 9h6.5a6.5 7 0 0 1 0 14H10z" fill="none" stroke="#0b0f14" stroke-width="3.2"/></svg>
+      <span>DetergentMC</span>
+    </a>
+    <nav>
+      <a href="index-en.html">Home</a>
+      <a href="how-en.html" class="active">How it works</a>
+      <a href="products-en.html">Products</a>
+      <a href="roadmap-en.html">Roadmap</a>
+      <a href="versions-en.html">Versions</a>
+      <a href="https://github.com/DetergentMC/DetergentMC" rel="noopener">GitHub</a>
+      <a href="how.html" class="lang">日本語</a>
+    </nav>
+  </header>
+  <main>
+
+    <section class="page-head">
+      <h1>How it works</h1>
+      <p class="lead">DetergentMC runs Mojang's vanilla server as a child process, with a proxy in front of it. The world and ticks are handled by vanilla itself; DetergentMC's layer absorbs the differences between versions.</p>
+    </section>
+
+    <section class="section">
+      <h2>Three ports</h2>
+      <div class="diagram">
+        <div class="box highlight">
+          <h3>Proxy — 25565</h3>
+          <p>The entry point players connect to. It looks at the client's version and routes it to the matching adapter.</p>
+          <div class="layer">Cross-version adapter (735–777)</div>
+        </div>
+        <div class="box">
+          <h3>Internal vanilla — 25566</h3>
+          <p>Runs Mojang's vanilla server as a child process. World generation, chunks, and ticks are all vanilla's job.</p>
+          <div class="layer">Mojang vanilla server (Java)</div>
+        </div>
+        <div class="box">
+          <h3>Resource pack — 25567</h3>
+          <p>Delivers per-version resource packs. The foundation for showing newer blocks and UI to older clients.</p>
+          <div class="layer">28 per-version packs</div>
+        </div>
+      </div>
+      <p class="note">Settings go in <code>detergentmc.yml</code>. The public resource pack delivery location hasn't been decided yet, so during development we use loopback delivery (127.0.0.1:25567).</p>
+    </section>
+
+    <section class="section">
+      <h2>Cross-version adapter</h2>
+      <p class="sub">Even when the client and server versions differ, the proxy translates packets and registries to connect them. The point of this design is to let plugins written for newer versions work on older versions too.</p>
+      <ul class="facts">
+        <li><strong>Packet ID translation:</strong> translates the packet numbers that differ by version, using mapping tables.</li>
+        <li><strong>Registry translation:</strong> keeps per-version mapping tables for block states, items, sounds, entities, and more. In 1.20.4 alone there are 26,644 block states.</li>
+        <li><strong>Configuration phase synthesis:</strong> the 1.19 series has no configuration phase, so the proxy synthesizes the same flow as the 1.20 series.</li>
+        <li><strong>Chat signing:</strong> signed chat was introduced in 1.19 (759), and its format changed in 1.19.1 (760). Signature chains across versions are not supported.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Bedrock support</h2>
+      <p class="sub">Bedrock Edition clients are accepted through the same proxy. It listens on UDP 19132 and supports 33 RakNet protocols.</p>
+      <ul class="facts">
+        <li><strong>Chunk translation:</strong> converts Java block states to Bedrock runtime IDs. Biomes are converted too.</li>
+        <li><strong>Entity translation:</strong> maps 126 Java entity types to Bedrock. Covers spawning, movement, orientation, equipment, effects, riding, and more.</li>
+        <li><strong>Limits:</strong> inventories are not yet supported. There is no Xbox signature verification or encryption yet, and no retransmission via NACK. The latest Bedrock 26.60 / 26.62 are not yet supported.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Honest notes</h2>
+      <ul class="facts">
+        <li><strong>No combination has been tested with a real game client yet.</strong> Verification is at the protocol level (a fake client and a real vanilla server).</li>
+        <li><strong>Some things can't be converted.</strong> Some packets and data are dropped or replaced with neutral values when they can't be converted. See the repository docs for details.</li>
+      </ul>
+    </section>
+  </main>
+  <footer>
+    <div class="footgrid">
+      <div>
+        <strong>DetergentMC</strong>
+        <p>Built on vanilla, with our own API, for every version.</p>
+      </div>
+      <div>
+        <a href="how-en.html">How it works</a> · <a href="products-en.html">Products</a> · <a href="roadmap-en.html">Roadmap</a> · <a href="versions-en.html">Versions</a><br>
+        <a href="https://github.com/DetergentMC/DetergentMC" rel="noopener">DetergentMC (source code)</a> · <a href="https://github.com/DetergentMC/DetergentWeb" rel="noopener">Site source</a>
+      </div>
+    </div>
+    <p class="disclaimer">© 2026 DetergentMC · DetergentMC is not an official Mojang Studios / Microsoft product, and is not approved by them. "Minecraft" is a trademark of Mojang Synergies AB.</p>
+  </footer>
+</body>
+</html>

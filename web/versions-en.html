@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Supported versions — DetergentMC</title>
+  <meta name="description" content="DetergentMC supported version list. 28 protocols supported, from 1.16 to 26.3. 1.15.x and earlier are planned.">
+  <meta property="og:title" content="Supported versions — DetergentMC">
+  <meta property="og:description" content="DetergentMC supported version list. 28 protocols supported, from 1.16 to 26.3. 1.15.x and earlier are planned.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="nav">
+    <a class="brand" href="index-en.html" aria-label="DetergentMC">
+      <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true"><rect x="2" y="2" width="28" height="28" rx="7" fill="var(--accent)"/><path d="M10 9h6.5a6.5 7 0 0 1 0 14H10z" fill="none" stroke="#0b0f14" stroke-width="3.2"/></svg>
+      <span>DetergentMC</span>
+    </a>
+    <nav>
+      <a href="index-en.html">Home</a>
+      <a href="how-en.html">How it works</a>
+      <a href="products-en.html">Products</a>
+      <a href="roadmap-en.html">Roadmap</a>
+      <a href="versions-en.html" class="active">Versions</a>
+      <a href="https://github.com/DetergentMC/DetergentMC" rel="noopener">GitHub</a>
+      <a href="versions.html" class="lang">日本語</a>
+    </nav>
+  </header>
+  <main>
+
+    <section class="page-head">
+      <h1>Supported versions</h1>
+      <p class="lead">From 1.16 to 26.3, <strong>28 protocols</strong> are supported. Client × server is 28 × 28 = <strong>784 combinations</strong>. The final goal is to support every version from 1.0 to the latest.</p>
+      <p class="legend"><span class="badge done">Supported</span> Verified at the protocol level <span class="badge wip">In progress</span> Under development <span class="badge plan">Planned</span> Not started</p>
+      <p class="note">"Supported" means protocol-level verification (tests with a fake client and a genuine vanilla server) has passed. No combination has been checked with a real game client yet. Of the 784 combinations, 6 cells including 1.18.2 have been confirmed in integration tests, and the rest are being checked in turn.</p>
+    </section>
+
+    <section class="section">
+      <h2>Java Edition</h2>
+      <div class="compare">
+        <table class="versions">
+          <thead><tr><th>Version</th><th>Protocol</th><th>Status</th><th>Java</th><th>Resource pack format</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>1.16</td><td>735</td><td><span class="badge done">Supported</span></td><td>8</td><td>5</td><td></td></tr>
+            <tr><td>1.16.1</td><td>736</td><td><span class="badge done">Supported</span></td><td>8</td><td>5</td><td></td></tr>
+            <tr><td>1.16.2</td><td>751</td><td><span class="badge done">Supported</span></td><td>8</td><td>6</td><td></td></tr>
+            <tr><td>1.16.3</td><td>753</td><td><span class="badge done">Supported</span></td><td>8</td><td>6</td><td></td></tr>
+            <tr><td>1.16.4 / 1.16.5</td><td>754</td><td><span class="badge done">Supported</span></td><td>8</td><td>6</td><td></td></tr>
+            <tr><td>1.17</td><td>755</td><td><span class="badge done">Supported</span></td><td>16</td><td>7</td><td></td></tr>
+            <tr><td>1.17.1</td><td>756</td><td><span class="badge done">Supported</span></td><td>16</td><td>7</td><td></td></tr>
+            <tr><td>1.18 / 1.18.1</td><td>757</td><td><span class="badge done">Supported</span></td><td>16</td><td>8</td><td></td></tr>
+            <tr><td>1.18.2</td><td>758</td><td><span class="badge done">Supported</span></td><td>17</td><td>8</td><td>No configuration phase. Legacy chat (unsigned)</td></tr>
+            <tr><td>1.19</td><td>759</td><td><span class="badge done">Supported</span></td><td>17</td><td>9</td><td>Signed chat was introduced here (first inline signature format)</td></tr>
+            <tr><td>1.19.1 / 1.19.2</td><td>760</td><td><span class="badge done">Supported</span></td><td>17</td><td>9</td><td>One pack shared by both versions. Chat signature format differs from 759</td></tr>
+            <tr><td>1.19.3</td><td>761</td><td><span class="badge done">Supported</span></td><td>17</td><td>12</td><td></td></tr>
+            <tr><td>1.19.4</td><td>762</td><td><span class="badge done">Supported</span></td><td>17</td><td>13</td><td>The foundation of the 1.19 series. No configuration phase</td></tr>
+            <tr><td>1.20 / 1.20.1</td><td>763</td><td><span class="badge done">Supported</span></td><td>17</td><td>15</td><td>The first supported version</td></tr>
+            <tr><td>1.20.2</td><td>764</td><td><span class="badge done">Supported</span></td><td>17</td><td>18</td><td></td></tr>
+            <tr><td>1.20.3 / 1.20.4</td><td>765</td><td><span class="badge done">Supported</span></td><td>17</td><td>22</td><td></td></tr>
+            <tr><td>1.20.5 / 1.20.6</td><td>766</td><td><span class="badge done">Supported</span></td><td>21</td><td>32</td><td>Items switched to the data component system</td></tr>
+            <tr><td>1.21 / 1.21.1</td><td>767</td><td><span class="badge done">Supported</span></td><td>21</td><td>34</td><td></td></tr>
+            <tr><td>1.21.2 / 1.21.3</td><td>768</td><td><span class="badge done">Supported</span></td><td>21</td><td>42</td><td></td></tr>
+            <tr><td>1.21.4</td><td>769</td><td><span class="badge done">Supported</span></td><td>21</td><td>46</td><td></td></tr>
+            <tr><td>1.21.5</td><td>770</td><td><span class="badge done">Supported</span></td><td>21</td><td>55</td><td></td></tr>
+            <tr><td>1.21.6</td><td>771</td><td><span class="badge done">Supported</span></td><td>21</td><td>63</td><td></td></tr>
+            <tr><td>1.21.7 / 1.21.8</td><td>772</td><td><span class="badge done">Supported</span></td><td>21</td><td>64</td><td>One pack shared by both versions</td></tr>
+            <tr><td>1.21.9 / 1.21.10</td><td>773</td><td><span class="badge done">Supported</span></td><td>21</td><td>69</td><td>One pack shared by both versions</td></tr>
+            <tr><td>1.21.11</td><td>774</td><td><span class="badge done">Supported</span></td><td>21</td><td>75</td><td></td></tr>
+            <tr><td>26.1 / 26.1.1 / 26.1.2</td><td>775</td><td><span class="badge done">Supported</span></td><td>25</td><td>84</td><td>26.1.1 / 26.1.2 also share the same protocol 775</td></tr>
+            <tr><td>26.2</td><td>776</td><td><span class="badge done">Supported</span></td><td>25</td><td>88</td><td>Chaos Cubed. Released 2026-06-16. Data version 4903</td></tr>
+            <tr><td>26.3</td><td>777</td><td><span class="badge done">Supported</span></td><td>25</td><td>97</td><td>Confirmed to start with the fat jar</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">759 and 760 both have resource pack format 9, but the files are separate. The Java requirement is for running the internal server. On the client side, the requirement is the same as vanilla for each version.</p>
+    </section>
+
+    <section class="section">
+      <h2>Compatibility matrix</h2>
+      <p class="sub">A list of which player versions can connect to which server versions. No extra plugins such as ViaVersion are needed. Players on newer versions can join older servers, but some combinations do not allow older players to join newer servers.</p>
+      <p class="legend"><span class="check sm" aria-hidden="true">✓</span> Can join (no extra plugins needed) <span class="partial sm" aria-hidden="true">△</span> Some combinations can join <span class="cross sm" aria-hidden="true">✕</span> Cannot join</p>
+      <p class="note">△ is a cell where some combinations within the group can join and others cannot. 1.17.x servers × 1.16.x clients can join only in the case of a 1.17 server (755), and cannot join a 1.17.1 server (756). 1.17.x servers × 1.17.x clients can join except for the combination of a 1.17 client → 1.17.1 server.</p>
+      <p class="note">The ✕ marks in 26.x are confirmed cases of older clients being unable to join a 26.1 (775) server. Combinations of 26.3 (777) / 26.2 (776) servers with older clients are unconfirmed. The ✓ marks in 26.x and the 1.18.x cells are also unconfirmed for the 26.2 (776) / 1.18.2 (758) combinations.</p>
+      <p class="note">Some combinations may drop packets (with restrictions). For the detailed support status of each protocol, see the compatibility matrix in <a href="https://github.com/DetergentMC/DetergentMC/blob/main/docs/VERSIONS.md">docs/VERSIONS.md</a> in the repository. No combination has been checked with a real game client yet.</p>
+      <figure class="matrix-figure">
+        <img src="matrix-en.svg" alt="Compatibility matrix (server version × player version)" />
+        <figcaption>Image version: <a href="matrix-en.svg">SVG</a> ／ <a href="matrix-en.png">PNG</a> · Japanese version: <a href="matrix.svg">SVG</a> ／ <a href="matrix.png">PNG</a></figcaption>
+      </figure>
+    </section>
+
+    <section class="section">
+      <h2>Bedrock Edition</h2>
+      <p class="sub">Bedrock supports 33 RakNet protocols (575–2193), covering 1.19.70 to 26.52. It translates Java blocks, biomes, and entities to Bedrock. It listens on UDP port 19132.</p>
+      <ul class="facts">
+        <li><strong>Supported:</strong> Bedrock 1.19.70–26.52 (protocols 575–2193). Translation of chunks, block states, and entities; chat, movement, attacks, and interaction supported.</li>
+        <li><strong>Not supported:</strong> Bedrock 26.60 / 26.62 (protocol 2225) is NetherNet-based and unsupported; a connecting client receives an unsupported disconnect message. Inventory is also unsupported.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Future plans</h2>
+      <div class="compare">
+        <table class="versions">
+          <thead><tr><th>Version</th><th>Status</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>1.15.x and earlier (1.0–1.15.x)</td><td><span class="badge plan">Planned</span></td><td>Supported up to 1.16. Next we will decide whether to go back to 1.15.x and earlier</td></tr>
+            <tr><td>April Fools versions (2.0, 15w14a, 20w14∞, 24w14potato, 25w14craftmine, etc.)</td><td><span class="badge plan">Planned</span></td><td>Because both the protocol and the contents differ from normal releases, each needs its own dedicated support</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Development branches for each version can be found in the repository's branch list.</p>
+    </section>
+  </main>
+  <footer>
+    <div class="footgrid">
+      <div>
+        <strong>DetergentMC</strong>
+        <p>Built on vanilla, with our own API, for every version.</p>
+      </div>
+      <div>
+        <a href="how-en.html">How it works</a> · <a href="products-en.html">Products</a> · <a href="roadmap-en.html">Roadmap</a> · <a href="versions-en.html">Versions</a><br>
+        <a href="https://github.com/DetergentMC/DetergentMC" rel="noopener">DetergentMC (source code)</a> · <a href="https://github.com/DetergentMC/DetergentWeb" rel="noopener">Site source</a>
+      </div>
+    </div>
+    <p class="disclaimer">© 2026 DetergentMC · DetergentMC is not an official Mojang Studios / Microsoft product and is not endorsed by them. "Minecraft" is a trademark of Mojang Synergies AB.</p>
+  </footer>
+</body>
+</html>
