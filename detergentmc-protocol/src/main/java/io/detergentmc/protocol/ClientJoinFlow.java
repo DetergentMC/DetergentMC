@@ -13,6 +13,8 @@ import java.util.List;
  *
  * <p>段階の違い：
  * <ul>
+ *   <li>1.18.2（758）：ハンドシェイク → ログイン → プレイ → 参加
+ *       → ゲーム内。1.20.2で追加された「設定フェーズ」が無い（759・760・761・762・763と同じ）。</li>
  *   <li>1.19（759）：ハンドシェイク → ログイン → プレイ → 参加
  *       → ゲーム内。1.20.2で追加された「設定フェーズ」が無い（760・761・762・763と同じ）。</li>
  *   <li>1.19.1／1.19.2（760）：ハンドシェイク → ログイン → プレイ → 参加
@@ -69,6 +71,12 @@ import java.util.List;
  *       パケット番号は774から変わらず、新規パケットは無い。プレイ状態の
  *       新規パケットは5件（Game Rule Values・Low Disk Space Warning・
  *       Attack・Set Game Rule・Spectate Entity）。</li>
+ *   <li>26.2（776）：775と同形。ハンドシェイク → ログイン
+ *       → <b>設定フェーズ</b> → プレイ → 参加 → ゲーム内。設定フェーズの
+ *       パケット番号は775から変わらず、新規パケットは無い。プレイ状態の
+ *       新規パケットは0件（Spectate Entity が Spectator Action に
+ *       改名されただけ）。Join Game の末尾に onlineMode が、Login Success
+ *       の末尾に sessionId が増えた。</li>
  * </ul>
  *
  * <p>順番を間違えた遷移（例：765で設定フェーズを飛ばしてプレイに入る、
@@ -92,7 +100,7 @@ public final class ClientJoinFlow {
     private int index;
 
     /**
-     * @param clientProtocol クライアントのプロトコル番号（759か760か761か762か763か764か765か766か767か768か769か770か771か772か773か774か775）。
+     * @param clientProtocol クライアントのプロトコル番号（477か480か485か490か498か573か575か578か758か759か760か761か762か763か764か765か766か767か768か769か770か771か772か773か774か775か776）。
      * @throws IllegalArgumentException 対応していないプロトコルの場合
      */
     public ClientJoinFlow(int clientProtocol) {
@@ -107,6 +115,15 @@ public final class ClientJoinFlow {
                 || clientProtocol == ProtocolVersion.V1_19_3
                 || clientProtocol == ProtocolVersion.V1_19_1
                 || clientProtocol == ProtocolVersion.V1_19
+                || clientProtocol == ProtocolVersion.V1_18_2
+                || clientProtocol == ProtocolVersion.V1_15_2
+                || clientProtocol == ProtocolVersion.V1_15_1
+                || clientProtocol == ProtocolVersion.V1_15
+                || clientProtocol == ProtocolVersion.V1_14_4
+                || clientProtocol == ProtocolVersion.V1_14_3
+                || clientProtocol == ProtocolVersion.V1_14_2
+                || clientProtocol == ProtocolVersion.V1_14_1
+                || clientProtocol == ProtocolVersion.V1_14
                 ? List.of(Stage.HANDSHAKE, Stage.LOGIN, Stage.PLAY, Stage.JOINED, Stage.IN_GAME)
                 : List.of(Stage.HANDSHAKE, Stage.LOGIN, Stage.CONFIGURATION,
                         Stage.PLAY, Stage.JOINED, Stage.IN_GAME);
@@ -128,7 +145,7 @@ public final class ClientJoinFlow {
         return stages.get(index);
     }
 
-    /** 設定フェーズがあるか（764と765と766と767と768と769と770と771と772と773と774と775はあり、759と760と761と762と763はなし）。 */
+    /** 設定フェーズがあるか（764と765と766と767と768と769と770と771と772と773と774と775と776はあり、477と480と485と490と498と573と575と578と758と759と760と761と762と763はなし）。 */
     public boolean hasConfigurationPhase() {
         return stages.contains(Stage.CONFIGURATION);
     }
@@ -154,7 +171,7 @@ public final class ClientJoinFlow {
     }
 
     /**
-     * ログインに成功した：ログイン → 設定フェーズ（764・765・766・767・768・769・770・771）かプレイ（759・760・761・762・763）。
+     * ログインに成功した：ログイン → 設定フェーズ（764・765・766・767・768・769・770・771）かプレイ（758・759・760・761・762・763）。
      */
     public void loginSucceeded() {
         advance(Stage.LOGIN, hasConfigurationPhase() ? Stage.CONFIGURATION : Stage.PLAY);
@@ -162,7 +179,7 @@ public final class ClientJoinFlow {
 
     /**
      * 設定フェーズが終わった：設定フェーズ → プレイ。
-     * 759・760・761・762・763のクライアントには設定フェーズが無いので呼んではいけない。
+     * 758・759・760・761・762・763のクライアントには設定フェーズが無いので呼んではいけない。
      */
     public void configurationFinished() {
         advance(Stage.CONFIGURATION, Stage.PLAY);
