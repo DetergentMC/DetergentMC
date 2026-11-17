@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>対応バージョン — DetergentMC</title>
-  <meta name="description" content="DetergentMC の対応バージョン一覧。1.18.2 から 26.2 まで 19 プロトコルに対応済み。1.18.1 以前と 26.3 以降は予定。">
+  <meta name="description" content="DetergentMC の対応バージョン一覧。1.16 から 26.3 まで 28 プロトコルに対応済み。1.15.x 以前は予定。">
   <meta property="og:title" content="対応バージョン — DetergentMC">
-  <meta property="og:description" content="DetergentMC の対応バージョン一覧。1.18.2 から 26.2 まで 19 プロトコルに対応済み。1.18.1 以前と 26.3 以降は予定。">
+  <meta property="og:description" content="DetergentMC の対応バージョン一覧。1.16 から 26.3 まで 28 プロトコルに対応済み。1.15.x 以前は予定。">
   <meta property="og:type" content="website">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
@@ -30,9 +30,9 @@
 
     <section class="page-head">
       <h1>対応バージョン</h1>
-      <p class="lead">1.18.2 から 26.2 まで、<strong>19 プロトコル</strong>に対応済みです。クライアント × サーバーは 19 × 19 = <strong>361 通り</strong>です。最終目標は 1.0 から最新までの全バージョン対応です。</p>
+      <p class="lead">1.16 から 26.3 まで、<strong>28 プロトコル</strong>に対応済みです。クライアント × サーバーは 28 × 28 = <strong>784 通り</strong>です。最終目標は 1.0 から最新までの全バージョン対応です。</p>
       <p class="legend"><span class="badge done">対応済</span> プロトコルレベルで検証済み <span class="badge wip">作業中</span> 実装中 <span class="badge plan">予定</span> 未着手</p>
-      <p class="note">「対応済」はプロトコルレベルの検証（偽クライアントと本物のバニラサーバーによるテスト）が通っている状態です。本物のゲームクライアントでの確認は、まだどの組み合わせも行っていません。361 通りのうち、1.18.2 を含む組み合わせは統合テストで 6 セルを確認済みで、残りは順次確認中です。</p>
+      <p class="note">「対応済」はプロトコルレベルの検証（偽クライアントと本物のバニラサーバーによるテスト）が通っている状態です。本物のゲームクライアントでの確認は、まだどの組み合わせも行っていません。784 通りのうち、1.18.2 を含む組み合わせは統合テストで 6 セルを確認済みで、残りは順次確認中です。</p>
     </section>
 
     <section class="section">
@@ -41,6 +41,14 @@
         <table class="versions">
           <thead><tr><th>バージョン</th><th>プロトコル</th><th>状態</th><th>Java</th><th>リソースパック形式</th><th>備考</th></tr></thead>
           <tbody>
+            <tr><td>1.16</td><td>735</td><td><span class="badge done">対応済</span></td><td>8</td><td>5</td><td></td></tr>
+            <tr><td>1.16.1</td><td>736</td><td><span class="badge done">対応済</span></td><td>8</td><td>5</td><td></td></tr>
+            <tr><td>1.16.2</td><td>751</td><td><span class="badge done">対応済</span></td><td>8</td><td>6</td><td></td></tr>
+            <tr><td>1.16.3</td><td>753</td><td><span class="badge done">対応済</span></td><td>8</td><td>6</td><td></td></tr>
+            <tr><td>1.16.4 / 1.16.5</td><td>754</td><td><span class="badge done">対応済</span></td><td>8</td><td>6</td><td></td></tr>
+            <tr><td>1.17</td><td>755</td><td><span class="badge done">対応済</span></td><td>16</td><td>7</td><td></td></tr>
+            <tr><td>1.17.1</td><td>756</td><td><span class="badge done">対応済</span></td><td>16</td><td>7</td><td></td></tr>
+            <tr><td>1.18 / 1.18.1</td><td>757</td><td><span class="badge done">対応済</span></td><td>16</td><td>8</td><td></td></tr>
             <tr><td>1.18.2</td><td>758</td><td><span class="badge done">対応済</span></td><td>17</td><td>8</td><td>設定フェーズなし。旧式チャット（署名なし）</td></tr>
             <tr><td>1.19</td><td>759</td><td><span class="badge done">対応済</span></td><td>17</td><td>9</td><td>署名付きチャットはここで導入（初代インライン署名形式）</td></tr>
             <tr><td>1.19.1 / 1.19.2</td><td>760</td><td><span class="badge done">対応済</span></td><td>17</td><td>9</td><td>1パックで両バージョン共用。チャットの署名形式が759と異なる</td></tr>
@@ -60,6 +68,7 @@
             <tr><td>1.21.11</td><td>774</td><td><span class="badge done">対応済</span></td><td>21</td><td>75</td><td></td></tr>
             <tr><td>26.1 / 26.1.1 / 26.1.2</td><td>775</td><td><span class="badge done">対応済</span></td><td>25</td><td>84</td><td>26.1.1 / 26.1.2 も同じプロトコル 775 を共有</td></tr>
             <tr><td>26.2</td><td>776</td><td><span class="badge done">対応済</span></td><td>25</td><td>88</td><td>Chaos Cubed。2026-06-16 リリース。データバージョン 4903</td></tr>
+            <tr><td>26.3</td><td>777</td><td><span class="badge done">対応済</span></td><td>25</td><td>97</td><td>ファットjarで起動確認済み</td></tr>
           </tbody>
         </table>
       </div>
@@ -68,9 +77,9 @@
 
     <section class="section">
       <h2>Bedrock Edition</h2>
-      <p class="sub">Bedrock は RakNet プロトコル 30 個（589〜2193）に対応し、1.20.0 から 26.51 までをカバーしています。Java 側のブロック・バイオーム・エンティティを Bedrock へ翻訳します。UDP 19132 番で待ち受けます。</p>
+      <p class="sub">Bedrock は RakNet プロトコル 33 個（575〜2193）に対応し、1.19.70 から 26.52 までをカバーしています。Java 側のブロック・バイオーム・エンティティを Bedrock へ翻訳します。UDP 19132 番で待ち受けます。</p>
       <ul class="facts">
-        <li><strong>対応済：</strong>Bedrock 1.20.0〜26.51（プロトコル 589〜2193）。チャンク・ブロック状態・エンティティの翻訳、チャット・移動・攻撃・インタラクトに対応。</li>
+        <li><strong>対応済：</strong>Bedrock 1.19.70〜26.52（プロトコル 575〜2193）。チャンク・ブロック状態・エンティティの翻訳、チャット・移動・攻撃・インタラクトに対応。</li>
         <li><strong>未対応：</strong>Bedrock 26.60 / 26.62（プロトコル 2225）は NetherNet ベースのため未対応で、接続したクライアントには未対応の切断メッセージを返します。インベントリも未対応です。</li>
       </ul>
     </section>
@@ -81,8 +90,7 @@
         <table class="versions">
           <thead><tr><th>バージョン</th><th>状態</th><th>備考</th></tr></thead>
           <tbody>
-            <tr><td>1.18／1.18.1 以前（1.0〜1.18.1）</td><td><span class="badge plan">予定</span></td><td>1.18.2 に対応済み。次は 1.18／1.18.1 か、さらに過去へ遡るかを決めます</td></tr>
-            <tr><td>26.3 以降</td><td><span class="badge plan">予定</span></td><td>最新へ進むかは未定。次に決めます</td></tr>
+            <tr><td>1.15.x 以前（1.0〜1.15.x）</td><td><span class="badge plan">予定</span></td><td>1.16 まで対応済み。次は 1.15.x 以前へ遡るかを決めます</td></tr>
             <tr><td>エイプリルフール版（2.0、15w14a、20w14∞、24w14potato、25w14craftmine など）</td><td><span class="badge plan">予定</span></td><td>通常のリリースとはプロトコルも内容も異なるため、それぞれ専用の対応が必要です</td></tr>
           </tbody>
         </table>

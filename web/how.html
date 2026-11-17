@@ -39,7 +39,7 @@
         <div class="box highlight">
           <h3>プロキシ — 25565</h3>
           <p>プレイヤーが接続する入口です。クライアントのバージョンを見て、対応するアダプターに振り分けます。</p>
-          <div class="layer">バージョン間アダプター（759〜775）</div>
+          <div class="layer">バージョン間アダプター（735〜777）</div>
         </div>
         <div class="box">
           <h3>内部バニラ — 25566</h3>
@@ -49,7 +49,7 @@
         <div class="box">
           <h3>リソースパック — 25567</h3>
           <p>バージョン別のリソースパックを配信します。古いクライアントでも新しいブロックや UI を見せるための土台です。</p>
-          <div class="layer">バージョン別パック 17 個</div>
+          <div class="layer">バージョン別パック 28 個</div>
         </div>
       </div>
       <p class="note">設定は <code>detergentmc.yml</code> に書きます。公開用のリソースパック配信場所はまだ決めていないため、開発段階ではループバック配信（127.0.0.1:25567）を使っています。</p>
@@ -68,7 +68,7 @@
 
     <section class="section">
       <h2>Bedrock 対応</h2>
-      <p class="sub">Bedrock Edition のクライアントも、同じプロキシで受け付けます。UDP 19132 番で待ち受け、RakNet プロトコル 30 個に対応しています。</p>
+      <p class="sub">Bedrock Edition のクライアントも、同じプロキシで受け付けます。UDP 19132 番で待ち受け、RakNet プロトコル 33 個に対応しています。</p>
       <ul class="facts">
         <li><strong>チャンクの翻訳：</strong>Java のブロック状態を Bedrock のランタイム ID に変換します。バイオームも変換します。</li>
         <li><strong>エンティティの翻訳：</strong>Java のエンティティ 126 種を Bedrock へ写します。出現・移動・向き・装備・エフェクト・乗騎などに対応します。</li>
