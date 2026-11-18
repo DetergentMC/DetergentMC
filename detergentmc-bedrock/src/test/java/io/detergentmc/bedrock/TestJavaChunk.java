@@ -455,6 +455,23 @@ final class TestJavaChunk {
     }
 
 
+    /**
+     * 735 形式の Chunk Data を作る。736 と完全同一（Stage A §11.1・Stage B §14.4 実測。
+     * 736⇔735 はパケットID・レジストリとも差分 0 件）のため build736 をそのまま使う。
+     * 根拠は実測：実バニラ 1.16 の生キャプチャ cap735-chunk-x--3-z--15.bin
+     * （ignoreOldData=true、bitMap 0x000f、biomes 1024 件全て 24＝deep_ocean）、
+     * ChunkTranslator.translateChunkData735To736（恒等写像）。
+     */
+    static byte[] build735(int chunkX, int chunkZ, BlockAt blocks, BiomeAt biomes) {
+        return build736(chunkX, chunkZ, blocks, biomes);
+    }
+
+    static byte[] build735(int chunkX, int chunkZ, BlockAt blocks, BiomeAt biomes,
+                           int sectionMask) {
+        return build736(chunkX, chunkZ, blocks, biomes, sectionMask);
+    }
+
+
     /** 755 形式の Chunk Data を作る（オーバーワールド、minY 0、高さ 256）。全 16 セクションあり。 */
     static byte[] build755(int chunkX, int chunkZ, BlockAt blocks, BiomeAt biomes) {
         return build755(chunkX, chunkZ, blocks, biomes, 0xFFFF);

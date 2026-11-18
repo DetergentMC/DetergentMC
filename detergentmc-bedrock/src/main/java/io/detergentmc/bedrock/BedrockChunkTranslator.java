@@ -108,7 +108,11 @@ public final class BedrockChunkTranslator {
      * 736→751 は非恒等写像（RegistryTables736。17,104 件。736→751 の順向き非恒等 12,373 件。
      * Stage A §11.1・Stage B §14.4 実測。chain 4731→4735、lantern 14890→14898、
      * cauldron 5145→5149、grass_path 9227→9231、17103→17111）のため
-     * 751 の連鎖に表で繋ぐ）、763 は
+     * 751 の連鎖に表で繋ぐ）、735 は
+     * 735→736→751→753→754→755→756→757→759→760→761→762→763→765 の連鎖（mapBlockState735To765。
+     * 735→736 は恒等写像（RegistryTables735。17,104 件・全件同一順序。Stage A §11.1・Stage B §14.4 実測。
+     * 実バニラ 1.16 の blocks レポートは 1.16.1 版とバイト同一）のため
+     * 736 の連鎖にそのまま繋ぐ）、763 は
      * 765→763 表の逆引き。
      * 範囲外は石（765 の 1）。757 の 20,342 状態は 759 で全件カバーされる
      * （Stage A §11.1 実測）ため、連鎖で石に落ちるのは範囲外の番号だけ。
@@ -138,6 +142,7 @@ public final class BedrockChunkTranslator {
             case RegistryRemapper.PROTOCOL_755 -> mapBlockState755To765(stateId);
             case RegistryRemapper.PROTOCOL_751 -> mapBlockState751To765(stateId);
             case RegistryRemapper.PROTOCOL_736 -> mapBlockState736To765(stateId);
+            case RegistryRemapper.PROTOCOL_735 -> mapBlockState735To765(stateId);
             case RegistryRemapper.PROTOCOL_753 -> mapBlockState753To765(stateId);
             case RegistryRemapper.PROTOCOL_754 -> mapBlockState754To765(stateId);
             default -> stateId;
@@ -230,6 +235,17 @@ public final class BedrockChunkTranslator {
      */
     static int mapBlockState736To765(int stateId) {
         return mapBlockState751To765(RegistryRemapper.mapBlockState736To751(stateId));
+    }
+
+    /**
+     * 735 のブロック状態IDを 765 に正規化する。735→736 は恒等写像
+     * （RegistryTables735。17,104 件・全件同一順序。Stage A §11.1・Stage B §14.4 実測。
+     * 実バニラ 1.16 の blocks レポートは 1.16.1 版とバイト同一）のため、
+     * 736 の連鎖（{@link #mapBlockState736To765}）にそのまま繋ぐ。
+     * RegistryRemapper には追加しない。
+     */
+    static int mapBlockState735To765(int stateId) {
+        return mapBlockState736To765(RegistryRemapper.mapBlockState735To736(stateId));
     }
 
 
@@ -336,6 +352,21 @@ public final class BedrockChunkTranslator {
      * バイオーム番号は 751 と同じ扱い。ブロック状態は 736→751 が非恒等写像のため
      * mapBlockState736To765 で表引きする（normalizeBlockState 参照）。
      *
+     * <p>735 の形式は 736 と完全同一（Stage A §11.1・Stage B §14.4 の実測。
+     * 736⇔735 はパケットID・レジストリとも差分 0 件。実バニラ 1.16 の
+     * 生キャプチャ cap735-chunk-x--3-z--15.bin（チャンク -3,-15、13,011 バイト、
+     * groundUp=true、ignoreOldData=true、bitMap 0x000f、biomes 1024 件全て 24＝deep_ocean）＋
+     * ChunkTranslator.translateChunkData735To736（恒等写像））：
+     * {x i32, z i32, groundUp bool, ignoreOldData bool, bitMap varint,
+     * heightmaps 名前付き NBT, biomes i32[1024]（groundUp のときだけ・件数接頭辞なし）,
+     * chunkData buffer, blockEntities varint[NBT]}。そのため 735 は下の 736 分岐をそのまま使う。
+     * BitStorage は non-straddling（BPE 5 の Data Array 長は 342。実バニラ 1.16 の生キャプチャで確認。
+     * Stage D §15.2）。光は 735 の Chunk Data には無く、別パケットの Update Light
+     * で送られる。ブロックエンティティは読まない（757 と同じく送らない）。
+     * バイオームは 735 と 736 で同一（79 件・同じ id・同じ名前。Stage A §11.1 実測）のため、
+     * バイオーム番号は 736 と同じ扱い。ブロック状態は 735→736 が恒等写像のため
+     * mapBlockState735To765 で表引きする（normalizeBlockState 参照）。
+     *
      */
     public static TranslatedChunk translate(ChunkInput input) {
         PacketIO.Reader reader = new PacketIO.Reader(input.javaChunkPayload());
@@ -343,8 +374,9 @@ public final class BedrockChunkTranslator {
         int chunkZ = reader.readInt();
         long[] bitmask756 = null;
         int[] biomes756 = null;
-        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_736) {
-            // 736 だけの頭部：groundUp＋ignoreOldData＋bitMap（varint の 16 ビット）＋
+        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_735
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_736) {
+            // 735／736 だけの頭部：groundUp＋ignoreOldData＋bitMap（varint の 16 ビット）＋
             // heightmaps（名前付き）＋groundUp のときだけバイオーム i32[1024]（件数接頭辞なし）。
             // 751／753／754 は ignoreOldData が無く、バイオームは [count varint][varint×1024]。
             boolean groundUp = reader.readBoolean();
@@ -450,13 +482,14 @@ public final class BedrockChunkTranslator {
         List<int[]> blockSections = new ArrayList<>(sectionCount);
         List<int[]> biomeSections = new ArrayList<>(sectionCount);
         PacketIO.Reader sections = new PacketIO.Reader(sectionBytes);
-        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_736
+        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_735
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_736
                 || input.serverProtocol() == RegistryRemapper.PROTOCOL_751
                 || input.serverProtocol() == RegistryRemapper.PROTOCOL_753
                 || input.serverProtocol() == RegistryRemapper.PROTOCOL_754
                 || input.serverProtocol() == RegistryRemapper.PROTOCOL_756
                 || input.serverProtocol() == RegistryRemapper.PROTOCOL_755) {
-            // 736／751／753／754／755／756：16 セクション（y 0〜15）。chunkData には bitMap に立っている
+            // 735／736／751／753／754／755／756：16 セクション（y 0〜15）。chunkData には bitMap に立っている
             // セクションだけが入る。無いセクションはブロックだけ空気で補完し、
             // バイオームは int[1024] の値をそのまま使う（Stage B §14.4 の
             // ChunkTranslator.translateChunkData756To757 と同じ扱い）。
@@ -522,7 +555,7 @@ public final class BedrockChunkTranslator {
         return blocks;
     }
 
-/** 755／756 のビットマスク（long 列）のビットが立っているか。736／751／753／754 も bitMap を long[1] に直して同じ判定を使う。 */
+/** 755／756 のビットマスク（long 列）のビットが立っているか。735／736／751／753／754 も bitMap を long[1] に直して同じ判定を使う。 */
     private static boolean bitmaskHas(long[] bitmask, int section) {
         if (bitmask == null) {
             return false;
@@ -534,9 +567,10 @@ public final class BedrockChunkTranslator {
         return (bitmask[index] & (1L << (section % 64))) != 0;
     }
 
-    /** BitStorage が long の境界をまたがない詰め（non-straddling）か。736・751・753・754・755・756・757 が該当。 */
+    /** BitStorage が long の境界をまたがない詰め（non-straddling）か。735・736・751・753・754・755・756・757 が該当。 */
     private static boolean isNonStraddling(int serverProtocol) {
-        return serverProtocol == RegistryRemapper.PROTOCOL_736
+        return serverProtocol == RegistryRemapper.PROTOCOL_735
+                || serverProtocol == RegistryRemapper.PROTOCOL_736
                 || serverProtocol == RegistryRemapper.PROTOCOL_751
                 || serverProtocol == RegistryRemapper.PROTOCOL_753
                 || serverProtocol == RegistryRemapper.PROTOCOL_754
