@@ -196,7 +196,7 @@ class PacketIdsTest {
 
     @Test
     void unknownProtocolIsEmpty() {
-        for (int protocol : new int[]{777, 340}) {
+        for (int protocol : new int[]{776, 340}) {
             assertTrue(PacketIds.id(PacketName.PLAY_JOIN_GAME, protocol).isEmpty(),
                     "protocol " + protocol + " は未対応");
             assertFalse(PacketIds.isSupported(protocol));
@@ -213,7 +213,7 @@ class PacketIdsTest {
         assertTrue(PacketIds.isSupported(773));
         assertTrue(PacketIds.isSupported(774));
         assertTrue(PacketIds.isSupported(775));
-        assertEquals(List.of(480, 485, 490, 498, 573, 575, 578, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776), PacketIds.supportedProtocols());
+        assertEquals(List.of(735, 736, 751, 753, 754, 755, 756, 757, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775), PacketIds.supportedProtocols());
     }
 
     @Test

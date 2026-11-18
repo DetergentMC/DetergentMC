@@ -25,10 +25,10 @@ class ClientAdapter764Test {
 
     @Test
     void decideBoundariesAreUnchanged() {
-        // 758より古い／777より新しいは断る。
-        assertEquals(Decision.REJECT_OUTDATED, ClientAdapter.decide(757).decision());
+        // 759より古い／776より新しいは断る。
+        assertEquals(Decision.REJECT_OUTDATED, ClientAdapter.decide(758).decision());
         assertEquals(Decision.REJECT_OUTDATED, ClientAdapter.decide(340).decision());
-        assertEquals(Decision.REJECT_TOO_NEW, ClientAdapter.decide(777).decision());
+        assertEquals(Decision.REJECT_TOO_NEW, ClientAdapter.decide(776).decision());
         assertEquals(Decision.ACCEPT_VIA_ADAPTER, ClientAdapter.decide(766).decision());
         assertEquals(Decision.ACCEPT_VIA_ADAPTER, ClientAdapter.decide(767).decision());
         assertEquals(Decision.ACCEPT_VIA_ADAPTER, ClientAdapter.decide(768).decision());
@@ -38,7 +38,7 @@ class ClientAdapter764Test {
 
     @Test
     void supportedProtocolsInclude764() {
-        assertEquals(List.of(480, 485, 490, 498, 573, 575, 578, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776), ClientAdapter.supportedClientProtocols());
+        assertEquals(List.of(735, 736, 751, 753, 754, 755, 756, 757, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775), ClientAdapter.supportedClientProtocols());
     }
 
     @Test
