@@ -40,7 +40,7 @@ class ClientAdapter736Test {
 
     @Test
     void decide736AgainstAllServerProtocols() {
-        for (int server : new int[]{736, 751, 753, 754, 755, 756, 757, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771,
+        for (int server : new int[]{735, 736, 751, 753, 754, 755, 756, 757, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771,
                 772, 773, 774, 775}) {
             Handshake handshake = ClientAdapter.decide(736, server);
             assertTrue(handshake.accepted(), "server=" + server);
@@ -52,10 +52,9 @@ class ClientAdapter736Test {
                 assertTrue(handshake.needsTranslation());
             }
         }
-        // 776より新しい／758（1.18.2は別作業）／735（1.16は次のループの対象）／752（未対応番号）は断る。
+        // 776より新しい／758（1.18.2は別作業）／752（未対応番号）は断る。
         assertFalse(ClientAdapter.decide(776, 736).accepted());
         assertFalse(ClientAdapter.decide(758, 736).accepted());
-        assertFalse(ClientAdapter.decide(735, 736).accepted());
         assertFalse(ClientAdapter.decide(752, 736).accepted());
     }
 
@@ -76,10 +75,11 @@ class ClientAdapter736Test {
     @Test
     void supportedClientProtocolsInclude736() {
         List<Integer> supported = ClientAdapter.supportedClientProtocols();
-        assertEquals(736, supported.get(0), supported.toString());
+        assertEquals(735, supported.get(0), supported.toString());
+        assertEquals(736, supported.get(1), supported.toString());
         assertTrue(supported.contains(736), supported.toString());
         assertFalse(supported.contains(758), supported.toString());
-        assertFalse(supported.contains(735), supported.toString());
+        assertTrue(supported.contains(735), supported.toString());
         assertTrue(supported.contains(751), supported.toString());
     }
 
@@ -233,17 +233,6 @@ class ClientAdapter736Test {
         // 736 クライアントには pack_format 5 のパックを出す。
         assertTrue(differences.stream()
                 .anyMatch(d -> d.detail().contains("pack_format 5")),
-                differences.toString());
-    }
-
-    @Test
-    void differencesFor735AreNotSupported() {
-        // 735（1.16）は次のループの対象で、まだ受け入れない。
-        assertEquals(Decision.REJECT_OUTDATED, ClientAdapter.decide(735).decision());
-        List<Difference> differences = ClientAdapter.differences(735);
-        assertFalse(differences.isEmpty());
-        assertTrue(differences.stream()
-                .anyMatch(d -> d.handling() == Handling.NOT_SUPPORTED),
                 differences.toString());
     }
 

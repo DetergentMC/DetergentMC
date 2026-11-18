@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test;
  * 775（26.1）のプロキシ受け入れ（新ビッグコンストラクタの検証と
  * pack775 の保持）。pack775 は新ビッグコンストラクタ（pack759-first）にしか
  * 無いため、ここではそのコンストラクタを直接使う。
- * 新ビッグコンストラクタは30引数：ポート類4＋pack759〜764（6）＋authConfig＋
- * pack765〜775（11）＋pack757＋pack756＋pack755＋pack754＋pack753＋pack751＋pack736＋internalProtocol。
+ * 新ビッグコンストラクタは31引数：ポート類4＋pack759〜764（6）＋authConfig＋
+ * pack765〜775（11）＋pack757＋pack756＋pack755＋pack754＋pack753＋pack751＋pack736＋pack735＋internalProtocol。
  */
 class ClientProxy775Test {
 
@@ -38,7 +38,7 @@ class ClientProxy775Test {
         ClientProxy proxy = new ClientProxy(freePort(), "127.0.0.1", freePort(), false,
                 null, null, null, null, null, null,
                 ProxyAuthConfig.defaults(), null, null, null, null, null, null, null, null, null,
-                null, pack, null, null, null, null, null, null, null, 775);
+                null, pack, null, null, null, null, null, null, null, null, 775);
         assertEquals(775, proxy.internalProtocol());
         assertEquals(pack, proxy.pack775());
     }
@@ -48,7 +48,7 @@ class ClientProxy775Test {
         ClientProxy proxy = new ClientProxy(freePort(), "127.0.0.1", freePort(), false,
                 null, null, null, null, null, null,
                 ProxyAuthConfig.defaults(), null, null, null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, null, 775);
+                null, null, null, null, null, null, null, null, null, null, 775);
         assertEquals(775, proxy.internalProtocol());
         assertNull(proxy.pack775());
     }
@@ -59,7 +59,7 @@ class ClientProxy775Test {
         ClientProxy proxy774 = new ClientProxy(freePort(), "127.0.0.1", freePort(), false,
                 null, null, null, null, null, null,
                 ProxyAuthConfig.defaults(), null, null, null, null, null, null, null, null, null,
-                null, pack, null, null, null, null, null, null, null, 774);
+                null, pack, null, null, null, null, null, null, null, null, 774);
         assertEquals(774, proxy774.internalProtocol());
         assertEquals(pack, proxy774.pack775());
     }
@@ -70,7 +70,7 @@ class ClientProxy775Test {
             new ClientProxy(freePort(), "127.0.0.1", freePort(), false,
                     null, null, null, null, null, null,
                     ProxyAuthConfig.defaults(), null, null, null, null, null, null, null, null,
-                    null, null, null, null, null, null, null, null, null, null, 776);
+                    null, null, null, null, null, null, null, null, null, null, null, 776);
             throw new AssertionError("expected IllegalArgumentException for 776");
         } catch (IllegalArgumentException expected) {
             assertTrue(expected.getMessage().contains("775"), expected.getMessage());

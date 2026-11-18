@@ -43,6 +43,27 @@ import javax.imageio.ImageIO;
  * block. It is likewise only a look + a mapping table — vanilla has no
  * such block id, so no new block id is ever sent to a client.
  *
+ * <h2>1.16 variant (protocol 735, {@code pack_format} 5)</h2>
+ *
+ * <p>The same demo assets are also built as a 1.16 pack
+ * ({@link #build735(Path)}): the only difference is
+ * {@code pack.mcmeta} ({@code pack_format} 5 instead of 22).
+ * 1.16 uses the plain {@code pack_format} integer form: the 1.16
+ * server jar's {@code PackMetadataSectionSerializer} (obfuscated
+ * {@code aak}) reads only {@code description} and {@code pack_format},
+ * and no class in the jar mentions {@code min_format} /
+ * {@code max_format} (those arrived with the range form in a later
+ * version), so the plain form is the correct one here — unlike 26.3,
+ * which needs the range form. The jar's {@code version.json} says
+ * {@code pack_version: 5} (a single number, not a range). The
+ * {@code aak} / {@code aai} classes are byte-identical to the 1.16.1
+ * jar's (Stage A §14.3: all 21,480 classes agree except
+ * {@code DetectedVersion}).
+ * The 735 pack carries a version-specific description
+ * ("DetergentMC resource pack (1.16)"), so its zip — and its
+ * SHA-1 — differ from the 736 pack even though the demo assets are
+ * the same (see {@code PACK_MCMETA_735}).
+ *
  * <h2>1.16.1 variant (protocol 736, {@code pack_format} 5)</h2>
  *
  * <p>The same demo assets are also built as a 1.16.1 pack
@@ -333,6 +354,15 @@ import javax.imageio.ImageIO;
 public final class ResourcePackBuilder {
 
     /**
+     * Minecraft 1.16 resource-pack format. 1.16 server jar
+     * (javap): {@code version.json} says {@code pack_version: 5}, and
+     * {@code PackMetadataSectionSerializer} (obfuscated {@code aak})
+     * reads only {@code description} and {@code pack_format} — the
+     * plain integer form. Same value as 1.16.1 (both use format 5).
+     */
+    public static final int PACK_FORMAT_1_16 = 5;
+
+    /**
      * Minecraft 1.16.1 resource-pack format. 1.16.1 server jar
      * (javap): {@code version.json} says {@code pack_version: 5}, and
      * {@code PackMetadataSectionSerializer} (obfuscated {@code aak})
@@ -459,6 +489,9 @@ public final class ResourcePackBuilder {
 
     /** File name of the generated pack inside the output directory. */
     public static final String PACK_FILE_NAME = "detergentmc-pack.zip";
+
+    /** File name of the generated 1.16 pack inside the output directory. */
+    public static final String PACK_FILE_NAME_735 = "detergentmc-pack-1.16.zip";
 
     /** File name of the generated 1.16.1 pack inside the output directory. */
     public static final String PACK_FILE_NAME_736 = "detergentmc-pack-1.16.1.zip";
@@ -600,9 +633,26 @@ public final class ResourcePackBuilder {
             + "\"description\":\"DetergentMC resource pack (1.16.3)\"}}";
 
     /**
+     * The 1.16 {@code pack.mcmeta} (plain {@code pack_format} 5).
+     * Same format as {@code PACK_MCMETA_736}, but with a
+     * version-specific description ("DetergentMC resource pack
+     * (1.16)") so the 735 zip — and its SHA-1 — differ from the
+     * 736 zip. {@link #writePack(Path, int)} switches on the format
+     * number, so it cannot tell 735 from 736: it keeps using
+     * {@code PACK_MCMETA_736} for format 5, and
+     * {@link #build735(Path)} / {@link #writePack735(Path)} pass this
+     * mcmeta explicitly instead.
+     */
+    private static final String PACK_MCMETA_735 = "{\"pack\":{\"pack_format\":5,"
+            + "\"description\":\"DetergentMC resource pack (1.16)\"}}";
+
+    /**
      * The 1.16.1 {@code pack.mcmeta} (plain {@code pack_format} 5).
      * Unlike the format-6 packs, this one needs its own
-     * {@code mcmetaForFormat} case: format 5 belongs to 1.16.1 alone.
+     * {@code mcmetaForFormat} case: format 5 belongs to 1.16 and
+     * 1.16.1 (the 735 pack passes its own mcmeta explicitly, see
+     * {@link #writePack735(Path)}, because the format number alone
+     * cannot tell 1.16 from 1.16.1).
      * Its description names 1.16.1, so its SHA-1 differs from the
      * 751 pack even though the demo assets are the same.
      */
@@ -705,7 +755,7 @@ public final class ResourcePackBuilder {
 
     /**
      * The resource-pack format for a client protocol version:
-     * 5 for 736 (1.16.1), 6 for 751 (1.16.2), 753 (1.16.3) and 754 (1.16.4 / 1.16.5),
+     * 5 for 735 (1.16) and 736 (1.16.1), 6 for 751 (1.16.2), 753 (1.16.3) and 754 (1.16.4 / 1.16.5),
      * 7 for 755 (1.17) and 756 (1.17.1), 8 for 757 (1.18 / 1.18.1), 9 for 759 (1.19) and 760 (1.19.1 / 1.19.2), 12 for 761 (1.19.3), 13 for 762 (1.19.4), 15 for 763 (1.20.1), 18 for 764 (1.20.2), 22 for 765 (1.20.4),
      * 32 for 766 (1.20.5 / 1.20.6), 34 for 767 (1.21 / 1.21.1),
      * 42 for 768 (1.21.2 / 1.21.3), 46 for 769 (1.21.4),
@@ -716,6 +766,7 @@ public final class ResourcePackBuilder {
      */
     public static int packFormatForProtocol(int protocolVersion) {
         return switch (protocolVersion) {
+            case ProtocolVersion.V1_16 -> PACK_FORMAT_1_16;
             case ProtocolVersion.V1_16_1 -> PACK_FORMAT_1_16_1;
             case ProtocolVersion.V1_16_2 -> PACK_FORMAT_1_16_2;
             case ProtocolVersion.V1_16_3 -> PACK_FORMAT_1_16_3;
@@ -753,6 +804,19 @@ public final class ResourcePackBuilder {
      */
     public BuiltPack build(Path outputDir) throws IOException {
         return build(outputDir, PACK_FORMAT_1_20_4, PACK_FILE_NAME);
+    }
+
+    /**
+     * Builds the 1.16 variant of the pack into
+     * {@code outputDir/detergentmc-pack-1.16.zip} and returns the file
+     * plus its SHA-1. Same demo assets as {@link #build(Path)}, only
+     * {@code pack.mcmeta} differs ({@code pack_format} 5, plain integer
+     * form — 1.16 has no {@code min_format} / {@code max_format}).
+     * Its description names 1.16, so its SHA-1 differs from the
+     * 736 pack even though both use the same demo assets.
+     */
+    public BuiltPack build735(Path outputDir) throws IOException {
+        return build(outputDir, PACK_FORMAT_1_16, PACK_FILE_NAME_735, PACK_MCMETA_735);
     }
 
     /**
@@ -1028,6 +1092,11 @@ public final class ResourcePackBuilder {
         writePack(file, PACK_FORMAT_1_20_4);
     }
 
+    /** Writes the 1.16 variant of the pack zip to {@code file}. */
+    public void writePack735(Path file) throws IOException {
+        writePack(file, PACK_FORMAT_1_16, PACK_MCMETA_735);
+    }
+
     /** Writes the 1.16.1 variant of the pack zip to {@code file}. */
     public void writePack736(Path file) throws IOException {
         writePack(file, PACK_FORMAT_1_16_1, PACK_MCMETA_736);
@@ -1145,7 +1214,8 @@ public final class ResourcePackBuilder {
 
     /**
      * The {@code pack.mcmeta} for a {@code pack_format} number. Format 5
-     * yields the 1.16.1 text. Format 6
+     * yields the 1.16.1 text (735 packs pass their own mcmeta explicitly;
+     * see {@link #writePack735(Path)}). Format 6
      * always yields the 1.16.4 / 1.16.5 text: 753 packs pass their own
      * mcmeta explicitly (see {@link #writePack753(Path)}) because the
      * format number alone cannot tell them apart.

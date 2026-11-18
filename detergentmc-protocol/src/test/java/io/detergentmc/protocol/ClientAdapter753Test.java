@@ -37,7 +37,7 @@ class ClientAdapter753Test {
 
     @Test
     void decide753AgainstAllServerProtocols() {
-        for (int server : new int[]{736, 751, 753, 754, 755, 756, 757, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771,
+        for (int server : new int[]{735, 736, 751, 753, 754, 755, 756, 757, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771,
                 772, 773, 774, 775}) {
             Handshake handshake = ClientAdapter.decide(753, server);
             assertTrue(handshake.accepted(), "server=" + server);
@@ -72,9 +72,10 @@ class ClientAdapter753Test {
     @Test
     void supportedClientProtocolsInclude753() {
         List<Integer> supported = ClientAdapter.supportedClientProtocols();
-        assertEquals(736, supported.get(0), supported.toString());
-        assertEquals(751, supported.get(1), supported.toString());
-        assertEquals(753, supported.get(2), supported.toString());
+        assertEquals(735, supported.get(0), supported.toString());
+        assertEquals(736, supported.get(1), supported.toString());
+        assertEquals(751, supported.get(2), supported.toString());
+        assertEquals(753, supported.get(3), supported.toString());
         assertTrue(supported.contains(753), supported.toString());
         assertFalse(supported.contains(758), supported.toString());
         assertFalse(supported.contains(752), supported.toString());
