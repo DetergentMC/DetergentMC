@@ -54,6 +54,27 @@ DetergentMCは**単一jarで全バージョンに対応しない**。バージ�
   **26.1対応**：クライアント759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775 ×
   サーバー759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775の全289通りが参加できる（下の
   「26.1対応：全289通りの対応マトリクス」を参照）。
+  **1.18対応**：クライアント757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775 ×
+  サーバー757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775の全324通りが参加できる（下の
+  「1.18対応：全324通りの対応マトリクス」を参照）。
+  **1.17.1対応**：クライアント756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775 ×
+  サーバー756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775の全361通りの対応を記す（下の
+  「1.17.1対応：全361通りの対応マトリクス」を参照）。ただし756クライアント×757〜775サーバーの18通りは Join Game が落とされるため参加できない。
+  **1.17対応**：クライアント755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775 ×
+  サーバー755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775の全400通りの対応を記す（下の
+  「1.17対応：全400通りの対応マトリクス」を参照）。ただし755クライアント×756〜775サーバーの19通りは Join Game が落とされるため参加できない。
+  **1.16.4／1.16.5対応**：クライアント754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775 ×
+  サーバー754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775の全441通りの対応を記す（下の
+  「1.16.4／1.16.5対応：全441通りの対応マトリクス」を参照）。ただし754クライアント×756〜775サーバーの19通りは Join Game が落とされるため参加できない。
+  **1.16.3対応**：クライアント753／754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775 ×
+  サーバー753／754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775の全484通りの対応を記す（下の
+  「1.16.3対応：全484通りの対応マトリクス」を参照）。ただし753クライアント×756〜775サーバーの19通りは Join Game が落とされるため参加できない。
+  **1.16.2対応**：クライアント751／753／754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775 ×
+  サーバー751／753／754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775の全529通りの対応を記す（下の
+  「1.16.2対応：全529通りの対応マトリクス」を参照）。ただし751クライアント×756〜775サーバーの19通りは Join Game が落とされるため参加できない。
+  **1.16.1対応**：クライアント736／751／753／754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775 ×
+  サーバー736／751／753／754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775の全576通りの対応を記す（下の
+  「1.16.1対応：全576通りの対応マトリクス」を参照）。ただし736クライアント×756〜775サーバーの19通りは Join Game が落とされるため参加できない。
   Bedrockは6プロトコル × 内部17サーバーの全102通り（759・760・761・762は単体テストのみ・統合テストなし）。
 - 1バージョン＝1アダプターモジュール（例：`detergentmc-adapter-v1_20_4`）。
 
@@ -71,7 +92,7 @@ detergentmc-adapter-v1_21    1.21用・1.21.1用（プロトコル767を共有�
 detergentmc-adapter-v1_21_2  1.21.2用・1.21.3用（プロトコル768を共有、1モジュールに2アダプター）← 追加済み
 detergentmc-adapter-v1_21_4  1.21.4用（プロトコル769、1バージョンだけのモジュール）← 追加済み
 detergentmc-adapter-v1_21_5  1.21.5用（プロトコル770、1バージョンだけのモジュール）← 追加済み
-detergentmc-adapter-v1_16_5  （将来追加）
+detergentmc-adapter-v1_16_5  1.16.4用・1.16.5用（プロトコル754を共有、1モジュールに2アダプター）← 追加済み
 ...
 ```
 
@@ -2846,3 +2867,1543 @@ Update Attributes の 769 名前表・スロットの 769 正規化）で、偽 
   詳しくは `docs/PROXY-26.1.md` の罠10を参照。
 - **26.2以降（776〜）は未対応**：プロキシは775より新しいプロトコルを
   ログイン時に断る。
+
+## 1.18対応：全324通りの対応マトリクス（2026-11-16）
+
+クライアント757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775 × サーバー（内部プロトコル）757／759／760／761／762／763／764／
+765／766／767／768／769／770／771／772／773／774／775の全324通りを記す。ただし757クライアント×759〜775サーバーの17通りは Join Game が落とされるため参加できない。26.1対応の289通りに、757クライアントと
+757サーバーを加えたものである（758は未対応のため飛ばす。18プロトコル）。見出し事例は「1.18のサーバー（内部757）に
+1.19系・1.20系・1.21クライアントが入る」「1.19系・1.20系・1.21サーバーに1.18クライアントが
+入る」こと。パケットIDは759と123件違い（変更123件・新規5件・削除8件）のため、757の翻訳は
+759との差分表を作り、あとは既存の鎖に重ねる（くわしくは `docs/PROXY-1.18.md`。Stage Eで並行して作成中）。
+レジストリはブロック状態−1,106・ブロック−35・アイテム−51・エンティティ−5・音−118・パーティクル−5・
+エンチャント−1・バイオーム−2・エフェクト−1（759から757への減少分。§11.1の実測値）。
+これでプロトコル757・759〜775の18個・マトリクス18×18=324通りになる。
+1.18は Java 17 が必要（`VanillaServerHost.javaBinaryFor` は既定分岐で現在の Java を使う。
+Java 25 必須リストにも Java 21 必須リストにも入っていない）。
+
+凡例は1.20系のマトリクスと同じ（◎＝統合テスト済み、○＝素通しで統合テストなし、
+△＝制限付き、×＝できない。現在×は無い）。
+
+289通りのセルは「26.1対応：全289通りの対応マトリクス」の表のままで変わらない。
+ここでは757が加わった35セル（757行18セル＋757列18セル−重複1セル）だけを記す。
+
+◎は付けていない。757関係の統合テストはJava実装済み・javac通過。プロキシ経由の実行は
+このVMのサンドボックス（JVMのTCP遮断）のため未実施で、◎にできるセルは無い。
+直接接続の結果は各セルに記録済み（(a)は参加〜チャンクまで通過、(b)(c)(d)はバージョン不一致切断）。4つの必須セル（偽757→実1.18、偽757→実1.19、
+偽757→実1.20.1、偽759→実1.18）にはその旨を明記した。プロキシ経由で通ったセルが
+出たら◎に更新する。
+
+方向の非対称：757クライアント×759〜775サーバーは、サーバー→クライアントの Join Game／Respawn
+が落とされる（各 Join Game／Respawn ハンドラが `is757()` で落とす。759は `ProxySession757Test`
+で確認済み）ため参加できない。逆向き（759〜775クライアント×757サーバー）は Join Game が通る
+（757→759→763→クライアントの二段変換。759と774は `ProxySession757Test` で確認済み）。
+ただし逆向きも翻訳あり・統合テストなしで、落とすパケット（Player Chat、sculk_vibration_signal、
+Declare Recipes／Tags、Window Click／Set Creative Slot など）があるため、777のマトリクスと
+同じく△（制限付き）とする。○は素通し（757×757）のみである。
+Respawn は759〜765クライアントには通るが、766〜775クライアントには下流
+（`handleServerPlayFrom763` の Respawn 分岐の落としリスト）で落とされる
+（774は `ProxySession757Test` で確認済み）。
+
+### 757クライアント × 全サーバー
+
+| クライアント＼サーバー | 757（1.18／1.18.1） | 759（1.19） | 760（1.19.1／1.19.2） | 761（1.19.3） | 762（1.19.4） | 763（1.20／1.20.1） | 764（1.20.2） | 765（1.20.3／1.20.4） | 766（1.20.5／1.20.6） | 767（1.21／1.21.1） | 768（1.21.2／1.21.3） | 769（1.21.4） | 770（1.21.5） | 771（1.21.6） | 772（1.21.7／1.21.8） | 773（1.21.9／1.21.10） | 774（1.21.11） | 775（26.1／26.1.1／26.1.2） |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **757（1.18／1.18.1）** | ○ 素通し（リレー）。統合テストはJava実装済み・javac通過。プロキシ経由の実行はこのVMのサンドボックス（JVMのTCP遮断）で未実施。`ProxyIntegrationTest.fake757ClientJoinsRealVanilla118ThroughProxy`（参加・スポーン・チャット・移動まで確認。内部757）。直接接続では参加〜チャンクまで確認済み（Join Game 0x26＝23,987バイト、Chunk Data 0x22＝389パケット・13,775,221バイト、チャットのブロードキャスト 0x0F を受信、移動後も接続維持。ノート§15） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`ProxySession757Test.join757Against759DropsServerPacketsButConvertsClientPackets` で確認。`handleServerJoinGame763` の is757() 分岐、Respawn は `handleServerPlayFrom763` の落としリスト）。クライアント→サーバーは変換する（chat 0x03→chat_message／chat_command、Block Dig／Place／Use Item に sequence 0補完、Enchant Item）。757→759の翻訳子（Join Game／Respawn codec、チャット、Spawn Entity、Player Info、ChunkTranslator 757⇔759節）は単体テスト済み。統合テストはJava実装済み・javac通過。プロキシ経由の実行はこのVMのサンドボックスで未実施。`ProxyIntegrationTest.fake757ClientJoinsRealVanilla119ThroughProxy`（内部759）。直接接続ではバージョン不一致切断を確認（`multiplayer.disconnect.incompatible` with "1.19"。プロキシ必須の裏付け。ノート§15） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（760→761→762→763へ直してから `handleServerJoinGame763`／`handleServerPlayFrom763` が is757() で落とす。759はテストで確認、760はコードで確認）。クライアント→サーバーは757→759→760の連鎖で変換。レジストリは757→759→760の連鎖 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（761→762→763へ直してから `handleServerJoinGame763`／`handleServerPlayFrom763` が is757() で落とす。759はテストで確認、761はコードで確認）。クライアント→サーバーは757→759→760→761の連鎖で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（762→763へ直してから `handleServerJoinGame763`／`handleServerPlayFrom763` が is757() で落とす。759はテストで確認、762はコードで確認）。クライアント→サーバーは757→759→760→761→762の連鎖で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame763` の is757() 分岐。`translateJoinGame763To757` が要る。§13.10）。クライアント→サーバーは `handleClientPlayTo757` で変換（chat、Block Dig／Place／Use Item、Set Beacon、Update Structure Block、Enchant Item。Window Click／Set Creative Slot は落とすまま）。統合テストはJava実装済み・javac通過。プロキシ経由の実行はこのVMのサンドボックスで未実施。`ProxyIntegrationTest.fake757ClientJoinsRealVanilla1201ThroughProxy`（内部763）。直接接続ではバージョン不一致切断を確認（`multiplayer.disconnect.incompatible` with "1.20.1"。プロキシ必須の裏付け。ノート§15） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（764→763へ直してから `handleServerJoinGame763` が is757() で落とす。`translateJoinGame764To757` が要る。Respawn も落とす）。設定フェーズはプロキシが合成するが Join Game が無いため参加できない。クライアント→サーバーは `handleClientPlayTo757` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（765→763へ直してから `handleServerJoinGame763` が is757() で落とす。`translateJoinGame765To757` が要る。Respawn も落とす）。設定フェーズはプロキシが合成するが Join Game が無いため参加できない。クライアント→サーバーは `handleClientPlayTo757` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame766` の is757() 分岐。`translateJoinGame766To757` が要る。Respawn も落とす）。クライアント→サーバーは `handleClientPlayTo757` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（767は766に委譲し `handleServerJoinGame766` の is757() 分岐で落とす。Respawn も落とす）。クライアント→サーバーは `handleClientPlayTo757` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame768` の is757() 分岐。`translateJoinGame768To757` が要る。Respawn も落とす）。クライアント→サーバーは `handleClientPlayTo757` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（769→768へ直してから `handleServerJoinGame768` の is757() 分岐で落とす。`translateJoinGame769To757` が要る。Respawn も落とす）。クライアント→サーバーは `handleClientPlayTo757` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（770→769→768へ直してから `handleServerJoinGame768` の is757() 分岐で落とす。`translateJoinGame770To757` が要る。Respawn も落とす）。クライアント→サーバーは `handleClientPlayTo757` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（771→770→769→768へ直してから `handleServerJoinGame768` の is757() 分岐で落とす。`translateJoinGame771To757` が要る。Respawn も落とす）。クライアント→サーバーは `handleClientPlayTo757` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（772→771→770→769→768へ直してから `handleServerJoinGame768` の is757() 分岐で落とす。`translateJoinGame772To757` が要る。Respawn も落とす）。クライアント→サーバーは `handleClientPlayTo757` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（773→772→771→770→769→768へ直してから `handleServerJoinGame768` の is757() 分岐で落とす。`translateJoinGame773To757` が要る。Respawn も落とす）。クライアント→サーバーは `handleClientPlayTo757` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（774→773→772→771→770→769→768へ直してから `handleServerJoinGame768` の is757() 分岐で落とす。`translateJoinGame774To757` が要る。Respawn も落とす）。クライアント→サーバーは `handleClientPlayTo757` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame775` の is757() 分岐。774に委譲する前に落とす。`translateJoinGame775To757` が要る。Respawn も落とす）。クライアント→サーバーは `handleClientPlayTo757`／`to757ClientPacketFrom775` で変換 |
+
+### 全クライアント × 757サーバー
+
+| クライアント＼サーバー | 757（1.18／1.18.1） |
+|---|---|
+| **759（1.19）** | △ 制限付き。Join Gameは通る（757→759→763→759の二段変換。`ProxySession757Test.join759Against757ConvertsJoinGameRespawnChatSpawnAndChunk` で確認。Join Game／Respawn／チャット／Spawn Entity／Chunk Data）。Respawnも通る。ただし Player Chat（署名付き）は落とす、sculk_vibration_signal は落とす、Declare Recipes／Tagsを落とす。統合テストはJava実装済み・javac通過。プロキシ経由の実行はこのVMのサンドボックス（JVMのTCP遮断）で未実施。`ProxyIntegrationTest.fake759ClientJoinsRealVanilla118ThroughProxy`（内部757）。直接接続ではバージョン不一致切断を確認（`multiplayer.disconnect.incompatible` with "1.18"。プロキシ必須の裏付け。ノート§15） |
+| **760（1.19.1／1.19.2）** | △ 制限付き。Join Gameは通る（757→759→760の連鎖。759はテストで確認、760は同じ連鎖でコード確認）。Respawnも通る。Player Chat／sculk／Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ） |
+| **761（1.19.3）** | △ 制限付き。Join Gameは通る（757→759→760→761の連鎖。759はテストで確認、761は同じ連鎖でコード確認）。Respawnも通る。Player Chat／sculk／Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ） |
+| **762（1.19.4）** | △ 制限付き。Join Gameは通る（757→759→760→761→762の連鎖。759はテストで確認、762は同じ連鎖でコード確認）。Respawnも通る。Player Chat／sculk／Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ） |
+| **763（1.20／1.20.1）** | △ 制限付き。Join Gameは通る（757→759→763の二段変換）。Respawnも通る（`handleServerPlayFrom763` の Respawn 分岐の落としリストに763は無い）。クライアント→サーバーは `handleClientPlayTo757` で変換（chat、Block Dig／Place／Use Item、Enchant Item。Window Click／Set Creative Slot は落とすまま）。Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ） |
+| **764（1.20.2）** | △ 制限付き。Join Gameは通る（757→759→763→764の合成変換。設定フェーズはプロキシが合成する）。Respawnも通る。クライアント→サーバーは `handleClientPlayTo757` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **765（1.20.3／1.20.4）** | △ 制限付き。Join Gameは通る（757→759→763→765の合成変換。設定フェーズはプロキシが合成する）。Respawnも通る。クライアント→サーバーは `handleClientPlayTo757` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **766（1.20.5／1.20.6）** | △ 制限付き。Join Gameは通る（757→759→763→766の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流（`handleServerPlayFrom763` の Respawn 分岐）で落とす。クライアント→サーバーは `handleClientPlayTo757` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **767（1.21／1.21.1）** | △ 制限付き。Join Gameは通る（757→759→763→766→767の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo757` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **768（1.21.2／1.21.3）** | △ 制限付き。Join Gameは通る（757→759→763→766→768の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo757` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **769（1.21.4）** | △ 制限付き。Join Gameは通る（757→759→763→766→769の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo757` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **770（1.21.5）** | △ 制限付き。Join Gameは通る（757→759→763→766→770の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo757` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **771（1.21.6）** | △ 制限付き。Join Gameは通る（757→759→763→766→771の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo757` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **772（1.21.7／1.21.8）** | △ 制限付き。Join Gameは通る（757→759→763→766→772の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo757` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **773（1.21.9／1.21.10）** | △ 制限付き。Join Gameは通る（757→759→763→766→773の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo757` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **774（1.21.11）** | △ 制限付き。Join Gameは通る（757→759→763→774の二段変換。Join Game 0x30。`ProxySession757Test.join774Against757ConvertsJoinGameButDropsRespawn` で確認。合成設定フェーズで Registry Data＋Finish Configuration を送ってから保持した Join Game を送る）。Respawn は下流（`handleServerPlayFrom763` の Respawn 分岐）で落とす。Chat Message→chat、Block Dig は変換する。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **775（26.1／26.1.1／26.1.2）** | △ 制限付き。Join Gameは通る（757→759→763→775の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo757`／`to757ClientPacketFrom775` で変換（Attack→Use Entity、Chat Message／Chat Command→chat、Enchant Item。Window Click／Set Creative Slot は落とすまま）。統合テストなし（単体テストのみ） |
+| **757（1.18／1.18.1）** | ○ 素通し（リレー）。上の表を参照 |
+
+検証の区別（まとめ）：
+
+- **統合テスト済み（0件）**：757関係の統合テストはJava実装済み・javac通過。
+  プロキシ経由の実行はこのVMのサンドボックス（JVMのTCP遮断）のため未実施。
+  4つの必須セル（偽757→実1.18、偽757→実1.19、偽757→実1.20.1、偽759→実1.18）の
+  直接接続の結果は各セルに記録済み（ノート§15）。プロキシ経由で通ったセルが出たら◎に更新する。
+- **単体テスト済み・統合テストなし**：757↔759の翻訳子は
+  `PlayTranslator757Test` 45件・`ChunkTranslator757Test` 9件・
+  `ProxySession757Test` 4件・`ClientAdapter757Test` 11件・
+  `ClientJoinFlow757Test` 5件・`ProtocolVersion757Test` 3件・
+  `ClientProxy757Test` 4件の合計81件全通過（Stage B §13.8）。
+  `ClientAdapter` の全組み合わせ判定テストと `ProtocolVersion757Test` の単体テスト、および
+  `verify-757-tables.py`（43件の表チェック）でも確認。
+- **回帰**：Stage Bの全体回帰は2,286件通過・30件失敗。失敗は全て環境制約
+  （ソケットタイムアウト8件、ResourcePackServerのローカルHTTP -1が17件、
+  SessionServerClientのbase URL未設定5件）で、757が原因の本物の回帰は0件（§13.8）。
+  Stage Dの全スイートは2,983件中2,856通過・失敗1件・中断126件。うち60件は
+  ハーネス起因と切り分け済み。残る1件は
+  `ProxyIntegrationTest#fake759ClientJoinsRealVanilla119ThroughProxy` の
+  終了時レースで、失敗→失敗→通過と再現性がなくフレーキー（§14.1.4）。
+  この2つの数字は別時点の別実行のもので、合計はしていない。
+- **素通し（リレー）・統合テストなし**：757→757はプロキシ経由の統合テストがこのVMの
+  サンドボックス（JVMのTCP遮断）で未実施のため、現時点ではリレーの統合テスト済みセルは無い。
+  リレーはバイト列をそのまま通すため変換の誤りが入りようが無く、757→757の
+  単体テスト（`ProxySession757Test.join757Against757IsNative`）で経路自体は検証済み。
+- **Bedrock→757**：`JavaBackendConnection757Test`（25件）・
+  `BedrockChunkTranslatorTest` の757件（4件）で単体テスト済み（§14.2.3。
+  757テスト29通過／7失敗で、失敗は全てソケットテスト＝JVMのループバックTCP遮断の環境制約）。
+  Bedrockマトリクス統合テストはこのツリーには無いため、Bedrockの102通りのまま
+  （冒頭の「Bedrockは6プロトコル × 内部17サーバーの全102通り」の行は変えていない）。
+- **実機でしか確認できないもの（全324通り共通）**：本物のゲームクライアントでの
+  参加・見た目・操作感、本物のMojang認証サーバーでのonline-mode参加、
+  リソースパックの「互換性あり」表示と適用、泡テクスチャの目での確認。
+  2人同時参加での他プレイヤーの見え方（named_entity_spawn）は、偽クライアントでは
+  確かめられなかったため、実機での確認が最も重要な残りの検証である。
+  新要素（マングローブ、泥、スカルク、フロッグライト、カエル／アレイ／ウォーデン、
+  ヤギの角笛、リカバリーコンパス）の実機での見え方・聞こえ方も未確認。
+  手順書は `docs/PLAYTEST-1.18.md`（Stage Eで並行して作成中）。
+
+### 759↔757のレジストリ差分（2026-11-15、ViaVersion 対応表と minecraft-data と実バニラの data-generator レポートで確認）
+
+- **パケットID**：123件変更（プレイ toClient 79件、toServer 44件）・新規5件・削除8件。
+  プレイ toClient は105→104件、toServer は50→48件。新規は spawn_entity_living（0x02、
+  toClient）、spawn_entity_painting（0x03、toClient）、sculk_vibration_signal（0x05、
+  toClient）、chat（クライアント行き 0x0F／サーバー行き 0x03）。
+  削除は system_chat（759ではクライアント行き 0x5F）、player_chat（0x30）、
+  should_display_chat_preview（0x4B）、server_data（0x3F）、chat_preview（0x0C）、
+  chat_message（サーバー行き 0x04）、chat_command（サーバー行き 0x03）、
+  chat_preview_to_server（サーバー行き 0x05）。いずれも1.19で追加された署名付きチャット／
+  チャットプレビュー関係。設定フェーズ・ログイン・ステータス・ハンドシェイクのIDは0変更
+  （設定フェーズは1.18／1.19とも存在しないため CONFIGURATION のエントリは757・759とも -1）。
+  （`PacketIds.java` の757列と `packet-ids-757.json` で確認）。
+- **ブロック状態**：759=21,448件、757=20,342件（−1,106件：新規994＋葉の waterlogged 追加112）。
+- **ブロック**：759=933件、757=898件（−35件：マングローブ一式、泥／泥レンガ、スカルク一式、
+  強化された深層岩、フロッグライト3種、蛙の卵）。
+- **アイテム**：759=1,152件、757=1,101件（−51件：上記ブロックのアイテム＋チェスト付きボート6種、
+  マングローブのボート、オタマジャクシ入りバケツ、リカバリーコンパス、スポーンエッグ4種、
+  レコード「5」、ディスクの破片、ヤギの角笛、エコーシャード）。
+- **エンティティ**：759=118件、757=113件（−5件：アレイ、チェスト付きボート、カエル、
+  オタマジャクシ、ウォーデン）。
+- **音**：759=1,321件、757=1,203件（−118件：アレイ7、カエル8、ウォーデン20、スカルク系24、
+  マングローブの根5、泥系20、フロッグライト5、蛙の卵6、ヤギの角笛11、オタマジャクシ6、
+  レコード「5」、music.overworld 4、オウムのウォーデン物まね1）。
+- **パーティクル**：759=93件、757=88件（−5件：sonic_boom、sculk_soul、sculk_charge、
+  sculk_charge_pop、shriek）。
+- **エンチャント**：759=39件、757=38件（−1件：swift_sneak、759の12番に挿入）。
+- **バイオーム**：759=63件、757=61件（−2件：mangrove_swamp 7番、deep_dark 52番）。
+- **エフェクト**：759=33件、757=32件（−1件：darkness 32番、末尾）。
+- **ブロックエンティティ**：759=36件、757=34件（−2件：sculk_catalyst 34、sculk_shrieker 35）。
+- **メニュー**：24件で同一。**属性**：13件で同一。**レシピシリアライザ**：21件で同一。
+  **データコンポーネント・環境属性・スロット表示・ダメージ種別**：1.18／1.19とも無し
+  （ダメージ種別表は762の42件の恒等写像プレースホルダ）。
+- **改名は0件、削除は0件**（items／blocks／entities／sounds／particles の未対応はすべて新規。§11.1）。
+- **ペイロードの違い（パケットID以外）**：Join Game は dimensionType が値（NBT）→キー（文字列）、
+  lastDeathLocation（Optional<GlobalPos>）が1.19で新規追加（759→757では落とす、757→759では
+  absent を書く）。Respawn も同じ2件の変更。dimensionCodec には `minecraft:chat_type`（8件）が
+  1.19で追加。チャットは1.18の署名なし `chat` から1.19の System Chat／Player Chat／
+  Chat Message／Chat Command（署名付き）に分離。PlayerInfo はまだ旧式
+  （PlayerInfoUpdate への改名は1.19.3／761）。Registry Data パケットは1.18／1.19には存在しない
+  （設定フェーズは1.20.2／764で追加）。Chunk Data は1.18／1.19で同一。Spawn Entity は1.18に
+  headPitch が無く objectData が i32（1.19は headPitch＋varint）。
+- **pack_format**：リソース 8、データ 8（1.18サーバーjar内の version.json。
+  data version 2860。1.18.1は2865で protocol・pack_format とも同一）。
+  757用パックは `detergentmc-pack-1.18.zip`（18個目。pack.mcmeta は plain `{"pack_format":8}`）。
+- **バニラ1.18サーバーjarのSHA-1**：`3cf24a8694aca6267883b17d934efacc5e44440d`
+  （piston-meta。46,323,386バイト。`run/vanilla/server-1.18.jar`）。
+  1.18.1は `125e5adf40c659fd3bce3e66e67a16bb49ecc1b9`
+  （46,324,407バイト）。
+- **1.18は Java 17**：`version.json` の `java_version: 17` でも確認（piston-metaの
+  `majorVersion: 17` と一致）。Java 17 は `~/.tools/jdk-17.0.21+9`
+  （Temurin 17.0.21+9。Adoptium から取得し SHA-256 を照合済み）。
+- **実バニラ1.18の起動確認に成功**（§14.3.4）：Done 190.782s、pack metadataエラー0件。
+- **1.18の既知の制限（Stage B・Dで確認）**：757クライアント＋759〜775サーバーの
+  Join Game／Respawn は落とされる。766〜775クライアント＋757サーバーの Respawn は
+  下流で落とされる。Window Click／Set Creative Slot は763〜775クライアント→757サーバーで
+  落とすまま。Stage BのChunkTranslator 757節はstraddling前提で、実バニラ1.18
+  （non-straddling）と食い違う疑い（§14.2.4。判断待ち）。`RegistryRemapper` の
+  `ITEM_REVERSE_MAP` と `ITEM_763_TO_765` の食い違い（ボート・レコード・絵画。§14.2.4。
+  判断待ち）。775節の `experience_orb = 47` の古いリテラル、770〜775のChunkTranslatorの
+  ストラドリング問題は触っていない（Muse01／ユーザーの判断待ち）。
+- **758は未対応**：758（1.18.2）は他人の作業中のため飛ばす。757は追加済み。
+  758が終わったら758↔757の合成表をそのときに作る（759を隣接として757表を直接作る方針(b)。§7.4）。
+
+## 1.17.1対応：全361通りの対応マトリクス（2026-11-16）
+
+クライアント756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775 × サーバー（内部プロトコル）756／757／759／760／761／762／763／764／
+765／766／767／768／769／770／771／772／773／774／775の全361通りを記す。ただし756クライアント×757〜775サーバーの18通りは Join Game が落とされるため参加できない。1.18対応の324通りに、756クライアントと
+756サーバーを加えたものである（758は未対応のため飛ばす。19プロトコル）。見出し事例は「1.17.1のサーバー（内部756）に
+1.18系・1.19系・1.20系・1.21クライアントが入る」「1.18系・1.19系・1.20系・1.21サーバーに1.17.1クライアントが
+入る」こと。パケットIDは757と16件違い（変更16件・新規0件・削除1件）のため、756の翻訳は
+757との差分表を作り、あとは既存の鎖に重ねる（くわしくは `docs/PROXY-1.17.1.md`）。
+レジストリはブロック状態±0・ブロック±0・アイテム−1・エンティティ±0・音−13・パーティクル＋1・
+バイオーム＋20・エンチャント±0（757から756への変化分。§11.1の実測値）。
+これでプロトコル756・757・759〜775の19個・マトリクス19×19=361通りになる。
+1.17.1は Java 16 が必要（`version.json` の `java_version: 16`。`VanillaServerHost.javaBinaryFor` は既定分岐で現在の Java を使う。
+Java 25 必須リストにも Java 21 必須リストにも入っていない。実バニラ起動確認は JDK 17 ドライバ＋Java 16 バイナリで実施。ノート§15.3.4）。
+
+凡例は1.20系のマトリクスと同じ（◎＝統合テスト済み、○＝素通しで統合テストなし、
+△＝制限付き、×＝できない。現在×は無い）。
+
+324通りのセルは「1.18対応：全324通りの対応マトリクス」の表のままで変わらない。
+ここでは756が加わった37セル（756行19セル＋756列19セル−重複1セル）だけを記す。
+（注：任務文の「35セル」は18プロトコル時点の数え方で、756を加えて19プロトコルになったため
+19＋19−1＝37セルが正しい。実際に数えて確認した。）
+
+◎は付けていない。756関係の統合テストは別担当が `ProxyIntegrationTest.java` に Fake756Client＋4セルを追加中で、現時点では未実装である。
+プロキシ経由の実行はこのVMのサンドボックス（JVMのTCP遮断）のため未実施で、◎にできるセルは無い。
+直接接続の結果も未確認で、各セルにその旨を記録した。4つの必須セル（偽756→実1.17.1、偽756→実1.18、偽756→実1.19、偽759→実1.17.1）にはその旨を明記した。プロキシ経由で通ったセルが
+出たら◎に更新する。
+
+方向の非対称：756クライアント×757〜775サーバーは、サーバー→クライアントの Join Game／Respawn
+が落とされる（各 Join Game／Respawn ハンドラが `is756()` で落とす。775は `ProxySession756Test`
+で確認済み、763／766はコードで確認済み）ため参加できない。逆向き（757〜775クライアント×756サーバー）は Join Game が通る
+（756→757→759→763の連鎖。757と774は `ProxySession756Test` で確認済み）。
+ただし逆向きも翻訳あり・統合テストなしで、落とすパケット（sculk_vibration_signal、
+Declare Recipes／Tags、Window Click／Set Creative Slot など）があるため、757のマトリクスと
+同じく△（制限付き）とする。○は素通し（756×756）のみである。
+Respawn は757〜765クライアントには通るが、766〜775クライアントには下流
+（`handleServerPlayFrom763` の Respawn 分岐の落としリスト）で落とされる
+（774は `ProxySession756Test` で確認済み。759〜765は同分岐のコードで確認）。
+
+### 756クライアント × 全サーバー
+
+| クライアント＼サーバー | 756（1.17.1） | 757（1.18／1.18.1） | 759（1.19） | 760（1.19.1／1.19.2） | 761（1.19.3） | 762（1.19.4） | 763（1.20／1.20.1） | 764（1.20.2） | 765（1.20.3／1.20.4） | 766（1.20.5／1.20.6） | 767（1.21／1.21.1） | 768（1.21.2／1.21.3） | 769（1.21.4） | 770（1.21.5） | 771（1.21.6） | 772（1.21.7／1.21.8） | 773（1.21.9／1.21.10） | 774（1.21.11） | 775（26.1／26.1.1／26.1.2） |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **756（1.17.1）** | ○ 素通し（リレー）。統合テストは別担当が追加中（`ProxyIntegrationTest.java` に Fake756Client＋4セルを追加中。現時点では未実装のためセル名は予定：`fake756ClientJoinsRealVanilla1171ThroughProxy`（内部756））。プロキシ経由の実行はこのVMのサンドボックス（JVMのTCP遮断）で未実施。直接接続の結果は未確認。単体テストは `ProxySession756Test.join756Against756IsNative` で経路を確認済み（Join Game 0x26・Respawn 0x3D・chat 0x03 がそのまま通る） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（757→759→763へ直してから `handleServerJoinGame763`／`handleServerPlayFrom763` の Respawn 分岐が is756() で落とす。コードで確認。775はテストで確認）。クライアント→サーバーは変換する（chat 0x03 はそのまま、Client Information は 757→756 変換で enableServerListing を落とす、Window Click／Set Creative Slot は 757→756 変換器あり）。実バニラキャプチャの Join Game 756→757→756 の往復はバイト完全一致（31,555バイト。ノート§14.3）。統合テストは別担当が追加中（予定：`fake756ClientJoinsRealVanilla118ThroughProxy`（内部757））。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（759→763へ直してから `handleServerJoinGame763` が is756() で落とす。コードで確認）。クライアント→サーバーは変換する（`ProxySession756Test.clientPackets756Against759Convert` で確認。chat 0x03→Chat Message 0x04、Block Dig 0x1A→0x1C に sequence 0補完、Window Click 0x08→0x0A、Client Information 0x05→0x07、Enchant Item 0x07→0x09）。統合テストは別担当が追加中（予定：`fake756ClientJoinsRealVanilla119ThroughProxy`（内部759））。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（760→761→762→763へ直してから `handleServerJoinGame763` が is756() で落とす。コードで確認）。クライアント→サーバーは756→757→759→760の連鎖で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（761→762→763へ直してから `handleServerJoinGame763` が is756() で落とす。コードで確認）。クライアント→サーバーは756→757→759→760→761の連鎖で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（762→763へ直してから `handleServerJoinGame763` が is756() で落とす。コードで確認）。クライアント→サーバーは756→757→759→760→761→762の連鎖で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame763` の is756() 分岐。`handleServerPlayFrom763` の Respawn 分岐の落としリストにも756。コードで確認）。クライアント→サーバーは `handleClientPlayTo756` で変換（Chat Message／Chat Command→chat 0x03、Block Dig、Enchant Item。Window Click／Set Creative Slot は落とすまま。`ProxySession756Test.windowClick763Against756Drops` で確認）。Client Information は素通し（763→756変換器なし。末尾フィールド差分は未対応。ノート§14.9）。統合テストは別担当が追加中（予定：`fake756ClientJoinsRealVanilla1201ThroughProxy`（内部763））。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（764→763へ直してから `handleServerJoinGame763` が is756() で落とす。Respawn も764ハンドラの落としで is756()。コードで確認）。設定フェーズはプロキシが合成するが Join Game が無いため参加できない。クライアント→サーバーは `handleClientPlayTo756` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（765→763へ直してから `handleServerJoinGame763` が is756() で落とす。Respawn も765ハンドラの落としで is756()。コードで確認）。設定フェーズはプロキシが合成するが Join Game が無いため参加できない。クライアント→サーバーは `handleClientPlayTo756` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame766` の is756() 分岐。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlayTo756` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（767は766に委譲し `handleServerJoinGame766` の is756() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlayTo756` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（768は `handleServerJoinGame768` の is756() 分岐で落とす。Respawn も落とす。コードで確認。`handleServerJoinGame768` は 757／756 の落としを 757 の前例と同じく持つ）。クライアント→サーバーは `handleClientPlayTo756` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（769→768へ直してから `handleServerJoinGame768` の is756() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlayTo756` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（770→769→768へ直してから `handleServerJoinGame768` の is756() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlayTo756` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（771→770→769→768へ直してから `handleServerJoinGame768` の is756() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlayTo756` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（772→771→770→769→768へ直してから `handleServerJoinGame768` の is756() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlayTo756` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（773→772→771→770→769→768へ直してから `handleServerJoinGame768` の is756() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlayTo756` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（774→773→772→771→770→769→768へ直してから `handleServerJoinGame768` の is756() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlayTo756` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame775` の is756() 分岐。774に委譲する前に落とす。`ProxySession756Test.login756Against775SynthesizesConfig` で確認。Join Game 0x31 を落とす。ログイン合成でサーバーは設定フェーズを消費し、Finish Configuration でプレイ状態に入るが756クライアントに送るものは無い）。クライアント→サーバーは `handleClientPlayTo756` で変換 |
+
+### 全クライアント × 756サーバー
+
+| クライアント＼サーバー | 756（1.17.1） |
+|---|---|
+| **757（1.18／1.18.1）** | △ 制限付き。Join Gameは通る（756→757の直接変換。`ProxySession756Test.joinAndRespawn756Against757Convert` で確認。Join Game 0x26、simulationDistance は viewDistance と同じ値＝10）。Respawnも通る（同テストで確認）。ただし756サーバーからの chat 0x0F は757クライアントには落とす（同テストで確認。汎用経路の落としリスト）。757→756の Chunk Data は光を落とす（光の抽出器 `ChunkTranslator.extractUpdateLightFromChunkData757` は動作確認済みだが呼び出し口が無く未配線。ノート§14.5）。統合テストなし（単体テストのみ） |
+| **759（1.19）** | △ 制限付き。Join Gameは通る（756→757→759→763→759の連鎖。757はテストで確認、759は同じ連鎖でコード確認）。Respawnも通る（`handleServerPlayFrom763` の Respawn 分岐の落としリストに759は無い。コードで確認）。Player Chat は756サーバーには無い（`PacketIds.java` で756／757は -1。1.19で追加）。sculk_vibration_signal は落とす（756／757は 0x05 だが759には相当が無く、`to757ServerPacketFrom756` の switch にも `to759ServerPacketFrom757` にも無い。コードで確認）。Declare Recipes／Tagsは落とす（756は 0x65／0x66 だが `to757ServerPacketFrom756` の switch に無い。コードで確認）。クライアント→サーバーは変換する（`ProxySession756Test.clientPackets759Against756Convert` で確認。Chat Message 0x04→chat 0x03、Block Dig 0x1C→0x1A、Enchant Item 0x09→0x07）。Window Click／Set Creative Slot は落とすまま。統合テストは別担当が追加中（予定：`fake759ClientJoinsRealVanilla1171ThroughProxy`（内部756））。プロキシ経由の実行はこのVMのサンドボックス（JVMのTCP遮断）で未実施。直接接続の結果は未確認 |
+| **760（1.19.1／1.19.2）** | △ 制限付き。Join Gameは通る（756→757→759→760の連鎖。757はテストで確認、760は同じ連鎖でコード確認）。Respawnも通る（`handleServerPlayFrom763` の Respawn 分岐の落としリストに760は無い。コードで確認）。sculk／Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ） |
+| **761（1.19.3）** | △ 制限付き。Join Gameは通る（756→757→759→760→761の連鎖。757はテストで確認、761は同じ連鎖でコード確認）。Respawnも通る（コードで確認）。sculk／Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ） |
+| **762（1.19.4）** | △ 制限付き。Join Gameは通る（756→757→759→760→761→762の連鎖。757はテストで確認、762は同じ連鎖でコード確認）。Respawnも通る（コードで確認）。sculk／Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ） |
+| **763（1.20／1.20.1）** | △ 制限付き。Join Gameは通る（756→757→759→763の連鎖）。Respawnも通る（`handleServerPlayFrom763` の Respawn 分岐の落としリストに763は無い）。クライアント→サーバーは `handleClientPlayTo756` で変換（Chat Message／Chat Command→chat 0x03、Block Dig、Enchant Item。Window Click／Set Creative Slot は落とすまま。`ProxySession756Test.windowClick763Against756Drops` で確認）。Client Information は素通し（763→756変換器なし。末尾フィールド差分は未対応。ノート§14.9）。Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ） |
+| **764（1.20.2）** | △ 制限付き。Join Gameは通る（756→757→759→763→764の合成変換。設定フェーズはプロキシが合成する）。Respawnも通る（コードで確認）。クライアント→サーバーは `handleClientPlayTo756` で変換。Window Click／Set Creative Slot は落とすまま。Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ） |
+| **765（1.20.3／1.20.4）** | △ 制限付き。Join Gameは通る（756→757→759→763→765の合成変換。設定フェーズはプロキシが合成する）。Respawnも通る（コードで確認）。クライアント→サーバーは `handleClientPlayTo756` で変換。Window Click／Set Creative Slot は落とすまま。Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ） |
+| **766（1.20.5／1.20.6）** | △ 制限付き。Join Gameは通る（756→757→759→763→766の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流（`handleServerPlayFrom763` の Respawn 分岐）で落とす。クライアント→サーバーは `handleClientPlayTo756` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **767（1.21／1.21.1）** | △ 制限付き。Join Gameは通る（756→757→759→763→766→767の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo756` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **768（1.21.2／1.21.3）** | △ 制限付き。Join Gameは通る（756→757→759→763→766→768の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo756` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **769（1.21.4）** | △ 制限付き。Join Gameは通る（756→757→759→763→766→769の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo756` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **770（1.21.5）** | △ 制限付き。Join Gameは通る（756→757→759→763→766→770の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo756` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **771（1.21.6）** | △ 制限付き。Join Gameは通る（756→757→759→763→766→771の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo756` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **772（1.21.7／1.21.8）** | △ 制限付き。Join Gameは通る（756→757→759→763→766→772の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo756` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **773（1.21.9／1.21.10）** | △ 制限付き。Join Gameは通る（756→757→759→763→766→773の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo756` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **774（1.21.11）** | △ 制限付き。Join Gameは通る（756→757→759→763→774の連鎖。`ProxySession756Test.join774Against756ConvertsJoinGameButDropsRespawn` で確認。合成設定フェーズで Registry Data 0x07＋Finish Configuration を送ってから保持した Join Game 0x30 を送る）。Respawn は下流（`handleServerPlayFrom763` の Respawn 分岐）で落とす（同テストで確認）。Chat Message→chat、Block Dig は変換する（同テストで確認）。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **775（26.1／26.1.1／26.1.2）** | △ 制限付き。Join Gameは通る（756→757→759→763→775の合成変換。設定フェーズはプロキシが合成する。ログイン合成は `ProxySession756Test.login756Against775SynthesizesConfig` で確認済み）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo756` で変換（Chat Message／Chat Command→chat、Enchant Item。Window Click／Set Creative Slot は落とすまま）。統合テストなし（単体テストのみ） |
+| **756（1.17.1）** | ○ 素通し（リレー）。上の表を参照 |
+
+検証の区別（まとめ）：
+
+- **統合テスト済み（0件）**：756関係の統合テストは別担当が `ProxyIntegrationTest.java` に Fake756Client＋4セルを追加中で、現時点では未実装である。
+  プロキシ経由の実行はこのVMのサンドボックス（JVMのTCP遮断）のため未実施。
+  4つの必須セル（偽756→実1.17.1、偽756→実1.18、偽756→実1.19、偽759→実1.17.1）の
+  直接接続の結果も未確認。プロキシ経由で通ったセルが出たら◎に更新する。
+- **単体テスト済み・統合テストなし**：756↔757の翻訳子は
+  `PlayTranslator756Test` 17件・`ChunkTranslator756Test` 14件・
+  `ProxySession756Test` 8件・`ClientAdapter756Test` 11件・
+  `ClientJoinFlow756Test` 5件・`ClientProxy756Test` 4件・`V1171AdapterTest` 6件の
+  合計65件全通過（Stage B §14.7）。これに Stage A の
+  `ProtocolVersion756Test` 3件・`RegistryRemapper756Test` 16件を加えた
+  756関係の単体テストは合計84件全通過。
+  `ClientAdapter` の全組み合わせ判定テストと `ProtocolVersion756Test` の単体テスト、および
+  `verify-756-tables.py`（43件の表チェック）でも確認。
+- **回帰**：Stage Bの全体回帰は2,377件通過・28件失敗。失敗は全て環境制約
+  （ResourcePackServerのローカルHTTP -1が18件、ソケットタイムアウト8件、
+  SessionServerClientのbase URL未設定2件）で、756が原因の本物の回帰は0件（§14.7）。
+  Stage Dの対象テストは154件中134通過・20失敗。失敗は全て環境制約
+  （JavaBackendConnection756Testのソケット7件、ResourcePackServer756TestのHTTP GET -1 1件、
+  ResourcePackWiringTestのHTTP GET -1 12件）で、756が原因の本物の回帰は0件（§15.4）。
+  この2つの数字は別時点の別実行のもので、合計はしていない。
+- **素通し（リレー）・統合テストなし**：756→756はプロキシ経由の統合テストがこのVMの
+  サンドボックス（JVMのTCP遮断）で未実施のため、現時点ではリレーの統合テスト済みセルは無い。
+  リレーはバイト列をそのまま通すため変換の誤りが入りようが無く、756→756の
+  単体テスト（`ProxySession756Test.join756Against756IsNative`）で経路自体は検証済み。
+- **Bedrock→756**：`JavaBackendConnection756Test`（32件）・
+  `BedrockChunkTranslatorTest` の756件（5件）で単体テスト済み（§15.2.4。
+  担当テスト50件中43通過・7失敗で、失敗は全てソケットテスト＝JVMのループバックTCP遮断の環境制約）。
+  Bedrockマトリクス統合テストはこのツリーには無いため、Bedrockの102通りのまま
+  （冒頭の「Bedrockは6プロトコル × 内部17サーバーの全102通り」の行は変えていない）。
+- **実機でしか確認できないもの（全361通り共通）**：本物のゲームクライアントでの
+  参加・見た目・操作感、本物のMojang認証サーバーでのonline-mode参加、
+  リソースパックの「互換性あり」表示と適用、泡テクスチャの目での確認。
+  2人同時参加での他プレイヤーの見え方（named_entity_spawn）は、偽クライアントでは
+  確かめられなかったため、実機での確認が最も重要な残りの検証である。
+  新要素（ディープダーク、スカルク、ウォーデン、マングローブ、泥、カエル／アレイ、
+  リカバリーコンパス）の実機での見え方・聞こえ方は、756クライアントではそもそも
+  存在しないため未確認（1.18側の要素として扱う）。
+  手順書は `docs/PLAYTEST-1.17.1.md`（Stage Eで並行して作成中）。
+
+### 757↔756のレジストリ差分（2026-11-16、ViaVersion 対応表と minecraft-data と実バニラの data-generator レポートで確認）
+
+- **パケットID**：16件変更（プレイ toClient 16件）・新規0件・削除1件。
+  プレイ toClient は104→103件、toServer は48→48件。削除は simulation_distance（757で0x57。
+  1.18で追加された描画距離通知。1.17.1には無い）。変更16件はすべて0x57の削除による-1ずれ（0x58以降）。
+  Join Game 0x26→0x26、Chunk Data 0x22→0x22、Update Time 0x59→0x58、Tags 0x67→0x66。
+  設定フェーズ・ログイン・ステータス・ハンドシェイクのIDは0変更
+  （設定フェーズは1.17.1／1.18とも存在しないため CONFIGURATION のエントリは756・757とも -1）。
+  （`PacketIds.java` の756列と `packet-ids-756.json` で確認。ViaVersion の 1.17.1／1.18 enum で159件照合・
+  不一致0件、Wiki の Packets ページ（1.17.1、protocol 756）で161件照合・不一致0件。ノート§8）。
+- **ブロック状態**：757=20,342件、756=20,342件（±0件：文字列は完全一致・同一順序）。
+- **ブロック**：757=898件、756=898件（±0件：同一順序）。
+- **アイテム**：757=1,101件、756=1,100件（−1件：music_disc_otherside、757 id 1027）。
+- **エンティティ**：757=113件、756=113件（±0件）。
+- **音**：757=1,203件、756=1,190件（−13件：`block.growing_plant.crop`→`block.crop.break` 1件、
+  `item.bundle.*` 3件、`music.overworld.*` 8件、`music_disc.otherside` 1件）。
+- **パーティクル**：757=88件、756=89件（＋1件：1.17 の `barrier`（2）と `light`（3）が 1.18 の `block_marker`（3）に統合）。
+- **エンチャント**：757=38件、756=38件（±0件：同一順序）。
+- **バイオーム**：757=61件、756=81件（＋20件：改名11・1.17のみ26・1.18のみ6。改名は
+  snowy_plains→snowy_tundra、old_growth_birch_forest→tall_birch_forest、
+  old_growth_pine_taiga→giant_tree_taiga、old_growth_spruce_taiga→giant_spruce_taiga、
+  sparse_jungle→jungle_edge、stony_shore→stone_shore、windswept_hills→mountains、
+  windswept_forest→wooded_mountains、windswept_gravelly_hills→gravelly_mountains、
+  windswept_savanna→shattered_savanna、wooded_badlands→wooded_badlands_plateau。
+  1.17 のバイオーム id は 0〜175 の非連番。1.18のみ6件は meadow・grove・snowy_slopes・
+  frozen_peaks・jagged_peaks・stony_peaks）。
+- **エフェクト**：757=32件、756=32件（±0件：同一順序）。
+- **ブロックエンティティ**：757=34件、756=34件（±0件：同一順序）。
+- **メニュー**：24件で同一。**属性**：13件で同一。**レシピシリアライザ**：21件で同一。
+  **ゲームイベント**：45件で同一。**絵画**：26件で同一。**ポーション**：43件で同一。
+  **データコンポーネント・環境属性・スロット表示・ダメージ種別**：1.17／1.18とも無し
+  （ダメージ種別表は762の42件の恒等写像プレースホルダ）。
+- **改名はバイオーム11件とパーティクル統合のみ**（§11.1）。
+- **ペイロードの違い（パケットID以外）**：Join Game は simulationDistance の有無だけ
+  （1.18 は viewDistance の後に simulationDistance を追加。756→757の simulationDistance は
+  viewDistance と同じ値にする。dimension は両方とも NBT 値。lastDeathLocation はどちらにも無い）。
+  Respawn はフィールド同一（dimension element の置き換えのみ）。dimensionCodec には
+  `minecraft:chat_type` は無い（1.19で追加）。Registry Data パケットは1.17.1／1.18には存在しない
+  （設定フェーズは1.20.2／764で追加）。Chunk Data は1.17.1／1.18で形式が違う
+  （756：16セクション＋bitMap＋heightmaps NBT＋バイオーム int[1024]＋光なし。
+  757：24セクション＋セクションごとのバイオームパレット＋光内包。BitStorage は両方とも
+  non-straddling）。dimensionCodec の `minecraft:dimension_type` は4件・同一順序だが
+  overworld／overworld_caves の element は違う（logical_height 256→384、min_y 0→-64）ため
+  受信側の既定値で置き換える。バイオームは756が81件↔757が61件。
+  Client Information は756の `disableTextFiltering` →757の `enableTextFiltering`（反転）、
+  `enableServerListing` は true で補完（757→756では落とす）。
+- **pack_format**：リソース 7、データ 7（1.17.1サーバーjar内の version.json。
+  data version 2730。756用パックは `detergentmc-pack-1.17.1.zip`（19個目。pack.mcmeta は plain `{"pack_format":7}`）。
+- **バニラ1.17.1サーバーjarのSHA-1**：`a16d67e5807f57fc4e550299cf20226194497dc2`
+  （piston-meta。43,626,592バイト。`run/vanilla/server-1.17.1.jar`）。
+- **1.17.1は Java 16**：`version.json` の `java_version: 16` でも確認（piston-metaの
+  `majorVersion: 16` と一致）。Java 16 は `~/.tools/jdk-16.0.2+7`
+  （Temurin 16.0.2+7。Adoptium から取得し SHA-256 を照合済み）。
+- **実バニラ1.17.1の起動確認に成功**（§15.3.4）：Done 115.618s、pack metadataエラー0件。
+- **1.17.1の既知の制限（Stage B・Dで確認）**：756クライアント＋757〜775サーバーの
+  Join Game／Respawn は落とされる。766〜775クライアント＋756サーバーの Respawn は
+  下流で落とされる。Window Click／Set Creative Slot は763〜775クライアント→756サーバーで
+  落とすまま。光の抽出の配線なし（757→756のChunk Dataは光を落とす）。
+  Stage BのChunkTranslator 757節はstraddling前提で、実バニラ1.18
+  （non-straddling）と食い違う疑い（§14.9。判断待ち）。756節はnon-straddlingで正しく実装した。
+  `RegistryRemapper` の `ITEM_REVERSE_MAP` と `ITEM_763_TO_765` の食い違い（§14.9。
+  判断待ち）。`mapItemReverse` の757／759／760／761／762分岐の逆順合成の不具合
+  （§12.5の4。判断待ち。756分岐だけ正しい順序）。
+  775節の `experience_orb = 47` の古いリテラル、770〜775のChunkTranslatorの
+  ストラドリング問題は触っていない（Muse01／ユーザーの判断待ち）。
+- **758は未対応**：758（1.18.2）は他人の作業中のため飛ばす。756は追加済み。
+  758が終わったら758↔757の合成表をそのときに作る（757 §12.4と同じ扱い）。
+
+### 756関係37セルの内訳（実際に数えた結果）
+
+- ○（素通し）：**1件**（756クライアント×756サーバーのみ）。
+- △（制限付き）：**36件**（756クライアント×757〜775サーバーの18件＋757〜775クライアント×756サーバーの18件）。
+- ◎（統合テスト済み）：**0件**（プロキシ経由で通ったセルは無い。統合テストは別担当が追加中で未実施）。
+- 合計：1＋36＋0＝**37セル**（756行19セル＋756列19セル−重複1セル）。
+
+## 1.17対応：全400通りの対応マトリクス（2026-11-16）
+
+クライアント755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775 × サーバー（内部プロトコル）755／756／757／759／760／761／762／763／764／
+765／766／767／768／769／770／771／772／773／774／775の全400通りを記す。ただし755クライアント×756〜775サーバーの19通りは Join Game が落とされるため参加できない。1.17.1対応の361通りに、755クライアントと
+755サーバーを加えたものである（758は未対応のため飛ばす。20プロトコル）。見出し事例は「1.17のサーバー（内部755）に
+1.18系・1.19系・1.20系・1.21クライアントが入る」「1.18系・1.19系・1.20系・1.21サーバーに1.17クライアントが
+入る」こと。パケットIDは756と0件違い（変更0件・新規0件・削除0件。唯一の違いは内部名の改名1件：
+destroy_entity→entity_destroy、0x3Aは同一）のため、755の翻訳は756との差分表（恒等写像）を作り、
+あとは既存の鎖に重ねる（くわしくは `STAGE-A-755-NOTES.md` §14）。
+レジストリはブロック状態±0・ブロック±0・アイテム±0・エンティティ±0・音±0・パーティクル±0・
+バイオーム±0・エンチャント±0（756から755への変化分。すべて恒等写像。`verify-755-tables.py` 43/43）。
+これでプロトコル755・756・757・759〜775の20個・マトリクス20×20=400通りになる。
+1.17は Java 16 が必要（`version.json` の `java_version: 16`。`VanillaServerHost.javaBinaryFor` は既定分岐で現在の Java を使う。
+Java 25 必須リストにも Java 21 必須リストにも入っていない。実バニラ起動確認は JDK 17 ドライバ＋Java 16 バイナリで実施。ノート§15.3.4）。
+
+凡例は1.20系のマトリクスと同じ（◎＝統合テスト済み、○＝素通しで統合テストなし、
+△＝制限付き、×＝できない。現在×は無い）。
+
+361通りのセルは「1.17.1対応：全361通りの対応マトリクス」の表のままで変わらない。
+ここでは755が加わった39セル（755行20セル＋755列20セル−重複1セル）だけを記す。
+（注：755行20セル＋755列20セル−重複1セル＝39セル。実際に数えて確認した。）
+
+◎は付けていない。755関係の統合テストは `ProxyIntegrationTest.java` に Fake755Client＋4セルを追加済みだが、
+プロキシ経由の実行はこのVMのサンドボックス（JVMのTCP遮断）のため未実施で、◎にできるセルは無い。
+直接接続の結果は実施済みで、各セルにその旨を記録した。4つの必須セル：(a) 偽755→実1.17は通過（Join Game 0x26＝31,555バイト、Chunk Data 0x22＝462パケット・6,592,432バイト、チャット到達、Keep Alive応答2回、移動後も接続維持。`run/capture-755/result-a-direct.json`）、(b) 偽755→実1.17.1・(c) 偽755→実1.18・(d) 偽756→実1.17はいずれも想定通りの切断（`multiplayer.disconnect.incompatible` with "1.17.1"／"1.18"／"1.17"）。プロキシ経由で通ったセルが出たら◎に更新する。
+
+方向の非対称：755クライアント×756〜775サーバーは、サーバー→クライアントの Join Game／Respawn
+が落とされる（`ProxySession.java:7058` の `handleServerJoinGame763` の `if (is757() || is756() || is755())` で落とす。
+サーバー756は756→757→759→763の連鎖を経て同じガードに到達。766は `handleServerJoinGame766`、
+764／765は `handleServerJoinGame`、768は `handleServerJoinGame768`、775は `handleServerJoinGame775` の
+同じ `is757() || is756() || is755()` 分岐で落とす。コードで確認。775は `ProxySession755Test.login755Against775SynthesizesConfig`
+で Join Game 0x31 の落としを確認済み）ため参加できない。Respawn も落とされる
+（`handleServerPlayUp:8029`／`handleServerPlay765From764:8323` の
+`name == PLAY_RESPAWN && (is757() || is756() || is755())`。テスト確認：
+`ProxySession755Test.keepAlive765Against755IsNotDroppedByRespawnGuard`／
+`keepAlive764Against755IsNotClosedByDisconnectGuard`。Keep Aliveだけは通るが Join Game が無いので参加できない）。
+汎用パケットも落とす（テスト確認：`entityDestroy756Against755Drops`。サーバー756→クライアント755の Entity Destroy）。
+逆向き（756〜775クライアント×755サーバー）は Join Game が通る
+（`handleServerPlayFrom755`（`ProxySession.java:13344`）→ `to756ServerPacketFrom755` →
+`handleServerPlayFrom756` → 756→757→759→763連鎖。756は `ProxySession755Test.joinAndRespawn755Against756Convert`
+（`loginTo(756, 755)`＝クライアント756・サーバー755）で確認。774は `join774Against755ConvertsJoinGameButDropsRespawn`
+で確認。Join Game 0x30がFinish Configuration後に届く）。
+ただし逆向きも翻訳あり・統合テストなしで、落とすパケット（chat／Set Slot／Window Items／Entity Destroy、
+Window Click／Set Creative Slot、Edit Book など）があるため、756のマトリクスと
+同じく△（制限付き）とする。○は素通し（755×755）のみである。
+Respawn は756クライアントには通る（テスト確認）。757クライアントには通るはずだが直接の単体テストは無い（コードで確認。755→756→757の連鎖で Respawn 0x3D がそのまま送られる。任務文の「757はテスト確認」は誤りで、訂正する）。763〜765クライアントには通るのは
+756サーバーと同じ下流連鎖による推論（755サーバーでの直接テストは無いので「推論」と明記）、
+766〜775クライアントには下流（`handleServerPlayFrom763` の Respawn 分岐の落としリスト）で落とされる
+（774は `ProxySession755Test` で確認済み）。
+注意：`ProxySession755Test` のテスト名は向きが紛らわしい。`joinAndRespawn755Against756Convert` は
+`loginTo(756, 755)`＝クライアント756・サーバー755（「755→756」の変換方向の名前）。
+`loginTo` の引数順は (clientProtocol, serverProtocol)。アサーションと `loginTo` の引数を信じ、
+名前だけで向きを決めないこと。
+
+### 755クライアント × 全サーバー
+
+| クライアント＼サーバー | 755（1.17） | 756（1.17.1） | 757（1.18／1.18.1） | 759（1.19） | 760（1.19.1／1.19.2） | 761（1.19.3） | 762（1.19.4） | 763（1.20／1.20.1） | 764（1.20.2） | 765（1.20.3／1.20.4） | 766（1.20.5／1.20.6） | 767（1.21／1.21.1） | 768（1.21.2／1.21.3） | 769（1.21.4） | 770（1.21.5） | 771（1.21.6） | 772（1.21.7／1.21.8） | 773（1.21.9／1.21.10） | 774（1.21.11） | 775（26.1／26.1.1／26.1.2） |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **755（1.17）** | ○ 素通し（リレー）。統合テストは `ProxyIntegrationTest.java` に Fake755Client＋4セルを追加済み（`fake755ClientJoinsRealVanilla117ThroughProxy`（内部755））。プロキシ経由の実行はこのVMのサンドボックス（JVMのTCP遮断）で未実施。直接接続 (a) は通過（偽755→実1.17：Join Game 0x26＝31,555バイト、Chunk Data 0x22＝462パケット・6,592,432バイト、チャット到達、Keep Alive応答2回、移動後も接続維持。`run/capture-755/result-a-direct.json`）。単体テストは `ProxySession755Test.join755Against755IsNative` で経路を確認済み（Join Game 0x26・Respawn 0x3D・chat 0x03 がそのまま通る） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（756→757→759→763へ直してから `handleServerJoinGame763`／`handleServerPlayFrom763` の Respawn 分岐が is755() で落とす。コードで確認）。汎用パケットも落とす（`ProxySession755Test.entityDestroy756Against755Drops` で確認）。クライアント→サーバーは変換する（755→756の直接変換。変換器は `PlayTranslator755Test`／`ChunkTranslator755Test` で確認。Set Slot／Window Items／Window Click は stateId を補完、Entity Destroy は単体→配列。Edit Book は変換器なしで落とす。ノート§14）。統合テストは `ProxyIntegrationTest.java` に追加済み（`fake755ClientJoinsRealVanilla1171ThroughProxy`（内部756））。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続 (b) は想定通りの切断（偽755→実1.17.1：`multiplayer.disconnect.incompatible` with "1.17.1"。`run/capture-755/result-b-direct.json`） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（757→759→763へ直してから `handleServerJoinGame763` が is755() で落とす。コードで確認）。クライアント→サーバーは変換する（755→756→757の連鎖。chat 0x03 はそのまま、Client Information は末尾を757形式に直す。`clientPackets755Against759Convert` で連鎖の一部を確認）。統合テストは `ProxyIntegrationTest.java` に追加済み（`fake755ClientJoinsRealVanilla118ThroughProxy`（内部757））。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続 (c) は想定通りの切断（偽755→実1.18：`multiplayer.disconnect.incompatible` with "1.18"。`run/capture-755/result-c-direct.json`） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（759→763へ直してから `handleServerJoinGame763` が is755() で落とす。コードで確認）。クライアント→サーバーは変換する（`ProxySession755Test.clientPackets755Against759Convert` で確認。chat 0x03→Chat Message 0x04、Block Dig 0x1A→0x1C に sequence 0補完、Window Click 0x08→0x0A、Client Information 0x05→0x07、Enchant Item 0x07→0x09。Edit Book 0x0B は落とす）。統合テストなし（単体テストのみ） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（760→761→762→763へ直してから `handleServerJoinGame763` が is755() で落とす。コードで確認）。クライアント→サーバーは755→756→757→759→760の連鎖で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（761→762→763へ直してから `handleServerJoinGame763` が is755() で落とす。コードで確認）。クライアント→サーバーは755→756→757→759→760→761の連鎖で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（762→763へ直してから `handleServerJoinGame763` が is755() で落とす。コードで確認）。クライアント→サーバーは755→756→757→759→760→761→762の連鎖で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame763` の is755() 分岐。`handleServerPlayFrom763` の Respawn 分岐の落としリストにも755。コードで確認）。クライアント→サーバーは `handleClientPlay755` で756→757→759→763へ直す（コードで確認）。統合テストなし（単体テストのみ） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（764→763へ直してから `handleServerJoinGame763` が is755() で落とす。Respawn も764ハンドラの落としで is755()。コードで確認）。設定フェーズはプロキシが合成するが Join Game が無いため参加できない。クライアント→サーバーは `handleClientPlay755` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（765→763へ直してから `handleServerJoinGame763` が is755() で落とす。Respawn も765ハンドラの落としで is755()。コードで確認）。設定フェーズはプロキシが合成するが Join Game が無いため参加できない。クライアント→サーバーは `handleClientPlay755` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame766` の is755() 分岐。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay755` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（767は766に委譲し `handleServerJoinGame766` の is755() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay755` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（768は `handleServerJoinGame768` の is755() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay755` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（769→768へ直してから `handleServerJoinGame768` の is755() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay755` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（770→769→768へ直してから `handleServerJoinGame768` の is755() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay755` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（771→770→769→768へ直してから `handleServerJoinGame768` の is755() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay755` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（772→771→770→769→768へ直してから `handleServerJoinGame768` の is755() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay755` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（773→772→771→770→769→768へ直してから `handleServerJoinGame768` の is755() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay755` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（774→773→772→771→770→769→768へ直してから `handleServerJoinGame768` の is755() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay755` で変換 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame775` の is755() 分岐。774に委譲する前に落とす。`ProxySession755Test.login755Against775SynthesizesConfig` で確認。Join Game 0x31 を落とす。ログイン合成でサーバーは設定フェーズを消費し、Finish Configuration でプレイ状態に入るが755クライアントに送るものは無い）。クライアント→サーバーは `handleClientPlay755` で変換 |
+
+### 全クライアント × 755サーバー
+
+| クライアント＼サーバー | 755（1.17） |
+|---|---|
+| **756（1.17.1）** | △ 制限付き。Join Gameは通る（755→756の直接変換。`ProxySession755Test.joinAndRespawn755Against756Convert` で確認。Join Game 0x26、Respawn 0x3D、viewDistance＝10）。Respawnも通る（同テストで確認）。ただし755サーバーからの chat 0x0F は756クライアントには落とす（同テストで確認。汎用経路の落としリスト）。Set Slot 0x16／Window Items 0x14／Entity Destroy 0x3A もセッション経由では落とす（同テストで確認。変換器自体は `ChunkTranslator755Test` で確認済み）。Chunk Dataは届く。クライアント→サーバーは756→755の直接変換（chat 0x03 はそのまま。Set Slot／Window Items／Window Click は stateId を落とす。Edit Book は変換器なしで落とす。ノート§14）。統合テストは `ProxyIntegrationTest.java` に追加済み（`fake756ClientJoinsRealVanilla117ThroughProxy`（内部755））。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続 (d) は想定通りの切断（偽756→実1.17：`multiplayer.disconnect.incompatible` with "1.17"。`run/capture-755/result-d-direct.json`） |
+| **757（1.18／1.18.1）** | △ 制限付き。Join Gameは通るはず（755→756→757の連鎖。コードで確認。直接の単体テストは無いため推論）。Respawnも通るはず（同連鎖。コードで確認。直接テストは無いため推論）。ただし755サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされる（756クライアント版は `joinAndRespawn755Against756Convert` で確認。757クライアント版の直接テストは無いため、同じ汎用経路による推論と明記）。Chunk Dataは届く。クライアント→サーバーは757→756→755の連鎖で変換。統合テストなし（単体テストのみ） |
+| **759（1.19）** | △ 制限付き。Join Gameは通る（755→756→757→759→763→759の連鎖。757はテストで確認、759は同じ連鎖でコード確認）。Respawnも通る（`handleServerPlayFrom763` の Respawn 分岐の落としリストに759は無い。コードで確認）。Player Chat は755サーバーには無い（`PacketIds.java` で755／756は -1。1.19で追加）。sculk_vibration_signal は落とす（755／756／757は 0x05 だが759には相当が無く、`to757ServerPacketFrom756` の switch にも `to759ServerPacketFrom757` にも無い。コードで確認）。Declare Recipes／Tagsは落とす（755は 0x65／0x66 だが `to757ServerPacketFrom756` の switch に無い。コードで確認）。クライアント→サーバーは変換する（`ProxySession755Test.clientPackets759Against755Convert` で確認。Chat Message 0x04→chat 0x03、Block Dig 0x1C→0x1A、Enchant Item 0x09→0x07）。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **760（1.19.1／1.19.2）** | △ 制限付き。Join Gameは通る（755→756→757→759→760の連鎖。757はテストで確認、760は同じ連鎖でコード確認）。Respawnも通る（`handleServerPlayFrom763` の Respawn 分岐の落としリストに760は無い。コードで確認）。sculk／Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ） |
+| **761（1.19.3）** | △ 制限付き。Join Gameは通る（755→756→757→759→760→761の連鎖。757はテストで確認、761は同じ連鎖でコード確認）。Respawnも通る（コードで確認）。sculk／Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ） |
+| **762（1.19.4）** | △ 制限付き。Join Gameは通る（755→756→757→759→760→761→762の連鎖。757はテストで確認、762は同じ連鎖でコード確認）。Respawnも通る（コードで確認）。sculk／Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ） |
+| **763（1.20／1.20.1）** | △ 制限付き。Join Gameは通る（755→756→757→759→763の連鎖）。Respawnも通る（`handleServerPlayFrom763` の Respawn 分岐の落としリストに763は無い。ただし755サーバーでの直接テストは無いため、756サーバーと同じ下流連鎖による推論と明記）。クライアント→サーバーは `handleClientPlayTo755` で変換（Chat Message／Chat Command→chat 0x03、Block Dig、Enchant Item。Window Click／Set Creative Slot は落とすまま。`ProxySession755Test.windowClick763Against755Drops` で確認）。Client Information は素通し（763→755変換器なし。末尾フィールド差分は未対応。756と同じ扱い）。Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ） |
+| **764（1.20.2）** | △ 制限付き。Join Gameは通る（755→756→757→759→763→764の合成変換。設定フェーズはプロキシが合成する）。Respawnも通る（コードで確認。ただし755サーバーでの直接テストは無いため推論と明記）。クライアント→サーバーは `handleClientPlayTo755` で変換。Window Click／Set Creative Slot は落とすまま。Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ） |
+| **765（1.20.3／1.20.4）** | △ 制限付き。Join Gameは通る（755→756→757→759→763→765の合成変換。設定フェーズはプロキシが合成する）。Respawnも通る（コードで確認。ただし755サーバーでの直接テストは無いため推論と明記）。クライアント→サーバーは `handleClientPlayTo755` で変換。Window Click／Set Creative Slot は落とすまま。Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ） |
+| **766（1.20.5／1.20.6）** | △ 制限付き。Join Gameは通る（755→756→757→759→763→766の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流（`handleServerPlayFrom763` の Respawn 分岐）で落とす。クライアント→サーバーは `handleClientPlayTo755` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **767（1.21／1.21.1）** | △ 制限付き。Join Gameは通る（755→756→757→759→763→766→767の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo755` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **768（1.21.2／1.21.3）** | △ 制限付き。Join Gameは通る（755→756→757→759→763→766→768の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo755` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **769（1.21.4）** | △ 制限付き。Join Gameは通る（755→756→757→759→763→766→769の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo755` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **770（1.21.5）** | △ 制限付き。Join Gameは通る（755→756→757→759→763→766→770の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo755` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **771（1.21.6）** | △ 制限付き。Join Gameは通る（755→756→757→759→763→766→771の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo755` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **772（1.21.7／1.21.8）** | △ 制限付き。Join Gameは通る（755→756→757→759→763→766→772の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo755` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **773（1.21.9／1.21.10）** | △ 制限付き。Join Gameは通る（755→756→757→759→763→766→773の合成変換。設定フェーズはプロキシが合成する）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo755` で変換。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **774（1.21.11）** | △ 制限付き。Join Gameは通る（755→756→757→759→763→774の連鎖。`ProxySession755Test.join774Against755ConvertsJoinGameButDropsRespawn` で確認。合成設定フェーズで Registry Data 0x07＋Finish Configuration を送ってから保持した Join Game 0x30 を送る）。Respawn は下流（`handleServerPlayFrom763` の Respawn 分岐）で落とす（同テストで確認）。Chat Message→chat、Block Dig は変換する（同テストで確認。Chat Message 0x08→chat 0x03、Block Dig 0x28→0x1A）。Window Click／Set Creative Slot は落とすまま。統合テストなし（単体テストのみ） |
+| **775（26.1／26.1.1／26.1.2）** | △ 制限付き。Join Gameは通る（755→756→757→759→763→775の合成変換。設定フェーズはプロキシが合成する。ログイン合成は `ProxySession755Test.login755Against775SynthesizesConfig` で確認済み）。Respawn は下流で落とす。クライアント→サーバーは `handleClientPlayTo755` で変換（Chat Message／Chat Command→chat、Enchant Item。Window Click／Set Creative Slot は落とすまま）。統合テストなし（単体テストのみ） |
+| **755（1.17）** | ○ 素通し（リレー）。上の表を参照 |
+
+検証の区別（まとめ）：
+
+- **統合テスト済み（0件）**：755関係の統合テストは `ProxyIntegrationTest.java` に Fake755Client＋4セルを追加済みだが、
+  プロキシ経由の実行はこのVMのサンドボックス（JVMのTCP遮断）のため未実施。
+  4つの必須セル（偽755→実1.17、偽755→実1.17.1、偽755→実1.18、偽756→実1.17）の
+  直接接続の結果も未確認。プロキシ経由で通ったセルが出たら◎に更新する。
+- **単体テスト済み・統合テストなし**：755↔756の翻訳子は
+  `PlayTranslator755Test` 10件・`ChunkTranslator755Test` 13件・
+  `ProxySession755Test` 11件・`ClientAdapter755Test` 12件・
+  `ClientJoinFlow755Test` 5件・`ClientProxy755Test` 4件・`V117AdapterTest` 6件の
+  合計61件全通過（Stage B §14.7）。これに Stage A の
+  `ProtocolVersion755Test` 3件・`RegistryRemapper755Test` 16件を加えた
+  755関係の単体テストは合計80件全通過。
+  `ClientAdapter` の全組み合わせ判定テストと `ProtocolVersion755Test` の単体テスト、および
+  `verify-755-tables.py`（43件の表チェック）でも確認。
+- **回帰**：Stage Bの全体回帰は2,467件通過・29件失敗。失敗は全て環境制約
+  （ResourcePackServerのローカルHTTP -1が19件、ソケットタイムアウト8件、
+  SessionServerClientのbase URL未設定2件）で、755が原因の本物の回帰は0件（§14.7）。
+  Stage Dの対象テストは165件中144通過・21件失敗。失敗は全て環境制約
+  （HTTP GET -1 14件、ソケットnull 7件）で、755が原因の本物の回帰は0件（§15.4）。
+  この2つの数字は別時点の別実行のもので、合計はしていない。
+- **素通し（リレー）・統合テストなし**：755→755はプロキシ経由の統合テストがこのVMの
+  サンドボックス（JVMのTCP遮断）で未実施のため、現時点ではリレーの統合テスト済みセルは無い。
+  リレーはバイト列をそのまま通すため変換の誤りが入りようが無く、755→755の
+  単体テスト（`ProxySession755Test.join755Against755IsNative`）で経路自体は検証済み。
+- **Bedrock→755**：`JavaBackendConnection755Test`（36件）・
+  `BedrockChunkTranslatorTest` の755件（5件）で単体テスト済み（§15.2.4。
+  担当テスト57件中50通過・7失敗で、失敗は全てソケットテスト＝JVMのループバックTCP遮断の環境制約）。
+  Bedrockマトリクス統合テストはこのツリーには無いため、Bedrockの102通りのまま
+  （冒頭の「Bedrockは6プロトコル × 内部17サーバーの全102通り」の行は変えていない）。
+- **実機でしか確認できないもの（全400通り共通）**：本物のゲームクライアントでの
+  参加・見た目・操作感、本物のMojang認証サーバーでのonline-mode参加、
+  リソースパックの「互換性あり」表示と適用、泡テクスチャの目での確認。
+  2人同時参加での他プレイヤーの見え方（named_entity_spawn）は、偽クライアントでは
+  確かめられなかったため、実機での確認が最も重要な残りの検証である。
+  新要素（ディープダーク、スカルク、ウォーデン、マングローブ、泥、カエル／アレイ、
+  リカバリーコンパス）の実機での見え方・聞こえ方は、755クライアントではそもそも
+  存在しないため未確認（1.18側の要素として扱う）。
+  手順書は `docs/PLAYTEST-1.17.md`。
+
+### 756↔755のレジストリ差分（2026-11-16、ViaVersion 対応表と minecraft-data と実バニラの data-generator レポートで確認）
+
+- **パケットID**：変更0件・新規0件・削除0件。
+  プレイ toClient は103→103件、toServer は48→48件。唯一の違いは内部名の改名1件：
+  `destroy_entity`（1.17、0x3a）→ `entity_destroy`（1.17.1、0x3a）。IDは同一。
+  Join Game 0x26→0x26、Chunk Data 0x22→0x22、Keep Alive 0x21→0x21、Spawn Position 0x4B→0x4B。
+  設定フェーズ・ログイン・ステータス・ハンドシェイクのIDは0変更
+  （設定フェーズは1.17／1.17.1とも存在しないため CONFIGURATION のエントリは755・756とも -1）。
+  （`PacketIds.java` の755列と `packet-ids-755.json` で確認。ViaVersion の 1.17／1.17.1 enum で159件照合・
+  不一致0件、Wiki の Packets ページ（1.17、protocol 755）で161件照合・不一致0件。ノート§8）。
+- **ブロック状態**：756=20,342件、755=20,342件（±0件：文字列は完全一致・同一順序）。
+- **ブロック**：756=898件、755=898件（±0件：同一順序）。
+- **アイテム**：756=1,100件、755=1,100件（±0件）。
+- **エンティティ**：756=113件、755=113件（±0件）。
+- **音**：756=1,190件、755=1,190件（±0件）。
+- **パーティクル**：756=89件、755=89件（±0件）。
+- **エンチャント**：756=38件、755=38件（±0件：同一順序）。
+- **バイオーム**：756=81件、755=81件（±0件：同一順序。1.17のバイオーム id は 0〜175 の非連番）。
+- **エフェクト**：756=32件、755=32件（±0件：同一順序）。
+- **ブロックエンティティ**：756=34件、755=34件（±0件：同一順序）。
+- **メニュー**：24件で同一。**属性**：13件で同一。**レシピシリアライザ**：21件で同一。
+  **ゲームイベント**：45件で同一。**絵画**：26件で同一。**ポーション**：43件で同一。
+  **データコンポーネント・環境属性・スロット表示・ダメージ種別**：1.17／1.17.1とも無し
+  （ダメージ種別表は762の42件の恒等写像プレースホルダ）。
+- **改名はパケット内部名1件のみ**（§11.1）。レジストリの改名は0件。
+- **ペイロードの違い（パケットID以外）**：Join Game は同一（simulationDistance は1.17／1.17.1とも無し。
+  dimension は両方とも NBT 値。lastDeathLocation はどちらにも無い）。
+  Respawn はフィールド同一（dimension element の置き換えのみ）。dimensionCodec には
+  `minecraft:chat_type` は無い（1.19で追加）。Registry Data パケットは1.17／1.17.1には存在しない
+  （設定フェーズは1.20.2／764で追加）。Chunk Data は1.17／1.17.1で同一形式
+  （16セクション＋bitMap＋heightmaps NBT＋バイオーム int[1024]＋光なし。BitStorage は
+  non-straddling）。dimensionCodec の `minecraft:dimension_type` は4件・同一順序。
+  Client Information は755／756とも7フィールドで同一（`disableTextFiltering` が末尾。
+  757の8フィールド目 `enableServerListing` はどちらにも無い）。
+- **pack_format**：リソース 7、データ 7（1.17サーバーjar内の version.json。
+  data version 2724。755用パックは `detergentmc-pack-1.17.zip`（20個目。pack.mcmeta は plain `{"pack_format":7}`）。
+  755パックと756パックは内容同一でsha1が等しい）。
+- **バニラ1.17サーバーjarのSHA-1**：`0a269b5f2c5b93b1712d0f5dc43b6182b9ab254e`
+  （piston-meta。43,621,201バイト。`run/vanilla/server-1.17.jar`。sha1sumで照合済み）。
+- **1.17は Java 16**：`version.json` の `java_version: 16` でも確認（piston-metaの
+  `majorVersion: 16` と一致）。Java 16 は `~/.tools/jdk-16.0.2+7`
+  （Temurin 16.0.2+7。Adoptium から取得し SHA-256 を照合済み）。
+- **実バニラ1.17の起動確認に成功**（§15.3.4）：Done 100.329s、pack metadataエラー0件。
+- **1.17の既知の制限（Stage B・Dで確認）**：755クライアント＋756〜775サーバーの
+  Join Game／Respawn は落とされる。766〜775クライアント＋755サーバーの Respawn は
+  下流で落とされる。Window Click／Set Creative Slot は763〜775クライアント→755サーバーで
+  落とすまま。Edit Book は変換器なしで落とすまま。光の抽出の配線なし（757→756のChunk Dataは光を落とす。755⇔756は光なし同士のため影響なし）。
+  Stage BのChunkTranslator 757節はstraddling前提で、実バニラ1.18
+  （non-straddling）と食い違う疑い（§14.9。判断待ち）。755節はnon-straddlingで正しく実装した。
+  `RegistryRemapper` の `ITEM_REVERSE_MAP` と `ITEM_763_TO_765` の食い違い（§14.9。
+  判断待ち）。`mapItemReverse` の757／759／760／761／762分岐の逆順合成の不具合
+  （§12.5の4。判断待ち。755／756分岐だけ正しい順序）。
+  775節の `experience_orb = 47` の古いリテラル、770〜775のChunkTranslatorの
+  ストラドリング問題は触っていない（Muse01／ユーザーの判断待ち）。
+- **758は未対応**：758（1.18.2）は他人の作業中のため飛ばす。755は追加済み。
+  758が終わったら758↔757の合成表をそのときに作る（757 §12.4と同じ扱い）。
+
+### 755関係39セルの内訳（実際に数えた結果）
+
+- ○（素通し）：**1件**（755クライアント×755サーバーのみ）。
+- △（制限付き）：**38件**（755クライアント×756〜775サーバーの19件＋756〜775クライアント×755サーバーの19件）。
+- ◎（統合テスト済み）：**0件**（プロキシ経由で通ったセルは無い。統合テストは `ProxyIntegrationTest.java` に追加済みだが未実行）。
+- 合計：1＋38＋0＝**39セル**（755行20セル＋755列20セル−重複1セル）。
+
+## 1.16.4／1.16.5対応：全441通りの対応マトリクス（2026-11-16）
+
+クライアント754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775 × サーバー（内部プロトコル）754／755／756／757／759／760／761／762／763／764／
+765／766／767／768／769／770／771／772／773／774／775の全441通りを記す。ただし754クライアント×756〜775サーバーの19通りは Join Game が落とされるため参加できない。754クライアント×755サーバーだけは隣接の直接変換で Join Game が通る（下の「方向の非対称」を参照）。1.17対応の400通りに、754クライアントと
+754サーバーを加えたものである（758は未対応のため飛ばす。21プロトコル）。見出し事例は「1.16.5のサーバー（内部754）に
+1.17系・1.18系・1.19系・1.20系・1.21クライアントが入る」「1.17系・1.18系・1.19系・1.20系・1.21サーバーに1.16.5クライアントが
+入る」こと。パケットIDは755と120件違い（変更120件・新規0件・削除1件。削除は sculk_vibration_signal 0x05。
+Join Game 0x26→0x24、Chunk Data 0x22→0x20、Update Time 0x58→0x4E）のため、754の翻訳は755との差分表を作り、
+あとは既存の鎖に重ねる（くわしくは `STAGE-A-754-NOTES.md` §8・§14）。
+レジストリはブロック状態20,342→17,112・ブロック898→763（grass_path→dirt_path改名）・アイテム1,100→976・
+エンティティ113→108・音1,190→992・パーティクル89→72・バイオーム81→79（`verify-754-tables.py` 43/43）。
+これでプロトコル754・755・756・757・759〜775の21個・マトリクス21×21=441通りになる。
+1.16.5は Java 8 が必要（`1.16.5.json` の `javaVersion.majorVersion: 8`。`VanillaServerHost.javaBinaryFor` は1.16.5で Java 8 バイナリを返す。
+実バニラ起動確認は JDK 17 ドライバ＋Java 8 バイナリで実施。ノート§15.3.4）。
+
+凡例は1.20系のマトリクスと同じ（◎＝統合テスト済み、○＝素通しで統合テストなし、
+△＝制限付き、×＝できない。現在×は無い）。
+
+400通りのセルは「1.17対応：全400通りの対応マトリクス」の表のままで変わらない。
+ここでは754が加わった41セル（754行21セル＋754列21セル−重複1セル）だけを記す。
+（注：754行21セル＋754列21セル−重複1セル＝41セル。実際に数えて確認した。）
+
+◎は付けていない。754関係の統合テストは `ProxyIntegrationTest.java` に Fake754Client＋4セルを追加済み（javac通過）だが、プロキシ経由の実行はこのVMのサンドボックス（JVMのTCP遮断）のため未実施で、◎にできるセルは無い。プロキシ経由は (a)(b) を試行して環境制約で失敗を確認した（`docs/PROXY-1.16.md` の「統合テスト」を参照。755 §16.5と同じ失敗モード）。直接接続は4セルとも実行済み（(a)通過、(b)(c)(d)は想定通りの切断）で、該当する4セル（754×754・754×755・754×757・755×754）に結果を記入済み。それ以外の37セルは「直接接続の結果は未確認」のまま。プロキシ経由で通ったセルが出たら◎に更新する。
+
+方向の非対称：754クライアント×756〜775サーバーは、サーバー→クライアントの Join Game／Respawn
+が落とされる（756〜775サーバーの Join Game は連鎖で763形式まで上がり `handleServerJoinGame763`（`ProxySession.java:7363`）の
+`if (is757() || is756() || is755() || is754())` で落とす。766は `handleServerJoinGame766`（`ProxySession.java:7891`）、
+764／765は `handleServerJoinGame`（`ProxySession.java:8024`）、768は `handleServerJoinGame768`（`ProxySession.java:17102`）、
+775は `handleServerJoinGame775`（`ProxySession.java:13336`）の同じ `is757() || is756() || is755() || is754()` 分岐で落とす。
+コードで確認。775は `ProxySession754Test.join775Against754Drops` で Join Game 0x31 の落としを確認済み）ため参加できない。
+754クライアント×755サーバーだけは Join Game／Respawn が通る（`handleServerJoinGame755`（`ProxySession.java:14112`）の
+`is754()` 分岐で `translateJoinGame755To754` を使い 0x24 で返す。`ProxySession754bTest.joinGame755To754RewritesCodec`／
+`respawn755To754RewritesDimension` でテスト確認）。
+Respawn も落とされる（`handleServerPlayUp:8335`／`handleServerPlay765From764:8629` の
+`name == PLAY_RESPAWN && (is757() || is756() || is755() || is754())`。テスト確認：
+`ProxySession754Test.keepAlive765Against754IsNotDroppedByRespawnGuard`／
+`keepAlive764Against754IsNotClosedByDisconnectGuard`。Keep Aliveだけは通るが Join Game が無いので参加できない）。
+汎用パケットも落とす（ノート§14.9：756サーバー→754クライアントの汎用パケットも落とすまま。From763汎用経路）。
+逆向き（755〜775クライアント×754サーバー）は Join Game が通るはず
+（`handleServerJoinGame754`（`ProxySession.java:13846`）→ `translateJoinGame754To755` →
+`handleServerPlayFrom755` → 755→756→757→759→763連鎖。755は `ProxySession754Test.joinAndRespawn754Against755Convert`
+（`loginTo(755, 754)`＝クライアント755・サーバー754）で確認。759は汎用パケットの到達を `serverPackets754Against759Reach`
+で確認。763はクライアント→サーバー方向を `clientPackets763Against754Convert` で確認。774はノート§14.9に
+「三段変換で通ることをテストで確認済み」とあるが、ツリー内に `loginTo(774, 754)` のテストは見つからなかったため、
+ここでは推論とする。Join Game 0x30 が Finish Configuration 後に届くはず）。
+ただし逆向きも翻訳あり・統合テストなしで、落とすパケット（chat／Set Slot／Window Items／Entity Destroy、
+Window Click／Set Creative Slot、Edit Book など）があるため、755のマトリクスと
+同じく△（制限付き）とする。○は素通し（754×754）のみである。
+Respawn は755クライアントには通る（テスト確認）。756クライアントには通るはずだが直接の単体テストは無い（コードで確認。754→755→756の連鎖で Respawn 0x3D がそのまま送られる）。757〜765クライアントには通るのは
+756サーバーと同じ下流連鎖による推論（754サーバーでの直接テストは無いので「推論」と明記）、
+766〜775クライアントには下流（`handleServerPlayFrom763` の Respawn 分岐（`ProxySession.java:7179`）の落としリスト）で落とされる
+（コードで確認）。
+注意：`ProxySession754Test` のテスト名は向きが紛らわしい。`joinAndRespawn754Against755Convert` は
+`loginTo(755, 754)`＝クライアント755・サーバー754（「754→755」の変換方向の名前）。
+`loginTo` の引数順は (clientProtocol, serverProtocol)。アサーションと `loginTo` の引数を信じ、
+名前だけで向きを決めないこと。
+
+### 754クライアント × 全サーバー
+
+| クライアント＼サーバー | 754（1.16.4／1.16.5） | 755（1.17） | 756（1.17.1） | 757（1.18／1.18.1） | 759（1.19） | 760（1.19.1／1.19.2） | 761（1.19.3） | 762（1.19.4） | 763（1.20／1.20.1） | 764（1.20.2） | 765（1.20.3／1.20.4） | 766（1.20.5／1.20.6） | 767（1.21／1.21.1） | 768（1.21.2／1.21.3） | 769（1.21.4） | 770（1.21.5） | 771（1.21.6） | 772（1.21.7／1.21.8） | 773（1.21.9／1.21.10） | 774（1.21.11） | 775（26.1／26.1.1／26.1.2） |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **754（1.16.4／1.16.5）** | ○ 素通し（リレー）。単体テストは `ProxySession754Test.join754Against754IsNative` で経路を確認済み（Join Game 0x24・Respawn 0x39・Spawn Position 0x42・chat 0x03 がそのまま通る）。統合テストは `ProxyIntegrationTest.java` に Fake754Client＋4セルを追加済み（javac通過）。プロキシ経由は (a) を試行して環境制約で失敗を確認（JVMのTCP遮断。`docs/PROXY-1.16.md` の「統合テスト」を参照）。直接接続は (a) が通過（ポート25564、Done 75.825s。Join Game 30,847バイト、チャンク441パケット・5,065,124バイト、チャット到達、移動後も接続維持） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は通る（`handleServerJoinGame755`（`ProxySession.java:14112`）の `is754()` 分岐で `translateJoinGame755To754` を使い 0x24 で返す。コードで確認。`ProxySession754bTest.joinGame755To754RewritesCodec`（`loginTo(754, 755)`）で Join Game 0x26→0x24、`respawn755To754RewritesDimension` で Respawn 0x3D→0x39、`position755To754StripsDismountVehicle` で Synchronize Player Position 0x38→0x34 をテスト確認）。クライアント→サーバーは直接変換する（`ProxySession754Test.directPackets754Against755Convert`（`loginTo(754, 755)`）で確認。Edit Book 0x0c→0x0b は形式同一で素通し、Set Creative Slot 0x28→0x28 はアイテムID付け替え、Window Click 0x09→0x08、Client Information 0x05→0x05 は末尾に disableTextFiltering=false を補う。ノート§14）。Ping／Pong は両方向とも落とす（transaction形式と {id i32} 形式は互換性が無い。ノート§14.5）。755サーバーからの汎用パケット（chat等）の到達は直接テストが無いため未確認。統合テストなし（単体テストのみ）。プロキシ経由は (b) を試行して環境制約で失敗を確認（JVMのTCP遮断）。直接接続は (b) が想定通りの切断（ポート25565、Done 82.812s。`multiplayer.disconnect.incompatible` with "1.17"。ログインで切断） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（756→757→759→763へ直してから `handleServerJoinGame763`／`handleServerPlayFrom763` の Respawn 分岐が is754() で落とす。コードで確認。775サーバー版は `ProxySession754Test.join775Against754Drops` でテスト確認。756サーバー版の直接テストは無いため、同じガードによる推論と明記）。汎用パケットも落とす（ノート§14.9。756サーバー→754クライアントの汎用パケットも落とすまま）。クライアント→サーバーは変換する（754→755の直接変換。変換器は `PlayTranslator754Test`／`ChunkTranslator754Test` で確認）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（757→759→763へ直してから `handleServerJoinGame763` が is754() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは754→755→756→757の連鎖で変換（754→755の段は `directPackets754Against755Convert` でテスト確認。757サーバー版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由は (c) は未試行（(a)(b)の失敗原因が共通の環境制約と確定したため）。直接接続は (c) が想定通りの切断（ポート25566、Done 164.385s。`multiplayer.disconnect.incompatible` with "1.18"。ログインで切断） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（759→763へ直してから `handleServerJoinGame763` が is754() で落とす。コードで確認）。クライアント→サーバーは変換する（`ProxySession754Test.clientPackets754Against759Convert` で確認。chat 0x03→Chat Message 0x04、Block Dig 0x1B→0x1C に sequence 0補完、Window Click 0x09→0x0A、Client Information 0x05→0x07、Set Creative Slot 0x28→0x2A。Edit Book 0x0c は755→756の段で落とす。Pong 0x07 は落とす）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（760→761→762→763へ直してから `handleServerJoinGame763` が is754() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは754→755→756→757→759→760の連鎖で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（761→762→763へ直してから `handleServerJoinGame763` が is754() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは754→755→756→757→759→760→761の連鎖で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（762→763へ直してから `handleServerJoinGame763` が is754() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは754→755→756→757→759→760→761→762の連鎖で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame763` の is754() 分岐。`handleServerPlayFrom763` の Respawn 分岐の落としリストにも754。コードで確認）。クライアント→サーバーは `handleClientPlay754` で756→757→759→763へ直す（コードで確認）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（764→763へ直してから `handleServerJoinGame763` が is754() で落とす。Respawn も764ハンドラ（`handleServerPlay765From764:8629`）の落としで is754()。コードで確認。Keep Alive は `ProxySession754Test.keepAlive764Against754IsNotClosedByDisconnectGuard` で通ることをテスト確認（Keep Alive 0x24→0x1F、Respawn 0x43 は落とす））。設定フェーズはプロキシが合成するが Join Game が無いため参加できない。クライアント→サーバーは `handleClientPlay754` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（765→763へ直してから `handleServerJoinGame763` が is754() で落とす。Respawn も765ハンドラ（`handleServerPlayUp:8335`）の落としで is754()。コードで確認。Keep Alive は `ProxySession754Test.keepAlive765Against754IsNotDroppedByRespawnGuard` で通ることをテスト確認（Keep Alive 0x24→0x1F、Respawn 0x45 は落とす））。設定フェーズはプロキシが合成するが Join Game が無いため参加できない。クライアント→サーバーは `handleClientPlay754` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame766`（`ProxySession.java:7891`）の is754() 分岐。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay754` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（767は766に委譲し `handleServerJoinGame766` の is754() 分岐で落とす（`ProxySession.java:7714`）。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay754` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（768は `handleServerJoinGame768`（`ProxySession.java:17102`）の is754() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay754` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（769→768へ直してから `handleServerJoinGame768` の is754() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay754` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（770→769→768へ直してから `handleServerJoinGame768` の is754() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay754` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（771→770→769→768へ直してから `handleServerJoinGame768` の is754() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay754` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（772→771→770→769→768へ直してから `handleServerJoinGame768` の is754() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay754` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（773→772→771→770→769→768へ直してから `handleServerJoinGame768` の is754() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay754` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（774→773→772→771→770→769→768へ直してから `handleServerJoinGame768` の is754() 分岐で落とす。Respawn も落とす。コードで確認）。クライアント→サーバーは `handleClientPlay754` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame775`（`ProxySession.java:13336`）の is754() 分岐。774に委譲する前に落とす。`ProxySession754Test.join775Against754Drops` で確認。Join Game 0x31 を落とす。ログイン合成でサーバーは設定フェーズを消費し、Finish Configuration でプレイ状態に入るが754クライアントに送るものは無い（`ProxySession754Test.login754Against775SynthesizesConfig` で確認））。クライアント→サーバーは `handleClientPlay754` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+
+### 全クライアント × 754サーバー
+
+| クライアント＼サーバー | 754（1.16.4／1.16.5） |
+|---|---|
+| **755（1.17）** | △ 制限付き。Join Gameは通る（754→755の直接変換。`ProxySession754Test.joinAndRespawn754Against755Convert` で確認。Join Game 0x24→0x26、359バイト→1,474バイト。`ProxySession754bTest.joinGame754To755RewritesCodec` でも確認）。Respawnも通る（同テストで確認。0x39→0x3D）。Spawn Positionも通る（同テストで確認。0x42→0x4B、angle 0.0f を補う）。ただし754サーバーからの chat 0x0E は755クライアントには落とす（同テストで確認。汎用経路の落としリスト）。Set Slot 0x15／Window Items 0x13／Entity Destroy 0x36 もセッション経由では落とす（同テストで確認。変換器自体は `ChunkTranslator754Test` で確認済み）。Ping 0x11／Update Light 0x23 も落とす（同テストで確認）。クライアント→サーバーは755→754の直接変換（`to754ClientPacketFrom755`。chat 0x03 はそのまま。Client Information は `clientInformation755To754StripsBool` でテスト確認。Window Click 0x08→0x09、Set Creative Slot 0x28→0x28、Edit Book 0x0b→0x0c は形式同一で素通し。Pong は落とす。コードで確認）。統合テストなし（単体テストのみ）。プロキシ経由は (d) は未試行（(a)(b)の失敗原因が共通の環境制約と確定したため）。直接接続は (d) が想定通りの切断（ポート25567、Done 65.021s。`multiplayer.disconnect.incompatible` with "1.16.5"。ログインで切断） |
+| **756（1.17.1）** | △ 制限付き。Join Gameは通るはず（754→755→756の連鎖。コードで確認。直接テストは無いため推論。755サーバー版は `ProxySession755Test.joinAndRespawn755Against756Convert` でテスト確認）。Respawnも通るはず（同連鎖。コードで確認。直接テストは無いため推論）。ただし754サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされるはず（755クライアント版は `joinAndRespawn754Against755Convert` でテスト確認。756クライアント版の直接テストは無いため、同じ汎用経路による推論と明記）。Chunk Dataは届くはず（759クライアント版は `serverPackets754Against759Reach` でテスト確認。756クライアント版の直接テストは無いため推論）。クライアント→サーバーは756→755→754の連鎖で変換（コードで確認。直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **757（1.18／1.18.1）** | △ 制限付き。Join Gameは通るはず（754→755→756→757の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（同連鎖。コードで確認。直接テストは無いため推論）。ただし754サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされるはず（755クライアント版は `joinAndRespawn754Against755Convert` でテスト確認。757クライアント版の直接テストは無いため、同じ汎用経路による推論と明記）。Chunk Dataは届くはず（759クライアント版は `serverPackets754Against759Reach` でテスト確認。757クライアント版の直接テストは無いため推論）。クライアント→サーバーは757→756→755→754の連鎖で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **759（1.19）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→763→759の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（`handleServerPlayFrom763` の Respawn 分岐の落としリストに759は無い。コードで確認。直接テストは無いため推論）。Set Slot／Window Items／Entity Destroy／Chunk Data は届く（`ProxySession754Test.serverPackets754Against759Reach` でテスト確認。Set Slot 0x15→0x13、Window Items 0x13→0x11、Entity Destroy は [count=1][42]→0x38・[count=1][42]。count 2 は754→755の段で落とす。Chunk Data 0x20→0x1F は実バニラ生キャプチャが届く）。Explosion／Entity Update Attributes／Synchronize Player Position も届く（`ProxySession754bTest.fieldDiffPackets754To759Arrive` でテスト確認）。Set Cooldown・Entity Equipment・Trade List・Sound系4種・World Particles・Entity Metadata・Spawn Entity・Block Change・Multi Block Change・Block Entity Data の値付け替えも届く（`ProxySession754bTest.valuePackets754To759Arrive` でテスト確認）。Map／Tags／Resource Pack Send は756→757の段で落とす（`ProxySession754bTest.mapTagsResourcePack754To759DropAt756To757` でテスト確認）。Update Light は落とす（`ProxySession754bTest.updateLight754StillDrops` でテスト確認）。Player Chat は754サーバーには無い（`PacketIds.java` で754は -1。1.19で追加）。sculk_vibration_signal は754サーバーには無い（755で追加。754では -1）。クライアント→サーバーは変換する（`ProxySession754Test.clientPackets754Against759Convert` で確認。chat 0x03→Chat Message 0x04、Block Dig 0x1B→0x1C に sequence 0補完、Window Click 0x09→0x0A、Client Information 0x05→0x07、Set Creative Slot 0x28→0x2A。Edit Book 0x0c は755→756の段で落とす。Pong 0x07 は落とす）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **760（1.19.1／1.19.2）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→760の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（`handleServerPlayFrom763` の Respawn 分岐の落としリストに760は無い。コードで確認。直接テストは無いため推論）。sculk／Declare Recipes／Tagsを落とす（755サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **761（1.19.3）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→760→761の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。sculk／Declare Recipes／Tagsを落とす（755サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **762（1.19.4）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→760→761→762の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。sculk／Declare Recipes／Tagsを落とす（755サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **763（1.20／1.20.1）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→763の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（`handleServerPlayFrom763` の Respawn 分岐の落としリストに763は無い。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo754` で変換（`ProxySession754Test.clientPackets763Against754Convert` で確認。Chat Message 0x05→chat 0x03、Block Dig 0x1D→0x1B。Window Click／Set Creative Slot／Edit Book は落とすまま。同テストで確認）。Client Information は素通し（763→754変換器なし。末尾フィールド差分は未対応。`ProxySession754bTest.clientInformation763To754FallsBackToPassthrough` でテスト確認）。Declare Recipes／Tagsを落とす（755サーバー版と同じ。コードで確認）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **764（1.20.2）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→763→764の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo754` で変換。Window Click／Set Creative Slot は落とすまま（763クライアント版は `clientPackets763Against754Convert` でテスト確認。764クライアント版の直接テストは無いため推論）。Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **765（1.20.3／1.20.4）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→763→765の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo754` で変換。Window Click／Set Creative Slot は落とすまま（763クライアント版はテスト確認。765クライアント版の直接テストは無いため推論）。Declare Recipes／Tagsを落とす。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **766（1.20.5／1.20.6）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→763→766の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流（`handleServerPlayFrom763` の Respawn 分岐（`ProxySession.java:7179`））で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo754` で変換。Window Click／Set Creative Slot は落とすまま（763クライアント版はテスト確認。766クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **767（1.21／1.21.1）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→763→766→767の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo754` で変換。Window Click／Set Creative Slot は落とすまま（763クライアント版はテスト確認。767クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **768（1.21.2／1.21.3）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→763→766→768の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo754` で変換。Window Click／Set Creative Slot は落とすまま（763クライアント版はテスト確認。768クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **769（1.21.4）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→763→766→769の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo754` で変換。Window Click／Set Creative Slot は落とすまま（763クライアント版はテスト確認。769クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **770（1.21.5）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→763→766→770の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo754` で変換。Window Click／Set Creative Slot は落とすまま（763クライアント版はテスト確認。770クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **771（1.21.6）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→763→766→771の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo754` で変換。Window Click／Set Creative Slot は落とすまま（763クライアント版はテスト確認。771クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **772（1.21.7／1.21.8）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→763→766→772の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo754` で変換。Window Click／Set Creative Slot は落とすまま（763クライアント版はテスト確認。772クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **773（1.21.9／1.21.10）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→763→766→773の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo754` で変換。Window Click／Set Creative Slot は落とすまま（763クライアント版はテスト確認。773クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **774（1.21.11）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→763→774の連鎖。コードで確認。ノート§14.9には「三段変換で通ることをテストで確認済み」とあるが、ツリー内に `loginTo(774, 754)` のテストは見つからなかったため、ここでは推論とする。Join Game 0x30 が Finish Configuration 後に届くはず）。Respawn は下流（`handleServerPlayFrom763` の Respawn 分岐）で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo754` で変換。Window Click／Set Creative Slot は落とすまま（763クライアント版はテスト確認。774クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **775（26.1／26.1.1／26.1.2）** | △ 制限付き。Join Gameは通るはず（754→755→756→757→759→763→775の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論。ログイン合成は `ProxySession754Test.login754Against775SynthesizesConfig` で確認済み）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo754` で変換（Chat Message／Chat Command→chat、Enchant Item。Window Click／Set Creative Slot は落とすまま。763クライアント版はテスト確認。775クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+| **754（1.16.4／1.16.5）** | ○ 素通し（リレー）。上の表を参照 |
+
+検証の区別（まとめ）：
+
+- **統合テスト済み（0件）**：754関係の統合テストは `ProxyIntegrationTest.java` に Fake754Client の追加が無く、
+  プロキシ経由の実行はこのVMのサンドボックス（JVMのTCP遮断）のため未実施。
+  直接接続の結果も未確認（ライブ実行後に記入）。プロキシ経由で通ったセルが出たら◎に更新する。
+- **単体テスト済み・統合テストなし**：754⇔755の翻訳子は
+  `PlayTranslator754Test` 27件・`ChunkTranslator754Test` 16件・`ChunkTranslator754ValueTest` 30件・
+  `ProxySession754Test` 11件・`ProxySession754bTest` 16件・`ClientAdapter754Test` 13件・
+  `ClientJoinFlow754Test` 5件・`ClientProxy754Test` 4件・`V1165AdapterTest` 6件の
+  合計128件全通過（Stage B §14.7）。これに Stage A の
+  `ProtocolVersion754Test` 3件・`RegistryRemapper754Test` 16件を加えた
+  754関係の単体テストは合計147件全通過。
+  `ClientAdapter` の全組み合わせ判定テストと `ProtocolVersion754Test` の単体テスト、および
+  `verify-754-tables.py`（43件の表チェック）でも確認。
+- **回帰**：Stage Bの全体回帰は2,624件通過・30件失敗。失敗は全て環境制約
+  （ResourcePackServerのローカルHTTP -1が20件、ソケットタイムアウト8件、
+  SessionServerClientのbase URL未設定2件）で、754が原因の本物の回帰は0件（§14.7）。
+  Stage Dの対象テストは208件中186通過・22件失敗。失敗は全て環境制約
+  （HTTP GET -1 15件、ソケットnull 7件）で、754が原因の本物の回帰は0件（§15.4）。
+  この2つの数字は別時点の別実行のもので、合計はしていない。
+- **素通し（リレー）・統合テストなし**：754→754はプロキシ経由の統合テストがこのVMの
+  サンドボックス（JVMのTCP遮断）で未実施のため、現時点ではリレーの統合テスト済みセルは無い。
+  リレーはバイト列をそのまま通すため変換の誤りが入りようが無く、754→754の
+  単体テスト（`ProxySession754Test.join754Against754IsNative`）で経路自体は検証済み。
+- **Bedrock→754**：`JavaBackendConnection754Test`（36件）・
+  `BedrockChunkTranslatorTest` の754件（5件）で単体テスト済み（§15.2.4。
+  担当テスト62件中55通過・7失敗で、失敗は全てソケットテスト＝JVMのループバックTCP遮断の環境制約）。
+  Bedrockマトリクス統合テストはこのツリーには無いため、Bedrockの102通りのまま
+  （冒頭の「Bedrockは6プロトコル × 内部17サーバーの全102通り」の行は変えていない）。
+- **実機でしか確認できないもの（全441通り共通）**：本物のゲームクライアントでの
+  参加・見た目・操作感、本物のMojang認証サーバーでのonline-mode参加、
+  リソースパックの「互換性あり」表示と適用、泡テクスチャの目での確認。
+  2人同時参加での他プレイヤーの見え方（named_entity_spawn）は、偽クライアントでは
+  確かめられなかったため、実機での確認が最も重要な残りの検証である。
+  新要素（アメジスト・銅・ウーパールーパー・ヤギ・発光イカ・グロウベリーなど1.17の要素）の
+  実機での見え方・聞こえ方は、754クライアントではそもそも存在しないため未確認（1.17側の要素として扱う）。
+  手順書は未作成（Stage Eの別担当が作成予定。`docs/PLAYTEST-1.16.md` はこのツリーに無い）。
+
+### 755↔754のレジストリ差分（2026-11-16、ViaVersion 対応表と minecraft-data と実バニラの data-generator レポートで確認）
+
+- **パケットID**：変更120件・新規0件・削除1件。
+  プレイ toClient は97件変更・1件削除、toServer は23件変更。削除は1件：`PLAY_SCULK_VIBRATION_SIGNAL`（Sculk Vibration Signal 0x05。
+  1.17で追加されたスカルク振動の信号で、1.16.5には無い。754では -1）。
+  Join Game 0x26→0x24、Chunk Data 0x22→0x20、Keep Alive 0x21→0x1F、Respawn 0x3D→0x39、
+  Update Time 0x58→0x4E、Entity Destroy 0x3A→0x36（内部名のみ改名：destroy_entity→entity_destroy）、
+  Ping 0x30→0x11、Pong 0x1D→0x07。
+  設定フェーズ・ログイン・ステータス・ハンドシェイクのIDは0変更
+  （設定フェーズは1.16.5／1.17とも存在しないため CONFIGURATION のエントリは754・755とも -1）。
+  （`PacketIds.java` の754列と `packet-ids-754.json` で確認。ViaVersion の 1.16／1.17 enum で照合・
+  不一致0件。ノート§8）。
+- **ブロック状態**：755=20,342件、754=17,112件（−3,230件：新ブロック136種・約3,281状態）。
+- **ブロック**：755=898件、754=763件（−135件：新136・改名1（grass_path→dirt_path））。
+- **アイテム**：755=1,100件、754=976件（−124件：新125・改名1（同上））。
+- **エンティティ**：755=113件、754=108件（−5件：axolotl・glow_item_frame・glow_squid・goat・marker）。
+- **音**：755=1,190件、754=992件（−198件：新199・改名1（block.sweet_berry_bush.pick_berries→item.sweet_berries.pick_from_bush））。
+- **パーティクル**：755=89件、754=72件（−17件）。
+- **エンチャント**：755=38件、754=38件（±0件：同一順序）。
+- **エフェクト**：755=32件、754=32件（±0件：同一順序）。
+- **ブロックエンティティ**：755=34件、754=33件（1.17の新規 sculk_sensor（id 33）が無い。754側は 0〜32 で同一順序＝prefix）。
+- **バイオーム**：755=81件、754=79件（1.17の新規 dripstone_caves（174）・lush_caves（175）が無い。0〜173 は同じ id・同じ名前。隙間 95 件）。
+- **メニュー**：24件で同一。**属性**：13件で同一。**絵画**：26件で同一。**ポーション**：43件で同一。
+  **カスタム統計**：75→74。**ゲームイベント**：45件→無し（1.16.5には `minecraft:game_event` レジストリが無い）。
+- **データコンポーネント・環境属性・スロット表示・ダメージ種別**：1.16.5／1.17とも無し
+  （ダメージ種別表は762の42件の恒等写像プレースホルダ）。
+- **改名はパケット内部名1件＋レジストリ2件**（§11.1）。ブロック・アイテムの grass_path→dirt_path、音の改名1件。
+- **ペイロードの違い（パケットID以外）**：Join Game は dimensionCodec の書き換えが要る
+  （バイオーム79→81件、dimension element に min_y／height を追加。`translateJoinGame754To755`）。
+  Respawn は dimension element の置き換えのみ（min_y／height を足す）。dimensionCodec には
+  `minecraft:chat_type` は無い（1.19で追加）。Registry Data パケットは1.16.5／1.17には存在しない
+  （設定フェーズは1.20.2／764で追加）。Chunk Data は groundUp＋bitMap varint＋heightmaps 名前付きNBT＋
+  バイオーム varint[1024]＋光なし。BitStorage は non-straddling（実バニラ生キャプチャで BPE 5 の Data Array 長 342 で確認。§14.4）。
+  dimensionCodec の `minecraft:dimension_type` は4件・同一順序。
+  Client Information は754が6フィールド・755が7フィールド（754には `disableTextFiltering` が無い。
+  757の8フィールド目 `enableServerListing` はどちらにも無い）。
+  Entity Destroy は754が [count][entityIds] 配列、755が [entityId] 単体。
+- **pack_format**：リソース 6、データ 6（1.16.5サーバーjar内の version.json。
+  data version 2586。1.16.4は data version 2584・pack 6・プロトコル754。754用パックは `detergentmc-pack-1.16.5.zip`（21個目。pack.mcmeta は plain `{"pack_format":6}`）。
+  754パックと755パックは内容が違い sha1 が違う（754: `89773dc5252afd72e4a662a5df8abc97d2554af0`、755: `74d9d34d0dd377a5a9b0dfe0e39d968d027a356b`）。
+- **バニラ1.16.5サーバーjarのSHA-1**：`1b557e7b033b583cd9f66746b7a9ab1ec1673ced`
+  （piston-meta。37,962,360バイト。`run/vanilla/server-1.16.5.jar`。sha1sumで照合済み）。
+  1.16.4は `35139deedbd5182953cf1caa23835da59ca3d7cd`（37,961,464バイト）。
+- **1.16.5は Java 8**：`1.16.5.json` の `javaVersion.majorVersion: 8` でも確認。Java 8 は `~/.tools/jdk8u512-b09`
+  （Temurin 1.8.0_512-b09。Adoptium から取得し SHA-256 を照合済み）。
+- **実バニラ1.16.5の起動確認に成功**（§15.3.4）：Done 62.596s、pack metadataエラー0件。
+- **1.16.5の既知の制限（Stage B・Dで確認）**：754クライアント＋756〜775サーバーの
+  Join Game／Respawn は落とされる（755サーバーだけは Join Game／Respawn が通る）。766〜775クライアント＋754サーバーの Respawn は
+  下流で落とされる。Window Click／Set Creative Slot／Edit Book は763〜775クライアント→754サーバーで
+  落とすまま。Ping／Pong は754⇔755両方向とも落とすまま。Update Light は落とすまま。
+  光の抽出の配線なし（757→754のChunk Dataは光を落とす）。
+  Stage BのChunkTranslator 757節はstraddling前提で、実バニラ1.18
+  （non-straddling）と食い違う疑い（§14.9。判断待ち）。754節はnon-straddlingで正しく実装した。
+  `RegistryRemapper` の `ITEM_REVERSE_MAP` と `ITEM_763_TO_765` の食い違い（§14.9。
+  判断待ち）。`mapItemReverse` の757／759／760／761／762分岐の逆順合成の不具合
+  （§12.5の4。判断待ち。754／755／756分岐だけ正しい順序）。
+  World Particles 756→757・757→759のデータ位置の誤読、Entity Metadata 757⇔759の型番号のずれは
+  実バニラjarのjavapで確認済みだが757節の挙動変更になるため直していない（§14.9。判断待ち）。
+  775節の `experience_orb = 47` の古いリテラル、770〜775のChunkTranslatorの
+  ストラドリング問題は触っていない（Muse01／ユーザーの判断待ち）。
+- **758は未対応**：758（1.18.2）は他人の作業中のため飛ばす。754は追加済み。
+  758が終わったら758↔757の合成表をそのときに作る（757 §12.4と同じ扱い）。
+
+### 754関係41セルの内訳（実際に数えた結果）
+
+- ○（素通し）：**1件**（754クライアント×754サーバーのみ）。
+- △（制限付き）：**40件**（754クライアント×755〜775サーバーの20件＋755〜775クライアント×754サーバーの20件）。
+- ◎（統合テスト済み）：**0件**（プロキシ経由で通ったセルは無い。Fake754Client＋4セルは追加済み・javac通過だが、プロキシ経由の実行はこのVMのサンドボックスのため未実施）。
+- 合計：1＋40＋0＝**41セル**（754行21セル＋754列21セル−重複1セル）。
+
+## 1.16.3対応：全484通りの対応マトリクス（2026-11-16）
+
+クライアント753／754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775 × サーバー（内部プロトコル）753／754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775の全484通りを記す。ただし753クライアント×756〜775サーバーの19通りは Join Game が落とされるため参加できない。753クライアント×755サーバーだけは隣接の直接変換で Join Game が通る（下の「方向の非対称」を参照）。1.16.4／1.16.5対応の441通りに、753クライアントと753サーバーを加えたものである（758は未対応のため飛ばす。22プロトコル）。見出し事例は「1.16.3のサーバー（内部753）に1.17系・1.18系・1.19系・1.20系・1.21クライアントが入る」「1.17系・1.18系・1.19系・1.20系・1.21サーバーに1.16.3クライアントが入る」こと。パケットIDは754と0件違い（変更0件・新規0件・削除0件。Join Game 0x24、Chunk Data 0x20、Update Time 0x4E のまま）のため、753の翻訳は754との恒等写像で、あとは既存の鎖に重ねる（くわしくは `STAGE-A-753-NOTES.md` §8・§14）。
+レジストリは754と同一（ブロック状態17,112・ブロック763・アイテム976・バイオーム79。`verify-753-tables.py` 43/43）。
+これでプロトコル753・754・755・756・757・759〜775の22個・マトリクス22×22=484通りになる。
+1.16.3は Java 8 が必要（`1.16.3.json` の `javaVersion.majorVersion: 8`。`VanillaServerHost.javaBinaryFor` は1.16.3で Java 8 バイナリを返す。実バニラ起動確認は JDK 17 ドライバ＋Java 8 バイナリで実施。ノート§15.3.4）。
+
+凡例：◎＝プロキシ経由の統合テストで通ったもの、○＝参加できる、△＝Join Gameが通るが遊べない部分あり or 参加できない、×＝できない（現在×は無い）。○は素通し（753×753）のみとする。753×754・753×755はJoin Gameが通るがサーバー→クライアントの汎用パケットの到達が直接テストで未確認のため△とする（754の節の754×755と同じ基準。根拠は下の「方向の非対称」を参照）。
+
+484通りのセルは「1.16.4／1.16.5対応：全441通りの対応マトリクス」の表のままで変わらない。
+ここでは753が加わった43セル（753行22セル＋753列22セル−重複1セル）だけを記す。
+（注：753行22セル＋753列22セル−重複1セル＝43セル。実際に数えて確認した。）
+
+◎は付けていない。`Fake753Client`＋4セルは `ProxyIntegrationTest.java` に追加済み（javac通過、114テスト）。直接接続は4セル実行済み（(a)通過、(b)(c)(d)はバージョン不一致切断。§16.4参照）。プロキシ経由の実行はこのVMのサンドボックス（JVMのTCP遮断）のため未実施で、◎にできるセルは無い。プロキシ経由で通ったセルが出たら◎に更新する。
+
+方向の非対称：753クライアント×756〜775サーバーは、サーバー→クライアントの Join Game／Respawn
+が落とされる（756〜775サーバーの Join Game は連鎖で763形式まで上がり `handleServerJoinGame763`（`ProxySession.java:7631`）の
+`if (is757() || is756() || is755() || is754() || is753())` で落とす。766は `handleServerJoinGame766`（`ProxySession.java:8159`）、
+768は `handleServerJoinGame768`（`ProxySession.java:17588`）、769は `handleServerJoinGame769`（`ProxySession.java:17103`）、
+775は `handleServerJoinGame775`（`ProxySession.java:13643`）の同じ `is757() || is756() || is755() || is754() || is753()` 分岐で落とす。
+コードで確認。775は `ProxySession753Test.join775Against753Drops` で Join Game 0x31 の落としを確認済み。756／757／759〜774は同じガード到達をコードで確認したが各サーバーでの直接テストは無いため推論）ため参加できない。
+753クライアント×755サーバーだけは Join Game／Respawn が通る（`handleServerJoinGame755`（`ProxySession.java:14598`）の
+`is754() || is753()` 分岐で `translateJoinGame755To754` を使い 0x24 で返す。Respawn／Synchronize Player Position も `handleServerPlayFrom755` の同じ `is754() || is753()` 分岐で 0x39／0x34 で直接返す。コードで確認。753クライアント版の直接テストは無い。754クライアント版は `ProxySession754bTest.joinGame755To754RewritesCodec`／`respawn755To754RewritesDimension` でテスト確認）。
+Respawn も落とされる（`handleServerPlayUp:8603`／`handleServerPlay765From764:8897` の
+`name == PLAY_RESPAWN && (is757() || is756() || is755() || is754() || is753())`。テスト確認：
+`ProxySession753Test.keepAlive765Against753IsNotDroppedByRespawnGuard`／
+`keepAlive764Against753IsNotClosedByDisconnectGuard`。Keep Aliveだけは通るが Join Game が無いので参加できない）。
+汎用パケットも落とす（ノート§14.9：756サーバー→753クライアントの汎用パケットも落とすまま。From763汎用経路）。
+逆向き（754〜775クライアント×753サーバー）は Join Game が通るはず
+（`handleServerJoinGame753`（`ProxySession.java:14152`）→ 753→754恒等写像 → `handleServerJoinGame754`（`ProxySession.java:14332`）に委譲。
+754は `ProxySession753Test.joinAndRespawn753Against754Convert`（`loginTo(754, 753)`＝クライアント754・サーバー753）で確認。
+755は `ProxySession753bTest.joinGame753To755RewritesCodec`／`respawn753To755RewritesDimension`（`loginTo(755, 753)`）で確認。
+759は汎用パケットの到達を `serverPackets753Against759Reach` で確認。763はクライアント→サーバー方向を `clientPackets763Against753Convert` で確認。
+756／757／760〜775は754サーバーと同型の経路だが、753サーバーでの直接テストは無いものが多いため、ここでは推論とする）。
+ただし逆向きも翻訳あり・統合テストなしで、落とすパケット（chat／Set Slot／Window Items／Entity Destroy、
+Window Click／Set Creative Slot、Edit Book など）があるため、754のマトリクスと
+同じく△（制限付き）とする。○は素通し（753×753）のみである。753×754・753×755もJoin Gameは通るが汎用パケットの到達が直接テストで未確認のため△とする（754の節の754×755と同じ基準）。
+Respawn は754・755クライアントには通る（テスト確認）。756／757クライアントには通るはずだが直接の単体テストは無い（コードで確認。753→754→755→756の連鎖で Respawn 0x39→0x3D が送られる）。
+759〜765クライアントには通るのは756サーバーと同じ下流連鎖による推論（753サーバーでの直接テストは無いので「推論」と明記）、
+766〜775クライアントには下流（`handleServerPlayFrom763` の Respawn 分岐（`ProxySession.java:7447`）の落としリスト）で落とされる
+（コードで確認）。
+注意：`ProxySession753Test` のテスト名は向きが紛らわしい。`joinAndRespawn753Against754Convert` は
+`loginTo(754, 753)`＝クライアント754・サーバー753（「753→754」の変換方向の名前）。
+`loginTo` の引数順は (clientProtocol, serverProtocol)。アサーションと `loginTo` の引数を信じ、
+名前だけで向きを決めないこと。
+
+### 753クライアント × 全サーバー
+
+| クライアント＼サーバー | 753（1.16.3） | 754（1.16.4／1.16.5） | 755（1.17） | 756（1.17.1） | 757（1.18／1.18.1） | 759（1.19） | 760（1.19.1／1.19.2） | 761（1.19.3） | 762（1.19.4） | 763（1.20／1.20.1） | 764（1.20.2） | 765（1.20.3／1.20.4） | 766（1.20.5／1.20.6） | 767（1.21／1.21.1） | 768（1.21.2／1.21.3） | 769（1.21.4） | 770（1.21.5） | 771（1.21.6） | 772（1.21.7／1.21.8） | 773（1.21.9／1.21.10） | 774（1.21.11） | 775（26.1／26.1.1／26.1.2） |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **753（1.16.3）** | ○ 素通し（リレー）。単体テストは `ProxySession753Test.join753Against753IsNative` で経路を確認済み（Join Game 0x24・Respawn 0x39・Spawn Position 0x42・chat 0x03 がそのまま通る）。Fake753Client＋4セル追加済み（`ProxyIntegrationTest.java`、javac通過）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続 (a) は通過（Join Game 30,847バイト、チャンク462パケット・5,466,970バイト、チャット到達。§16.4参照） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn／Spawn Position は通る（`handleServerJoinGame754`（`ProxySession.java:14332`）の `is754() \|\| is753()` 分岐で 0x24／0x39／0x42 をそのまま返す。コードで確認。`ProxySession753bTest.joinGame754To753IsIdentity`／`respawn754To753IsIdentity`／`position754To753RoundTrips`（`loginTo(753, 754)`）でテスト確認）。クライアント→サーバーは直接変換する（`ProxySession753Test.directPackets753Against754Convert`（`loginTo(753, 754)`）で確認。Edit Book 0x0c→0x0c は形式同一で素通し、Set Creative Slot 0x28→0x28 はアイテムID変わらず、Window Click 0x09→0x09、Client Information 0x05→0x05 は6フィールドのまま。ノート§14）。サーバー→クライアントの汎用パケット（chat等）の到達は直接テストが無いため未確認。Ping（0x11）は753と754で形式が同一のため753⇔754の段では素通しする（`ProxySession.java:14218`・`:14280`のコメントで確認。`to755ServerPacketFrom754` で落とされるのは755以上クライアント向けの段）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn／Synchronize Player Position は通る（`handleServerJoinGame755`（`ProxySession.java:14598`）の `is754() \|\| is753()` 分岐で `translateJoinGame755To754` を使い 0x24 で返す。Respawn／Position も `handleServerPlayFrom755` の同じ分岐で 0x39／0x34 で直接返す。コードで確認。753クライアント版の直接テストは無い。754クライアント版は `ProxySession754bTest.joinGame755To754RewritesCodec`／`respawn755To754RewritesDimension` でテスト確認）。クライアント→サーバーは 753→754の恒等写像＋754→755の直接変換で変換する（753→754の段は `directPackets753Against754Convert` で、754→755の段は `ProxySession754Test.directPackets754Against755Convert` でそれぞれテスト確認。753→755の通しの直接テストは無いため推論）。Ping／Pong は両方向とも落とす（transaction形式と {id i32} 形式は互換性が無い。ノート§14.5。754⇔755と同じ）。755サーバーからの汎用パケット（chat等）の到達は直接テストが無いため未確認。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続 (b) はバージョン不一致切断を確認（§16.4参照） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（756→757→759→763へ直してから `handleServerJoinGame763`／`handleServerPlayFrom763` の Respawn 分岐が is753() で落とす。コードで確認。775サーバー版は `ProxySession753Test.join775Against753Drops` でテスト確認。756サーバー版の直接テストは無いため、同じガードによる推論と明記）。汎用パケットも落とす（ノート§14.9。756サーバー→753クライアントの汎用パケットも落とすまま）。クライアント→サーバーは変換する（753→754の直接変換。変換器は `PlayTranslator753Test`／`ChunkTranslator753Test` で確認。756サーバー版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（757→759→763へ直してから `handleServerJoinGame763` が is753() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは753→754→755→756→757の連鎖で変換（753→754の段は `directPackets753Against754Convert` でテスト確認。757サーバー版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続 (c) はバージョン不一致切断を確認（§16.4参照） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（759→763へ直してから `handleServerJoinGame763` が is753() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは変換する（`ProxySession753Test.clientPackets753Against759Convert` で確認。chat 0x03→Chat Message 0x04、Block Dig 0x1B→0x1C に sequence 0補完、Window Click 0x09→0x0A、Client Information 0x05→0x07、Set Creative Slot 0x28→0x2A。Edit Book 0x0c は755→756の段で落とす。Pong 0x07 は落とす）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（760→761→762→763へ直してから `handleServerJoinGame763` が is753() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは753→754→755→756→757→759→760の連鎖で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（761→762→763へ直してから `handleServerJoinGame763` が is753() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは753→754→755→756→757→759→760→761の連鎖で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（762→763へ直してから `handleServerJoinGame763` が is753() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは753→754→755→756→757→759→760→761→762の連鎖で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame763` の is753() 分岐。`handleServerPlayFrom763` の Respawn 分岐の落としリストにも753。コードで確認）。クライアント→サーバーは `handleClientPlay753` で756→757→759→763へ直す（コードで確認）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（764→763へ直してから `handleServerJoinGame763` が is753() で落とす。Respawn も764ハンドラ（`handleServerPlay765From764:8897`）の落としで is753()。コードで確認。Keep Alive は `ProxySession753Test.keepAlive764Against753IsNotClosedByDisconnectGuard` で通ることをテスト確認（Keep Alive 0x24→0x1F、Respawn 0x43 は落とす））。設定フェーズはプロキシが合成するが Join Game が無いため参加できない。クライアント→サーバーは `handleClientPlay753` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（765→763へ直してから `handleServerJoinGame763` が is753() で落とす。Respawn も765ハンドラ（`handleServerPlayUp:8603`）の落としで is753()。コードで確認。Keep Alive は `ProxySession753Test.keepAlive765Against753IsNotDroppedByRespawnGuard` で通ることをテスト確認（Keep Alive 0x24→0x1F、Respawn 0x45 は落とす））。設定フェーズはプロキシが合成するが Join Game が無いため参加できない。クライアント→サーバーは `handleClientPlay753` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame766`（`ProxySession.java:8159`）の is753() 分岐。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay753` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（767は766に委譲し `handleServerJoinGame766` の is753() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay753` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（768は `handleServerJoinGame768`（`ProxySession.java:17588`）の is753() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay753` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（769は `handleServerJoinGame769`（`ProxySession.java:17103`）の is753() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay753` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（770→769→768へ直してから `handleServerJoinGame768` の is753() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay753` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（771→770→769→768へ直してから `handleServerJoinGame768` の is753() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay753` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（772→771→770→769→768へ直してから `handleServerJoinGame768` の is753() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay753` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（773→772→771→770→769→768へ直してから `handleServerJoinGame768` の is753() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay753` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（774→773→772→771→770→769→768へ直してから `handleServerJoinGame768` の is753() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay753` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame775`（`ProxySession.java:13643`）の is753() 分岐。774に委譲する前に落とす。`ProxySession753Test.join775Against753Drops` で確認。Join Game 0x31 を落とす。ログイン合成でサーバーは設定フェーズを消費し、Finish Configuration でプレイ状態に入るが753クライアントに送るものは無い（`ProxySession753Test.login753Against775SynthesizesConfig` で確認））。クライアント→サーバーは `handleClientPlay753` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認（ライブ実行後に記入） |
+
+### 全クライアント × 753サーバー
+
+| クライアント＼サーバー | 753（1.16.3） |
+|---|---|
+| **754（1.16.4／1.16.5）** | △ 制限付き。Join Gameは通る（753→754の恒等写像。`ProxySession753Test.joinAndRespawn753Against754Convert` で確認。Join Game 0x24→0x24、Respawn 0x39→0x39、Spawn Position 0x42→0x42（angle 無し・8バイトのまま）。`ProxySession753bTest.joinGame753To754IsIdentity`／`respawn753To754IsIdentity`／`position753To754IsIdentity` でも確認）。ただし chat（0x0E）／Set Slot（0x15）／Window Items（0x13）／Entity Destroy（0x36）／Ping（0x11）／Update Light（0x23）はセッション経由で落とされる（同テストでテスト確認。変換器自体は恒等写像だが `handleServerPlayFrom763` の汎用経路で落とされる。Ping／Update Light は753⇔754の段では素通しだが754→755の段で落とされる）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続 (d) はバージョン不一致切断を確認（§16.4参照） |
+| **755（1.17）** | △ 制限付き。Join Gameは通る（753→754恒等写像→754→755の直接変換。`ProxySession753bTest.joinGame753To755RewritesCodec` で確認。Join Game 0x24→0x26、dimensionCodec が755形式に書き換わる）。Respawnも通る（同テスト `respawn753To755RewritesDimension` で確認。0x39→0x3D）。Spawn Positionも通る（`position753To755AddsDismountVehicle` で確認。0x42→0x38、末尾に dismountVehicle=false を1バイト補う）。chat／Set Slot は `to755ServerPacketFrom754` で素通し／変換されるはず（chat は default 素通し、Set Slot は `translateSetSlot754To755` でアイテムID付け替え。コードで確認。直接テストは無いため未確認）。Entity Destroy は count 1 のときだけ通る（count 0／2以上は754→755の段で落とす。コードで確認。直接テストは無いため未確認）。Update Light／Ping は落とす（コードで確認）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **756（1.17.1）** | △ 制限付き。Join Gameは通るはず（753→754→755→756の連鎖。コードで確認。直接テストは無いため推論。755サーバー版は `ProxySession755Test.joinAndRespawn755Against756Convert` でテスト確認）。Respawnも通るはず（同連鎖。コードで確認。直接テストは無いため推論）。ただし753サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされるはず（755サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **757（1.18／1.18.1）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（同連鎖。コードで確認。直接テストは無いため推論）。ただし753サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされるはず（755サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **759（1.19）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→763→759の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（`handleServerPlayFrom763` の Respawn 分岐の落としリストに759は無い。コードで確認。直接テストは無いため推論）。Set Slot／Window Items／Entity Destroy／Chunk Data は届く（`ProxySession753Test.serverPackets753Against759Reach` でテスト確認。Set Slot 0x15→0x13、Window Items 0x13→0x11、Entity Destroy 0x36→0x38（count 1）、Chunk Data 0x20→0x1F）。Entity Destroy count 2／Update Light は落とす（同テストでテスト確認）。クライアント→サーバーは `handleClientPlayTo753` で変換（763クライアント版はテスト確認。759クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **760（1.19.1／1.19.2）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→760の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（`handleServerPlayFrom763` の Respawn 分岐の落としリストに760は無い。コードで確認。直接テストは無いため推論）。sculk／Declare Recipes／Tagsを落とす（755サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo753` で変換（763クライアント版はテスト確認。760クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **761（1.19.3）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→760→761の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。sculk／Declare Recipes／Tagsを落とす（755サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo753` で変換（763クライアント版はテスト確認。761クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **762（1.19.4）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→760→761→762の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。sculk／Declare Recipes／Tagsを落とす（755サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo753` で変換（763クライアント版はテスト確認。762クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **763（1.20／1.20.1）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→763の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（`handleServerPlayFrom763` の Respawn 分岐の落としリストに763は無い。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo753` で変換（`ProxySession753Test.clientPackets763Against753Convert` でテスト確認。Chat Message 0x05→chat 0x03、Block Dig 0x1D→0x1B、Window Click／Set Creative Slot／Edit Book は落とす。Client Information は `ProxySession753bTest.clientInformation763To753FallsBackToPassthrough` で確認）。Ping 763→753は落とす（`ProxySession753bTest.ping763To753Drops` でテスト確認）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **764（1.20.2）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→763→764の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo753` で変換（763クライアント版はテスト確認。764クライアント版の直接テストは無いため推論）。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。764クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **765（1.20.3／1.20.4）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→763→765の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo753` で変換（763クライアント版はテスト確認。765クライアント版の直接テストは無いため推論）。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。765クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **766（1.20.5／1.20.6）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→763→766の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流（`handleServerPlayFrom763` の Respawn 分岐（`ProxySession.java:7447`））で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo753` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。766クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **767（1.21／1.21.1）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→763→766→767の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo753` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。767クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **768（1.21.2／1.21.3）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→763→766→768の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo753` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。768クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **769（1.21.4）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→763→766→769の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo753` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。769クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **770（1.21.5）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→763→766→770の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo753` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。770クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **771（1.21.6）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→763→766→771の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo753` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。771クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **772（1.21.7／1.21.8）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→763→766→772の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo753` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。772クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **773（1.21.9／1.21.10）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→763→766→773の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo753` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。773クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **774（1.21.11）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→763→774の連鎖。コードで確認。直接テストは無いため推論。Join Game 0x30 が Finish Configuration 後に届くはず）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo753` で変換（763クライアント版はテスト確認。774クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **775（26.1／26.1.1／26.1.2）** | △ 制限付き。Join Gameは通るはず（753→754→755→756→757→759→763→775の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論。ログイン合成は `ProxySession753Test.login753Against775SynthesizesConfig` で確認済み）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo753` で変換（763クライアント版はテスト確認。775クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行はこのVMのサンドボックスで未実施。直接接続の結果は未確認 |
+| **753（1.16.3）** | ○ 素通し（リレー）。上の表を参照 |
+
+検証の区別（まとめ）：
+
+- **統合テスト済み（0件）**：`Fake753Client`＋4セルは `ProxyIntegrationTest.java` に追加済み（javac通過、114テスト）。
+  プロキシ経由の実行はこのVMのサンドボックス（JVMのTCP遮断）のため未実施。
+  直接接続は4セル実行済み（(a)通過、(b)(c)(d)はバージョン不一致切断。§16.4参照）。プロキシ経由で通ったセルが出たら◎に更新する。
+- **単体テスト済み・統合テストなし**：753⇔754の翻訳子は
+  `PlayTranslator753Test` 12件・`ChunkTranslator753Test` 12件・
+  `ProxySession753Test` 11件・`ProxySession753bTest` 16件・`ClientAdapter753Test` 13件・
+  `ClientJoinFlow753Test` 5件・`ClientProxy753Test` 4件・`V1163AdapterTest` 6件の
+  合計79件全通過（Stage B §14.7）。これに Stage A の
+  `ProtocolVersion753Test` 3件・`RegistryRemapper753Test` 16件を加えた
+  753関係の単体テストは合計98件全通過。
+  `ClientAdapter` の全組み合わせ判定テストと `ProtocolVersion753Test` の単体テスト、および
+  `verify-753-tables.py`（43件の表チェック）でも確認。
+- **回帰**：Stage Bの全体回帰は2,726件通過・31件失敗。失敗は全て環境制約
+  （ResourcePackServerのローカルHTTP -1が21件、ソケットタイムアウト8件、
+  SessionServerClientのbase URL未設定2件）で、753が原因の本物の回帰は0件（§14.7）。
+  Stage Dの対象テストは223件中200通過・23件失敗。失敗は全て環境制約
+  （HTTP GET -1 16件、ソケットnull 7件）で、753が原因の本物の回帰は0件（§15.4）。
+  この2つの数字は別時点の別実行のもので、合計はしていない。
+- **素通し（リレー）・統合テストなし**：753→753はプロキシ経由の統合テストがこのVMの
+  サンドボックス（JVMのTCP遮断）で未実施のため、現時点ではリレーの統合テスト済みセルは無い。
+  リレーはバイト列をそのまま通すため変換の誤りが入りようが無く、753→753の
+  単体テスト（`ProxySession753Test.join753Against753IsNative`）で経路自体は検証済み。
+- **Bedrock→753**：`JavaBackendConnection753Test`（36件）・
+  `BedrockChunkTranslatorTest` の753件（5件）で単体テスト済み（§15.2。
+  担当テスト67件中60通過・7失敗で、失敗は全てソケットテスト＝JVMのループバックTCP遮断の環境制約）。
+  Bedrockマトリクス統合テストはこのツリーには無いため、Bedrockの102通りのまま
+  （冒頭の「Bedrockは6プロトコル × 内部17サーバーの全102通り」の行は変えていない）。
+- **実機でしか確認できないもの（全484通り共通）**：本物のゲームクライアントでの
+  参加・見た目・操作感、本物のMojang認証サーバーでのonline-mode参加、
+  リソースパックの「互換性あり」表示と適用、泡テクスチャの目での確認。
+  2人同時参加での他プレイヤーの見え方（named_entity_spawn）は、偽クライアントでは
+  確かめられなかったため、実機での確認が最も重要な残りの検証である。
+  新要素（アメジスト・銅・ウーパールーパー・ヤギ・発光イカ・グロウベリーなど1.17の要素）の
+  実機での見え方・聞こえ方は、753クライアントではそもそも存在しないため未確認（1.17側の要素として扱う）。
+  手順書は未作成（Stage Eの別担当が作成予定。`docs/PLAYTEST-1.16.md` はこのツリーに無い）。
+
+### 754↔753のレジストリ差分（2026-11-16、ViaVersion 対応表と minecraft-data と実バニラの data-generator レポートで確認）
+
+- **パケットID**：変更0件・新規0件・削除0件。
+  Join Game 0x24、Chunk Data 0x20、Keep Alive 0x1F、Respawn 0x39、
+  Update Time 0x4E、Entity Destroy 0x36、Ping 0x11、Pong 0x07（754と同一）。
+  設定フェーズ・ログイン・ステータス・ハンドシェイクのIDは0変更
+  （設定フェーズは1.16.3／1.16.5とも存在しないため CONFIGURATION のエントリは753・754とも -1）。
+  （`PacketIds.java` の753列と `packet-ids-753.json` で確認。ViaVersion の 1.16.2 enum で照合・
+  不一致0件。ノート§8）。
+- **ブロック状態**：754=17,112件、753=17,112件（±0件：恒等写像）。
+- **ブロック**：754=763件、753=763件（±0件：改名なし）。
+- **アイテム**：754=976件、753=976件（±0件：改名なし）。
+- **エンティティ**：754=108件、753=108件（±0件）。
+- **音**：754=992件、753=992件（±0件：改名なし）。
+- **パーティクル**：754=72件、753=72件（±0件）。
+- **エンチャント**：754=38件、753=38件（±0件：同一順序）。
+- **エフェクト**：754=32件、753=32件（±0件：同一順序）。
+- **ブロックエンティティ**：754=33件、753=33件（±0件：同一順序）。
+- **バイオーム**：754=79件、753=79件（0〜173 は同じ id・同じ名前。隙間 95 件）。
+- **メニュー**：24件で同一。**属性**：13件で同一。**絵画**：26件で同一。**ポーション**：43件で同一。
+  **カスタム統計**：74件で同一。**ゲームイベント**：1.16.3／1.16.5とも無し。
+- **データコンポーネント・環境属性・スロット表示・ダメージ種別**：1.16.3／1.16.5とも無し
+  （ダメージ種別表は762の42件の恒等写像プレースホルダ）。
+- **ペイロードの違い（パケットID以外）**：無し。Join Game／Respawn／Chunk Data／Client Information／
+  Entity Destroy はすべて754と同一形式（生キャプチャ30,847バイト同一。ノート§11.6）。
+  Join Game は dimensionCodec の書き換えが要らない（バイオーム79件のまま、dimension element に min_y／height 無し）。
+  Chunk Data は groundUp＋bitMap varint＋heightmaps 名前付きNBT＋
+  バイオーム varint[1024]＋光なし。BitStorage は non-straddling（実バニラ生キャプチャで確認。§14.4）。
+  Client Information は753・754とも6フィールド（`disableTextFiltering` が無い。
+  757の8フィールド目 `enableServerListing` はどちらにも無い）。
+  Entity Destroy は753・754とも [count][entityIds] 配列。
+- **pack_format**：リソース 6、データ 6（1.16.3サーバーjar内の version.json。
+  data version 2580。1.16.4は data version 2584・pack 6・プロトコル754。1.16.5は data version 2586・pack 6・プロトコル754。753用パックは `detergentmc-pack-1.16.3.zip`（22個目。pack.mcmeta は plain `{"pack_format":6}`）。
+  753パックと754・755パックは内容が違い sha1 が違う（753: `0adcecd8395d8e33fc7fa6e1d10a4835e9fa9c35`、754: `89773dc5252afd72e4a662a5df8abc97d2554af0`、755: `74d9d34d0dd377a5a9b0dfe0e39d968d027a356b`）。
+- **バニラ1.16.3サーバーjarのSHA-1**：`f02f4473dbf152c23d7d484952121db0b36698cb`
+  （piston-meta。37,942,656バイト。`run/vanilla/server-1.16.3.jar`。sha1sumで照合済み）。
+- **1.16.3は Java 8**：`1.16.3.json` の `javaVersion.majorVersion: 8` でも確認。Java 8 は `~/.tools/jdk8u512-b09`
+  （Temurin 1.8.0_512-b09。Adoptium から取得し SHA-256 を照合済み）。
+- **実バニラ1.16.3の起動確認に成功**（§15.3.4）：Done 73.036s、pack metadataエラー0件。
+- **1.16.3の既知の制限（Stage B・Dで確認）**：753クライアント＋756〜775サーバーの
+  Join Game／Respawn は落とされる（755サーバーだけは Join Game／Respawn が通る）。766〜775クライアント＋753サーバーの Respawn は
+  下流で落とされる。Window Click／Set Creative Slot／Edit Book は763〜775クライアント→753サーバーで
+  落とすまま。Ping／Pong は753⇔754の段では素通しだが754⇔755の段で落とされる。Update Light は753⇔754の段では
+  素通しだが754→755の段で落とされる。754クライアント＋753サーバーの chat／Set Slot／Window Items／
+  Entity Destroy はセッション経由で落とされる（変換器は恒等写像だが汎用経路で落とす）。
+  光の抽出の配線なし（757→753のChunk Dataは光を落とす）。
+  Stage BのChunkTranslator 757節はstraddling前提で、実バニラ1.18
+  （non-straddling）と食い違う疑い（§14.9。判断待ち）。753節はnon-straddlingで正しく実装した。
+  `RegistryRemapper` の `ITEM_REVERSE_MAP` と `ITEM_763_TO_765` の食い違い（§14.9。
+  判断待ち）。`mapItemReverse` の757／759／760／761／762分岐の逆順合成の不具合
+  （§12.5の4。判断待ち。753／754／755／756分岐だけ正しい順序）。
+  World Particles 756→757・757→759のデータ位置の誤読、Entity Metadata 757⇔759の型番号のずれは
+  実バニラjarのjavapで確認済みだが757節の挙動変更になるため直していない（§14.9。判断待ち）。
+  775節の `experience_orb = 47` の古いリテラル、770〜775のChunkTranslatorの
+  ストラドリング問題は触っていない（Muse01／ユーザーの判断待ち）。
+- **758は未対応**：758（1.18.2）は他人の作業中のため飛ばす。753は追加済み。
+  758が終わったら758↔757の合成表をそのときに作る（757 §12.4と同じ扱い）。
+
+### 753関係43セルの内訳（実際に数えた結果）
+
+- ○（参加できる）：**1件**（753クライアント×753サーバーのみ。素通し）。
+- △（制限付き）：**42件**（753クライアント×754・755サーバーの2件＋753クライアント×756〜775サーバーの19件＋754〜775クライアント×753サーバーの21件）。
+- ◎（統合テスト済み）：**0件**（プロキシ経由で通ったセルは無い。Fake753Client＋4セルは追加済みだが、プロキシ経由の実行はこのVMのサンドボックスのため未実施）。
+- 合計：1＋42＋0＝**43セル**（753行22セル＋753列22セル−重複1セル）。
+## 1.16.2対応：全529通りの対応マトリクス（2026-11-16）
+
+クライアント751／753／754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775 × サーバー（内部プロトコル）751／753／754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775の全529通りを記す。ただし751クライアント×756〜775サーバーの19通りは Join Game が落とされるため参加できない。751クライアント×753・754・755サーバーは隣接の直接変換で Join Game が通る（下の「方向の非対称」を参照）。1.16.3対応の484通りに、751クライアントと751サーバーを加えたものである（758は未対応のため飛ばす。23プロトコル）。見出し事例は「1.16.2のサーバー（内部751）に1.17系・1.18系・1.19系・1.20系・1.21クライアントが入る」「1.17系・1.18系・1.19系・1.20系・1.21サーバーに1.16.2クライアントが入る」こと。パケットIDは753と0件違い（変更0件・新規0件・削除0件。Join Game 0x24、Chunk Data 0x20、Update Time 0x4E のまま）のため、751の翻訳は753との恒等写像で、あとは既存の鎖に重ねる（くわしくは `STAGE-A-751-NOTES.md` §8・§14）。
+レジストリは753と同一（ブロック状態17,112・ブロック763・アイテム976・バイオーム79。`verify-751-tables.py` 43/43）。
+これでプロトコル751・753・754・755・756・757・759〜775の23個・マトリクス23×23=529通りになる。
+1.16.2は Java 8 が必要（`1.16.2.json` の `javaVersion.majorVersion: 8`。`VanillaServerHost.javaBinaryFor` は1.16.2で Java 8 バイナリを返す。実バニラ起動確認は JDK 17 ドライバ＋Java 8 バイナリで実施。ノート§15.3.4）。
+
+凡例：◎＝プロキシ経由の統合テストで通ったもの、○＝参加できる、△＝Join Gameが通るが遊べない部分あり or 参加できない、×＝できない（現在×は無い）。○は素通し（751×751）のみとする。751×753・751×754・751×755はJoin Gameが通るがサーバー→クライアントの汎用パケットの到達が直接テストで未確認のため△とする（753の節の753×754・753×755と同じ基準。根拠は下の「方向の非対称」を参照）。
+
+529通りのセルは「1.16.3対応：全484通りの対応マトリクス」の表のままで変わらない。
+ここでは751が加わった45セル（751行23セル＋751列23セル−重複1セル）だけを記す。
+（注：751行23セル＋751列23セル−重複1セル＝45セル。実際に数えて確認した。）
+
+◎は付けていない。`Fake751Client`＋4セルは `ProxyIntegrationTest.java` に追加済み（13,175行・118テスト。javac通過）。直接接続は4セルとも実施済み（(a)通過。Join Game 30,847バイト、チャンク462パケット・4,785,500バイト、チャット到達。(b)(c)は `outdated_client`、(d)は `outdated_server` で想定通りの切断。`docs/PROXY-1.16.md` の「統合テスト（751）」参照）。プロキシ経由は(a)(b)が環境制約で失敗、(c)(d)が未試行で、◎にできるセルは無い。プロキシ経由で通ったセルが出たら◎に更新する。
+
+方向の非対称：751クライアント×756〜775サーバーは、サーバー→クライアントの Join Game／Respawn
+が落とされる（756〜775サーバーの Join Game は連鎖で763形式まで上がり `handleServerJoinGame763`（`ProxySession.java:7899`）の
+`if (is757() || is756() || is755() || is754() || is753() || is751())` で落とす。766は `handleServerJoinGame766`（`ProxySession.java:8427`）、
+768は `handleServerJoinGame768`（`ProxySession.java:18075`）、769は `handleServerJoinGame769`（`ProxySession.java:17590`）、
+775は `handleServerJoinGame775`（`ProxySession.java:13954`）の同じ `is757() || is756() || is755() || is754() || is753() || is751()` 分岐で落とす。
+コードで確認。775は `ProxySession751Test.join775Against751Drops` で Join Game 0x31 の落としを確認済み。756／757／759〜774は同じガード到達をコードで確認したが各サーバーでの直接テストは無いため推論）ため参加できない。
+751クライアント×753サーバーは Join Game／Respawn／Spawn Position が通る（`handleServerJoinGame753`（`ProxySession.java:14463`）は
+`is753()` だけを直接返し、751クライアントは `translateJoinGame753To754` で754形式にして `handleServerPlayFrom754` に委譲し、
+`handleServerJoinGame754`（`ProxySession.java:14819`）の `is754() || is753() || is751()` 分岐で 0x24 を直接返す。
+Respawn／Spawn Position も `handleServerPlayFrom754` の同じ分岐で 0x39／0x42 を直接返す。コードで確認。
+`ProxySession751bTest.joinGame753To751IsIdentity`／`respawn753To751IsIdentity`／`position753To751RoundTrips` でテスト確認。
+**訂正：`ProxySession751bTest` のコメントは「`handleServerJoinGame753` の直接返信分岐に is751() がある」と書いているが、コードは `handleServerJoinGame753` が is753() だけを直接返し、is751() があるのは委譲先の `handleServerJoinGame754` のガードである。こちらを正とする**）。
+751クライアント×754サーバーも Join Game が通る（`handleServerJoinGame754`（`ProxySession.java:14819`）の
+`is754() || is753() || is751()` 分岐で 0x24 を直接返す。コードで確認。直接の単体テストは無い）。
+751クライアント×755サーバーも Join Game／Respawn が通る（`handleServerJoinGame755`（`ProxySession.java:15085`）の
+`is754() || is753() || is751()` 分岐で `translateJoinGame755To754` を使い 0x24 で返す。Respawn／Synchronize Player Position も `handleServerPlayFrom755` の同じ `is754() || is753() || is751()` 分岐で 0x39／0x34 で直接返す。コードで確認。751クライアント版の直接テストは無い。754クライアント版は `ProxySession754bTest.joinGame755To754RewritesCodec`／`respawn755To754RewritesDimension` でテスト確認）。
+Respawn も落とされる（`handleServerPlayUp:8871`／`handleServerPlay765From764:9165` の
+`name == PLAY_RESPAWN && (is757() || is756() || is755() || is754() || is753() || is751())`。テスト確認：
+`ProxySession751Test.keepAlive765Against751IsNotDroppedByRespawnGuard`／
+`keepAlive764Against751IsNotClosedByDisconnectGuard`。Keep Aliveだけは通るが Join Game が無いので参加できない）。
+汎用パケットも落とす（ノート§14.9：756サーバー→751クライアントの汎用パケットも落とすまま。From763汎用経路）。
+逆向き（753〜775クライアント×751サーバー）は Join Game が通るはず
+（`handleServerJoinGame751`（`ProxySession.java:14639`）→ 751→753恒等写像 → `handleServerPlayFrom753`（`ProxySession.java:14386`）→ `handleServerJoinGame753`（`ProxySession.java:14463`）に委譲。
+753は `ProxySession751Test.joinAndRespawn751Against753Convert`（`loginTo(753, 751)`＝クライアント753・サーバー751）で確認。
+754は `handleServerJoinGame754`（`ProxySession.java:14819`）の `is754()` 分岐でコード確認。直接テストは無いため推論。
+755は `ProxySession751bTest.joinGame751To755RewritesCodec`／`respawn751To755RewritesDimension`（`loginTo(755, 751)`）で確認。
+759は汎用パケットの到達を `serverPackets751Against759Reach` で確認。763はクライアント→サーバー方向を `clientPackets763Against751Convert` で確認。
+756／757／760〜775は753サーバーと同型の経路だが、751サーバーでの直接テストは無いものが多いため、ここでは推論とする）。
+ただし逆向きも翻訳あり・統合テストなしで、落とすパケット（chat／Set Slot／Window Items／Entity Destroy、
+Window Click／Set Creative Slot、Edit Book など）があるため、753のマトリクスと
+同じく△（制限付き）とする。○は素通し（751×751）のみである。751×753・751×754・751×755もJoin Gameは通るが汎用パケットの到達が直接テストで未確認のため△とする（753の節の753×754・753×755と同じ基準）。
+Respawn は753・755クライアントには通る（テスト確認）。754クライアントには通るはずだが直接の単体テストは無い（コードで確認。751→753→754の連鎖で Respawn 0x39 が送られる）。
+756／757クライアントには通るはずだが直接の単体テストは無い（コードで確認。751→753→754→755→756の連鎖で Respawn 0x39→0x3D が送られる）。
+759〜765クライアントには通るのは756サーバーと同じ下流連鎖による推論（751サーバーでの直接テストは無いので「推論」と明記）、
+766〜775クライアントには下流（`handleServerPlayFrom763` の Respawn 分岐の落としリスト）で落とされる
+（コードで確認）。
+注意：`ProxySession751Test` のテスト名は向きが紛らわしい。`joinAndRespawn751Against753Convert` は
+`loginTo(753, 751)`＝クライアント753・サーバー751（「751→753」の変換方向の名前）。
+`loginTo` の引数順は (clientProtocol, serverProtocol)。アサーションと `loginTo` の引数を信じ、
+名前だけで向きを決めないこと。
+
+### 751クライアント × 全サーバー
+
+| クライアント＼サーバー | 751（1.16.2） | 753（1.16.3） | 754（1.16.4／1.16.5） | 755（1.17） | 756（1.17.1） | 757（1.18／1.18.1） | 759（1.19） | 760（1.19.1／1.19.2） | 761（1.19.3） | 762（1.19.4） | 763（1.20／1.20.1） | 764（1.20.2） | 765（1.20.3／1.20.4） | 766（1.20.5／1.20.6） | 767（1.21／1.21.1） | 768（1.21.2／1.21.3） | 769（1.21.4） | 770（1.21.5） | 771（1.21.6） | 772（1.21.7／1.21.8） | 773（1.21.9／1.21.10） | 774（1.21.11） | 775（26.1／26.1.1／26.1.2） |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **751（1.16.2）** | ○ 素通し（リレー）。単体テストは `ProxySession751Test.join751Against751IsNative` で経路を確認済み（Join Game 0x24・Respawn 0x39・Spawn Position 0x42・chat 0x03 がそのまま通る）。Fake751Client＋4セル追加済み（`ProxyIntegrationTest.java`、13,175行・118テスト）。プロキシ経由 (a) は環境制約で失敗（プロキシ25571でlisten、クライアントは正規パケット0件でEOF。生ソケットで193バイトのポリシー文を確認。詳細は `docs/PROXY-1.16.md` の「統合テスト（751）」参照）。直接接続 (a) は通過（Join Game 30,847バイト、チャンク462パケット・4,785,500バイト、チャット到達、Keep Alive応答1回、移動後も接続維持。`docs/PROXY-1.16.md` の「統合テスト（751）」参照）。(b)(c)(d)は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn／Spawn Position は通る（`handleServerJoinGame753`（`ProxySession.java:14463`）は `is753()` だけを直接返し、751クライアントは `translateJoinGame753To754` で754形式にして `handleServerPlayFrom754` に委譲し、`handleServerJoinGame754`（`ProxySession.java:14819`）の `is754() \|\| is753() \|\| is751()` 分岐で 0x24 を直接返す。Respawn／Spawn Position も `handleServerPlayFrom754` の同じ分岐で 0x39／0x42 を直接返す。コードで確認。`ProxySession751bTest.joinGame753To751IsIdentity`／`respawn753To751IsIdentity`／`position753To751RoundTrips`（`loginTo(751, 753)`）でテスト確認）。クライアント→サーバーは直接変換する（`ProxySession751Test.directPackets751Against753Convert`（`loginTo(751, 753)`）で確認。Edit Book 0x0c→0x0c は形式同一で素通し、Set Creative Slot 0x28→0x28 はアイテムID変わらず、Window Click 0x09→0x09、Client Information 0x05→0x05 は6フィールドのまま。ノート§14）。サーバー→クライアントの汎用パケット（chat等）の到達は直接テストが無いため未確認。Ping（0x11）は751と753で形式が同一のため751⇔753の段では素通しする（`ProxySession.java:14690` の `to753ServerPacketFrom751` のコメントで確認。`to755ServerPacketFrom754` で落とされるのは755以上クライアント向けの段）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn／Spawn Position は通る（`handleServerJoinGame754`（`ProxySession.java:14819`）の `is754() \|\| is753() \|\| is751()` 分岐で 0x24／0x39／0x42 をそのまま返す。コードで確認。751クライアント版の直接テストは無いため、テスト確認済みとは書かない）。クライアント→サーバーは直接変換する（751→753の恒等写像＋753→754の恒等写像。変換器は `PlayTranslator751Test`／`ChunkTranslator751Test` で確認。754サーバー版の直接テストは無いため推論）。Ping（0x11）は751と754で形式が同一のため751⇔754の段では素通しする（`to753ServerPacketFrom751`／`to754ServerPacketFrom753` のコメントで確認。`to755ServerPacketFrom754` で落とされるのは755以上クライアント向けの段）。サーバー→クライアントの汎用パケット（chat等）の到達は直接テストが無いため未確認。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn／Synchronize Player Position は通る（`handleServerJoinGame755`（`ProxySession.java:15085`）の `is754() \|\| is753() \|\| is751()` 分岐で `translateJoinGame755To754` を使い 0x24 で返す。Respawn／Position も `handleServerPlayFrom755` の同じ分岐で 0x39／0x34 で直接返す。コードで確認。751クライアント版の直接テストは無い。754クライアント版は `ProxySession754bTest.joinGame755To754RewritesCodec`／`respawn755To754RewritesDimension` でテスト確認）。クライアント→サーバーは 751→753の恒等写像＋753→754の恒等写像＋754→755の直接変換で変換する（751→753の段は `directPackets751Against753Convert` で、754→755の段は `ProxySession754Test.directPackets754Against755Convert` でそれぞれテスト確認。751→755の通しの直接テストは無いため推論）。Ping／Pong は両方向とも落とす（transaction形式と {id i32} 形式は互換性が無い。ノート§14.5。754⇔755と同じ）。755サーバーからの汎用パケット（chat等）の到達は直接テストが無いため未確認。統合テストなし（単体テストのみ）。プロキシ経由 (b) は環境制約で失敗（(a)と同一の失敗モード。詳細は `docs/PROXY-1.16.md` の「統合テスト（751）」参照）。直接接続 (b) は想定通りの切断（`multiplayer.disconnect.outdated_client` with "1.17"。ポート25565、Done 116.894s、Java 16。実測値） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（756→757→759→763へ直してから `handleServerJoinGame763`／`handleServerPlayFrom763` の Respawn 分岐が is751() で落とす。コードで確認。775サーバー版は `ProxySession751Test.join775Against751Drops` でテスト確認。756サーバー版の直接テストは無いため、同じガードによる推論と明記）。汎用パケットも落とす（ノート§14.9。756サーバー→751クライアントの汎用パケットも落とすまま）。クライアント→サーバーは変換する（751→753の直接変換。変換器は `PlayTranslator751Test`／`ChunkTranslator751Test` で確認。756サーバー版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（757→759→763へ直してから `handleServerJoinGame763` が is751() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは751→753→754→755→756→757の連鎖で変換（751→753の段は `directPackets751Against753Convert` でテスト確認。757サーバー版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由は未試行（(a)(b)の失敗原因が共通の環境制約と確定したため）。直接接続 (c) は想定通りの切断（`multiplayer.disconnect.outdated_client` with "1.18"。ポート25566、Done 207.698s、Java 17。実測値） | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（759→763へ直してから `handleServerJoinGame763` が is751() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは変換する（`ProxySession751Test.clientPackets751Against759Convert` で確認。chat 0x03→Chat Message 0x04、Block Dig 0x1B→0x1C に sequence 0補完、Window Click 0x09→0x0A、Client Information 0x05→0x07、Set Creative Slot 0x28→0x2A。Edit Book 0x0c は755→756の段で落とす。Pong 0x07 は落とす）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（760→761→762→763へ直してから `handleServerJoinGame763` が is751() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは751→753→754→755→756→757→759→760の連鎖で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（761→762→763へ直してから `handleServerJoinGame763` が is751() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは751→753→754→755→756→757→759→760→761の連鎖で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（762→763へ直してから `handleServerJoinGame763` が is751() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは751→753→754→755→756→757→759→760→761→762の連鎖で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame763` の is751() 分岐。`handleServerPlayFrom763` の Respawn 分岐の落としリストにも751。コードで確認）。クライアント→サーバーは `handleClientPlay751` で756→757→759→763へ直す（コードで確認）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（764→763へ直してから `handleServerJoinGame763` が is751() で落とす。Respawn も764ハンドラ（`handleServerPlay765From764:9165`）の落としで is751()。コードで確認。Keep Alive は `ProxySession751Test.keepAlive764Against751IsNotClosedByDisconnectGuard` で通ることをテスト確認（Keep Alive 0x24→0x1F、Respawn 0x43 は落とす））。設定フェーズはプロキシが合成するが Join Game が無いため参加できない。クライアント→サーバーは `handleClientPlay751` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（765→763へ直してから `handleServerJoinGame763` が is751() で落とす。Respawn も765ハンドラ（`handleServerPlayUp:8871`）の落としで is751()。コードで確認。Keep Alive は `ProxySession751Test.keepAlive765Against751IsNotDroppedByRespawnGuard` で通ることをテスト確認（Keep Alive 0x24→0x1F、Respawn 0x45 は落とす））。設定フェーズはプロキシが合成するが Join Game が無いため参加できない。クライアント→サーバーは `handleClientPlay751` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame766`（`ProxySession.java:8427`）の is751() 分岐。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay751` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（767は766に委譲し `handleServerJoinGame766` の is751() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay751` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（768は `handleServerJoinGame768`（`ProxySession.java:18075`）の is751() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay751` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（769は `handleServerJoinGame769`（`ProxySession.java:17590`）の is751() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay751` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（770→769→768へ直してから `handleServerJoinGame768` の is751() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay751` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（771→770→769→768へ直してから `handleServerJoinGame768` の is751() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay751` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（772→771→770→769→768へ直してから `handleServerJoinGame768` の is751() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay751` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（773→772→771→770→769→768へ直してから `handleServerJoinGame768` の is751() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay751` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（774→773→772→771→770→769→768へ直してから `handleServerJoinGame768` の is751() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay751` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame775`（`ProxySession.java:13954`）の is751() 分岐。774に委譲する前に落とす。`ProxySession751Test.join775Against751Drops` で確認。Join Game 0x31 を落とす。ログイン合成でサーバーは設定フェーズを消費し、Finish Configuration でプレイ状態に入るが751クライアントに送るものは無い（`ProxySession751Test.login751Against775SynthesizesConfig` で確認））。クライアント→サーバーは `handleClientPlay751` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+### 全クライアント × 751サーバー
+
+| クライアント＼サーバー | 751（1.16.2） |
+|---|---|
+| **753（1.16.3）** | △ 制限付き。Join Gameは通る（751→753の恒等写像。`ProxySession751Test.joinAndRespawn751Against753Convert` で確認。Join Game 0x24→0x24、Respawn 0x39→0x39、Spawn Position 0x42→0x42（angle 無し・8バイトのまま）。`ProxySession751bTest.joinGame751To753IsIdentity`／`respawn751To753IsIdentity`／`position751To753IsIdentity` でも確認）。ただし chat（0x0E）／Set Slot（0x15）／Window Items（0x13）／Entity Destroy（0x36）／Ping（0x11）／Update Light（0x23）はセッション経由で落とされる（同テストでテスト確認。変換器自体は恒等写像だが `handleServerPlayFrom763` の汎用経路で落とされる。Ping／Update Light は751⇔753の段では素通しだが754→755の段で落とされる）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続 (d) は想定通りの切断（`multiplayer.disconnect.outdated_server` with "1.16.2"。ポート25567、Done 86.316s、Java 8。実測値） |
+| **754（1.16.4／1.16.5）** | △ 制限付き。Join Gameは通るはず（751→753恒等写像→754の直接変換。`handleServerJoinGame754`（`ProxySession.java:14819`）の `is754()` 分岐で 0x24 を直接返す。コードで確認。751サーバー＋754クライアントの直接の単体テストは無いため推論）。Respawnも通るはず（同経路。コードで確認。直接テストは無いため推論）。ただし751サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされるはず（753クライアント版は `joinAndRespawn751Against753Convert` でテスト確認。754クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続は未実施（(d)は753クライアントのセル。751サーバー＋754クライアントの直接接続は4セルに含まれていない） |
+| **755（1.17）** | △ 制限付き。Join Gameは通る（751→753恒等写像→754→755の直接変換。`ProxySession751bTest.joinGame751To755RewritesCodec` で確認。Join Game 0x24→0x26、dimensionCodec が755形式に書き換わる）。Respawnも通る（同テスト `respawn751To755RewritesDimension` で確認。0x39→0x3D）。Spawn Positionも通る（`position751To755AddsDismountVehicle` で確認。0x42→0x38、末尾に dismountVehicle=false を1バイト補う）。chat／Set Slot は `to755ServerPacketFrom754` で素通し／変換されるはず（chat は default 素通し、Set Slot は `translateSetSlot754To755` でアイテムID付け替え。コードで確認。直接テストは無いため未確認）。Entity Destroy は count 1 のときだけ通る（count 0／2以上は754→755の段で落とす。コードで確認。直接テストは無いため未確認）。Update Light／Ping は落とす（コードで確認）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **756（1.17.1）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756の連鎖。コードで確認。直接テストは無いため推論。755サーバー版は `ProxySession755Test.joinAndRespawn755Against756Convert` でテスト確認）。Respawnも通るはず（同連鎖。コードで確認。直接テストは無いため推論）。ただし751サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされるはず（755サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **757（1.18／1.18.1）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（同連鎖。コードで確認。直接テストは無いため推論）。ただし751サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされるはず（755サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **759（1.19）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→763→759の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（`handleServerPlayFrom763` の Respawn 分岐の落としリストに759は無い。コードで確認。直接テストは無いため推論）。Set Slot／Window Items／Entity Destroy／Chunk Data は届く（`ProxySession751Test.serverPackets751Against759Reach` でテスト確認。Set Slot 0x15→0x13、Window Items 0x13→0x11、Entity Destroy 0x36→0x38（count 1）、Chunk Data 0x20→0x1F）。Entity Destroy count 2 は落とす（同テストでテスト確認）。Update Light は落とす（`ProxySession751bTest.updateLight751To759Drops` でテスト確認）。クライアント→サーバーは `handleClientPlayTo751` で変換（763クライアント版はテスト確認。759クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **760（1.19.1／1.19.2）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→760の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（`handleServerPlayFrom763` の Respawn 分岐の落としリストに760は無い。コードで確認。直接テストは無いため推論）。sculk／Declare Recipes／Tagsを落とす（755サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo751` で変換（763クライアント版はテスト確認。760クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **761（1.19.3）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→760→761の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。sculk／Declare Recipes／Tagsを落とす（755サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo751` で変換（763クライアント版はテスト確認。761クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **762（1.19.4）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→760→761→762の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。sculk／Declare Recipes／Tagsを落とす（755サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo751` で変換（763クライアント版はテスト確認。762クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **763（1.20／1.20.1）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→763の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（`handleServerPlayFrom763` の Respawn 分岐の落としリストに763は無い。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo751` で変換（`ProxySession751Test.clientPackets763Against751Convert` でテスト確認。Chat Message 0x05→chat 0x03、Block Dig 0x1D→0x1B。ただし Window Click／Set Creative Slot／Edit Book は落とされる。同テストで確認）。Ping 763→751は落とす（`ProxySession751bTest.ping763To751Drops` でテスト確認）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **764（1.20.2）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→763→764の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo751` で変換（763クライアント版はテスト確認。764クライアント版の直接テストは無いため推論）。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。764クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **765（1.20.3／1.20.4）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→763→765の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo751` で変換（763クライアント版はテスト確認。765クライアント版の直接テストは無いため推論）。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。765クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **766（1.20.5／1.20.6）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→763→766の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流（`handleServerPlayFrom763` の Respawn 分岐）で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo751` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。766クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **767（1.21／1.21.1）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→763→766→767の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo751` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。767クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **768（1.21.2／1.21.3）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→763→766→768の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo751` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。768クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **769（1.21.4）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→763→766→769の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo751` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。769クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **770（1.21.5）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→763→766→770の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo751` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。770クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **771（1.21.6）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→763→766→771の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo751` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。771クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **772（1.21.7／1.21.8）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→763→766→772の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo751` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。772クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **773（1.21.9／1.21.10）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→763→766→773の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo751` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。773クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **774（1.21.11）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→763→774の連鎖。コードで確認。直接テストは無いため推論。Join Game 0x30 が Finish Configuration 後に届くはず）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo751` で変換（763クライアント版はテスト確認。774クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **775（26.1／26.1.1／26.1.2）** | △ 制限付き。Join Gameは通るはず（751→753→754→755→756→757→759→763→775の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論。ログイン合成は `ProxySession751Test.login751Against775SynthesizesConfig` で確認済み）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo751` で変換（763クライアント版はテスト確認。775クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **751（1.16.2）** | ○ 素通し（リレー）。上の表を参照 |
+検証の区別（まとめ）：
+
+- **統合テスト済み（0件）**：`Fake751Client`＋4セルは `ProxyIntegrationTest.java` に追加済み（13,175行・118テスト。javac通過）。
+  プロキシ経由は(a)(b)が環境制約で失敗、(c)(d)が未試行。
+  直接接続は4セルとも実施済み（(a)通過。Join Game 30,847バイト、チャンク462パケット・4,785,500バイト、チャット到達。(b)(c)は `outdated_client`、(d)は `outdated_server` で想定通りの切断。`docs/PROXY-1.16.md` の「統合テスト（751）」参照）。プロキシ経由で通ったセルが出たら◎に更新する。
+- **単体テスト済み・統合テストなし**：751⇔753の翻訳子は
+  `PlayTranslator751Test` 12件・`ChunkTranslator751Test` 12件・
+  `ProxySession751Test` 11件・`ProxySession751bTest` 16件・`ClientAdapter751Test` 13件・
+  `ClientJoinFlow751Test` 5件・`ClientProxy751Test` 4件・`V1162AdapterTest` 6件の
+  合計79件全通過（Stage B §14.7）。これに Stage A の
+  `ProtocolVersion751Test` 3件・`RegistryRemapper751Test` 16件を加えた
+  751関係の単体テストは合計98件全通過。
+  `ClientAdapter` の全組み合わせ判定テストと `ProtocolVersion751Test` の単体テスト、および
+  `verify-751-tables.py`（43件の表チェック）でも確認。
+- **回帰**：Stage Bの全体回帰は2,834件通過・32件失敗。失敗は全て環境制約
+  （ResourcePackServerのローカルHTTP -1が22件、ソケットタイムアウト8件、
+  SessionServerClientのbase URL未設定2件）で、751が原因の本物の回帰は0件（§14.7）。
+  Stage Dの対象テストは233件中209通過・24件失敗。失敗は全て環境制約
+  （HTTP GET -1 17件、ソケットnull 7件）で、751が原因の本物の回帰は0件（§15.4）。
+  この2つの数字は別時点の別実行のもので、合計はしていない。
+- **素通し（リレー）・統合テストなし**：751→751はプロキシ経由の統合テストが未実施のため、現時点ではリレーの統合テスト済みセルは無い。
+  リレーはバイト列をそのまま通すため変換の誤りが入りようが無く、751→751の
+  単体テスト（`ProxySession751Test.join751Against751IsNative`）で経路自体は検証済み。
+- **Bedrock→751**：`JavaBackendConnection751Test`（36件）・
+  `BedrockChunkTranslatorTest` の751件（5件）で単体テスト済み（§15.2。
+  担当テスト72件中65通過・7失敗で、失敗は全てソケットテスト＝JVMのループバックTCP遮断の環境制約）。
+  Bedrockマトリクス統合テストはこのツリーには無いため、Bedrockの102通りのまま
+  （冒頭の「Bedrockは6プロトコル × 内部17サーバーの全102通り」の行は変えていない）。
+- **実機でしか確認できないもの（全529通り共通）**：本物のゲームクライアントでの
+  参加・見た目・操作感、本物のMojang認証サーバーでのonline-mode参加、
+  リソースパックの「互換性あり」表示と適用、泡テクスチャの目での確認。
+  2人同時参加での他プレイヤーの見え方（named_entity_spawn）は、偽クライアントでは
+  確かめられなかったため、実機での確認が最も重要な残りの検証である。
+  新要素（アメジスト・銅・ウーパールーパー・ヤギ・発光イカ・グロウベリーなど1.17の要素）の
+  実機での見え方・聞こえ方は、751クライアントではそもそも存在しないため未確認（1.17側の要素として扱う）。
+  手順書は `docs/PLAYTEST-1.16.md` を参照。
+
+### 753↔751のレジストリ差分（2026-11-16、ViaVersion 対応表と minecraft-data と実バニラの data-generator レポートで確認）
+
+- **パケットID**：変更0件・新規0件・削除0件。
+  Join Game 0x24、Chunk Data 0x20、Keep Alive 0x1F、Respawn 0x39、
+  Update Time 0x4E、Entity Destroy 0x36、Ping 0x11、Pong 0x07（753と同一）。
+  設定フェーズ・ログイン・ステータス・ハンドシェイクのIDは0変更
+  （設定フェーズは1.16.2／1.16.3とも存在しないため CONFIGURATION のエントリは751・753とも -1）。
+  （`PacketIds.java` の751列と `packet-ids-751.json` で確認。ViaVersion の 1.16.2 enum で照合・
+  不一致0件。ノート§8）。
+- **ブロック状態**：753=17,112件、751=17,112件（±0件：恒等写像）。
+- **ブロック**：753=763件、751=763件（±0件：改名なし）。
+- **アイテム**：753=976件、751=976件（±0件：改名なし）。
+- **エンティティ**：753=108件、751=108件（±0件）。
+- **音**：753=992件、751=992件（±0件：改名なし）。
+- **パーティクル**：753=72件、751=72件（±0件）。
+- **エンチャント**：753=38件、751=38件（±0件：同一順序）。
+- **エフェクト**：753=32件、751=32件（±0件：同一順序）。
+- **ブロックエンティティ**：753=33件、751=33件（±0件：同一順序）。
+- **バイオーム**：753=79件、751=79件（0〜173 は同じ id・同じ名前。隙間 95 件）。
+- **メニュー**：24件で同一。**属性**：13件で同一。**絵画**：26件で同一。**ポーション**：43件で同一。
+  **カスタム統計**：74件で同一。**ゲームイベント**：1.16.2／1.16.3とも無し。
+- **データコンポーネント・環境属性・スロット表示・ダメージ種別**：1.16.2／1.16.3とも無し
+  （ダメージ種別表は762の42件の恒等写像プレースホルダ）。
+- **ペイロードの違い（パケットID以外）**：無し。Join Game／Respawn／Chunk Data／Client Information／
+  Entity Destroy はすべて753と同一形式（生キャプチャ30,847バイト同一。ノート§11.6）。
+  Join Game は dimensionCodec の書き換えが要らない（バイオーム79件のまま、dimension element に min_y／height 無し）。
+  Chunk Data は groundUp＋bitMap varint＋heightmaps 名前付きNBT＋
+  バイオーム varint[1024]＋光なし。BitStorage は non-straddling（実バニラ生キャプチャで確認。§14.4）。
+  Client Information は751・753とも6フィールド（`disableTextFiltering` が無い。
+  757の8フィールド目 `enableServerListing` はどちらにも無い）。
+  Entity Destroy は751・753とも [count][entityIds] 配列。
+- **pack_format**：リソース 6、データ 6（1.16.2サーバーjar内の version.json。
+  data version 2578。1.16.3は data version 2580・pack 6・プロトコル753。1.16.4は data version 2584・pack 6・プロトコル754。1.16.5は data version 2586・pack 6・プロトコル754。751用パックは `detergentmc-pack-1.16.2.zip`（23個目。pack.mcmeta は plain `{"pack_format":6}`）。
+  751パックと753・754パックは内容が違い sha1 が違う（751: `64cc34ed0946836657fbe026fe25a9ef2ad729a7`、753: `0adcecd8395d8e33fc7fa6e1d10a4835e9fa9c35`、754: `89773dc5252afd72e4a662a5df8abc97d2554af0`）。
+- **バニラ1.16.2サーバーjarのSHA-1**：`c5f6fb23c3876461d46ec380421e42b289789530`
+  （piston-meta。37,942,337バイト。`run/vanilla/server-1.16.2.jar`。sha1sumで照合済み）。
+- **1.16.2は Java 8**：`1.16.2.json` の `javaVersion.majorVersion: 8` でも確認。Java 8 は `~/.tools/jdk8u512-b09`
+  （Temurin 1.8.0_512-b09。Adoptium から取得し SHA-256 を照合済み）。
+- **実バニラ1.16.2の起動確認に成功**（§15.3.4）：Done 78.819s、pack metadataエラー0件。
+- **1.16.2の既知の制限（Stage B・Dで確認）**：751クライアント＋756〜775サーバーの
+  Join Game／Respawn は落とされる（755サーバーだけは Join Game／Respawn が通る）。766〜775クライアント＋751サーバーの Respawn は
+  下流で落とされる。Window Click／Set Creative Slot／Edit Book は763〜775クライアント→751サーバーで
+  落とすまま。Ping／Pong は751⇔753の段では素通しだが754⇔755の段で落とされる。Update Light は751⇔753の段では
+  素通しだが754→755の段で落とされる。753クライアント＋751サーバーの chat／Set Slot／Window Items／
+  Entity Destroy はセッション経由で落とされる（変換器は恒等写像だが汎用経路で落とす）。
+  光の抽出の配線なし（757→751のChunk Dataは光を落とす）。
+  Stage BのChunkTranslator 757節はstraddling前提で、実バニラ1.18
+  （non-straddling）と食い違う疑い（§14.9。判断待ち）。751節はnon-straddlingで正しく実装した。
+  `RegistryRemapper` の `ITEM_REVERSE_MAP` と `ITEM_763_TO_765` の食い違い（§14.9。
+  判断待ち）。`mapItemReverse` の757／759／760／761／762分岐の逆順合成の不具合
+  （§12.5の4。判断待ち。751／753／754／755／756分岐だけ正しい順序）。
+  World Particles 756→757・757→759のデータ位置の誤読、Entity Metadata 757⇔759の型番号のずれは
+  実バニラjarのjavapで確認済みだが757節の挙動変更になるため直していない（§14.9。判断待ち）。
+  775節の `experience_orb = 47` の古いリテラル、770〜775のChunkTranslatorの
+  ストラドリング問題は触っていない（Muse01／ユーザーの判断待ち）。
+- **758は未対応**：758（1.18.2）は他人の作業中のため飛ばす。751は追加済み。
+  758が終わったら758↔757の合成表をそのときに作る（757 §12.4と同じ扱い）。
+
+### 751関係45セルの内訳（実際に数えた結果）
+
+- ○（参加できる）：**1件**（751クライアント×751サーバーのみ。素通し）。
+- △（制限付き）：**44件**（751クライアント×753・754・755サーバーの3件＋751クライアント×756〜775サーバーの19件＋753〜775クライアント×751サーバーの22件）。
+- ◎（統合テスト済み）：**0件**（プロキシ経由で通ったセルは無い。Fake751Client＋4セルは追加済みだが、プロキシ経由の実行は未実施。直接接続は(a)のみ実施済み）。
+- 合計：1＋44＋0＝**45セル**（751行23セル＋751列23セル−重複1セル）。
+
+## 1.16.1対応：全576通りの対応マトリクス（2026-11-16）
+
+クライアント736／751／753／754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775 × サーバー（内部プロトコル）736／751／753／754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775の全576通りを記す。ただし736クライアント×756〜775サーバーの19通りは Join Game が落とされるため参加できない。736クライアント×751・753・754・755サーバーは Join Game が通る（下の「方向の非対称」を参照）。1.16.2対応の529通りに、736クライアントと736サーバーを加えたものである（758は未対応のため飛ばす。24プロトコル）。見出し事例は「1.16.1のサーバー（内部736）に1.17系・1.18系・1.19系・1.20系・1.21クライアントが入る」「1.17系・1.18系・1.19系・1.20系・1.21サーバーに1.16.1クライアントが入る」こと。パケットIDは751と62件違い（変更62件・新規0件・削除1件。Join Game 0x25、Chunk Data 0x21、Update Time 0x4E のまま）のため、736の翻訳は751との直接変換で、あとは既存の鎖に重ねる（くわしくは `STAGE-A-736-NOTES.md` §8・§14）。
+レジストリは751と違う（ブロック状態17,104・ブロック763・アイテム975・バイオーム79。`verify-736-tables.py` 43/43）。
+これでプロトコル736・751・753・754・755・756・757・759〜775の24個・マトリクス24×24=576通りになる。
+1.16.1は Java 8 が必要（`1.16.1.json` の `javaVersion.majorVersion: 8`。`VanillaServerHost.javaBinaryFor` は1.16.1で Java 8 バイナリを返す。実バニラ起動確認は JDK 17 ドライバ＋Java 8 バイナリで実施。ノート§15.3）。
+
+凡例：◎＝プロキシ経由の統合テストで通ったもの、○＝参加できる、△＝Join Gameが通るが遊べない部分あり or 参加できない、×＝できない（現在×は無い）。○は素通し（736×736）のみとする。736×751・736×753・736×754・736×755はJoin Gameが通るがサーバー→クライアントの汎用パケットの到達が直接テストで未確認のため△とする（751の節の751×753・751×754・751×755と同じ基準。根拠は下の「方向の非対称」を参照）。
+
+576通りのセルは「1.16.2対応：全529通りの対応マトリクス」の表のままで変わらない。
+ここでは736が加わった47セル（736行24セル＋736列24セル−重複1セル）だけを記す。
+（注：736行24セル＋736列24セル−重複1セル＝47セル。実際に数えて確認した。）
+
+◎は付けていない。`Fake736Client` は `ProxyIntegrationTest.java` にまだ無い（同ファイルは13,175行・118テストのまま。751のStage Eの状態）。直接接続の4セル（(a)偽736→実1.16.1、(b)偽736→実1.17、(c)偽736→実1.18、(d)偽753→実1.16.1）は未実施。プロキシ経由の実行も未実施で、◎にできるセルは無い。プロキシ経由で通ったセルが出たら◎に更新する。
+
+方向の非対称：736クライアント×756〜775サーバーは、サーバー→クライアントの Join Game／Respawn
+が落とされる（756〜775サーバーの Join Game は連鎖で763形式まで上がり `handleServerJoinGame763`（`ProxySession.java:8232`）の
+`if (is757() || is756() || is755() || is754() || is753() || is751() || is736())`（`:8233`）で落とす。766は `handleServerJoinGame766`（`ProxySession.java:8760`）、
+768は `handleServerJoinGame768`（`ProxySession.java:18795`）、769は `handleServerJoinGame769`（`ProxySession.java:18310`）、
+775は `handleServerJoinGame775`（`ProxySession.java:14344`）の同じ `is757() || is756() || is755() || is754() || is753() || is751() || is736()` 分岐で落とす。
+コードで確認。775は `ProxySession736Test.join775Against736Drops`（`loginTo(736, 775)`）で Join Game 0x31 の落としを確認済み。756／757／759〜774は同じガード到達をコードで確認したが各サーバーでの直接テストは無いため推論）。
+756サーバーは `handleServerJoinGame756`（`ProxySession.java:15983`）が `is756()` だけを直接返し、それ以外は756→757へ変換して `handleServerPlayFrom757`（`:14547`）に委譲し、757→759→763の連鎖で `handleServerJoinGame763` の is736() 分岐に到達して落とす（コードで確認。756サーバー版の直接テストは無いため推論）。
+757サーバーも `handleServerJoinGame757`（`ProxySession.java:14602`）が `is757()` だけを直接返し、それ以外は757→759へ変換して `handleServerPlayFrom759` に委譲し、同じく `handleServerJoinGame763` の is736() 分岐で落とす（コードで確認。直接テストは無いため推論）。
+Respawn も落とされる（`handleServerPlayUp:9204`／`handleServerPlay765From764:9498` の
+`name == PLAY_RESPAWN && (is757() || is756() || is755() || is754() || is753() || is751() || is736())`。テスト確認：
+`ProxySession736Test.keepAlive765Against736IsNotDroppedByRespawnGuard`／
+`keepAlive764Against736IsNotClosedByDisconnectGuard`。Keep Aliveだけは通るが Join Game が無いので参加できない）。
+汎用パケットも落とす（`handleServerPlayFrom763`（`ProxySession.java:7897`）の汎用経路の落としリスト（`:8103`）に is736() がある。コードで確認。ノート§14.6：751サーバー→736クライアントの汎用パケットも同じ経路で届かない）。
+736クライアント×751サーバーは Join Game／Respawn／Spawn Position が通る（`handleServerJoinGame751`（`ProxySession.java:15040`）の
+`if (is736())` 分岐で `translateJoinGame751To736` を使い 0x25 で直接返す。Respawn は `handleServerPlayFrom751`（`:14960`）の is736() 分岐で `translateRespawn751To736` を使い 0x3a で直接返す。Spawn Position も同じく 0x42 で直接返す。コードで確認。
+`ProxySession736bTest.joinGame736To751RewritesCodec`／`respawn736To751RewritesDimension`／`position736To751IsIdentity`／`ProxySession736Test.directPackets736Against751Convert`（いずれも `loginTo(736, 751)`＝クライアント736・サーバー751）でテスト確認。
+注意：`loginTo` の引数順は (clientProtocol, serverProtocol)。`joinGame751To736RewritesCodec`／`respawn751To736RewritesDimension`／`position751To736IsIdentity` は `loginTo(751, 736)`＝クライアント751・サーバー736の逆向きのテストで、こちら向きの根拠ではない。アサーションと `loginTo` の引数を信じ、名前だけで向きを決めないこと）。
+736クライアント×753サーバーも Join Game／Respawn／Spawn Position が通る（`handleServerJoinGame753`（`ProxySession.java:14858`）は
+`is753()` だけを直接返し、736クライアントは `translateJoinGame753To754` で754形式にして `handleServerPlayFrom754`（`:15406`）に委譲し、
+`handleServerJoinGame754`（`ProxySession.java:15491`）の `if (is736())` 分岐で754→753→751→736の連鎖変換をして 0x25 で直接返す。
+Respawn／Spawn Position も `handleServerPlayFrom754` の is736() 分岐で 0x3a／0x42 を直接返す。コードで確認。
+`ProxySession736bTest.joinGame753To736Chain`／`respawn753To736Chain`／`position753To736RoundTrips`（`loginTo(736, 753)`）でテスト確認。
+`handleServerPlayFrom753`（`ProxySession.java:14781`）自体に is736() 分岐は無く、Respawn／Spawn Position は754への委譲で処理される）。
+736クライアント×754サーバーも Join Game／Respawn／Spawn Position が通る（`handleServerJoinGame754`（`ProxySession.java:15491`）の
+`if (is736())` 分岐で754→753→751→736の連鎖変換をして 0x25 で直接返す。Respawn／Spawn Position も `handleServerPlayFrom754` の is736() 分岐で 0x3a／0x42 を直接返す。コードで確認。754サーバー版の直接の単体テストは無いため、テスト確認済みとは書かない）。
+736クライアント×755サーバーも Join Game／Respawn／Synchronize Player Position が通る（`handleServerJoinGame755`（`ProxySession.java:15789`）の
+`if (is736())` 分岐で755→754→753→751→736の連鎖変換をして 0x25 で直接返す。Respawn／Synchronize Player Position も `handleServerPlayFrom755`（`:15684`）の is736() 分岐で 0x3a／0x35 で直接返す。コードで確認。755サーバー版の直接の単体テストは無いため、テスト確認済みとは書かない）。
+逆向き（751〜775クライアント×736サーバー）は Join Game が通るはず
+（`handleServerJoinGame736`（`ProxySession.java:15260`）→ 736→751変換 → `handleServerPlayFrom751`（`:14960`）→ `handleServerJoinGame751`（`:15040`）に委譲。
+751は `ProxySession736Test.joinAndRespawn736Against751Convert`（`loginTo(751, 736)`＝クライアント751・サーバー736）で確認。Join Game 0x25→0x24、Respawn 0x3a→0x39、Spawn Position 0x42→0x42（angle 無し・8バイトのまま）。chat（0x0E）／Set Slot（0x16）はセッション経由で落とされる（同テストでテスト確認。変換器自体は `to751ServerPacketFrom736` で変換するが `handleServerPlayFrom763` の汎用経路で落とされる）。
+753は `handleServerJoinGame753`（`:14858`）の `is753()` 分岐でコード確認。直接テストは無いため推論。
+755は `handleServerJoinGame755`（`:15789`）の `is755()` 分岐でコード確認。直接テストは無いため推論。
+759は汎用パケットの到達を `serverPackets736Against759Reach`（`loginTo(759, 736)`）で確認。Set Slot 0x16→0x13、Window Items 0x14→0x11、Entity Destroy 0x37→0x38（count 1）、Chunk Data 0x21→0x1F。`serverPackets736Against759ReachFollowUp`／`fieldDiffPackets736To759Arrive` でも確認。Update Light は落とす（`ProxySession736bTest.updateLight736To759Drops` でテスト確認。736⇔751の段では素通しだが754→755の段で落とされる）。
+763はクライアント→サーバー方向を `clientPackets763Against736Convert`（`loginTo(763, 736)`）で確認。Chat Message 0x05→chat 0x03、Block Dig 0x1D→0x1B。ただし Window Click／Set Creative Slot／Edit Book は落とされる。同テストで確認。Ping 763→736は落とす（`ProxySession736bTest.ping763To736Drops`（`loginTo(736, 763)`）でテスト確認）。
+754／756／757／760〜775は736サーバーと同型の経路だが、736サーバーでの直接テストは無いものが多いため、ここでは推論とする）。
+ただし逆向きも翻訳あり・統合テストなしで、落とすパケット（chat／Set Slot／Window Items／Entity Destroy、
+Window Click／Set Creative Slot、Edit Book など）があるため、751のマトリクスと
+同じく△（制限付き）とする。○は素通し（736×736）のみである。736×751・736×753・736×754・736×755もJoin Gameは通るが汎用パケットの到達が直接テストで未確認のため△とする（751の節の751×753・751×754・751×755と同じ基準）。
+Respawn は751クライアントには通る（`joinAndRespawn736Against751Convert` でテスト確認）。753クライアントには通るはずだが直接の単体テストは無い（コードで確認。736→751→753の連鎖で Respawn 0x3a→0x39 が送られる。`handleServerPlayFrom751` の Respawn 分岐は is751() でなければ753形式に変換して `handleServerPlayFrom753` に委譲し、`handleServerPlayFrom753` の Respawn 分岐の is753() で 0x39 を直接返す）。
+754・755クライアントには通るはずだが直接の単体テストは無い（コードで確認。736→751→753→754→755の連鎖で Respawn 0x3a→0x39 が送られる）。
+756／757クライアントには通るはずだが直接の単体テストは無い（コードで確認。736→751→753→754→755→756の連鎖で Respawn 0x3a→0x3D が送られる）。
+759〜765クライアントには通るのは756サーバーと同じ下流連鎖による推論（736サーバーでの直接テストは無いので「推論」と明記）、
+766〜775クライアントには下流（`handleServerPlayFrom763` の Respawn 分岐（`ProxySession.java:8048`）の落としリスト（`:8049`））で落とされる
+（コードで確認）。
+
+### 736クライアント × 全サーバー
+
+| クライアント＼サーバー | 736（1.16.1） | 751（1.16.2） | 753（1.16.3） | 754（1.16.4／1.16.5） | 755（1.17） | 756（1.17.1） | 757（1.18／1.18.1） | 759（1.19） | 760（1.19.1／1.19.2） | 761（1.19.3） | 762（1.19.4） | 763（1.20／1.20.1） | 764（1.20.2） | 765（1.20.3／1.20.4） | 766（1.20.5／1.20.6） | 767（1.21／1.21.1） | 768（1.21.2／1.21.3） | 769（1.21.4） | 770（1.21.5） | 771（1.21.6） | 772（1.21.7／1.21.8） | 773（1.21.9／1.21.10） | 774（1.21.11） | 775（26.1／26.1.1／26.1.2） |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **736（1.16.1）** | ○ 素通し（リレー）。単体テストは `ProxySession736Test.join736Against736IsNative` で経路を確認済み（Join Game 0x25・Respawn 0x3a・Spawn Position 0x42・chat 0x03 がそのまま通る）。Fake736Clientはまだ無い（`ProxyIntegrationTest.java` は13,175行・118テストのまま）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn／Spawn Position は通る（`handleServerJoinGame751`（`ProxySession.java:15040`）の `if (is736())` 分岐で `translateJoinGame751To736` を使い 0x25 で直接返す。Respawn／Spawn Position も `handleServerPlayFrom751`（`:14960`）の is736() 分岐で 0x3a／0x42 を直接返す。コードで確認。`ProxySession736bTest.joinGame736To751RewritesCodec`／`respawn736To751RewritesDimension`／`position736To751IsIdentity`／`ProxySession736Test.directPackets736Against751Convert`（`loginTo(736, 751)`）でテスト確認）。クライアント→サーバーは直接変換する（`ProxySession736Test.directPackets736Against751Convert`（`loginTo(736, 751)`）で確認。Edit Book 0x0c→0x0c は形式同一で素通し、Set Creative Slot 0x27→0x28 はアイテムID付け替え、Window Click 0x09→0x09、Client Information 0x05→0x05 は6フィールドのまま。ノート§14）。サーバー→クライアントの汎用パケット（chat等）は届かない（`handleServerPlayFrom763` の汎用経路で落とされる。ノート§14.6。直接のセッションテストは無い）。Ping（0x12）は736と751で形式が同一のため736⇔751の段では素通しする（`to751ServerPacketFrom736` のコメントで確認。`to755ServerPacketFrom754` で落とされるのは755以上クライアント向けの段）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn／Spawn Position は通る（`handleServerJoinGame753`（`ProxySession.java:14858`）は `is753()` だけを直接返し、736クライアントは `translateJoinGame753To754` で754形式にして `handleServerPlayFrom754` に委譲し、`handleServerJoinGame754`（`ProxySession.java:15491`）の `if (is736())` 分岐で754→753→751→736の連鎖変換をして 0x25 で直接返す。Respawn／Spawn Position も `handleServerPlayFrom754` の is736() 分岐で 0x3a／0x42 を直接返す。コードで確認。`ProxySession736bTest.joinGame753To736Chain`／`respawn753To736Chain`／`position753To736RoundTrips`（`loginTo(736, 753)`）でテスト確認）。クライアント→サーバーは直接変換する（736→751の直接変換＋751→753の恒等写像。変換器は `PlayTranslator736Test`／`ChunkTranslator736Test` で確認。753サーバー版の直接テストは無いため推論）。Ping（0x12）は736と753で形式が同一のため736⇔753の段では素通しする（`to751ServerPacketFrom736`／`to753ServerPacketFrom751` のコメントで確認。`to755ServerPacketFrom754` で落とされるのは755以上クライアント向けの段）。サーバー→クライアントの汎用パケット（chat等）の到達は直接テストが無いため未確認。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn／Spawn Position は通る（`handleServerJoinGame754`（`ProxySession.java:15491`）の `if (is736())` 分岐で754→753→751→736の連鎖変換をして 0x25／0x3a／0x42 を直接返す。コードで確認。754サーバー版の直接テストは無いため、テスト確認済みとは書かない）。クライアント→サーバーは直接変換する（736→751の直接変換＋751→753→754の恒等写像。変換器は `PlayTranslator736Test`／`ChunkTranslator736Test` で確認。754サーバー版の直接テストは無いため推論）。Ping（0x12）は736と754で形式が同一のため736⇔754の段では素通しする（`to751ServerPacketFrom736`／`to754ServerPacketFrom753` のコメントで確認。`to755ServerPacketFrom754` で落とされるのは755以上クライアント向けの段）。サーバー→クライアントの汎用パケット（chat等）の到達は直接テストが無いため未確認。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn／Synchronize Player Position は通る（`handleServerJoinGame755`（`ProxySession.java:15789`）の `if (is736())` 分岐で755→754→753→751→736の連鎖変換をして 0x25 で直接返す。Respawn／Position も `handleServerPlayFrom755`（`:15684`）の is736() 分岐で 0x3a／0x35 で直接返す。コードで確認。755サーバー版の直接テストは無い。751クライアント版は `ProxySession751bTest.joinGame755To751RewritesCodec`／`respawn755To751RewritesDimension` でテスト確認）。クライアント→サーバーは 736→751の直接変換＋751→753→754の恒等写像＋754→755の直接変換で変換する（736→751の段は `directPackets736Against751Convert` で、754→755の段は `ProxySession754Test.directPackets754Against755Convert` でそれぞれテスト確認。736→755の通しの直接テストは無いため推論）。Ping／Pong は両方向とも落とす（transaction形式と {id i32} 形式は互換性が無い。ノート§14.5。751⇔755と同じ）。755サーバーからの汎用パケット（chat等）の到達は直接テストが無いため未確認。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（756→757→759→763へ直してから `handleServerJoinGame763`／`handleServerPlayFrom763` の Respawn 分岐が is736() で落とす。コードで確認。775サーバー版は `ProxySession736Test.join775Against736Drops` でテスト確認。756サーバー版の直接テストは無いため、同じガードによる推論と明記）。汎用パケットも落とす（`handleServerPlayFrom763` の汎用経路の落としリストに is736()。コードで確認。ノート§14.6）。クライアント→サーバーは変換する（736→751の直接変換。変換器は `PlayTranslator736Test`／`ChunkTranslator736Test` で確認。756サーバー版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（757→759→763へ直してから `handleServerJoinGame763` が is736() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは736→751→753→754→755→756→757の連鎖で変換（736→751の段は `directPackets736Against751Convert` でテスト確認。757サーバー版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（759→763へ直してから `handleServerJoinGame763` が is736() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは変換する（`ProxySession736Test.clientPackets736Against759Convert`（`loginTo(736, 759)`）で確認。chat 0x03→Chat Message 0x04、Block Dig 0x1B→0x1C に sequence 0補完、Window Click 0x09→0x0A、Client Information 0x05→0x07、Set Creative Slot 0x27→0x2A。Edit Book 0x0c は755→756の段で落とす。Pong 0x07 は落とす）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（760→761→762→763へ直してから `handleServerJoinGame763` が is736() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは736→751→753→754→755→756→757→759→760の連鎖で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（761→762→763へ直してから `handleServerJoinGame763` が is736() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは736→751→753→754→755→756→757→759→760→761の連鎖で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（762→763へ直してから `handleServerJoinGame763` が is736() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは736→751→753→754→755→756→757→759→760→761→762の連鎖で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame763`（`ProxySession.java:8232`）の is736() 分岐。`handleServerPlayFrom763` の Respawn 分岐の落としリストにも736。コードで確認。Ping 763→736は落とす（`ProxySession736bTest.ping763To736Drops`（`loginTo(736, 763)`）でテスト確認））。クライアント→サーバーは `handleClientPlay736`（`ProxySession.java:2952`）で756→757→759→763へ直す（コードで確認）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（764→763へ直してから `handleServerJoinGame763` が is736() で落とす。Respawn も764ハンドラ（`handleServerPlay765From764:9498`）の落としで is736()。コードで確認。Keep Alive は `ProxySession736Test.keepAlive764Against736IsNotClosedByDisconnectGuard`（`loginTo(736, 764)`）で通ることをテスト確認（Keep Alive 0x24→0x20、Respawn 0x43 は落とす））。設定フェーズはプロキシが合成するが Join Game が無いため参加できない。クライアント→サーバーは `handleClientPlay736` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（765→763へ直してから `handleServerJoinGame763` が is736() で落とす。Respawn も765ハンドラ（`handleServerPlayUp:9204`）の落としで is736()。コードで確認。Keep Alive は `ProxySession736Test.keepAlive765Against736IsNotDroppedByRespawnGuard`（`loginTo(736, 765)`）で通ることをテスト確認（Keep Alive 0x24→0x20、Respawn 0x45 は落とす））。設定フェーズはプロキシが合成するが Join Game が無いため参加できない。クライアント→サーバーは `handleClientPlay736` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame766`（`ProxySession.java:8760`）の is736() 分岐。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay736` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（767は766に委譲し `handleServerJoinGame766` の is736() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay736` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（768は `handleServerJoinGame768`（`ProxySession.java:18795`）の is736() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay736` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（769は `handleServerJoinGame769`（`ProxySession.java:18310`）の is736() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay736` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（770→769→768へ直してから `handleServerJoinGame768` の is736() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay736` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（771→770→769→768へ直してから `handleServerJoinGame768` の is736() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay736` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（772→771→770→769→768へ直してから `handleServerJoinGame768` の is736() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay736` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（773→772→771→770→769→768へ直してから `handleServerJoinGame768` の is736() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay736` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（774→773→772→771→770→769→768へ直してから `handleServerJoinGame768` の is736() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay736` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame775`（`ProxySession.java:14344`）の is736() 分岐。774に委譲する前に落とす。`ProxySession736Test.join775Against736Drops`（`loginTo(736, 775)`）で確認。Join Game 0x31 を落とす。ログイン合成でサーバーは設定フェーズを消費し、Finish Configuration でプレイ状態に入るが736クライアントに送るものは無い（`ProxySession736Test.login736Against775SynthesizesConfig`（`loginTo(736, 775)`）で確認））。クライアント→サーバーは `handleClientPlay736` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+
+### 全クライアント × 736サーバー
+
+| クライアント＼サーバー | 736（1.16.1） |
+|---|---|
+| **751（1.16.2）** | △ 制限付き。Join Gameは通る（736→751の直接変換。`ProxySession736Test.joinAndRespawn736Against751Convert`（`loginTo(751, 736)`）で確認。Join Game 0x25→0x24、Respawn 0x3a→0x39、Spawn Position 0x42→0x42（angle 無し・8バイトのまま）。`ProxySession736bTest.joinGame736To751RewritesCodec`／`respawn736To751RewritesDimension`／`position736To751IsIdentity` でも確認）。ただし chat（0x0E）／Set Slot（0x16）／Window Items（0x14）／Entity Destroy（0x37）はセッション経由で落とされる（同テストでテスト確認。変換器自体は `to751ServerPacketFrom736` で変換するが `handleServerPlayFrom763` の汎用経路で落とされる。Ping／Update Light は736⇔751の段では素通しだが754→755の段で落とされる）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **753（1.16.3）** | △ 制限付き。Join Gameは通るはず（736→751の直接変換→753の恒等写像。`handleServerJoinGame751`（`ProxySession.java:15040`）の `is751()` 分岐を経て `handleServerJoinGame753`（`:14858`）の `is753()` 分岐で 0x24 を直接返す。コードで確認。736サーバー＋753クライアントの直接の単体テストは無いため推論）。Respawnも通るはず（同経路。`handleServerPlayFrom751` の Respawn 分岐は is751() でなければ753形式に変換して `handleServerPlayFrom753` に委譲し、`handleServerPlayFrom753` の Respawn 分岐の is753() で 0x39 を直接返す。コードで確認。直接テストは無いため推論）。ただし736サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされるはず（751クライアント版は `joinAndRespawn736Against751Convert` でテスト確認。753クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **754（1.16.4／1.16.5）** | △ 制限付き。Join Gameは通るはず（736→751→753→754の連鎖。`handleServerJoinGame754`（`ProxySession.java:15491`）の `is754()` 分岐で 0x24 を直接返す。コードで確認。736サーバー＋754クライアントの直接の単体テストは無いため推論）。Respawnも通るはず（同経路。コードで確認。直接テストは無いため推論）。ただし736サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされるはず（751クライアント版は `joinAndRespawn736Against751Convert` でテスト確認。754クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **755（1.17）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755の連鎖。`handleServerJoinGame755`（`ProxySession.java:15789`）の `is755()` 分岐で 0x26 を直接返す。コードで確認。直接テストは無いため推論）。Respawnも通るはず（同経路。コードで確認。直接テストは無いため推論）。Spawn Positionも通るはず（同経路。`handleServerPlayFrom755` の is755() 分岐で 0x4B を直接返す。コードで確認。直接テストは無いため推論）。chat／Set Slot は `to755ServerPacketFrom754` で素通し／変換されるはず（chat は default 素通し、Set Slot は `translateSetSlot754To755` でアイテムID付け替え。コードで確認。直接テストは無いため未確認）。Entity Destroy は count 1 のときだけ通る（count 0／2以上は754→755の段で落とす。コードで確認。直接テストは無いため未確認）。Update Light／Ping は落とす（コードで確認）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **756（1.17.1）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（同連鎖。コードで確認。直接テストは無いため推論）。ただし736サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされるはず（751クライアント版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **757（1.18／1.18.1）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（同連鎖。コードで確認。直接テストは無いため推論）。ただし736サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされるはず（751クライアント版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **759（1.19）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→763→759の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（`handleServerPlayFrom763` の Respawn 分岐の落としリストに759は無い。コードで確認。直接テストは無いため推論）。Set Slot／Window Items／Entity Destroy／Chunk Data は届く（`ProxySession736Test.serverPackets736Against759Reach`（`loginTo(759, 736)`）でテスト確認。Set Slot 0x16→0x13、Window Items 0x14→0x11、Entity Destroy 0x37→0x38（count 1）、Chunk Data 0x21→0x1F）。Entity Destroy count 2 は落とす（同テストでテスト確認）。Update Light は落とす（`ProxySession736bTest.updateLight736To759Drops`（`loginTo(759, 736)`）でテスト確認）。クライアント→サーバーは `handleClientPlayTo736`（`ProxySession.java:10729`）で変換（763クライアント版はテスト確認。759クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **760（1.19.1／1.19.2）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→760の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（`handleServerPlayFrom763` の Respawn 分岐の落としリストに760は無い。コードで確認。直接テストは無いため推論）。sculk／Declare Recipes／Tagsを落とす（751サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo736` で変換（763クライアント版はテスト確認。760クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **761（1.19.3）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→760→761の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。sculk／Declare Recipes／Tagsを落とす（751サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo736` で変換（763クライアント版はテスト確認。761クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **762（1.19.4）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→760→761→762の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。sculk／Declare Recipes／Tagsを落とす（751サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo736` で変換（763クライアント版はテスト確認。762クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **763（1.20／1.20.1）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→763の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（`handleServerPlayFrom763` の Respawn 分岐の落としリストに763は無い。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo736` で変換（`ProxySession736Test.clientPackets763Against736Convert`（`loginTo(763, 736)`）でテスト確認。Chat Message 0x05→chat 0x03、Block Dig 0x1D→0x1B。ただし Window Click／Set Creative Slot／Edit Book は落とされる。同テストで確認）。Ping 763→736は落とす（`ProxySession736bTest.ping763To736Drops` でテスト確認）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **764（1.20.2）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→763→764の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo736` で変換（763クライアント版はテスト確認。764クライアント版の直接テストは無いため推論）。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。764クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **765（1.20.3／1.20.4）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→763→765の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo736` で変換（763クライアント版はテスト確認。765クライアント版の直接テストは無いため推論）。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。765クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **766（1.20.5／1.20.6）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→763→766の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流（`handleServerPlayFrom763` の Respawn 分岐（`ProxySession.java:8048`）の落としリスト）で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo736` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。766クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **767（1.21／1.21.1）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→763→766→767の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo736` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。767クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **768（1.21.2／1.21.3）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→763→766→768の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo736` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。768クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **769（1.21.4）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→763→766→769の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo736` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。769クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **770（1.21.5）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→763→766→770の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo736` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。770クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **771（1.21.6）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→763→766→771の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo736` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。771クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **772（1.21.7／1.21.8）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→763→766→772の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo736` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。772クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **773（1.21.9／1.21.10）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→763→766→773の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo736` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。773クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **774（1.21.11）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→763→774の連鎖。コードで確認。直接テストは無いため推論。Join Game 0x30 が Finish Configuration 後に届くはず。ただし736サーバー→774クライアントの Join Game 到達は未確認（ノート§14.9））。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo736` で変換（763クライアント版はテスト確認。774クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **775（26.1／26.1.1／26.1.2）** | △ 制限付き。Join Gameは通るはず（736→751→753→754→755→756→757→759→763→775の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論。ログイン合成は736クライアント×775サーバー向き（`ProxySession736Test.login736Against775SynthesizesConfig`（`loginTo(736, 775)`））で確認済み。775クライアント×736サーバー向きのログイン合成の直接テストは無い）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo736` で変換（763クライアント版はテスト確認。775クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **736（1.16.1）** | ○ 素通し（リレー）。上の表を参照 |
+
+検証の区別（まとめ）：
+
+- **統合テスト済み（0件）**：`Fake736Client` はまだ無く、直接接続の4セルも未実施。プロキシ経由の実行は未実施。
+  プロキシ経由で通ったセルが出たら◎に更新する。
+- **単体テスト済み・統合テストなし**：736関係の単体テストは
+  `PlayTranslator736Test` 16件・`ChunkTranslator736Test` 16件・
+  `ProxySession736Test` 11件・`ProxySession736bTest` 16件・`ClientAdapter736Test` 13件・
+  `ClientJoinFlow736Test` 5件・`ClientProxy736Test` 4件・`V1161AdapterTest` 6件・
+  フォローアップ55件（`ChunkTranslator736FollowUpTest` 37件・`PlayTranslator736FollowUpTest` 13件・
+  `ProxySession736FollowUpTest` 5件）の合計142件全通過（Stage B §14.7）。これに Stage A の
+  `ProtocolVersion736Test` 3件・`RegistryRemapper736Test` 16件を加えた
+  736関係の単体テストは合計161件全通過。
+  これに ClientAdapter／ClientProxy の75x系の書き換えテスト（機械的に数えて101件：
+  ClientAdapter751／753／754／755／756／757の73件＋ClientProxy751／753／754／755／756／757／775の28件）を
+  加えた Stage B の新規・書き換えテストは合計243件（ノート§14.7）。
+  （注：ノート§14.7の「ClientAdapter75xTest 78件」は機械的な数え（73件）と合わない。73件で合計243件と一致する。）
+  `ClientAdapter` の全組み合わせ判定テストと `ProtocolVersion736Test` の単体テスト、および
+  `verify-736-tables.py`（43件の表チェック）でも確認。
+- **回帰**：Stage Bの全体回帰は3,014件中2,981件通過・33件失敗。失敗は全て環境制約
+  （ResourcePackServerのローカルHTTP -1が23件、ソケットタイムアウト8件、
+  SessionServerClientのbase URL未設定2件）で、736が原因の本物の回帰は0件（§14.7）。
+  Stage Dの対象テストはパック＋データパック系4クラス28/29（1失敗はHTTP GET -1の環境制約）、
+  Bedrock 736系2クラス72/79（7失敗は全てソケットテストの環境制約）で、736が原因の本物の回帰は0件（§15.4）。
+  この2つの数字は別時点の別実行のもので、合計はしていない。
+- **素通し（リレー）・統合テストなし**：736→736はプロキシ経由の統合テストが未実施のため、現時点ではリレーの統合テスト済みセルは無い。
+  リレーはバイト列をそのまま通すため変換の誤りが入りようが無く、736→736の
+  単体テスト（`ProxySession736Test.join736Against736IsNative`）で経路自体は検証済み。
+- **Bedrock→736**：`JavaBackendConnection736Test`（39件）・
+  `BedrockChunkTranslatorTest` の736件（5件）で単体テスト済み（§15.2。
+  担当テスト79件中72通過・7失敗で、失敗は全てソケットテスト＝JVMのループバックTCP遮断の環境制約）。
+  （注：ノート§15.2の「JBC 36件」は機械的な数え（39件）と合わない。`BedrockChunkTranslatorTest` 40件と合わせて79件で、§15.2の「79件中72通過」と一致する。）
+  Bedrockマトリクス統合テストはこのツリーには無いため、Bedrockの102通りのまま
+  （冒頭の「Bedrockは6プロトコル × 内部17サーバーの全102通り」の行は変えていない）。
+- **実機でしか確認できないもの（全576通り共通）**：本物のゲームクライアントでの
+  参加・見た目・操作感、本物のMojang認証サーバーでのonline-mode参加、
+  リソースパックの「互換性あり」表示と適用、泡テクスチャの目での確認。
+  2人同時参加での他プレイヤーの見え方（named_entity_spawn）は、偽クライアントでは
+  確かめられなかったため、実機での確認が最も重要な残りの検証である。
+  新要素（アメジスト・銅・ウーパールーパー・ヤギ・発光イカ・グロウベリーなど1.17の要素）の
+  実機での見え方・聞こえ方は、736クライアントではそもそも存在しないため未確認（1.17側の要素として扱う）。
+  手順書は `docs/PLAYTEST-1.16.md` を参照。
+
+### 751↔736のレジストリ差分（2026-11-16、`STAGE-A-736-NOTES.md` §8・§11・§12で確認）
+
+- **パケットID**：変更62件・新規0件・削除1件（displayed_recipe）。
+  Join Game 0x25、Chunk Data 0x21、Keep Alive 0x20、Respawn 0x3a、
+  Update Time 0x4E、Entity Destroy 0x37、Ping 0x12、Pong 0x07、Spawn Position 0x42、
+  Disconnect 0x1a、Client Information 0x05、Set Creative Slot 0x27、
+  Synchronize Player Position 0x35（751は Join Game 0x24、Chunk Data 0x20、Keep Alive 0x1F、
+  Respawn 0x39、Entity Destroy 0x36、Ping 0x11、Disconnect 0x19、Set Creative Slot 0x28、
+  Synchronize Player Position 0x34。Update Time 0x4E、Pong 0x07、Spawn Position 0x42、
+  Client Information 0x05 は751と同一）。
+  設定フェーズ・ログイン・ステータス・ハンドシェイクのIDは0変更
+  （設定フェーズは1.16.1／1.16.2とも存在しないため CONFIGURATION のエントリは736・751とも -1）。
+  （`PacketIds.java` の736列と `packet-ids-736.json`（272件）で確認。ノート§8）。
+- **ブロック状態**：751=17,112件、736=17,104件（−8件：751のみ14状態、736のみ6状態）。
+  非恒等は751→736向き 12,381件、736→751向き 12,373件。
+- **ブロック**：751=763件、736=763件（±0件：同一順序）。
+- **アイテム**：751=976件、736=975件（−1：piglin_brute_spawn_egg削除＋道具・hoe・染料の並び替え）。
+  非恒等は751→736向き 249件、736→751向き 248件。
+- **エンティティ**：751=108件、736=107件（−1：piglin_brute削除）。
+  非恒等は751→736向き 47件、736→751向き 46件。
+- **音**：751=992件、736=985件（−7：piglin_brute系）。
+  非恒等は751→736向き 405件。736→751向きは恒等（代替なし）。
+- **パーティクル**：751=72件、736=72件（±0件）。
+- **エンチャント**：751=38件、736=38件（±0件：同一順序）。
+- **エフェクト**：751=32件、736=32件（±0件：同一順序）。
+- **ブロックエンティティ**：751=33件、736=33件（±0件：同一順序。id 33 は範囲外で DROP）。
+- **バイオーム**：751=79件、736=79件（0〜173 は同じ id・同じ名前。隙間 95 件は plains へ）。
+- **メニュー**：24件で同一。**属性**：13件で同一。
+  **ダメージ種別**：42件恒等（762の表のプレースホルダ）。
+- **データコンポーネント・環境属性・スロット表示**：1.16.1／1.16.2とも無し。
+  **ゲームイベント**：1.16.1／1.16.2とも無し。
+- **ペイロードの違い（パケットID以外）**：Join Game は dimensionCodec の書き換えが要る（736は `{"dimension": [...]}` だけでバイオームレジストリ無し、dimension は文字列、isHardcore 無し、maxPlayers は u8。751は dimensionCodec に dimension_type／biome のレジストリあり、dimension は NBT、isHardcore あり、maxPlayers は varint）。
+  Respawn は736が8フィールドで dimension は文字列（751は dimension が NBT）。
+  Chunk Data は groundUp＋ignoreOldData＋bitMap varint＋heightmaps 名前付きNBT＋
+  バイオーム i32×1024（件数接頭辞なし）＋光なし。BitStorage は non-straddling（実バニラ生キャプチャで確認。§14.4）。
+  Client Information は736・751とも6フィールド（`disableTextFiltering` が無い。
+  757の8フィールド目 `enableServerListing` はどちらにも無い）。
+  Entity Destroy は736・751とも [count][entityIds] 配列。
+- **pack_format**：リソース 5、データ 5（1.16.1サーバーjar内の version.json。
+  data version 2567。1.16.2は data version 2578・pack 6・プロトコル751。1.16.3は data version 2580・pack 6・プロトコル753。1.16.4は data version 2584・pack 6・プロトコル754。1.16.5は data version 2586・pack 6・プロトコル754。736用パックは `detergentmc-pack-1.16.1.zip`（24個目。pack.mcmeta は plain `{"pack_format":5}`）。
+  736パックと751・753・754・755パックは内容が違い sha1 が違う（736: `2e94e010af9bd8c088627d1c520efebfef21e06d`、751: `64cc34ed0946836657fbe026fe25a9ef2ad729a7`、753: `0adcecd8395d8e33fc7fa6e1d10a4835e9fa9c35`、754: `89773dc5252afd72e4a662a5df8abc97d2554af0`、755: `74d9d34d0dd377a5a9b0dfe0e39d968d027a356b`。736パックは1,179バイト。ノート§15.1）。
+- **バニラ1.16.1サーバーjarのSHA-1**：`a412fd69db1f81db3f511c1463fd304675244077`
+  （piston-meta。37,968,964バイト。`run/vanilla/server-1.16.1.jar`。sha1sumで照合済み）。
+- **1.16.1は Java 8**：`1.16.1.json` の `javaVersion.majorVersion: 8` でも確認。Java 8 は `~/.tools/jdk8u512-b09`
+  （Temurin 1.8.0_512-b09。Adoptium から取得し SHA-256 を照合済み）。
+- **実バニラ1.16.1の起動確認に成功**（§15.3）：Done 72.926s、pack metadataエラー0件。
+- **1.16.1の既知の制限（Stage B・Dで確認）**：736クライアント＋756〜775サーバーの
+  Join Game／Respawn は落とされる（751・753・754・755サーバーは Join Game／Respawn が通る）。766〜775クライアント＋736サーバーの Respawn は
+  下流で落とされる。Window Click／Set Creative Slot／Edit Book は763〜775クライアント→736サーバーで
+  落とすまま。Ping／Pong は736⇔751の段では素通しだが754⇔755の段で落とされる。Update Light は736⇔751の段では
+  素通しだが754→755の段で落とされる。751クライアント＋736サーバーの chat／Set Slot／Window Items／
+  Entity Destroy はセッション経由で落とされる（変換器は変換するが汎用経路で落とす）。
+  751サーバー→736クライアントの汎用パケットも届かない（同じ汎用経路の制限）。
+  光の抽出の配線なし（757→736のChunk Dataは光を落とす）。
+  Stage BのChunkTranslator 757節はstraddling前提で、実バニラ1.18
+  （non-straddling）と食い違う疑い（§14.9。判断待ち）。736節はnon-straddlingで正しく実装した。
+  `RegistryRemapper` の `ITEM_REVERSE_MAP` と `ITEM_763_TO_765` の食い違い（§14.9。
+  判断待ち）。`mapItemReverse` の757／759／760／761／762分岐の逆順合成の不具合
+  （§12.5の4。判断待ち。736／751／753／754／755／756分岐だけ正しい順序）。
+  World Particles 756→757・757→759のデータ位置の誤読、Entity Metadata 757⇔759の型番号のずれは
+  実バニラjarのjavapで確認済みだが757節の挙動変更になるため直していない（§14.9。判断待ち）。
+  775節の `experience_orb = 47` の古いリテラル、770〜775のChunkTranslatorの
+  ストラドリング問題は触っていない（Muse01／ユーザーの判断待ち）。
+  736→751のrecipe_bookは非可逆（4冊→1冊への潰れ。§14.6）。
+  Unlock Recipesは736→759に届かない、World Particlesは736→759に届くが755形式のまま（§14.6。
+  756／757担当の範囲）。736サーバー→774クライアントのJoin Game到達は未確認（§14.9）。
+- **758は未対応**：758（1.18.2）は他人の作業中のため飛ばす。736は追加済み。
+  758が終わったら758↔757の合成表をそのときに作る（757 §12.4と同じ扱い）。
+
+### 736関係47セルの内訳（実際に数えた結果）
+
+- ○（参加できる）：**1件**（736クライアント×736サーバーのみ。素通し）。
+- △（制限付き）：**46件**（736クライアント×751・753・754・755サーバーの4件＋736クライアント×756〜775サーバーの19件＋751〜775クライアント×736サーバーの23件）。
+- ◎（統合テスト済み）：**0件**（プロキシ経由で通ったセルは無い。Fake736Clientはまだ無く、直接接続の4セルも未実施）。
+- 合計：1＋46＋0＝**47セル**（736行24セル＋736列24セル−重複1セル）。
+
+## 1.16対応：全625通りの対応マトリクス（2026-11-16）
+
+クライアント735／736／751／753／754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775 × サーバー（内部プロトコル）735／736／751／753／754／755／756／757／759／760／761／762／763／764／765／766／767／768／769／770／771／772／773／774／775の全625通りを記す。ただし735クライアント×756〜775サーバーの19通りは Join Game が落とされるため参加できない。735クライアント×736・751・753・754・755サーバーは Join Game が通る（下の「方向の非対称」を参照）。1.16.1対応の576通りに、735クライアントと735サーバーを加えたものである（758は未対応のため飛ばす。25プロトコル）。見出し事例は「1.16のサーバー（内部735）に1.17系・1.18系・1.19系・1.20系・1.21クライアントが入る」「1.17系・1.18系・1.19系・1.20系・1.21サーバーに1.16クライアントが入る」こと。パケットIDは736と0件違い（変更0件・新規0件・削除0件。Join Game 0x25、Chunk Data 0x21、Update Time 0x4E のまま）のため、735の翻訳は736との恒等写像で、あとは既存の鎖に重ねる（くわしくは `STAGE-A-735-NOTES.md` §8・§14）。
+レジストリは736と同一（ブロック状態17,104・ブロック763・アイテム975・バイオーム79。非恒等0件・補正0件。`verify-735-tables.py` 43/43）。
+これでプロトコル735・736・751・753・754・755・756・757・759〜775の25個・マトリクス25×25=625通りになる。
+1.16は Java 8 が必要（`1.16.json` の `javaVersion.majorVersion: 8`。`VanillaServerHost.javaBinaryFor` は1.16で Java 8 バイナリを返す。実バニラ起動確認は JDK 17 ドライバ＋Java 8 バイナリで実施。ノート§15.3）。
+
+凡例：◎＝プロキシ経由の統合テストで通ったもの、○＝参加できる、△＝Join Gameが通るが遊べない部分あり or 参加できない、×＝できない（現在×は無い）。○は素通し（735×735）のみとする。735×736・735×751・735×753・735×754・735×755はJoin Gameが通るがサーバー→クライアントの汎用パケットの到達が直接テストで未確認のため△とする（736の節の736×751・736×753・736×754・736×755と同じ基準。根拠は下の「方向の非対称」を参照）。
+
+625通りのセルは「1.16.1対応：全576通りの対応マトリクス」の表のままで変わらない。
+ここでは735が加わった49セル（735行25セル＋735列25セル−重複1セル）だけを記す。
+（注：735行25セル＋735列25セル−重複1セル＝49セル。実際に数えて確認した。）
+
+◎は付けていない。`Fake735Client` は `ProxyIntegrationTest.java` に追加済み（同ファイルは14,117行・126テスト。736のStage Eの状態は13,646行・122テスト）。直接接続の4セル（(a)偽735→実1.16、(b)偽735→実1.16.1、(c)偽735→実1.18、(d)偽736→実1.16）は未実施。プロキシ経由の実行も未実施で、◎にできるセルは無い。プロキシ経由で通ったセルが出たら◎に更新する。
+
+方向の非対称：735クライアント×756〜775サーバーは、サーバー→クライアントの Join Game／Respawn
+が落とされる（756〜775サーバーの Join Game は連鎖で763形式まで上がり `handleServerJoinGame763`（`ProxySession.java:8446`）の
+`if (is757() || is756() || is755() || is754() || is753() || is751() || is736() || is735())`（`:8447`）で落とす。766は `handleServerJoinGame766`（`ProxySession.java:8974`）、
+768は `handleServerJoinGame768`（`ProxySession.java:19214`）、769は `handleServerJoinGame769`（`ProxySession.java:18729`）、
+775は `handleServerJoinGame775`（`ProxySession.java:14603`）の同じ `is757() || is756() || is755() || is754() || is753() || is751() || is736() || is735()` 分岐で落とす。
+コードで確認。775は `ProxySession735Test.join775Against735Drops`（`loginTo(735, 775)`）で Join Game 0x31 の落としを確認済み。756／757／759〜774は同じガード到達をコードで確認したが各サーバーでの直接テストは無いため推論）。
+756サーバーは `handleServerJoinGame756`（`ProxySession.java:16402`）が `is756()` だけを直接返し、それ以外は756→757へ変換して `handleServerPlayFrom757`（`:14806`）に委譲し、757→759→763の連鎖で `handleServerJoinGame763` の is735() 分岐に到達して落とす（コードで確認。756サーバー版の直接テストは無いため推論）。
+757サーバーも `handleServerJoinGame757`（`ProxySession.java:14861`）が `is757()` だけを直接返し、それ以外は757→759へ変換して `handleServerPlayFrom759` に委譲し、同じく `handleServerJoinGame763` の is735() 分岐で落とす（コードで確認。直接テストは無いため推論）。
+Respawn も落とされる（`handleServerPlayUp:9305`／`handleServerPlay765From764:9712` の
+`name == PLAY_RESPAWN && (is757() || is756() || is755() || is754() || is753() || is751() || is736() || is735())`。テスト確認：
+`ProxySession735Test.keepAlive765Against735IsNotDroppedByRespawnGuard`／
+`keepAlive764Against735IsNotClosedByDisconnectGuard`。Keep Aliveだけは通るが Join Game が無いので参加できない）。
+汎用パケットも落とす（`handleServerPlayFrom763`（`ProxySession.java:8111`）の汎用経路の落としリスト（`:8317`）に is735() がある。コードで確認。ノート§14.5：751サーバー→735クライアントの汎用パケットも同じ経路で届かない）。
+735クライアント×736サーバーは Join Game／Respawn／Spawn Position が通る（`handleServerJoinGame736`（`ProxySession.java:15521`）は
+`is736()` だけを直接返し、735クライアントは `translateJoinGame736To751` で751形式にして `handleServerPlayFrom751`（`:15219`）に委譲し、
+`handleServerJoinGame751`（`ProxySession.java:15300`）の `if (is736() || is735())` 分岐で 0x25 を直接返す。Respawn／Spawn Position も
+`handleServerPlayFrom751` の is735() 分岐で 0x3a／0x42 を直接返す。コードで確認。
+`ProxySession735bTest.joinGame736To735IsIdentity`／`respawn736To735IsIdentity`／`position736To735IsIdentity`／`ProxySession735Test.directPackets735Against736Convert`（いずれも `loginTo(735, 736)`＝クライアント735・サーバー736）でテスト確認。
+注意：`loginTo` の引数順は (clientProtocol, serverProtocol)。`joinGame735To736IsIdentity`／`respawn735To736IsIdentity`／`position735To736IsIdentity` は `loginTo(736, 735)`＝クライアント736・サーバー735の逆向きのテストで、こちら向きの根拠ではない。アサーションと `loginTo` の引数を信じ、名前だけで向きを決めないこと）。
+735クライアント×751サーバーは Join Game／Respawn／Spawn Position が通る（`handleServerJoinGame751`（`ProxySession.java:15300`）の
+`if (is736() || is735())` 分岐で `translateJoinGame751To736` を使い 0x25 で直接返す。Respawn は `handleServerPlayFrom751`（`:15219`）の is735() 分岐で `translateRespawn751To736` を使い 0x3a で直接返す。Spawn Position も同じく 0x42 で直接返す。コードで確認。
+この `is735()` 分岐自体は `joinGame736To735IsIdentity`（736サーバー→735クライアント。736→751→735の経路）で実行されているが、751サーバー版の直接の単体テストは無いため、テスト確認済みとは書かない）。
+735クライアント×753サーバーも Join Game／Respawn／Spawn Position が通る（`handleServerJoinGame753`（`ProxySession.java:15117`）は
+`is753()` だけを直接返し、735クライアントは `translateJoinGame753To754` で754形式にして `handleServerPlayFrom754`（`:15821`）に委譲し、
+`handleServerJoinGame754`（`ProxySession.java:15907`）の `if (is736() || is735())` 分岐で754→753→751→736の連鎖変換をして 0x25 で直接返す。
+Respawn／Spawn Position も `handleServerPlayFrom754` の is735() 分岐で 0x3a／0x42 を直接返す。コードで確認。
+`ProxySession735bTest.joinGame753To735Chain`／`respawn753To735Chain`／`position753To735RoundTrips`（`loginTo(735, 753)`）でテスト確認。
+`handleServerPlayFrom753`（`ProxySession.java:15040`）自体に is735() 分岐は無く、Respawn／Spawn Position は754への委譲で処理される）。
+735クライアント×754サーバーも Join Game／Respawn／Spawn Position が通る（`handleServerJoinGame754`（`ProxySession.java:15907`）の
+`if (is736() || is735())` 分岐で754→753→751→736の連鎖変換をして 0x25 で直接返す。Respawn／Spawn Position も `handleServerPlayFrom754` の is735() 分岐で 0x3a／0x42 を直接返す。コードで確認。754サーバー版の直接の単体テストは無いため、テスト確認済みとは書かない）。
+735クライアント×755サーバーも Join Game／Respawn／Synchronize Player Position が通る（`handleServerJoinGame755`（`ProxySession.java:16207`）の
+`if (is736() || is735())` 分岐で755→754→753→751→736の連鎖変換をして 0x25 で直接返す。Respawn／Synchronize Player Position も `handleServerPlayFrom755`（`:16101`）の is735() 分岐で 0x3a／0x35 で直接返す。コードで確認。755サーバー版の直接の単体テストは無いため、テスト確認済みとは書かない）。
+逆向き（736〜775クライアント×735サーバー）は Join Game が通るはず
+（`handleServerJoinGame735`（`ProxySession.java:15746`）→ 736形式のまま `handleServerPlayFrom736`（`:15419`）に委譲 → `handleServerJoinGame736`（`:15521`）→ 736→751変換 → `handleServerPlayFrom751`（`:15219`）→ `handleServerJoinGame751`（`:15300`）に委譲。
+736は `ProxySession735Test.joinAndRespawn735Against736Convert`（`loginTo(736, 735)`＝クライアント736・サーバー735）で確認。Join Game 0x25→0x25、Respawn 0x3a→0x3a、Spawn Position 0x42→0x42（angle 無し・8バイトのまま）。chat（0x0E）／Set Slot（0x16）はセッション経由で落とされる（同テストでテスト確認。変換器自体は `to751ServerPacketFrom736` で変換するが `handleServerPlayFrom763` の汎用経路で落とされる。Ping／Update Light も同じテストで落としを確認）。
+751は `handleServerJoinGame751`（`:15300`）の `is751()` 分岐でコード確認。直接テストは無いため推論。
+753は `handleServerJoinGame753`（`:15117`）の `is753()` 分岐でコード確認。直接テストは無いため推論。
+755は `handleServerJoinGame755`（`:16207`）の `is755()` 分岐でコード確認。直接テストは無いため推論。
+759は汎用パケットの到達を `serverPackets735Against759Reach`（`loginTo(759, 735)`）で確認。Set Slot 0x16→0x13、Window Items 0x14→0x11、Entity Destroy 0x37→0x38（count 1）、Chunk Data 0x21→0x1F。`fieldDiffPackets735To759Arrive` でも確認。Update Light は落とす（`ProxySession735bTest.updateLight735To759Drops` でテスト確認。735⇔736の段では素通しだが754→755の段で落とされる）。
+763はクライアント→サーバー方向を `clientPackets763Against735Convert`（`loginTo(763, 735)`）で確認。Chat Message 0x05→chat 0x03、Block Dig 0x1D→0x1B。ただし Window Click／Set Creative Slot／Edit Book は落とされる。同テストで確認。Ping 763→735は落とす（`ProxySession735bTest.ping763To735Drops`（`loginTo(735, 763)`）でテスト確認）。
+754／756／757／760〜775は735サーバーと同型の経路だが、735サーバーでの直接テストは無いものが多いため、ここでは推論とする）。
+ただし逆向きも翻訳あり・統合テストなしで、落とすパケット（chat／Set Slot／Window Items／Entity Destroy、
+Window Click／Set Creative Slot、Edit Book など）があるため、736のマトリクスと
+同じく△（制限付き）とする。○は素通し（735×735）のみである。735×736・735×751・735×753・735×754・735×755もJoin Gameは通るが汎用パケットの到達が直接テストで未確認のため△とする（736の節の736×751・736×753・736×754・736×755と同じ基準）。
+Respawn は736クライアントには通る（`joinAndRespawn735Against736Convert` でテスト確認）。751クライアントには通るはずだが直接の単体テストは無い（コードで確認。735→736→751の連鎖で Respawn 0x3a→0x39 が送られる。`handleServerPlayFrom736` の Respawn 分岐は is736() でなければ751形式に変換して `handleServerPlayFrom751` に委譲し、`handleServerPlayFrom751` の Respawn 分岐の is751() で 0x39 を直接返す）。
+753クライアントには通るはずだが直接の単体テストは無い（コードで確認。735→736→751→753の連鎖で Respawn 0x3a→0x39 が送られる）。
+754・755クライアントには通るはずだが直接の単体テストは無い（コードで確認。735→736→751→753→754→755の連鎖で Respawn 0x3a→0x39 が送られる）。
+756／757クライアントには通るはずだが直接の単体テストは無い（コードで確認。735→736→751→753→754→755→756の連鎖で Respawn 0x3a→0x3D が送られる）。
+759〜765クライアントには通るのは756サーバーと同じ下流連鎖による推論（735サーバーでの直接テストは無いので「推論」と明記）、
+766〜775クライアントには下流（`handleServerPlayFrom763` の Respawn 分岐（`ProxySession.java:8262`）の落としリスト（`:8263`））で落とされる
+（コードで確認）。
+
+### 735クライアント × 全サーバー
+
+| クライアント＼サーバー | 735（1.16） | 736（1.16.1） | 751（1.16.2） | 753（1.16.3） | 754（1.16.4／1.16.5） | 755（1.17） | 756（1.17.1） | 757（1.18／1.18.1） | 759（1.19） | 760（1.19.1／1.19.2） | 761（1.19.3） | 762（1.19.4） | 763（1.20／1.20.1） | 764（1.20.2） | 765（1.20.3／1.20.4） | 766（1.20.5／1.20.6） | 767（1.21／1.21.1） | 768（1.21.2／1.21.3） | 769（1.21.4） | 770（1.21.5） | 771（1.21.6） | 772（1.21.7／1.21.8） | 773（1.21.9／1.21.10） | 774（1.21.11） | 775（26.1／26.1.1／26.1.2） |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **735（1.16）** | ○ 素通し（リレー）。単体テストは `ProxySession735Test.join735Against735IsNative` で経路を確認済み（Join Game 0x25・Respawn 0x3a・Spawn Position 0x42・chat 0x03 がそのまま通る）。Fake735Clientは追加済み（`ProxyIntegrationTest.java` は14,117行・126テスト）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn／Spawn Position は通る（`handleServerJoinGame736`（`ProxySession.java:15521`）は `is736()` だけを直接返し、735クライアントは736→751変換を経て `handleServerJoinGame751`（`:15300`）の `if (is736() || is735())` 分岐で 0x25 を直接返す。Respawn／Spawn Position も `handleServerPlayFrom751`（`:15219`）の is735() 分岐で 0x3a／0x42 を直接返す。コードで確認。`ProxySession735bTest.joinGame736To735IsIdentity`／`respawn736To735IsIdentity`／`position736To735IsIdentity`／`ProxySession735Test.directPackets735Against736Convert`（`loginTo(735, 736)`）でテスト確認）。クライアント→サーバーは直接変換する（735⇔736は恒等写像。`ProxySession735Test.directPackets735Against736Convert`（`loginTo(735, 736)`）で確認。Edit Book 0x0c→0x0c は形式同一で素通し、Set Creative Slot 0x27→0x27 はアイテムID付け替え（735⇔736は恒等写像のため付け替え後のIDは同じ）、Window Click 0x09→0x09、Client Information 0x05→0x05 は6フィールドのまま。ノート§14）。サーバー→クライアントの汎用パケット（chat等）は届かない（`handleServerPlayFrom763` の汎用経路で落とされる。`joinAndRespawn735Against736Convert` で chat の落としをテスト確認。ノート§14.5）。Ping（0x12）は735と736で形式が同一のため735⇔736の段では素通しする（`to736ServerPacketFrom735` のコメントで確認。`to755ServerPacketFrom754` で落とされるのは755以上クライアント向けの段）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn／Spawn Position は通る（`handleServerJoinGame751`（`ProxySession.java:15300`）の `if (is736() || is735())` 分岐で `translateJoinGame751To736` を使い 0x25 で直接返す。Respawn／Spawn Position も `handleServerPlayFrom751`（`:15219`）の is735() 分岐で 0x3a／0x42 を直接返す。コードで確認。この `is735()` 分岐自体は `joinGame736To735IsIdentity`（736サーバー→735クライアント。736→751→735の経路）で実行されているが、751サーバー版の直接テストは無いため、テスト確認済みとは書かない）。クライアント→サーバーは直接変換する（735→736の恒等写像＋736→751の直接変換。変換器は `PlayTranslator735Test`／`ChunkTranslator735Test` で確認。751サーバー版の直接テストは無いため推論）。Ping（0x12）は735と751で形式が同一のため735⇔751の段では素通しする（`to736ServerPacketFrom735`／`to751ServerPacketFrom736` のコメントで確認。`to755ServerPacketFrom754` で落とされるのは755以上クライアント向けの段）。サーバー→クライアントの汎用パケット（chat等）の到達は直接テストが無いため未確認。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn／Spawn Position は通る（`handleServerJoinGame753`（`ProxySession.java:15117`）は `is753()` だけを直接返し、735クライアントは `translateJoinGame753To754` で754形式にして `handleServerPlayFrom754` に委譲し、`handleServerJoinGame754`（`ProxySession.java:15907`）の `if (is736() || is735())` 分岐で754→753→751→736の連鎖変換をして 0x25 で直接返す。Respawn／Spawn Position も `handleServerPlayFrom754` の is735() 分岐で 0x3a／0x42 を直接返す。コードで確認。`ProxySession735bTest.joinGame753To735Chain`／`respawn753To735Chain`／`position753To735RoundTrips`（`loginTo(735, 753)`）でテスト確認）。クライアント→サーバーは直接変換する（735→736の恒等写像＋736→751の直接変換＋751→753の恒等写像。変換器は `PlayTranslator735Test`／`ChunkTranslator735Test` で確認。753サーバー版の直接テストは無いため推論）。Ping（0x12）は735と753で形式が同一のため735⇔753の段では素通しする（`to736ServerPacketFrom735`／`to753ServerPacketFrom751` のコメントで確認。`to755ServerPacketFrom754` で落とされるのは755以上クライアント向けの段）。サーバー→クライアントの汎用パケット（chat等）の到達は直接テストが無いため未確認。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn／Spawn Position は通る（`handleServerJoinGame754`（`ProxySession.java:15907`）の `if (is736() || is735())` 分岐で754→753→751→736の連鎖変換をして 0x25／0x3a／0x42 を直接返す。コードで確認。754サーバー版の直接テストは無いため、テスト確認済みとは書かない）。クライアント→サーバーは直接変換する（735→736の恒等写像＋736→751の直接変換＋751→753→754の恒等写像。変換器は `PlayTranslator735Test`／`ChunkTranslator735Test` で確認。754サーバー版の直接テストは無いため推論）。Ping（0x12）は735と754で形式が同一のため735⇔754の段では素通しする（`to736ServerPacketFrom735`／`to754ServerPacketFrom753` のコメントで確認。`to755ServerPacketFrom754` で落とされるのは755以上クライアント向けの段）。サーバー→クライアントの汎用パケット（chat等）の到達は直接テストが無いため未確認。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn／Synchronize Player Position は通る（`handleServerJoinGame755`（`ProxySession.java:16207`）の `if (is736() || is735())` 分岐で755→754→753→751→736の連鎖変換をして 0x25 で直接返す。Respawn／Position も `handleServerPlayFrom755`（`:16101`）の is735() 分岐で 0x3a／0x35 で直接返す。コードで確認。755サーバー版の直接テストは無い。751クライアント版は `ProxySession751bTest.joinGame755To751RewritesCodec`／`respawn755To751RewritesDimension` でテスト確認）。クライアント→サーバーは 735→736の恒等写像＋736→751の直接変換＋751→753→754の恒等写像＋754→755の直接変換で変換する（735→736の段は `directPackets735Against736Convert` で、754→755の段は `ProxySession754Test.directPackets754Against755Convert` でそれぞれテスト確認。735→755の通しの直接テストは無いため推論）。Ping／Pong は両方向とも落とす（transaction形式と {id i32} 形式は互換性が無い。ノート§14.5。736⇔755と同じ）。755サーバーからの汎用パケット（chat等）の到達は直接テストが無いため未確認。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（756→757→759→763へ直してから `handleServerJoinGame763`／`handleServerPlayFrom763` の Respawn 分岐が is735() で落とす。コードで確認。775サーバー版は `ProxySession735Test.join775Against735Drops` でテスト確認。756サーバー版の直接テストは無いため、同じガードによる推論と明記）。汎用パケットも落とす（`handleServerPlayFrom763` の汎用経路の落としリストに is735()。コードで確認。ノート§14.5）。クライアント→サーバーは変換する（735→736の恒等写像＋736→751の直接変換。変換器は `PlayTranslator735Test`／`ChunkTranslator735Test` で確認。756サーバー版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（757→759→763へ直してから `handleServerJoinGame763` が is735() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは735→736→751→753→754→755→756→757の連鎖で変換（735→736の段は `directPackets735Against736Convert` でテスト確認。757サーバー版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（759→763へ直してから `handleServerJoinGame763` が is735() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは変換する（`ProxySession735Test.clientPackets735Against759Convert`（`loginTo(735, 759)`）で確認。chat 0x03→Chat Message 0x04、Block Dig 0x1B→0x1C に sequence 0補完、Window Click 0x09→0x0A、Client Information 0x05→0x07、Set Creative Slot 0x27→0x2A。Edit Book 0x0c は755→756の段で落とす。Pong 0x07 は落とす）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（760→761→762→763へ直してから `handleServerJoinGame763` が is735() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは735→736→751→753→754→755→756→757→759→760の連鎖で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（761→762→763へ直してから `handleServerJoinGame763` が is735() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは735→736→751→753→754→755→756→757→759→760→761の連鎖で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（762→763へ直してから `handleServerJoinGame763` が is735() で落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは735→736→751→753→754→755→756→757→759→760→761→762の連鎖で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame763`（`ProxySession.java:8446`）の is735() 分岐。`handleServerPlayFrom763` の Respawn 分岐の落としリストにも735。コードで確認。Ping 763→735は落とす（`ProxySession735bTest.ping763To735Drops`（`loginTo(735, 763)`）でテスト確認））。クライアント→サーバーは `handleClientPlay735`（`ProxySession.java:3271`）で756→757→759→763へ直す（コードで確認）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（764→763へ直してから `handleServerJoinGame763` が is735() で落とす。Respawn も764ハンドラ（`handleServerPlay765From764:9712`）の落としで is735()。コードで確認。Keep Alive は `ProxySession735Test.keepAlive764Against735IsNotClosedByDisconnectGuard`（`loginTo(735, 764)`）で通ることをテスト確認（Keep Alive 0x24→0x20、Respawn 0x43 は落とす））。設定フェーズはプロキシが合成するが Join Game が無いため参加できない。クライアント→サーバーは `handleClientPlay735` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（765→763へ直してから `handleServerJoinGame763` が is735() で落とす。Respawn も765ハンドラ（`handleServerPlayUp:9305`）の落としで is735()。コードで確認。Keep Alive は `ProxySession735Test.keepAlive765Against735IsNotDroppedByRespawnGuard`（`loginTo(735, 765)`）で通ることをテスト確認（Keep Alive 0x24→0x20、Respawn 0x45 は落とす））。設定フェーズはプロキシが合成するが Join Game が無いため参加できない。クライアント→サーバーは `handleClientPlay735` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame766`（`ProxySession.java:8974`）の is735() 分岐。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay735` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（767は766に委譲し `handleServerJoinGame766` の is735() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay735` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（768は `handleServerJoinGame768`（`ProxySession.java:19214`）の is735() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay735` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（769は `handleServerJoinGame769`（`ProxySession.java:18729`）の is735() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay735` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（770→769→768へ直してから `handleServerJoinGame768` の is735() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay735` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（771→770→769→768へ直してから `handleServerJoinGame768` の is735() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay735` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（772→771→770→769→768へ直してから `handleServerJoinGame768` の is735() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay735` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（773→772→771→770→769→768へ直してから `handleServerJoinGame768` の is735() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay735` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（774→773→772→771→770→769→768へ直してから `handleServerJoinGame768` の is735() 分岐で落とす。Respawn も落とす。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlay735` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 | △ 制限付き（単体テストのみ・統合テストなし）。サーバー→クライアントの Join Game／Respawn は落とす（`handleServerJoinGame775`（`ProxySession.java:14603`）の is735() 分岐。774に委譲する前に落とす。`ProxySession735Test.join775Against735Drops`（`loginTo(735, 775)`）で確認。Join Game 0x31 を落とす。ログイン合成でサーバーは設定フェーズを消費し、Finish Configuration でプレイ状態に入るが735クライアントに送るものは無い（`ProxySession735Test.login735Against775SynthesizesConfig`（`loginTo(735, 775)`）で確認））。クライアント→サーバーは `handleClientPlay735` で変換。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+
+### 全クライアント × 735サーバー
+
+| クライアント＼サーバー | 735（1.16） |
+|---|---|
+| **736（1.16.1）** | △ 制限付き。Join Gameは通る（735→736の恒等写像。`ProxySession735Test.joinAndRespawn735Against736Convert`（`loginTo(736, 735)`）で確認。Join Game 0x25→0x25、Respawn 0x3a→0x3a、Spawn Position 0x42→0x42（angle 無し・8バイトのまま）。`ProxySession735bTest.joinGame735To736IsIdentity`／`respawn735To736IsIdentity`／`position735To736IsIdentity` でも確認）。ただし chat（0x0E）／Set Slot（0x16）／Window Items（0x14）／Entity Destroy（0x37）はセッション経由で落とされる（同テストでテスト確認。変換器自体は `to751ServerPacketFrom736` で変換するが `handleServerPlayFrom763` の汎用経路で落とされる。Ping／Update Light は735⇔736の段では素通しだが754→755の段で落とされる）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **751（1.16.2）** | △ 制限付き。Join Gameは通るはず（735→736の恒等写像→751の直接変換。`handleServerJoinGame735`（`ProxySession.java:15746`）→`handleServerPlayFrom736`→`handleServerJoinGame736`（`:15521`）→`translateJoinGame736To751`→`handleServerPlayFrom751`→`handleServerJoinGame751`（`:15300`）の `is751()` 分岐で 0x24 を直接返す。コードで確認。735サーバー＋751クライアントの直接の単体テストは無いため推論）。Respawnも通るはず（同経路。`handleServerPlayFrom736` の Respawn 分岐は is736() でなければ751形式に変換して `handleServerPlayFrom751` に委譲し、`handleServerPlayFrom751` の Respawn 分岐の is751() で 0x39 を直接返す。コードで確認。直接テストは無いため推論）。ただし735サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされるはず（736クライアント版は `joinAndRespawn735Against736Convert` でテスト確認。751クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **753（1.16.3）** | △ 制限付き。Join Gameは通るはず（735→736→751の直接変換→753の恒等写像。`handleServerJoinGame751`（`ProxySession.java:15300`）の `is751()` 分岐を経て `handleServerJoinGame753`（`:15117`）の `is753()` 分岐で 0x24 を直接返す。コードで確認。735サーバー＋753クライアントの直接の単体テストは無いため推論）。Respawnも通るはず（同経路。`handleServerPlayFrom751` の Respawn 分岐は is751() でなければ753形式に変換して `handleServerPlayFrom753` に委譲し、`handleServerPlayFrom753` の Respawn 分岐の is753() で 0x39 を直接返す。コードで確認。直接テストは無いため推論）。ただし735サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされるはず（736クライアント版は `joinAndRespawn735Against736Convert` でテスト確認。753クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **754（1.16.4／1.16.5）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754の連鎖。`handleServerJoinGame754`（`ProxySession.java:15907`）の `is754()` 分岐で 0x24 を直接返す。コードで確認。735サーバー＋754クライアントの直接の単体テストは無いため推論）。Respawnも通るはず（同経路。コードで確認。直接テストは無いため推論）。ただし735サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされるはず（736クライアント版は `joinAndRespawn735Against736Convert` でテスト確認。754クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **755（1.17）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755の連鎖。`handleServerJoinGame755`（`ProxySession.java:16207`）の `is755()` 分岐で 0x26 を直接返す。コードで確認。直接テストは無いため推論）。Respawnも通るはず（同経路。コードで確認。直接テストは無いため推論）。Spawn Positionも通るはず（同経路。`handleServerPlayFrom755` の is755() 分岐で 0x4B を直接返す。コードで確認。直接テストは無いため推論）。chat／Set Slot は `to755ServerPacketFrom754` で素通し／変換されるはず（chat は default 素通し、Set Slot は `translateSetSlot754To755` でアイテムID付け替え。コードで確認。直接テストは無いため未確認）。Entity Destroy は count 1 のときだけ通る（count 0／2以上は754→755の段で落とす。コードで確認。直接テストは無いため未確認）。Update Light／Ping は落とす（コードで確認）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **756（1.17.1）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（同連鎖。コードで確認。直接テストは無いため推論）。ただし735サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされるはず（736クライアント版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **757（1.18／1.18.1）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（同連鎖。コードで確認。直接テストは無いため推論）。ただし735サーバーからの chat／Set Slot／Window Items／Entity Destroy は汎用経路で落とされるはず（736クライアント版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **759（1.19）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→763→759の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（`handleServerPlayFrom763` の Respawn 分岐の落としリストに759は無い。コードで確認。直接テストは無いため推論）。Set Slot／Window Items／Entity Destroy／Chunk Data は届く（`ProxySession735Test.serverPackets735Against759Reach`（`loginTo(759, 735)`）でテスト確認。Set Slot 0x16→0x13、Window Items 0x14→0x11、Entity Destroy 0x37→0x38（count 1）、Chunk Data 0x21→0x1F）。Entity Destroy count 2 は落とす（同テストでテスト確認）。Update Light は落とす（`ProxySession735bTest.updateLight735To759Drops`（`loginTo(759, 735)`）でテスト確認）。クライアント→サーバーは `handleClientPlayTo735`（`ProxySession.java:10984`）で変換（763クライアント版はテスト確認。759クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **760（1.19.1／1.19.2）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→760の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（`handleServerPlayFrom763` の Respawn 分岐の落としリストに760は無い。コードで確認。直接テストは無いため推論）。sculk／Declare Recipes／Tagsを落とす（736サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo735` で変換（763クライアント版はテスト確認。760クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **761（1.19.3）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→760→761の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。sculk／Declare Recipes／Tagsを落とす（736サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo735` で変換（763クライアント版はテスト確認。761クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **762（1.19.4）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→760→761→762の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。sculk／Declare Recipes／Tagsを落とす（736サーバー版と同じ下流連鎖。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo735` で変換（763クライアント版はテスト確認。762クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **763（1.20／1.20.1）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→763の連鎖。コードで確認。直接テストは無いため推論）。Respawnも通るはず（`handleServerPlayFrom763` の Respawn 分岐の落としリストに763は無い。コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo735` で変換（`ProxySession735Test.clientPackets763Against735Convert`（`loginTo(763, 735)`）でテスト確認。Chat Message 0x05→chat 0x03、Block Dig 0x1D→0x1B。ただし Window Click／Set Creative Slot／Edit Book は落とされる。同テストで確認）。Ping 763→735は落とす（`ProxySession735bTest.ping763To735Drops` でテスト確認）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **764（1.20.2）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→763→764の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo735` で変換（763クライアント版はテスト確認。764クライアント版の直接テストは無いため推論）。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。764クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **765（1.20.3／1.20.4）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→763→765の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawnも通るはず（コードで確認。直接テストは無いため推論）。クライアント→サーバーは `handleClientPlayTo735` で変換（763クライアント版はテスト確認。765クライアント版の直接テストは無いため推論）。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。765クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **766（1.20.5／1.20.6）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→763→766の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流（`handleServerPlayFrom763` の Respawn 分岐（`ProxySession.java:8262`）の落としリスト）で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo735` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。766クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **767（1.21／1.21.1）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→763→766→767の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo735` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。767クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **768（1.21.2／1.21.3）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→763→766→768の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo735` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。768クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **769（1.21.4）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→763→766→769の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo735` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。769クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **770（1.21.5）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→763→766→770の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo735` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。770クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **771（1.21.6）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→763→766→771の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo735` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。771クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **772（1.21.7／1.21.8）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→763→766→772の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo735` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。772クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **773（1.21.9／1.21.10）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→763→766→773の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo735` で変換。Window Click／Set Creative Slot／Edit Book は落とす（763クライアント版はテスト確認。773クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **774（1.21.11）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→763→774の連鎖。コードで確認。直接テストは無いため推論。Join Game 0x30 が Finish Configuration 後に届くはず。ただし735サーバー→774クライアントの Join Game 到達は未確認（ノート§14.9））。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo735` で変換（763クライアント版はテスト確認。774クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **775（26.1／26.1.1／26.1.2）** | △ 制限付き。Join Gameは通るはず（735→736→751→753→754→755→756→757→759→763→775の合成変換。設定フェーズはプロキシが合成する。コードで確認。直接テストは無いため推論。ログイン合成は735クライアント×775サーバー向き（`ProxySession735Test.login735Against775SynthesizesConfig`（`loginTo(735, 775)`））で確認済み。775クライアント×735サーバー向きのログイン合成の直接テストは無い）。Respawn は下流で落とす（コードで確認）。クライアント→サーバーは `handleClientPlayTo735` で変換（763クライアント版はテスト確認。775クライアント版の直接テストは無いため推論）。統合テストなし（単体テストのみ）。プロキシ経由の実行は未実施。直接接続の結果は未実施 |
+| **735（1.16）** | ○ 素通し（リレー）。上の表を参照 |
+
+検証の区別（まとめ）：
+
+- **統合テスト済み（0件）**：`Fake735Client` は追加済みだが、直接接続の4セルもプロキシ経由の実行も未実施。
+  プロキシ経由で通ったセルが出たら◎に更新する。
+- **単体テスト済み・統合テストなし**：735関係の単体テストは
+  `PlayTranslator735Test` 16件・`ChunkTranslator735Test` 19件・
+  `ProxySession735Test` 11件・`ProxySession735bTest` 16件・`ClientAdapter735Test` 13件・
+  `ClientJoinFlow735Test` 5件・`ClientProxy735Test` 4件・`V116AdapterTest` 6件の合計90件全通過（Stage B §14.7）。
+  これに Stage A の `ProtocolVersion735Test` 3件・`RegistryRemapper735Test` 16件を加えた
+  735関係の単体テストは合計109件全通過。
+  （注：Stage Aの `ClientAdapter735Test` 7件は Stage B で13件に書き換えられており、90件の中に含まれている。
+  736の節の161件と同じ数え方。）
+  新規テストメソッドはプロトコルパッケージで77件（ClientAdapter735Test +6、ClientJoinFlow735Test 5、
+  ClientProxy735Test 4、PlayTranslator735Test 16、ChunkTranslator735Test 19、
+  ProxySession735Test 11＋735bTest 16）から、Stage A時点で不要になった
+  `ClientAdapter736Test.differencesFor735AreNotSupported` 1件の削除を引いて+76件で、
+  総数3,051件→3,127件と一致する（§14.7）。
+  `ClientAdapter` の全組み合わせ判定テストと `ProtocolVersion735Test` の単体テスト、および
+  `verify-735-tables.py`（43件の表チェック）でも確認。
+- **回帰**：Stage Bの全体回帰は3,127件中3,093件通過・34件失敗。失敗は全て環境制約
+  （ResourcePackServerのローカルHTTP -1が24件、ソケットタイムアウト8件、
+  SessionServerClientのbase URL未設定2件）で、735が原因の本物の回帰は0件（§14.7）。
+  Stage Dの対象テストはパック系90件中71通過・19失敗（失敗は全てHTTP GET -1の環境制約）、
+  データパック＋735ガード5クラス62/62全通過、
+  Bedrock 735系148件中134通過・14失敗（失敗は全てソケットnullの環境制約）で、735が原因の本物の回帰は0件（§15.4）。
+  この3つの数字は別時点の別実行のもので、合計はしていない。
+- **素通し（リレー）・統合テストなし**：735→735はプロキシ経由の統合テストが未実施のため、現時点ではリレーの統合テスト済みセルは無い。
+  リレーはバイト列をそのまま通すため変換の誤りが入りようが無く、735→735の
+  単体テスト（`ProxySession735Test.join735Against735IsNative`）で経路自体は検証済み。
+- **Bedrock→735**：`JavaBackendConnection735Test`（40件）・
+  `BedrockChunkTranslatorTest` の735件（6件）で単体テスト済み（§15.2。
+  735対象148件中134通過・14失敗で、失敗は全てソケットテスト＝JVMのループバックTCP遮断の環境制約）。
+  Bedrockマトリクス統合テストはこのツリーには無いため、Bedrockの102通りのまま
+  （冒頭の「Bedrockは6プロトコル × 内部17サーバーの全102通り」の行は変えていない）。
+- **実機でしか確認できないもの（全625通り共通）**：本物のゲームクライアントでの
+  参加・見た目・操作感、本物のMojang認証サーバーでのonline-mode参加、
+  リソースパックの「互換性あり」表示と適用、泡テクスチャの目での確認。
+  2人同時参加での他プレイヤーの見え方（named_entity_spawn）は、偽クライアントでは
+  確かめられなかったため、実機での確認が最も重要な残りの検証である。
+  新要素（アメジスト・銅・ウーパールーパー・ヤギ・発光イカ・グロウベリーなど1.17の要素）の
+  実機での見え方・聞こえ方は、735クライアントではそもそも存在しないため未確認（1.17側の要素として扱う）。
+  手順書は `docs/PLAYTEST-1.16.md` を参照。
+
+### 736↔735のレジストリ差分（2026-11-16、`STAGE-A-735-NOTES.md` §8・§11・§12で確認）
+
+- **パケットID**：変更0件・新規0件・削除0件。
+  Join Game 0x25、Chunk Data 0x21、Keep Alive 0x20、Respawn 0x3a、
+  Update Time 0x4E、Entity Destroy 0x37、Ping 0x12、Pong 0x07、Spawn Position 0x42、
+  Disconnect 0x1a、Client Information 0x05、Set Creative Slot 0x27、
+  Synchronize Player Position 0x35（736とすべて同一）。
+  設定フェーズ・ログイン・ステータス・ハンドシェイクのIDは0変更
+  （設定フェーズは1.16／1.16.1とも存在しないため CONFIGURATION のエントリは735・736とも -1）。
+  （`PacketIds.java` の735列と `packet-ids-735.json`（272件）で確認。ノート§8）。
+- **ブロック状態**：736=17,104件、735=17,104件（±0件：同一順序）。
+  非恒等は両向き0件。
+- **ブロック**：736=763件、735=763件（±0件：同一順序）。
+- **アイテム**：736=975件、735=975件（±0件：同一順序）。
+- **エンティティ**：736=107件、735=107件（±0件：同一順序）。
+- **音**：736=985件、735=985件（±0件：同一順序）。
+- **パーティクル**：736=72件、735=72件（±0件）。
+- **エンチャント**：736=38件、735=38件（±0件：同一順序）。
+- **エフェクト**：736=32件、735=32件（±0件：同一順序）。
+- **ブロックエンティティ**：736=33件、735=33件（±0件：同一順序。id 33 は範囲外で DROP）。
+- **バイオーム**：736=79件、735=79件（0〜173 は同じ id・同じ名前。隙間 95 件は plains へ）。
+- **メニュー**：24件で同一。**属性**：13件で同一。
+  **ダメージ種別**：42件恒等。
+- **データコンポーネント・環境属性・スロット表示**：1.16／1.16.1とも無し。
+  **ゲームイベント**：1.16／1.16.1とも無し。
+- **ペイロードの違い（パケットID以外）**：Join Game は735・736とも dimensionCodec は `{"dimension": [...]}` だけでバイオームレジストリ無し、dimension は文字列、isHardcore 無し、maxPlayers は u8。
+  Respawn は735・736とも8フィールドで dimension は文字列（実バニラ1.16 jarと1.16.1 jarの `ClientboundRespawnPacket` `#write` のjavapはバイト同一。両jarの全21,480クラスをsha1比較し、異なるのは `DetectedVersion` の1クラスのみ）。
+  Chunk Data は groundUp＋ignoreOldData＋bitMap varint＋heightmaps 名前付きNBT＋
+  バイオーム i32×1024（件数接頭辞なし）＋光なし。BitStorage は non-straddling（実バニラ生キャプチャで確認。§14.4）。
+  Client Information は735・736とも6フィールド（`disableTextFiltering` が無い。
+  757の8フィールド目 `enableServerListing` はどちらにも無い）。
+  Entity Destroy は735・736とも [count][entityIds] 配列。
+- **pack_format**：リソース 5、データ 5（1.16サーバーjar内の version.json。
+  data version 2566。1.16.1は data version 2567・pack 5・プロトコル736。1.16.2は data version 2578・pack 6・プロトコル751。1.16.3は data version 2580・pack 6・プロトコル753。1.16.4は data version 2584・pack 6・プロトコル754。1.16.5は data version 2586・pack 6・プロトコル754。735用パックは `detergentmc-pack-1.16.zip`（25個目。pack.mcmeta は plain `{"pack_format":5}`）。
+  735パックと736・751・753・754・755パックは内容が違い sha1 が違う（735: `8f99c96b9472b92b9788261c7cfdbf17f9a1127f`、736: `2e94e010af9bd8c088627d1c520efebfef21e06d`、751: `64cc34ed0946836657fbe026fe25a9ef2ad729a7`、753: `0adcecd8395d8e33fc7fa6e1d10a4835e9fa9c35`、754: `89773dc5252afd72e4a662a5df8abc97d2554af0`、755: `74d9d34d0dd377a5a9b0dfe0e39d968d027a356b`。735パックは4エントリ・mcmeta 75バイト。ノート§15.1）。
+- **バニラ1.16サーバーjarのSHA-1**：`a0d03225615ba897619220e256a266cb33a44b6b`
+  （piston-meta。37,968,865バイト。`run/vanilla/server-1.16.jar`。sha1sumで照合済み）。
+- **1.16は Java 8**：`1.16.json` の `javaVersion.majorVersion: 8` でも確認。Java 8 は `~/.tools/jdk8u512-b09`
+  （Temurin 1.8.0_512-b09。Adoptium から取得し SHA-256 を照合済み）。
+- **実バニラ1.16の起動確認に成功**（§15.3）：Done 60.197s、pack metadataエラー0件。
+- **1.16の既知の制限（Stage B・Dで確認）**：735クライアント＋756〜775サーバーの
+  Join Game／Respawn は落とされる（736・751・753・754・755サーバーは Join Game／Respawn が通る）。766〜775クライアント＋735サーバーの Respawn は
+  下流で落とされる。Window Click／Set Creative Slot／Edit Book は763〜775クライアント→735サーバーで
+  落とすまま。Ping／Pong は735⇔736の段では素通しだが754⇔755の段で落とされる。Update Light は735⇔736の段では
+  素通しだが754→755の段で落とされる。736クライアント＋735サーバーの chat／Set Slot／Window Items／
+  Entity Destroy はセッション経由で落とされる（変換器は変換するが汎用経路で落とす）。
+  736サーバー→735クライアントの汎用パケットも届かない（同じ汎用経路の制限）。
+  光の抽出の配線なし（757→735のChunk Dataは光を落とす）。
+  Stage BのChunkTranslator 757節はstraddling前提で、実バニラ1.18
+  （non-straddling）と食い違う疑い（§14.9。判断待ち）。735節はnon-straddlingで正しく実装した。
+  `RegistryRemapper` の `ITEM_REVERSE_MAP` と `ITEM_763_TO_765` の食い違い（§14.9。
+  判断待ち）。`mapItemReverse` の757／759／760／761／762分岐の逆順合成の不具合
+  （§12.5の4。判断待ち。735／736／751／753／754／755／756分岐だけ正しい順序）。
+  World Particles 756→757・757→759のデータ位置の誤読、Entity Metadata 757⇔759の型番号のずれは
+  実バニラjarのjavapで確認済みだが757節の挙動変更になるため直していない（§14.9。判断待ち）。
+  775節の `experience_orb = 47` の古いリテラル、770〜775のChunkTranslatorの
+  ストラドリング問題は触っていない（Muse01／ユーザーの判断待ち）。
+  736→751のrecipe_bookは非可逆（4冊→1冊への潰れ。§14.6）。735→751も735→736の恒等写像を経て
+  同じ変換になるため同じく非可逆。
+  Unlock Recipesは735→759に届かない、World Particlesは735→759に届くが755形式のまま（§14.6。
+  756／757担当の範囲）。735サーバー→774クライアントのJoin Game到達は未確認（§14.9）。
+- **758は未対応**：758（1.18.2）は他人の作業中のため飛ばす。735は追加済み。
+  758が終わったら758↔757の合成表をそのときに作る（757 §12.4と同じ扱い）。
+
+### 735関係49セルの内訳（実際に数えた結果）
+
+- ○（参加できる）：**1件**（735クライアント×735サーバーのみ。素通し）。
+- △（制限付き）：**48件**（735クライアント×736・751・753・754・755サーバーの5件＋735クライアント×756〜775サーバーの19件＋736〜775クライアント×735サーバーの24件）。
+- ◎（統合テスト済み）：**0件**（プロキシ経由で通ったセルは無い。Fake735Clientは追加済みだが、直接接続の4セルもプロキシ経由の実行も未実施）。
+- 合計：1＋48＋0＝**49セル**（735行25セル＋735列25セル−重複1セル）。
