@@ -114,6 +114,72 @@ public final class ResourcePackMode {
     /**
      * The outcome of {@link #decide(String, String, boolean, String)}.
      *
+     * @param pack735 the 1.16 pack to offer to 735 clients in external
+     *                mode, or {@code null} when none is configured
+     *                (735 clients then get {@code pack736} when it is
+     *                configured, else {@code pack751} when it is
+     *                configured, else {@code pack753} when it is
+     *                configured, else {@code pack754} when it is
+     *                configured, else {@code pack755} when it is
+     *                configured, else {@code pack756} when it is
+     *                configured, else {@code pack757} when it is
+     *                configured, else {@code pack759} when it is
+     *                configured, else {@code pack760} when it is
+     *                configured, else {@code pack761} when it is
+     *                configured, else {@code pack762} when it is
+     *                configured, else {@code pack763} when it is
+     *                configured, else {@code pack} as before)
+     * @param pack736 the 1.16.1 pack to offer to 736 clients in external
+     *                mode, or {@code null} when none is configured
+     *                (736 clients then get {@code pack751} when it is
+     *                configured, else {@code pack753} when it is
+     *                configured, else {@code pack754} when it is
+     *                configured, else {@code pack755} when it is
+     *                configured, else {@code pack756} when it is
+     *                configured, else {@code pack757} when it is
+     *                configured, else {@code pack759} when it is
+     *                configured, else {@code pack760} when it is
+     *                configured, else {@code pack761} when it is
+     *                configured, else {@code pack762} when it is
+     *                configured, else {@code pack763} when it is
+     *                configured, else {@code pack} as before)
+     * @param pack751 the 1.16.2 pack to offer to 751 clients in external
+     *                mode, or {@code null} when none is configured
+     *                (751 clients then get {@code pack753} when it is
+     *                configured, else {@code pack754} when it is
+     *                configured, else {@code pack755} when it is
+     *                configured, else {@code pack756} when it is
+     *                configured, else {@code pack757} when it is
+     *                configured, else {@code pack759} when it is
+     *                configured, else {@code pack760} when it is
+     *                configured, else {@code pack761} when it is
+     *                configured, else {@code pack762} when it is
+     *                configured, else {@code pack763} when it is
+     *                configured, else {@code pack} as before)
+     * @param pack753 the 1.16.3 pack to offer to 753 clients in external
+     *                mode, or {@code null} when none is configured
+     *                (753 clients then get {@code pack754} when it is
+     *                configured, else {@code pack755} when it is
+     *                configured, else {@code pack756} when it is
+     *                configured, else {@code pack757} when it is
+     *                configured, else {@code pack759} when it is
+     *                configured, else {@code pack760} when it is
+     *                configured, else {@code pack761} when it is
+     *                configured, else {@code pack762} when it is
+     *                configured, else {@code pack763} when it is
+     *                configured, else {@code pack} as before)
+     * @param pack754 the 1.16.4 / 1.16.5 pack to offer to 754 clients in external
+     *                mode, or {@code null} when none is configured
+     *                (754 clients then get {@code pack755} when it is
+     *                configured, else {@code pack756} when it is
+     *                configured, else {@code pack757} when it is
+     *                configured, else {@code pack759} when it is
+     *                configured, else {@code pack760} when it is
+     *                configured, else {@code pack761} when it is
+     *                configured, else {@code pack762} when it is
+     *                configured, else {@code pack763} when it is
+     *                configured, else {@code pack} as before; one pack
+     *                serves both 1.16.4 and 1.16.5: protocol 754)
      * @param pack755 the 1.17 pack to offer to 755 clients in external
      *                mode, or {@code null} when none is configured
      *                (755 clients then get {@code pack756} when it is
@@ -218,7 +284,7 @@ public final class ResourcePackMode {
      *                before)
      */
     public record Decision(Kind kind, ResourcePack pack, String problem,
-            ResourcePack pack755, ResourcePack pack756, ResourcePack pack757, ResourcePack pack759, ResourcePack pack760, ResourcePack pack761, ResourcePack pack762, ResourcePack pack763, ResourcePack pack764,
+            ResourcePack pack735, ResourcePack pack736, ResourcePack pack751, ResourcePack pack753, ResourcePack pack754, ResourcePack pack755, ResourcePack pack756, ResourcePack pack757, ResourcePack pack759, ResourcePack pack760, ResourcePack pack761, ResourcePack pack762, ResourcePack pack763, ResourcePack pack764,
             ResourcePack pack766, ResourcePack pack767, ResourcePack pack768,
             ResourcePack pack769, ResourcePack pack770, ResourcePack pack771,
             ResourcePack pack772, ResourcePack pack773, ResourcePack pack774,
@@ -287,7 +353,7 @@ public final class ResourcePackMode {
                 ResourcePack pack763, ResourcePack pack764, ResourcePack pack766,
                 ResourcePack pack767, ResourcePack pack768, ResourcePack pack769,
                 ResourcePack pack770, ResourcePack pack771, ResourcePack pack772) {
-            this(kind, pack, problem, null, null, null, null, null, null, null, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, null, null, null);
+            this(kind, pack, problem, null, null, null, null, null, null, null, null, null, null, null, null, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, null, null, null);
         }
 
         /** Backwards-compatible constructor without a 1.21.11 pack. */
@@ -295,7 +361,7 @@ public final class ResourcePackMode {
                 ResourcePack pack763, ResourcePack pack764, ResourcePack pack766,
                 ResourcePack pack767, ResourcePack pack768, ResourcePack pack769,
                 ResourcePack pack770, ResourcePack pack771, ResourcePack pack772, ResourcePack pack773) {
-            this(kind, pack, problem, null, null, null, null, null, null, null, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, null, null);
+            this(kind, pack, problem, null, null, null, null, null, null, null, null, null, null, null, null, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, null, null);
         }
 
         /** Backwards-compatible constructor without a 26.1 pack. */
@@ -303,7 +369,7 @@ public final class ResourcePackMode {
                 ResourcePack pack763, ResourcePack pack764, ResourcePack pack766,
                 ResourcePack pack767, ResourcePack pack768, ResourcePack pack769,
                 ResourcePack pack770, ResourcePack pack771, ResourcePack pack772, ResourcePack pack773, ResourcePack pack774) {
-            this(kind, pack, problem, null, null, null, null, null, null, null, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, null);
+            this(kind, pack, problem, null, null, null, null, null, null, null, null, null, null, null, null, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, null);
         }
 
         /** Backwards-compatible constructor without a 1.18 / 1.18.1 pack. */
@@ -313,7 +379,7 @@ public final class ResourcePackMode {
                 ResourcePack pack769, ResourcePack pack770, ResourcePack pack771,
                 ResourcePack pack772, ResourcePack pack773, ResourcePack pack774,
                 ResourcePack pack775) {
-            this(kind, pack, problem, null, null, null, pack759, pack760, pack761, pack762, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, pack775);
+            this(kind, pack, problem, null, null, null, null, null, null, null, null, pack759, pack760, pack761, pack762, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, pack775);
         }
 
         /** Backwards-compatible constructor without a 1.17.1 pack. */
@@ -323,7 +389,7 @@ public final class ResourcePackMode {
                 ResourcePack pack769, ResourcePack pack770, ResourcePack pack771,
                 ResourcePack pack772, ResourcePack pack773, ResourcePack pack774,
                 ResourcePack pack775) {
-            this(kind, pack, problem, null, null, pack757, pack759, pack760, pack761, pack762, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, pack775);
+            this(kind, pack, problem, null, null, null, null, null, null, null, pack757, pack759, pack760, pack761, pack762, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, pack775);
         }
 
         /** Backwards-compatible constructor without a 1.17 pack. */
@@ -333,12 +399,81 @@ public final class ResourcePackMode {
                 ResourcePack pack769, ResourcePack pack770, ResourcePack pack771,
                 ResourcePack pack772, ResourcePack pack773, ResourcePack pack774,
                 ResourcePack pack775) {
-            this(kind, pack, problem, null, pack756, pack757, pack759, pack760, pack761, pack762, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, pack775);
+            this(kind, pack, problem, null, null, null, null, null, null, pack756, pack757, pack759, pack760, pack761, pack762, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, pack775);
+        }
+
+        /** Backwards-compatible constructor without a 1.16.4 / 1.16.5 pack. */
+        public Decision(Kind kind, ResourcePack pack, String problem,
+                ResourcePack pack755, ResourcePack pack756, ResourcePack pack757, ResourcePack pack759, ResourcePack pack760, ResourcePack pack761, ResourcePack pack762, ResourcePack pack763, ResourcePack pack764,
+                ResourcePack pack766, ResourcePack pack767, ResourcePack pack768,
+                ResourcePack pack769, ResourcePack pack770, ResourcePack pack771,
+                ResourcePack pack772, ResourcePack pack773, ResourcePack pack774,
+                ResourcePack pack775) {
+            this(kind, pack, problem, null, null, null, null, null, pack755, pack756, pack757, pack759, pack760, pack761, pack762, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, pack775);
+        }
+
+        /** Backwards-compatible constructor without a 1.16.3 pack. */
+        public Decision(Kind kind, ResourcePack pack, String problem,
+                ResourcePack pack754, ResourcePack pack755, ResourcePack pack756, ResourcePack pack757, ResourcePack pack759, ResourcePack pack760, ResourcePack pack761, ResourcePack pack762, ResourcePack pack763, ResourcePack pack764,
+                ResourcePack pack766, ResourcePack pack767, ResourcePack pack768,
+                ResourcePack pack769, ResourcePack pack770, ResourcePack pack771,
+                ResourcePack pack772, ResourcePack pack773, ResourcePack pack774,
+                ResourcePack pack775) {
+            this(kind, pack, problem, null, null, null, null, pack754, pack755, pack756, pack757, pack759, pack760, pack761, pack762, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, pack775);
+        }
+
+        /** Backwards-compatible constructor without a 1.16.2 pack. */
+        public Decision(Kind kind, ResourcePack pack, String problem,
+                ResourcePack pack753, ResourcePack pack754, ResourcePack pack755, ResourcePack pack756, ResourcePack pack757, ResourcePack pack759, ResourcePack pack760, ResourcePack pack761, ResourcePack pack762, ResourcePack pack763, ResourcePack pack764,
+                ResourcePack pack766, ResourcePack pack767, ResourcePack pack768,
+                ResourcePack pack769, ResourcePack pack770, ResourcePack pack771,
+                ResourcePack pack772, ResourcePack pack773, ResourcePack pack774,
+                ResourcePack pack775) {
+            this(kind, pack, problem, null, null, null, pack753, pack754, pack755, pack756, pack757, pack759, pack760, pack761, pack762, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, pack775);
+        }
+
+        /** Backwards-compatible constructor without a 1.16.1 pack. */
+        public Decision(Kind kind, ResourcePack pack, String problem,
+                ResourcePack pack751, ResourcePack pack753, ResourcePack pack754, ResourcePack pack755, ResourcePack pack756, ResourcePack pack757, ResourcePack pack759, ResourcePack pack760, ResourcePack pack761, ResourcePack pack762, ResourcePack pack763, ResourcePack pack764,
+                ResourcePack pack766, ResourcePack pack767, ResourcePack pack768,
+                ResourcePack pack769, ResourcePack pack770, ResourcePack pack771,
+                ResourcePack pack772, ResourcePack pack773, ResourcePack pack774,
+                ResourcePack pack775) {
+            this(kind, pack, problem, null, null, pack751, pack753, pack754, pack755, pack756, pack757, pack759, pack760, pack761, pack762, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, pack775);
+        }
+
+        /** Backwards-compatible constructor without a 1.16 pack. */
+        public Decision(Kind kind, ResourcePack pack, String problem,
+                ResourcePack pack736, ResourcePack pack751, ResourcePack pack753, ResourcePack pack754, ResourcePack pack755, ResourcePack pack756, ResourcePack pack757, ResourcePack pack759, ResourcePack pack760, ResourcePack pack761, ResourcePack pack762, ResourcePack pack763, ResourcePack pack764,
+                ResourcePack pack766, ResourcePack pack767, ResourcePack pack768,
+                ResourcePack pack769, ResourcePack pack770, ResourcePack pack771,
+                ResourcePack pack772, ResourcePack pack773, ResourcePack pack774,
+                ResourcePack pack775) {
+            this(kind, pack, problem, null, pack736, pack751, pack753, pack754, pack755, pack756, pack757, pack759, pack760, pack761, pack762, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, pack775);
         }
 
 
         /**
          * プロトコルに合ったパックを返す（外部モード用。ループバックでは
+         * 735→{@code pack735}（5）が未設定の場合は736用のパック（5）があればそれを、
+         * 736→{@code pack736}（5）が未設定の場合は751用のパック（6）があればそれを、
+         * 751→{@code pack751}（6）が未設定の場合は753用のパック（6）があればそれを、
+         * 無ければ754用のパック（6）、さらに無ければ755用のパック（7）、
+         * さらに無ければ756用のパック（7）、さらに無ければ757用のパック（8）、
+         * さらに無ければ759用のパック（9）、さらに無ければ760用のパック（9）、
+         * さらに無ければ761用のパック（12）、さらに無ければ762用のパック（13）、
+         * さらに無ければ763用のパック（15）、さらに無ければ本体を返す。
+         * 753→{@code pack753}（6）が未設定の場合は754用のパック（6）があればそれを、
+         * 無ければ755用のパック（7）、さらに無ければ756用のパック（7）、
+         * さらに無ければ757用のパック（8）、さらに無ければ759用のパック（9）、
+         * さらに無ければ760用のパック（9）、さらに無ければ761用のパック（12）、
+         * さらに無ければ762用のパック（13）、さらに無ければ763用のパック（15）、
+         * さらに無ければ本体を返す。
+         * 754→{@code pack754}（6）が未設定の場合は755用のパック（7）があればそれを、
+         * 無ければ756用のパック（7）、さらに無ければ757用のパック（8）、
+         * さらに無ければ759用のパック（9）、さらに無ければ760用のパック（9）、
+         * さらに無ければ761用のパック（12）、さらに無ければ762用のパック（13）、
+         * さらに無ければ763用のパック（15）、さらに無ければ本体を返す。
          * 755→{@code pack755}（7）が未設定の場合は756用のパック（7）があればそれを、
          * 無ければ757用のパック（8）、さらに無ければ759用のパック（9）、
          * さらに無ければ760用のパック（9）、さらに無ければ761用のパック（12）、
@@ -352,7 +487,7 @@ public final class ResourcePackMode {
          * を使うこと）。
          *
          * <p>出し分けの基準はプロトコルであって、内部サーバーのバージョン
-         * ではない。755→{@code pack755}（7）、756→{@code pack756}（7）、757→{@code pack757}（8）、759→{@code pack759}（9）、760→{@code pack760}（9）、761→{@code pack761}（12）、762→{@code pack762}（13）、765→本体（pack_format 22）、
+         * ではない。751→{@code pack751}（6）、753→{@code pack753}（6）、754→{@code pack754}（6）、755→{@code pack755}（7）、756→{@code pack756}（7）、757→{@code pack757}（8）、759→{@code pack759}（9）、760→{@code pack760}（9）、761→{@code pack761}（12）、762→{@code pack762}（13）、765→本体（pack_format 22）、
          * 764→{@code pack764}
          * （18）、763→{@code pack763}（15）、766→{@code pack766}
          * （32）、767→{@code pack767}（34）、768→{@code pack768}（42）、
@@ -381,6 +516,71 @@ public final class ResourcePackMode {
          * server.properties に入る。
          */
         public ResourcePack packForProtocol(int protocol) {
+            if (protocol == ProtocolVersion.V1_16) {
+                return pack735 != null ? pack735
+                        : pack736 != null ? pack736
+                        : pack751 != null ? pack751
+                        : pack753 != null ? pack753
+                        : pack754 != null ? pack754
+                        : pack755 != null ? pack755
+                        : pack756 != null ? pack756
+                        : pack757 != null ? pack757
+                        : pack759 != null ? pack759
+                        : pack760 != null ? pack760
+                        : pack761 != null ? pack761
+                        : pack762 != null ? pack762
+                        : pack763 != null ? pack763 : pack;
+            }
+            if (protocol == ProtocolVersion.V1_16_1) {
+                return pack736 != null ? pack736
+                        : pack751 != null ? pack751
+                        : pack753 != null ? pack753
+                        : pack754 != null ? pack754
+                        : pack755 != null ? pack755
+                        : pack756 != null ? pack756
+                        : pack757 != null ? pack757
+                        : pack759 != null ? pack759
+                        : pack760 != null ? pack760
+                        : pack761 != null ? pack761
+                        : pack762 != null ? pack762
+                        : pack763 != null ? pack763 : pack;
+            }
+            if (protocol == ProtocolVersion.V1_16_2) {
+                return pack751 != null ? pack751
+                        : pack753 != null ? pack753
+                        : pack754 != null ? pack754
+                        : pack755 != null ? pack755
+                        : pack756 != null ? pack756
+                        : pack757 != null ? pack757
+                        : pack759 != null ? pack759
+                        : pack760 != null ? pack760
+                        : pack761 != null ? pack761
+                        : pack762 != null ? pack762
+                        : pack763 != null ? pack763 : pack;
+            }
+            if (protocol == ProtocolVersion.V1_16_3) {
+                return pack753 != null ? pack753
+                        : pack754 != null ? pack754
+                        : pack755 != null ? pack755
+                        : pack756 != null ? pack756
+                        : pack757 != null ? pack757
+                        : pack759 != null ? pack759
+                        : pack760 != null ? pack760
+                        : pack761 != null ? pack761
+                        : pack762 != null ? pack762
+                        : pack763 != null ? pack763 : pack;
+            }
+            if (protocol == ProtocolVersion.V1_16_5) {
+                return pack754 != null ? pack754
+                        : pack755 != null ? pack755
+                        : pack756 != null ? pack756
+                        : pack757 != null ? pack757
+                        : pack759 != null ? pack759
+                        : pack760 != null ? pack760
+                        : pack761 != null ? pack761
+                        : pack762 != null ? pack762
+                        : pack763 != null ? pack763 : pack;
+            }
             if (protocol == ProtocolVersion.V1_17) {
                 return pack755 != null ? pack755
                         : pack756 != null ? pack756
@@ -1223,6 +1423,13 @@ public final class ResourcePackMode {
                 null, null, required, promptKey);
     }
 
+    /**
+     * {@link #decide(String, String, boolean, String)} with the optional
+     * per-version packs through 26.1 plus the 1.19.1 / 1.19.2 and 1.19
+     * and 1.18 / 1.18.1 and 1.17.1 and 1.17 packs, but without a
+     * 1.16.4 / 1.16.5 pack. 754 clients are offered the 1.17 pack
+     * (when configured) as before.
+     */
     public static Decision decide(String configuredUrl, String configuredSha1,
             String configuredUrl761, String configuredSha1761,
             String configuredUrl762, String configuredSha1762,
@@ -1244,6 +1451,55 @@ public final class ResourcePackMode {
             String configuredUrl756, String configuredSha1756,
             String configuredUrl755, String configuredSha1755,
             boolean required, String promptKey) {
+        return decide(configuredUrl, configuredSha1,
+                configuredUrl761, configuredSha1761,
+                configuredUrl762, configuredSha1762,
+                configuredUrl763, configuredSha1763,
+                configuredUrl764, configuredSha1764,
+                configuredUrl766, configuredSha1766,
+                configuredUrl767, configuredSha1767,
+                configuredUrl768, configuredSha1768,
+                configuredUrl769, configuredSha1769,
+                configuredUrl770, configuredSha1770,
+                configuredUrl771, configuredSha1771,
+                configuredUrl772, configuredSha1772,
+                configuredUrl773, configuredSha1773,
+                configuredUrl774, configuredSha1774,
+                configuredUrl775, configuredSha1775,
+                configuredUrl760, configuredSha1760,
+                configuredUrl759, configuredSha1759,
+                configuredUrl757, configuredSha1757,
+                configuredUrl756, configuredSha1756,
+                configuredUrl755, configuredSha1755,
+                null, null, required, promptKey);
+    }
+
+    public static Decision decide(String configuredUrl, String configuredSha1,
+            String configuredUrl761, String configuredSha1761,
+            String configuredUrl762, String configuredSha1762,
+            String configuredUrl763, String configuredSha1763,
+            String configuredUrl764, String configuredSha1764,
+            String configuredUrl766, String configuredSha1766,
+            String configuredUrl767, String configuredSha1767,
+            String configuredUrl768, String configuredSha1768,
+            String configuredUrl769, String configuredSha1769,
+            String configuredUrl770, String configuredSha1770,
+            String configuredUrl771, String configuredSha1771,
+            String configuredUrl772, String configuredSha1772,
+            String configuredUrl773, String configuredSha1773,
+            String configuredUrl774, String configuredSha1774,
+            String configuredUrl775, String configuredSha1775,
+            String configuredUrl760, String configuredSha1760,
+            String configuredUrl759, String configuredSha1759,
+            String configuredUrl757, String configuredSha1757,
+            String configuredUrl756, String configuredSha1756,
+            String configuredUrl755, String configuredSha1755,
+            String configuredUrl754, String configuredSha1754,
+            String configuredUrl753, String configuredSha1753,
+            String configuredUrl751, String configuredSha1751,
+            String configuredUrl736, String configuredSha1736,
+            String configuredUrl735, String configuredSha1735,
+            boolean required, String promptKey) {
         String url = configuredUrl == null ? "" : configuredUrl.trim();
         String prompt = promptKey == null || promptKey.isBlank()
                 ? ResourcePackServer.DEFAULT_PROMPT_KEY : promptKey.trim();
@@ -1259,6 +1515,11 @@ public final class ResourcePackMode {
             ResourcePack pack = new ResourcePack(url,
                     configuredSha1.trim().toLowerCase(Locale.ROOT),
                     required, prompt);
+            ResourcePack pack735 = null;
+            ResourcePack pack736 = null;
+            ResourcePack pack751 = null;
+            ResourcePack pack753 = null;
+            ResourcePack pack754 = null;
             ResourcePack pack755 = null;
             ResourcePack pack756 = null;
             ResourcePack pack757 = null;
@@ -1336,6 +1597,81 @@ public final class ResourcePackMode {
                 } else {
                     pack755 = new ResourcePack(url755,
                             configuredSha1755.trim().toLowerCase(Locale.ROOT),
+                            required, prompt);
+                }
+            }
+            String url735 = configuredUrl735 == null ? "" : configuredUrl735.trim();
+            if (!url735.isEmpty()) {
+                if (!url735.startsWith("https://")) {
+                    problems.add("resource-pack.url-735 must start with https:// (got '"
+                            + url735 + "'); 735 clients will be offered the 1.16.1 pack instead");
+                } else if (!isValidSha1(configuredSha1735)) {
+                    problems.add("resource-pack.sha1-735 is missing or not a 40-digit hex "
+                            + "SHA-1: '" + configuredSha1735
+                            + "'; 735 clients will be offered the 1.16.1 pack instead");
+                } else {
+                    pack735 = new ResourcePack(url735,
+                            configuredSha1735.trim().toLowerCase(Locale.ROOT),
+                            required, prompt);
+                }
+            }
+            String url736 = configuredUrl736 == null ? "" : configuredUrl736.trim();
+            if (!url736.isEmpty()) {
+                if (!url736.startsWith("https://")) {
+                    problems.add("resource-pack.url-736 must start with https:// (got '"
+                            + url736 + "'); 736 clients will be offered the 1.16.2 pack instead");
+                } else if (!isValidSha1(configuredSha1736)) {
+                    problems.add("resource-pack.sha1-736 is missing or not a 40-digit hex "
+                            + "SHA-1: '" + configuredSha1736
+                            + "'; 736 clients will be offered the 1.16.2 pack instead");
+                } else {
+                    pack736 = new ResourcePack(url736,
+                            configuredSha1736.trim().toLowerCase(Locale.ROOT),
+                            required, prompt);
+                }
+            }
+            String url751 = configuredUrl751 == null ? "" : configuredUrl751.trim();
+            if (!url751.isEmpty()) {
+                if (!url751.startsWith("https://")) {
+                    problems.add("resource-pack.url-751 must start with https:// (got '"
+                            + url751 + "'); 751 clients will be offered the 1.16.3 pack instead");
+                } else if (!isValidSha1(configuredSha1751)) {
+                    problems.add("resource-pack.sha1-751 is missing or not a 40-digit hex "
+                            + "SHA-1: '" + configuredSha1751
+                            + "'; 751 clients will be offered the 1.16.3 pack instead");
+                } else {
+                    pack751 = new ResourcePack(url751,
+                            configuredSha1751.trim().toLowerCase(Locale.ROOT),
+                            required, prompt);
+                }
+            }
+            String url753 = configuredUrl753 == null ? "" : configuredUrl753.trim();
+            if (!url753.isEmpty()) {
+                if (!url753.startsWith("https://")) {
+                    problems.add("resource-pack.url-753 must start with https:// (got '"
+                            + url753 + "'); 753 clients will be offered the 1.16.5 pack instead");
+                } else if (!isValidSha1(configuredSha1753)) {
+                    problems.add("resource-pack.sha1-753 is missing or not a 40-digit hex "
+                            + "SHA-1: '" + configuredSha1753
+                            + "'; 753 clients will be offered the 1.16.5 pack instead");
+                } else {
+                    pack753 = new ResourcePack(url753,
+                            configuredSha1753.trim().toLowerCase(Locale.ROOT),
+                            required, prompt);
+                }
+            }
+            String url754 = configuredUrl754 == null ? "" : configuredUrl754.trim();
+            if (!url754.isEmpty()) {
+                if (!url754.startsWith("https://")) {
+                    problems.add("resource-pack.url-754 must start with https:// (got '"
+                            + url754 + "'); 754 clients will be offered the 1.17 pack instead");
+                } else if (!isValidSha1(configuredSha1754)) {
+                    problems.add("resource-pack.sha1-754 is missing or not a 40-digit hex "
+                            + "SHA-1: '" + configuredSha1754
+                            + "'; 754 clients will be offered the 1.17 pack instead");
+                } else {
+                    pack754 = new ResourcePack(url754,
+                            configuredSha1754.trim().toLowerCase(Locale.ROOT),
                             required, prompt);
                 }
             }
@@ -1566,11 +1902,329 @@ public final class ResourcePackMode {
             }
             String problem = problems.isEmpty() ? null : String.join("; ", problems);
             return new Decision(Kind.EXTERNAL, pack, problem,
-                    pack755, pack756, pack757, pack759, pack760, pack761, pack762, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, pack775);
+                    pack735, pack736, pack751, pack753, pack754, pack755, pack756, pack757, pack759, pack760, pack761, pack762, pack763, pack764, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, pack774, pack775);
         }
         return new Decision(Kind.LOOPBACK, null,
                 "resource-pack.url must start with https:// (got '" + url
                         + "'); refusing it and falling back to loopback delivery",
                 null, null, null, null);
+    }
+
+
+
+    /**
+     * {@link #decide(String, String, boolean, String)} with the optional
+     * per-version packs through 26.1 plus the 1.19.1 / 1.19.2 and 1.19
+     * and 1.18 / 1.18.1 and 1.17.1 and 1.17 and 1.16.4 / 1.16.5 and
+     * 1.16.3 and 1.16.2 and 1.16.1 packs, but without a 1.16 pack. 735 clients are offered
+     * the 1.16.1 pack (when configured) as before.
+     */
+public static Decision decide(String configuredUrl, String configuredSha1,
+            String configuredUrl761,
+            String configuredSha1761,
+            String configuredUrl762,
+            String configuredSha1762,
+            String configuredUrl763,
+            String configuredSha1763,
+            String configuredUrl764,
+            String configuredSha1764,
+            String configuredUrl766,
+            String configuredSha1766,
+            String configuredUrl767,
+            String configuredSha1767,
+            String configuredUrl768,
+            String configuredSha1768,
+            String configuredUrl769,
+            String configuredSha1769,
+            String configuredUrl770,
+            String configuredSha1770,
+            String configuredUrl771,
+            String configuredSha1771,
+            String configuredUrl772,
+            String configuredSha1772,
+            String configuredUrl773,
+            String configuredSha1773,
+            String configuredUrl774,
+            String configuredSha1774,
+            String configuredUrl775,
+            String configuredSha1775,
+            String configuredUrl760,
+            String configuredSha1760,
+            String configuredUrl759,
+            String configuredSha1759,
+            String configuredUrl757,
+            String configuredSha1757,
+            String configuredUrl756,
+            String configuredSha1756,
+            String configuredUrl755,
+            String configuredSha1755,
+            String configuredUrl754,
+            String configuredSha1754,
+            String configuredUrl753,
+            String configuredSha1753,
+            String configuredUrl751,
+            String configuredSha1751,
+            String configuredUrl736,
+            String configuredSha1736,
+            boolean required, String promptKey) {
+        return decide(configuredUrl, configuredSha1,
+                configuredUrl761,
+                configuredSha1761,
+                configuredUrl762,
+                configuredSha1762,
+                configuredUrl763,
+                configuredSha1763,
+                configuredUrl764,
+                configuredSha1764,
+                configuredUrl766,
+                configuredSha1766,
+                configuredUrl767,
+                configuredSha1767,
+                configuredUrl768,
+                configuredSha1768,
+                configuredUrl769,
+                configuredSha1769,
+                configuredUrl770,
+                configuredSha1770,
+                configuredUrl771,
+                configuredSha1771,
+                configuredUrl772,
+                configuredSha1772,
+                configuredUrl773,
+                configuredSha1773,
+                configuredUrl774,
+                configuredSha1774,
+                configuredUrl775,
+                configuredSha1775,
+                configuredUrl760,
+                configuredSha1760,
+                configuredUrl759,
+                configuredSha1759,
+                configuredUrl757,
+                configuredSha1757,
+                configuredUrl756,
+                configuredSha1756,
+                configuredUrl755,
+                configuredSha1755,
+                configuredUrl754,
+                configuredSha1754,
+                configuredUrl753,
+                configuredSha1753,
+                configuredUrl751,
+                configuredSha1751,
+                configuredUrl736,
+                configuredSha1736,
+                null,
+                null, required, promptKey);
+    }
+
+    /**
+     * {@link #decide(String, String, boolean, String)} with the optional
+     * per-version packs through 26.1 plus the 1.19.1 / 1.19.2 and 1.19
+     * and 1.18 / 1.18.1 and 1.17.1 and 1.17 and 1.16.4 / 1.16.5 and
+     * 1.16.3 and 1.16.2 packs, but without a 1.16.1 pack. 736 clients are offered
+     * the 1.16.2 pack (when configured) as before.
+     */
+public static Decision decide(String configuredUrl, String configuredSha1,
+            String configuredUrl761,
+            String configuredSha1761,
+            String configuredUrl762,
+            String configuredSha1762,
+            String configuredUrl763,
+            String configuredSha1763,
+            String configuredUrl764,
+            String configuredSha1764,
+            String configuredUrl766,
+            String configuredSha1766,
+            String configuredUrl767,
+            String configuredSha1767,
+            String configuredUrl768,
+            String configuredSha1768,
+            String configuredUrl769,
+            String configuredSha1769,
+            String configuredUrl770,
+            String configuredSha1770,
+            String configuredUrl771,
+            String configuredSha1771,
+            String configuredUrl772,
+            String configuredSha1772,
+            String configuredUrl773,
+            String configuredSha1773,
+            String configuredUrl774,
+            String configuredSha1774,
+            String configuredUrl775,
+            String configuredSha1775,
+            String configuredUrl760,
+            String configuredSha1760,
+            String configuredUrl759,
+            String configuredSha1759,
+            String configuredUrl757,
+            String configuredSha1757,
+            String configuredUrl756,
+            String configuredSha1756,
+            String configuredUrl755,
+            String configuredSha1755,
+            String configuredUrl754,
+            String configuredSha1754,
+            String configuredUrl753,
+            String configuredSha1753,
+            String configuredUrl751,
+            String configuredSha1751,
+            boolean required, String promptKey) {
+        return decide(configuredUrl, configuredSha1,
+                configuredUrl761,
+                configuredSha1761,
+                configuredUrl762,
+                configuredSha1762,
+                configuredUrl763,
+                configuredSha1763,
+                configuredUrl764,
+                configuredSha1764,
+                configuredUrl766,
+                configuredSha1766,
+                configuredUrl767,
+                configuredSha1767,
+                configuredUrl768,
+                configuredSha1768,
+                configuredUrl769,
+                configuredSha1769,
+                configuredUrl770,
+                configuredSha1770,
+                configuredUrl771,
+                configuredSha1771,
+                configuredUrl772,
+                configuredSha1772,
+                configuredUrl773,
+                configuredSha1773,
+                configuredUrl774,
+                configuredSha1774,
+                configuredUrl775,
+                configuredSha1775,
+                configuredUrl760,
+                configuredSha1760,
+                configuredUrl759,
+                configuredSha1759,
+                configuredUrl757,
+                configuredSha1757,
+                configuredUrl756,
+                configuredSha1756,
+                configuredUrl755,
+                configuredSha1755,
+                configuredUrl754,
+                configuredSha1754,
+                configuredUrl753,
+                configuredSha1753,
+                configuredUrl751,
+                configuredSha1751,
+                null,
+                null, required, promptKey);
+    }
+
+    /**
+     * {@link #decide(String, String, boolean, String)} with the optional
+     * per-version packs through 26.1 plus the 1.19.1 / 1.19.2 and 1.19
+     * and 1.18 / 1.18.1 and 1.17.1 and 1.17 and 1.16.4 / 1.16.5 and
+     * 1.16.3 packs, but without a 1.16.2 pack. 751 clients are offered
+     * the 1.16.3 pack (when configured) as before.
+     */
+public static Decision decide(String configuredUrl, String configuredSha1,
+            String configuredUrl761, String configuredSha1761,
+            String configuredUrl762, String configuredSha1762,
+            String configuredUrl763, String configuredSha1763,
+            String configuredUrl764, String configuredSha1764,
+            String configuredUrl766, String configuredSha1766,
+            String configuredUrl767, String configuredSha1767,
+            String configuredUrl768, String configuredSha1768,
+            String configuredUrl769, String configuredSha1769,
+            String configuredUrl770, String configuredSha1770,
+            String configuredUrl771, String configuredSha1771,
+            String configuredUrl772, String configuredSha1772,
+            String configuredUrl773, String configuredSha1773,
+            String configuredUrl774, String configuredSha1774,
+            String configuredUrl775, String configuredSha1775,
+            String configuredUrl760, String configuredSha1760,
+            String configuredUrl759, String configuredSha1759,
+            String configuredUrl757, String configuredSha1757,
+            String configuredUrl756, String configuredSha1756,
+            String configuredUrl755, String configuredSha1755,
+            String configuredUrl754, String configuredSha1754,
+            String configuredUrl753, String configuredSha1753,
+            boolean required, String promptKey) {
+        return decide(configuredUrl, configuredSha1,
+                configuredUrl761, configuredSha1761,
+                configuredUrl762, configuredSha1762,
+                configuredUrl763, configuredSha1763,
+                configuredUrl764, configuredSha1764,
+                configuredUrl766, configuredSha1766,
+                configuredUrl767, configuredSha1767,
+                configuredUrl768, configuredSha1768,
+                configuredUrl769, configuredSha1769,
+                configuredUrl770, configuredSha1770,
+                configuredUrl771, configuredSha1771,
+                configuredUrl772, configuredSha1772,
+                configuredUrl773, configuredSha1773,
+                configuredUrl774, configuredSha1774,
+                configuredUrl775, configuredSha1775,
+                configuredUrl760, configuredSha1760,
+                configuredUrl759, configuredSha1759,
+                configuredUrl757, configuredSha1757,
+                configuredUrl756, configuredSha1756,
+                configuredUrl755, configuredSha1755,
+                configuredUrl754, configuredSha1754,
+                configuredUrl753, configuredSha1753,
+                null, null, required, promptKey);
+    }
+
+    /**
+     * {@link #decide(String, String, boolean, String)} with the optional
+     * per-version packs through 26.1 plus the 1.19.1 / 1.19.2 and 1.19
+     * and 1.18 / 1.18.1 and 1.17.1 and 1.17 and 1.16.4 / 1.16.5 packs,
+     * but without a 1.16.3 pack. 753 clients are offered the 1.16.5 pack
+     * (when configured) as before.
+     */
+public static Decision decide(String configuredUrl, String configuredSha1,
+            String configuredUrl761, String configuredSha1761,
+            String configuredUrl762, String configuredSha1762,
+            String configuredUrl763, String configuredSha1763,
+            String configuredUrl764, String configuredSha1764,
+            String configuredUrl766, String configuredSha1766,
+            String configuredUrl767, String configuredSha1767,
+            String configuredUrl768, String configuredSha1768,
+            String configuredUrl769, String configuredSha1769,
+            String configuredUrl770, String configuredSha1770,
+            String configuredUrl771, String configuredSha1771,
+            String configuredUrl772, String configuredSha1772,
+            String configuredUrl773, String configuredSha1773,
+            String configuredUrl774, String configuredSha1774,
+            String configuredUrl775, String configuredSha1775,
+            String configuredUrl760, String configuredSha1760,
+            String configuredUrl759, String configuredSha1759,
+            String configuredUrl757, String configuredSha1757,
+            String configuredUrl756, String configuredSha1756,
+            String configuredUrl755, String configuredSha1755,
+            String configuredUrl754, String configuredSha1754,
+            boolean required, String promptKey) {
+        return decide(configuredUrl, configuredSha1,
+                configuredUrl761, configuredSha1761,
+                configuredUrl762, configuredSha1762,
+                configuredUrl763, configuredSha1763,
+                configuredUrl764, configuredSha1764,
+                configuredUrl766, configuredSha1766,
+                configuredUrl767, configuredSha1767,
+                configuredUrl768, configuredSha1768,
+                configuredUrl769, configuredSha1769,
+                configuredUrl770, configuredSha1770,
+                configuredUrl771, configuredSha1771,
+                configuredUrl772, configuredSha1772,
+                configuredUrl773, configuredSha1773,
+                configuredUrl774, configuredSha1774,
+                configuredUrl775, configuredSha1775,
+                configuredUrl760, configuredSha1760,
+                configuredUrl759, configuredSha1759,
+                configuredUrl757, configuredSha1757,
+                configuredUrl756, configuredSha1756,
+                configuredUrl755, configuredSha1755,
+                configuredUrl754, configuredSha1754,
+                null, null, required, promptKey);
     }
 }

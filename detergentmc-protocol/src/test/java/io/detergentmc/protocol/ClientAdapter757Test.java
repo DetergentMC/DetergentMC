@@ -36,7 +36,7 @@ class ClientAdapter757Test {
 
     @Test
     void decide757AgainstAllServerProtocols() {
-        for (int server : new int[]{757, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771,
+        for (int server : new int[]{735, 736, 751, 757, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771,
                 772, 773, 774, 775}) {
             Handshake handshake = ClientAdapter.decide(757, server);
             assertTrue(handshake.accepted(), "server=" + server);
@@ -48,10 +48,10 @@ class ClientAdapter757Test {
                 assertTrue(handshake.needsTranslation());
             }
         }
-        // 776より新しい／758（1.18.2は別作業）／754より古いは断る。
+        // 776より新しい／758（1.18.2は別作業）／752（未対応番号）は断る。
         assertFalse(ClientAdapter.decide(776, 757).accepted());
         assertFalse(ClientAdapter.decide(758, 757).accepted());
-        assertFalse(ClientAdapter.decide(754, 757).accepted());
+        assertFalse(ClientAdapter.decide(752, 757).accepted());
     }
 
     @Test
@@ -71,6 +71,10 @@ class ClientAdapter757Test {
     @Test
     void supportedClientProtocolsInclude757() {
         List<Integer> supported = ClientAdapter.supportedClientProtocols();
+        assertEquals(735, supported.get(0), supported.toString());
+        assertEquals(736, supported.get(1), supported.toString());
+        assertEquals(751, supported.get(2), supported.toString());
+        assertTrue(supported.contains(751), supported.toString());
         assertTrue(supported.contains(757), supported.toString());
         assertFalse(supported.contains(758), supported.toString());
         assertTrue(supported.contains(759), supported.toString());
