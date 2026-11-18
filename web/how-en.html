@@ -69,11 +69,11 @@
 
     <section class="section">
       <h2>Bedrock support</h2>
-      <p class="sub">Bedrock Edition clients are accepted through the same proxy. It listens on UDP 19132 and supports 33 RakNet protocols.</p>
+      <p class="sub">Bedrock Edition clients are accepted through the same proxy. It listens on UDP 19132 and supports 63 RakNet protocols.</p>
       <ul class="facts">
         <li><strong>Chunk translation:</strong> converts Java block states to Bedrock runtime IDs. Biomes are converted too.</li>
         <li><strong>Entity translation:</strong> maps 126 Java entity types to Bedrock. Covers spawning, movement, orientation, equipment, effects, riding, and more.</li>
-        <li><strong>Limits:</strong> inventories are not yet supported. There is no Xbox signature verification or encryption yet, and no retransmission via NACK. The latest Bedrock 26.60 / 26.62 are not yet supported.</li>
+        <li><strong>Limits:</strong> inventories are not yet supported. There is no Xbox signature verification or encryption yet, and no retransmission via NACK. Bedrock 26.60–26.65 (protocol 2225) is packet-format only; the NetherNet transport is not supported yet.</li>
       </ul>
     </section>
 

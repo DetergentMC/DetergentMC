@@ -51,10 +51,10 @@ INFO  Internal vanilla server on 127.0.0.1:25566</span></pre>
         <div><span class="num">35<small>プロトコル</small></span><span class="label">Java 480〜777（1.14.1〜26.3）</span></div>
         <div><span class="num">1,225<small>通り</small></span><span class="label">クライアント × サーバー 35 × 35</span></div>
         <div><span class="num">3,160<small>件</small></span><span class="label">テスト 0失敗・4スキップ</span></div>
-        <div><span class="num">33<small>プロトコル</small></span><span class="label">Bedrock 1.19.70〜26.52</span></div>
+        <div><span class="num">63<small>プロトコル</small></span><span class="label">Bedrock 1.7.1〜26.52</span></div>
         <div><span class="num">28<small>個</small></span><span class="label">バージョン別リソースパック</span></div>
       </div>
-      <p class="note">プロトコル数・組み合わせ数・Bedrock・リソースパック数は 2026-11-17 時点のものです。テスト件数は 2026-11-15 時点のものです。テストはプロトコルレベルの検証で、本物のゲームクライアントでの確認はまだ行っていません。詳しくは下の「正直な話」をご覧ください。</p>
+      <p class="note">プロトコル数・組み合わせ数・Bedrock・リソースパック数は 2026-11-18 時点のものです。テスト件数は 2026-11-15 時点のものです。テストはプロトコルレベルの検証で、本物のゲームクライアントでの確認はまだ行っていません。詳しくは下の「正直な話」をご覧ください。</p>
     </section>
 
     <section class="section">
@@ -71,7 +71,7 @@ INFO  Internal vanilla server on 127.0.0.1:25566</span></pre>
         <a class="card link" href="how.html"><h3>仕組み →</h3><p>プロキシ・内部バニラ・リソースパック配信の3つのポート。バージョン間アダプターと Bedrock 対応の概要。</p></a>
         <a class="card link" href="products.html"><h3>製品 →</h3><p>DetergentMC 本体と、プラグイン「バブル」について。無料・公開前提のプロジェクトです。</p></a>
         <a class="card link" href="versions.html"><h3>対応バージョン →</h3><p>1.16 から 26.3 までの対応状況、Java の要件、リソースパック形式の一覧。</p></a>
-        <a class="card link" href="roadmap.html"><h3>ロードマップ →</h3><p>1.20.4 から始めて 1.21.11、1.19 系、26.1、26.2、1.18.2、1.18／1.18.1、1.17 系、1.16 系、26.3 へ。次は 1.15.x 以前か、Bedrock の 1.8 までか、実機テストか。</p></a>
+        <a class="card link" href="roadmap.html"><h3>ロードマップ →</h3><p>1.20.4 から始めて 1.21.11、1.19 系、26.1、26.2、1.18.2、1.18／1.18.1、1.17 系、1.16 系、26.3 へ。Bedrock は 1.7.1 まで対応済み。次は 1.15.x 以前か、NetherNet か、実機テストか。</p></a>
       </div>
     </section>
 
@@ -90,7 +90,7 @@ INFO  Internal vanilla server on 127.0.0.1:25566</span></pre>
       <ul class="facts">
         <li><strong>本物のゲームクライアントでの確認は、まだどの組み合わせも行っていません。</strong>テストはすべてプロトコルレベルの検証（偽クライアントと本物のバニラサーバー）です。2人同時参加など、実機での確認が必要な項目が残っています。</li>
         <li><strong>開発段階です。</strong>リソースパックの公開配信場所もまだ決めていません。公開前に改めて決めます。</li>
-        <li><strong>Bedrock には制限があります。</strong>インベントリは未対応で、Xbox 署名の検証や暗号化はまだありません。最新の Bedrock 26.60 / 26.62 には未対応です。</li>
+        <li><strong>Bedrock には制限があります。</strong>インベントリは未対応で、Xbox 署名の検証や暗号化はまだありません。Bedrock 26.60〜26.65（プロトコル 2225）はパケット形式のみ対応で、NetherNet のトランスポートは未対応です。</li>
       </ul>
     </section>
   </main>

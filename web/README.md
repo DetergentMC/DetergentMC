@@ -10,7 +10,7 @@ DetergentMC の公式ウェブサイトです。静的 HTML だけで作られ�
 | --- | --- |
 | `index.html` | DetergentMC の紹介・現在の到達点・目指すところ・正直な話 |
 | `index-en.html` | index.html の英語版 |
-| `versions.html` | 対応バージョン一覧（Java 35 プロトコル＋ Bedrock 33 プロトコル＋対応マトリクス＋今後の予定） |
+| `versions.html` | 対応バージョン一覧（Java 35 プロトコル＋ Bedrock 63 プロトコル＋対応マトリクス＋今後の予定） |
 | `versions-en.html` | versions.html の英語版（対応マトリクスは英語版の画像をメイン表示） |
 | `matrix.svg` | 対応マトリクス表の画像版（SVG。versions.html から表示） |
 | `matrix.png` | 対応マトリクス表の画像版（PNG。ダウンロード用） |

@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Roadmap — DetergentMC</title>
-  <meta name="description" content="DetergentMC's journey so far and what's next. From 1.20.4 to 1.21.11, the 1.19 series, 26.1, 26.2, the 1.18 series, the 1.17 series, the 1.16 series, 26.3, and the 1.15 and 1.14 series. Next: 1.13.x and earlier, Bedrock back to 1.8, or real-client testing.">
+  <meta name="description" content="DetergentMC's journey so far and what's next. From 1.20.4 to 1.21.11, the 1.19 series, 26.1, 26.2, the 1.18 series, the 1.17 series, the 1.16 series, 26.3, and the 1.15 and 1.14 series. Bedrock is now supported back to 1.7.1. Next: 1.13.x and earlier, NetherNet, or real-client testing.">
   <meta property="og:title" content="Roadmap — DetergentMC">
-  <meta property="og:description" content="DetergentMC's journey so far and what's next. From 1.20.4 to 1.21.11, the 1.19 series, 26.1, 26.2, the 1.18 series, the 1.17 series, the 1.16 series, 26.3, and the 1.15 and 1.14 series. Next: 1.13.x and earlier, Bedrock back to 1.8, or real-client testing.">
+  <meta property="og:description" content="DetergentMC's journey so far and what's next. From 1.20.4 to 1.21.11, the 1.19 series, 26.1, 26.2, the 1.18 series, the 1.17 series, the 1.16 series, 26.3, and the 1.15 and 1.14 series. Bedrock is now supported back to 1.7.1. Next: 1.13.x and earlier, NetherNet, or real-client testing.">
   <meta property="og:type" content="website">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
@@ -87,6 +87,11 @@
           <h3>Descending from 578</h3>
           <p>Working down one version at a time from 1.15.2 (578), we completed 573, 575, 578 and 498, 490, 485, 480. 1.14 (477) is in final verification. The goal is 335 (1.12).</p>
         </div>
+        <div class="phase">
+          <span class="phase-no">2026-11-17 – 18</span>
+          <h3>Taking Bedrock back to 1.7.1</h3>
+          <p>63 RakNet protocols supported (291–2193, 1.7.1–26.52). Protocol 2225 (26.60–26.65) is packet-format only. All 35 verify scripts passed, 6,992 checks in total.</p>
+        </div>
       </div>
     </section>
 
@@ -95,7 +100,7 @@
       <p class="sub">What to do next hasn't been decided yet. There are three candidates:</p>
       <ol class="steps">
         <li><strong>Go further back (1.13.x and earlier)</strong> — continue descending from 578 toward the 1.13 series and 335 (1.12). Complete down to 480 (1.14.1); 477 (1.14) is in final verification.</li>
-        <li><strong>Take Bedrock back to 1.8</strong> — a loop going back one version at a time from the latest; currently supported back to 1.19.70.</li>
+        <li><strong>Support NetherNet</strong> — protocol 2225 (Bedrock 26.60–26.65) is packet-format only so far. What remains is the WebRTC transport, which needs a native library choice.</li>
         <li><strong>Real-client testing</strong> — testing with real game clients. No combination has been done yet. Confirming two players joining at the same time is the most important remaining verification.</li>
       </ol>
       <p class="note">Once it's decided, this page will be updated too.</p>

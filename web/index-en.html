@@ -51,10 +51,10 @@ INFO  Internal vanilla server on 127.0.0.1:25566</span></pre>
         <div><span class="num">35<small>protocols</small></span><span class="label">Java 480–777 (1.14.1–26.3)</span></div>
         <div><span class="num">1,225<small>combinations</small></span><span class="label">Client × server 35 × 35</span></div>
         <div><span class="num">3,160<small>tests</small></span><span class="label">0 failures · 4 skipped</span></div>
-        <div><span class="num">33<small>protocols</small></span><span class="label">Bedrock 1.19.70–26.52</span></div>
+        <div><span class="num">63<small>protocols</small></span><span class="label">Bedrock 1.7.1–26.52</span></div>
         <div><span class="num">28<small>packs</small></span><span class="label">Version-specific resource packs</span></div>
       </div>
-      <p class="note">Protocol counts, combination counts, Bedrock, and resource pack counts are as of 2026-11-17. Test counts are as of 2026-11-15. The tests are protocol-level verification; real game clients have not been tested yet. See “Honest notes” below for details.</p>
+      <p class="note">Protocol counts, combination counts, Bedrock, and resource pack counts are as of 2026-11-18. Test counts are as of 2026-11-15. The tests are protocol-level verification; real game clients have not been tested yet. See “Honest notes” below for details.</p>
     </section>
 
     <section class="section">
@@ -71,7 +71,7 @@ INFO  Internal vanilla server on 127.0.0.1:25566</span></pre>
         <a class="card link" href="how-en.html"><h3>How it works →</h3><p>Three ports: the proxy, the internal vanilla server, and resource pack delivery. An overview of version adapters and Bedrock support.</p></a>
         <a class="card link" href="products-en.html"><h3>Products →</h3><p>About DetergentMC itself and the plugin called “Bubble”. A free, open project.</p></a>
         <a class="card link" href="versions-en.html"><h3>Versions →</h3><p>Support from 1.16 to 26.3, Java requirements, and a list of resource pack formats.</p></a>
-        <a class="card link" href="roadmap-en.html"><h3>Roadmap →</h3><p>Starting from 1.20.4, then 1.21.11, the 1.19 series, 26.1, 26.2, 1.18.2, 1.18 / 1.18.1, the 1.17 series, the 1.16 series, and 26.3. Next: 1.15.x or earlier, Bedrock back to 1.8, or real-device testing?</p></a>
+        <a class="card link" href="roadmap-en.html"><h3>Roadmap →</h3><p>Starting from 1.20.4, then 1.21.11, the 1.19 series, 26.1, 26.2, 1.18.2, 1.18 / 1.18.1, the 1.17 series, the 1.16 series, and 26.3. Bedrock is now supported back to 1.7.1. Next: 1.15.x or earlier, NetherNet, or real-device testing?</p></a>
       </div>
     </section>
 
@@ -90,7 +90,7 @@ INFO  Internal vanilla server on 127.0.0.1:25566</span></pre>
       <ul class="facts">
         <li><strong>No combination has been tested with a real game client yet.</strong> All tests are protocol-level verification (fake clients and real vanilla servers). Items that need real-device testing remain, such as two players joining at the same time.</li>
         <li><strong>Still in development.</strong> We have not decided where to publicly distribute resource packs yet. We will decide before release.</li>
-        <li><strong>Bedrock has limitations.</strong> Inventory is not supported yet, and there is no Xbox signature verification or encryption. The latest Bedrock 26.60 / 26.62 are not supported.</li>
+        <li><strong>Bedrock has limitations.</strong> Inventory is not supported yet, and there is no Xbox signature verification or encryption. Bedrock 26.60–26.65 (protocol 2225) is packet-format only; the NetherNet transport is not supported yet.</li>
       </ul>
     </section>
   </main>

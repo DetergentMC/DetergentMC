@@ -69,11 +69,11 @@
 
     <section class="section">
       <h2>Bedrock 対応</h2>
-      <p class="sub">Bedrock Edition のクライアントも、同じプロキシで受け付けます。UDP 19132 番で待ち受け、RakNet プロトコル 33 個に対応しています。</p>
+      <p class="sub">Bedrock Edition のクライアントも、同じプロキシで受け付けます。UDP 19132 番で待ち受け、RakNet プロトコル 63 個に対応しています。</p>
       <ul class="facts">
         <li><strong>チャンクの翻訳：</strong>Java のブロック状態を Bedrock のランタイム ID に変換します。バイオームも変換します。</li>
         <li><strong>エンティティの翻訳：</strong>Java のエンティティ 126 種を Bedrock へ写します。出現・移動・向き・装備・エフェクト・乗騎などに対応します。</li>
-        <li><strong>制限：</strong>インベントリは未対応です。Xbox 署名の検証や暗号化はまだなく、NACK による再送もありません。最新の Bedrock 26.60 / 26.62 には未対応です。</li>
+        <li><strong>制限：</strong>インベントリは未対応です。Xbox 署名の検証や暗号化はまだなく、NACK による再送もありません。Bedrock 26.60〜26.65（プロトコル 2225）はパケット形式のみ対応で、NetherNet のトランスポートは未対応です。</li>
       </ul>
     </section>
 
