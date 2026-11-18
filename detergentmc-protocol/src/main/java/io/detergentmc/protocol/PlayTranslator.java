@@ -15407,4 +15407,339 @@ public final class PlayTranslator {
         }
     }
 
+
+    // ------------------------------------------------------------------
+    // 735（1.16）⇔ 736（1.16.1）
+    // ------------------------------------------------------------------
+    //
+    // 実測の根拠（推測なし）：
+    // - packet-ids-735.json（272件。実バニラjarの ConnectionProtocol 登録順＋Mojang
+    //   mappingsで実測）：736↔735のパケットID差分は変更0件・新規0件・削除0件。
+    //   STAGE-A-735-NOTES.md §8参照。ViaVersion照合157件・Wiki照合149件とも不一致0件。
+    // - Join Game codec：STAGE-A-735-NOTES.md §11.6。実バニラ1.16の生キャプチャ
+    //   （.tmp-735/packet/joingame-1.16.bin。1,159バイト・entityId 352・消費量
+    //   1,159／1,159で完全一致）は1.16.1のものと同一の14フィールド（isHardcore無し、
+    //   dimensionは文字列、dimensionCodecは {"dimension": [...]} だけ・1,039バイト、
+    //   dimension 4件、バイオーム無し、min_y／height無し）。
+    // - 実バニラ1.16 jar（run/vanilla/server-1.16.jar。sha1
+    //   a0d03225615ba897619220e256a266cb33a44b6b）と実バニラ1.16.1 jar
+    //   （~/workspace/detergentmc-736/run/vanilla/server-1.16.1.jar。sha1
+    //   a412fd69db1f81db3f511c1463fd304675244077）の全21,480クラスを sha1 比較した
+    //   ところ、異なるのは o.class（net.minecraft.DetectedVersion。バージョン文字列
+    //   "1.16"／"1.16.1"、world 2566／2567、protocol 735／736のみ）1件だけで、
+    //   パケット関連を含む他の全クラスはバイト同一。よって全playパケットの
+    //   ワイヤ形式は同一である。個別にも javap -p -c で確認済み：
+    //   ClientboundLoginPacket（ox）・ClientboundRespawnPacket（pp）・
+    //   ClientboundRecipePacket（pl）・ServerboundClientInformationPacket（rf）・
+    //   ClientboundPlayerPositionPacket（pk）・ClientboundPlayerCombatPacket（ph）・
+    //   ClientboundSetTitlesPacket（qk）・ClientboundSetBorderPacket（ps）・
+    //   ClientboundContainerAckPacket（oe）・ServerboundContainerAckPacket（rh）・
+    //   ServerboundRecipeBookUpdatePacket（sb）・ClientboundUpdateRecipesPacket（qv）は
+    //   両jarでバイト同一。server_mappings.txt も両版で同一
+    //   （sha1 11120c39da4df293c4bd020896391fb9ddd6c2ba。piston-metaの値と一致）。
+    //   jar-packets-1.16.json と jar-packets-1.16.1.json も全状態・全方向で同一。
+    //
+    // 735⇔736の違いと扱い（IDは PacketIds.java／packet-ids-735.json 参照）：
+    // - Join Game（0x25⇔0x25）：codec同一。14フィールド。hardcore は gameMode バイトの
+    //   bit 3、dimension は文字列、maxPlayers は u8、dimensionCodec は
+    //   {"dimension": [...]} だけ。JoinGame736 の record・parse・write をそのまま使う
+    //   （JoinGame735 は作らない）。本節の変換器は parse＋write の往復（恒等写像）。
+    // - Respawn（0x3a⇔0x3a）：8フィールド同一。順序は dimension（文字列。
+    //   javap pp#b：dimensionType・dimension とも ResourceKey を mg.a(uh)＝文字列で
+    //   書く）／worldName／hashedSeed／gameMode u8／previousGameMode u8／isDebug／
+    //   isFlat／copyMetadata。Stage A §13.3の未確認事項はこれで解決。
+    //   SpawnInfo736 の record・read・write をそのまま使う（SpawnInfo735 は作らない）。
+    //   本節の変換器は read＋write の往復（恒等写像）。
+    // - Client Information（0x05⇔0x05）：6フィールド同一（javap rf が両jarで同一。
+    //   locale・viewDistance i8・chatFlags varint・chatColors bool・skinParts u8・
+    //   mainHand varint。disableTextFiltering は755での追加で、735・736とも無い）。
+    //   本節の変換器は恒等写像。
+    // - Synchronize Player Position（0x35⇔0x35）：7フィールド同一（javap pk が両jarで同一。
+    //   x・y・z f64、yaw・pitch f32、flags i8、teleportId varint。
+    //   dismountVehicle は755での追加で、735・736とも無い）。本節の変換器は恒等写像。
+    // - combat_event（0x32⇔0x32）：フィールド同一。736と同じく分割されていない
+    //   （分割は755での変更。751でも単一パケットであることは736 §14.3の訂正1で確定済み）。
+    //   本節の変換器は恒等写像（IDも同じため付け替えも不要）。
+    // - title（0x4f⇔0x4f）：IDもフィールドも同一（javap qk が両jarで同一）。
+    //   本節の変換器は恒等写像。
+    // - world_border（0x3d⇔0x3d）：IDもフィールドも同一（javap ps が両jarで同一）。
+    //   本節の変換器は恒等写像。
+    // - ping（0x12⇔0x12）／pong（0x07⇔0x07）：恒等写像。両版とも transaction 形式
+    //   （ClientboundContainerAckPacket oe／ServerboundContainerAckPacket rh。
+    //   {windowId i8, actionNumber i16, accepted bool}。javap が両jarで同一で、
+    //   ConnectionProtocol の登録順でも両版とも clientbound 0x12・serverbound 0x07）。
+    //   736⇔751で落としていたのは751側が {id i32} の ping／pong だったためで、
+    //   735⇔736では両側が同じ形式のため落とさない。Keep Alive（0x20⇔0x20）は別パケット。
+    // - displayed_recipe（両版とも -1）：変換器は作らない。735にも736にも無い
+    //   （packet-ids-735.json で id735＝id736＝-1。751で追加されたため736では
+    //   「削除」1件だったが、735は736と同じく -1）。crafting_book_data（0x1e）は
+    //   両版ともあり、形式も同一（javap sb が両jarで同一）のため変換器は不要。
+    // - entity（735では0x2b）：PacketIds の対象外のまま落とす（下記の判断参照）。
+    //
+    // 決めたこと：
+    // - entity（クライアント行き 0x2b）は PacketIds にエントリを追加せず、対象外のまま落とす。
+    //   根拠：1.17で削除されたパケットで、ViaVersion の1.17 enum には無く
+    //   Protocol1_16_4To1_17 でも未登録（＝落としている）。内容は entityId varint 1個だけの
+    //   「移動なし」通知で、rel_entity_move 系とは別に位置同期には影響しない。
+    //   （736の 0x2b と同じ判断。Stage A §8.2参照。）
+    // - ping／pong は両方向とも恒等写像（落とさない）。根拠は上記の通り。
+    // - Join Game／Respawn は codec が同一のため parse＋write の往復で恒等写像になる。
+    //   735専用の record・parse・write は作らず、736のものをそのまま使う。
+    //
+    // 変換器を作らなかったもの（ID同一で、形式も同一のため。IDも同じものは呼び出し側の付け替えも不要）：
+    // Chat、Player Info、Set Held Item、Update Time（0x4e⇔0x4e）、Keep Alive（0x20⇔0x20）、
+    // Set Slot、Window Items、Set Cooldown、Entity Equipment、Trade List、Tile Entity Data、
+    // Entity Metadata、Sound Effect、Entity Sound Effect、Named Sound Effect、Stop Sound、
+    // World Particles、Block Change、Spawn Entity 系、Open Window、Block Action、
+    // Entity Effect、Enchant Item、Tags、Resource Pack Send、Declare Recipes
+    // （ClientboundUpdateRecipesPacket qv の javap が両jarで同一。736⇔751の
+    // ShapedRecipe$Serializer の確認と同じくワイヤ同一）、Unlock Recipes
+    // （0x36⇔0x36。ClientboundRecipePacket pl の javap が両jarで同一。blast／smoker の
+    // 4 bool が無いのは735・736とも同じで、736⇔751の違いは751側の追加によるもの）、
+    // Recipe Book（crafting_book_data。サーバー行き 0x1e⇔0x1e。
+    // ServerboundRecipeBookUpdatePacket sb の javap が両jarで同一）。
+    // 根拠は冒頭の全クラス sha1 比較（異なるのは DetectedVersion 1件だけ）による。
+    //
+    // ChunkTranslator担当へ申し送るもの：
+    // - entity_destroy（0x37⇔0x37）：ID同一。ChunkTranslator担当のパケットのため本節では扱わない。
+    // - window_click（0x09⇔0x09）：ID同一。ChunkTranslator担当。
+    // - map_chunk（0x21⇔0x21）：ID同一。ChunkTranslator担当。
+    // - update_light（0x24⇔0x24）：ID同一。ChunkTranslator担当。
+    // - explosion（0x1c⇔0x1c）：ID同一。ChunkTranslator担当。
+    // - entity_update_attributes（0x58⇔0x58）：ID同一。ChunkTranslator担当。
+    // - map（0x26⇔0x26）：ID同一。ChunkTranslator担当。
+    // - multi_block_change（0x0f⇔0x0f）：ID同一。ChunkTranslator担当。
+    // （上記8件の形式の実測は ChunkTranslator担当。冒頭の全クラス比較により
+    // 735と736でワイヤ形式が違う可能性は DetectedVersion 以外に無いことが分かっている。）
+
+    // ------------------------------------------------------------------
+    // Join Game（735⇔736。codec同一）
+    // ------------------------------------------------------------------
+
+    /**
+     * Join Game（735 → 736）。codec が同一のため、736の parse＋write の往復で
+     * 恒等写像になる。hardcore は gameMode バイトの bit 3、dimension は文字列、
+     * maxPlayers は u8、dimensionCodec は {"dimension": [...]} だけ。
+     * 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
+     */
+    public static byte[] translateJoinGame735To736(byte[] payload) {
+        try {
+            return writeJoinGame736(parseJoinGame736(payload));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Join Game（736 → 735）。codec が同一のため、736の parse＋write の往復で
+     * 恒等写像になる。根拠は {@link #translateJoinGame735To736(byte[])} と同じ。
+     */
+    public static byte[] translateJoinGame736To735(byte[] payload) {
+        try {
+            return writeJoinGame736(parseJoinGame736(payload));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Respawn（735⇔736。8フィールド同一）
+    // ------------------------------------------------------------------
+
+    /**
+     * Respawn（735 → 736）。8フィールド同一のため、736の read＋write の往復で
+     * 恒等写像になる。dimension は文字列（javap pp#b で両jarとも ResourceKey を
+     * 文字列で書くことを確認）。読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn735To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo736 info = readSpawnInfo736(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo736(writer, info);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Respawn（736 → 735）。8フィールド同一のため、736の read＋write の往復で
+     * 恒等写像になる。根拠は {@link #translateRespawn735To736(byte[])} と同じ。
+     */
+    public static byte[] translateRespawn736To735(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo736 info = readSpawnInfo736(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo736(writer, info);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Client Information（Settings、735⇔736）
+    // ------------------------------------------------------------------
+
+    /**
+     * Client Information（735 → 736）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x05 同一、6フィールド同一。javap rf が両jarで同一。
+     * disableTextFiltering は755での追加で、735・736とも無い）。パースして書き直さない。
+     */
+    public static byte[] translateClientInformation735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Client Information（736 → 735）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateClientInformation735To736(byte[])} と同じ。
+     */
+    public static byte[] translateClientInformation736To735(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // Synchronize Player Position（735⇔736）
+    // ------------------------------------------------------------------
+
+    /**
+     * Synchronize Player Position（735 0x35 → 736 0x35）。恒等写像：入力ペイロードを
+     * そのまま返す（IDも同じため付け替えも不要）。
+     * 根拠は本節の冒頭（javap pk が両jarで同一。x・y・z f64、yaw・pitch f32、
+     * flags i8、teleportId varint の7フィールド。dismountVehicle は755での追加で、
+     * 735・736とも無い）。
+     * パースして書き直さない。
+     */
+    public static byte[] translatePosition735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Synchronize Player Position（736 0x35 → 735 0x35）。恒等写像：入力ペイロードを
+     * そのまま返す。根拠は {@link #translatePosition735To736(byte[])} と同じ。
+     */
+    public static byte[] translatePosition736To735(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // Combat Event（735⇔736。分割されていない）
+    // ------------------------------------------------------------------
+
+    /**
+     * Combat Event（735 0x32 → 736 0x32）。恒等写像：入力ペイロードをそのまま返す
+     * （IDも同じため付け替えも不要）。分割されていないため振り分けは不要。
+     * 根拠は本節の冒頭（javap ph が両jarで同一。event varint、END_COMBAT なら
+     * duration varint＋entityId i32、ENTITY_DIED なら playerId varint＋entityId i32＋
+     * message。分割は755での変更）。
+     * パースして書き直さない。
+     */
+    public static byte[] translateCombatEvent735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Combat Event（736 0x32 → 735 0x32）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateCombatEvent735To736(byte[])} と同じ。
+     */
+    public static byte[] translateCombatEvent736To735(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // Title（735⇔736。分割されていない）
+    // ------------------------------------------------------------------
+
+    /**
+     * Title（735 0x4f → 736 0x4f）。恒等写像：入力ペイロードをそのまま返す。
+     * 分割されていないため振り分けは不要。IDも同じ 0x4f。
+     * 根拠は本節の冒頭（javap qk が両jarで同一。action varint、0・1・2 なら text、
+     * 3 なら fadeIn／stay／fadeOut i32×3。分割は755での変更）。
+     * パースして書き直さない。
+     */
+    public static byte[] translateTitle735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Title（736 0x4f → 735 0x4f）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateTitle735To736(byte[])} と同じ。
+     */
+    public static byte[] translateTitle736To735(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // World Border（735⇔736。分割されていない）
+    // ------------------------------------------------------------------
+
+    /**
+     * World Border（735 0x3d → 736 0x3d）。恒等写像：入力ペイロードをそのまま返す。
+     * 分割されていないため振り分けは不要。IDも同じ 0x3d。
+     * 根拠は本節の冒頭（javap ps が両jarで同一。INITIALIZE は x, z, oldSize, newSize,
+     * speed, portalBoundary, warningBlocks, warningTime の順。分割は755での変更）。
+     * パースして書き直さない。
+     */
+    public static byte[] translateWorldBorder735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * World Border（736 0x3d → 735 0x3d）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateWorldBorder735To736(byte[])} と同じ。
+     */
+    public static byte[] translateWorldBorder736To735(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // Ping／Pong（735⇔736。両版とも transaction 形式）
+    // ------------------------------------------------------------------
+
+    /**
+     * Ping（735 0x12 → 736 0x12）。恒等写像：入力ペイロードをそのまま返す。
+     * 両版とも transaction 形式（ClientboundContainerAckPacket。
+     * {windowId i8, actionNumber i16, accepted bool}。javap oe が両jarで同一）。
+     * 736⇔751で落としていたのは751側が {id i32} の ping だったためで、
+     * 735⇔736では両側が同じ形式のため落とさない。
+     */
+    public static byte[] translatePing735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Ping（736 0x12 → 735 0x12）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translatePing735To736(byte[])} と同じ。
+     */
+    public static byte[] translatePing736To735(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Pong（735 0x07 → 736 0x07）。恒等写像：入力ペイロードをそのまま返す。
+     * 両版とも transaction 形式（ServerboundContainerAckPacket。
+     * {windowId i8, actionNumber i16, accepted bool}。javap rh が両jarで同一）。
+     * 736⇔751で落としていたのは751側が {id i32} の pong だったためで、
+     * 735⇔736では両側が同じ形式のため落とさない。
+     */
+    public static byte[] translatePong735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Pong（736 0x07 → 735 0x07）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translatePong735To736(byte[])} と同じ。
+     */
+    public static byte[] translatePong736To735(byte[] payload) {
+        return payload;
+    }
+
 }
