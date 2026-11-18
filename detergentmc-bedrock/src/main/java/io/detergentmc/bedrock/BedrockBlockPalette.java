@@ -148,42 +148,6 @@ public final class BedrockBlockPalette {
         return Arrays.copyOf(bytes, bytes.length);
     }
 
-    /**
-     * StartGame の旧形式ブロックパレット（プロトコル 419 未満）として送る
-     * バイト列。パレット全体を単一の NBT リストタグとして表したもので、
-     * {@code 0x09（TAG_List）＋要素型 0x0A（TAG_Compound）＋件数（zigzag
-     * varint）＋各エントリの compound 本体} の並びになる。エントリの
-     * 本体はファイル中のエントリから型バイトと空名（先頭 2 バイト、
-     * {@link #parse} が保証する）を除いた部分である。
-     *
-     * <p>形式の根拠：CloudburstMC Protocol の StartGameSerializer_v388 は
-     * ブロックパレットを helper.writeTag（NbtList）で書く。PMMP BedrockData
-     * bedrock-1.16.0 タグの required_block_states.nbt も同じ形（ルートが
-     * 名前なし TAG_List、要素型 0x0A、件数は zigzag varint で 6,632 件、
-     * 要素は compound 本体）であることを実ファイルで確認した
-     * （BE-NOTES.md §26）。
-     */
-    public byte[] rawPaletteListTagBytes() {
-        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream();
-        out.write(0x09);
-        out.write(0x0A);
-        writeZigzagVarInt(out, entries.size());
-        for (Entry entry : entries) {
-            out.write(bytes, entry.offset() + 2, entry.length() - 2);
-        }
-        return out.toByteArray();
-    }
-
-    /** zigzag 変換した int を unsigned varint として書く（読み側の Cursor と対）。 */
-    private static void writeZigzagVarInt(java.io.ByteArrayOutputStream out, int value) {
-        int zigzag = (value << 1) ^ (value >> 31);
-        while ((zigzag & ~0x7F) != 0) {
-            out.write((zigzag & 0x7F) | 0x80);
-            zigzag >>>= 7;
-        }
-        out.write(zigzag);
-    }
-
     /** compound 本体の検証なしの読み飛ばし（入れ子用）。 */
     private static void skipCompoundBody(Cursor cursor) {
         while (true) {

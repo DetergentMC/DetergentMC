@@ -437,34 +437,6 @@ class BedrockEntityTranslatorTest {
     }
 
     @Test
-    void metadataGoatHornCountOnlyFrom440() {
-        // 431 の MetadataDictionary の key 123 は base_runtime_id。
-        // 440 で key 123 が goat_horn_count になる。
-        // ヤギ（type 46）の左右の角が両方あると goatHornCount = 2。
-        byte[] meta = metadataPayload(105,
-                booleanEntry(17, true),
-                booleanEntry(18, true));
-        BedrockEntityTranslator.JavaMetadata parsed =
-                BedrockEntityTranslator.parseMetadata(meta, 765, 46);
-        assertEquals(2, parsed.goatHornCount());
-        BedrockEntityTranslator.BedrockEntityData data440 =
-                BedrockEntityTranslator.toBedrockData(parsed, 46, BedrockVersion.V1_17_2);
-        assertEquals(2, data440.entries().stream()
-                .filter(e -> e.key() == BedrockEntityTranslator.BedrockEntityData.KEY_GOAT_HORN_COUNT)
-                .findFirst().orElseThrow().value());
-        BedrockEntityTranslator.BedrockEntityData data431 =
-                BedrockEntityTranslator.toBedrockData(parsed, 46, BedrockVersion.V1_16_221);
-        assertTrue(data431.entries().stream()
-                .noneMatch(e -> e.key() == BedrockEntityTranslator.BedrockEntityData.KEY_GOAT_HORN_COUNT),
-                "431 では key 123 を書かない（base_runtime_id の位置）");
-        // 2 引数版（既定 V1_20_50）は従来通り key 123 を書く。
-        BedrockEntityTranslator.BedrockEntityData dataDefault =
-                BedrockEntityTranslator.toBedrockData(parsed, 46);
-        assertTrue(dataDefault.entries().stream()
-                .anyMatch(e -> e.key() == BedrockEntityTranslator.BedrockEntityData.KEY_GOAT_HORN_COUNT));
-    }
-
-    @Test
     void metadataPlayerExtra() {
         byte[] meta = metadataPayload(104,
                 floatEntry(16, 4.0f),

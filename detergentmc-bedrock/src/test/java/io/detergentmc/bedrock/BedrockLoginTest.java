@@ -35,10 +35,8 @@ class BedrockLoginTest {
         // 1.20.70（662）も 1.20.0〜26.51 の対応範囲に入る。
         assertTrue(BedrockProtocol.isSupportedProtocol(662));
         assertFalse(BedrockProtocol.isSupportedProtocol(588));
-        assertTrue(BedrockProtocol.isSupportedProtocol(2225),
-                "26.60（2225）はパケット形式として対応する（トランスポートは NetherNet）");
-        assertTrue(BedrockProtocol.isNetherNetProtocol(2225),
-                "26.60（2225）は NetherNet 世代");
+        assertFalse(BedrockProtocol.isSupportedProtocol(2225),
+                "26.60（2225）は NetherNet で対象外");
     }
 
     @Test

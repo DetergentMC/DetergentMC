@@ -13,7 +13,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.junit.jupiter.api.Test;
 
 /**
- * Bedrock セッションのバージョン別テスト。51 の全対応プロトコルで
+ * Bedrock セッションのバージョン別テスト。30 の全対応プロトコルで
  * Login→リソースパック→Start Game まで進み、送られたパケットが
  * そのバージョンの形式で読めることを検証する。対象外プロトコルは切断する。
  */
@@ -167,11 +167,11 @@ class BedrockSessionVersionTest {
     }
 
     @Test
-    void allSixtyThreeProtocolsReachStartGame() throws Exception {
+    void allThirtyProtocolsReachStartGame() throws Exception {
         BedrockBlockPalette palette = BedrockBlockPalette.load();
-        int[] protocols = {291, 313, 332, 340, 354, 361, 388, 389, 390, 407, 408, 419, 422, 428, 431, 440, 448, 465, 471, 475, 486, 503, 527, 534, 544, 545, 554, 557, 560, 567, 575, 582, 589, 594, 618, 622, 630, 649, 662, 671, 685, 686,
+        int[] protocols = {589, 594, 618, 622, 630, 649, 662, 671, 685, 686,
                 712, 729, 748, 766, 776, 786, 800, 818, 819, 827,
-                844, 859, 860, 898, 924, 944, 975, 1001, 2168, 2169, 2193};
+                844, 859, 898, 924, 944, 975, 1001, 2168, 2169, 2193};
         for (int protocol : protocols) {
             BedrockVersion version = BedrockVersion.fromProtocol(protocol);
             Fixture fixture = new Fixture();
@@ -192,17 +192,15 @@ class BedrockSessionVersionTest {
             assertNotNull(stackPacket, "ResourcePackStack が送られること（" + protocol + "）");
             BedrockPacketsVersionTest.parseResourcePackStack(stackPacket.payload(),
                     version);
-            // StartGame はそのバージョンの形式で最後まで読めること。
-            // game version はクライアントの表示名になる（361・354・340・332・313・291 は
-            // LevelSettings に game version 文字列自体が無いため null）。
+            // StartGame はそのバージョンの形式で最後まで読め、game version は
+            // クライアントの表示名になること。
             GamePacket startGame = fixture.findGamePacket(
                     BedrockProtocol.PACKET_START_GAME);
             assertNotNull(startGame, "StartGame が送られること（" + protocol + "）");
             BedrockPacketsVersionTest.ParsedStartGame parsed =
                     BedrockPacketsVersionTest.parseStartGame(startGame.payload(), version,
                             palette);
-            assertEquals(version.hasStartGameVanillaVersion()
-                    ? version.displayName() : null, parsed.gameVersion(),
+            assertEquals(version.displayName(), parsed.gameVersion(),
                     "StartGame の game version（" + protocol + "）");
         }
     }
