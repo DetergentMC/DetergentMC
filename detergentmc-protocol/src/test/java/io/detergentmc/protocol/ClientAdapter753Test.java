@@ -37,7 +37,7 @@ class ClientAdapter753Test {
 
     @Test
     void decide753AgainstAllServerProtocols() {
-        for (int server : new int[]{753, 754, 755, 756, 757, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771,
+        for (int server : new int[]{735, 736, 751, 753, 754, 755, 756, 757, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771,
                 772, 773, 774, 775}) {
             Handshake handshake = ClientAdapter.decide(753, server);
             assertTrue(handshake.accepted(), "server=" + server);
@@ -49,7 +49,7 @@ class ClientAdapter753Test {
                 assertTrue(handshake.needsTranslation());
             }
         }
-        // 776より新しい／758（1.18.2は別作業）／752より古いは断る。
+        // 776より新しい／758（1.18.2は別作業）／752（未対応番号）は断る。
         assertFalse(ClientAdapter.decide(776, 753).accepted());
         assertFalse(ClientAdapter.decide(758, 753).accepted());
         assertFalse(ClientAdapter.decide(752, 753).accepted());
@@ -72,7 +72,10 @@ class ClientAdapter753Test {
     @Test
     void supportedClientProtocolsInclude753() {
         List<Integer> supported = ClientAdapter.supportedClientProtocols();
-        assertEquals(753, supported.get(0), supported.toString());
+        assertEquals(735, supported.get(0), supported.toString());
+        assertEquals(736, supported.get(1), supported.toString());
+        assertEquals(751, supported.get(2), supported.toString());
+        assertEquals(753, supported.get(3), supported.toString());
         assertTrue(supported.contains(753), supported.toString());
         assertFalse(supported.contains(758), supported.toString());
         assertFalse(supported.contains(752), supported.toString());
@@ -227,7 +230,7 @@ class ClientAdapter753Test {
 
     @Test
     void differencesFor752AreNotSupported() {
-        // 752（1.16.2）は次のループの対象で、まだ受け入れない。
+        // 752はリリースの無い未対応番号で、まだ受け入れない（1.16.2は751）。
         assertEquals(Decision.REJECT_OUTDATED, ClientAdapter.decide(752).decision());
         List<Difference> differences = ClientAdapter.differences(752);
         assertFalse(differences.isEmpty());

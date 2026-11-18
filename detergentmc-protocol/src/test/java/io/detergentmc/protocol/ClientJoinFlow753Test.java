@@ -18,7 +18,8 @@ class ClientJoinFlow753Test {
         assertEquals(List.of(Stage.HANDSHAKE, Stage.LOGIN,
                 Stage.PLAY, Stage.JOINED, Stage.IN_GAME), flow.stages());
         assertFalse(flow.hasConfigurationPhase());
-        // 754・755・756・757・759・760・761・762・763と段階の順番は同じ（設定フェーズなし）。
+        // 751・754・755・756・757・759・760・761・762・763と段階の順番は同じ（設定フェーズなし）。
+        assertEquals(new ClientJoinFlow(751).stages(), flow.stages());
         assertEquals(new ClientJoinFlow(754).stages(), flow.stages());
         assertEquals(new ClientJoinFlow(755).stages(), flow.stages());
         assertEquals(new ClientJoinFlow(756).stages(), flow.stages());
