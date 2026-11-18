@@ -39,7 +39,7 @@ class ClientAdapter498Test {
         assertFalse(ClientAdapter.decide(777, 498).accepted());
         assertFalse(ClientAdapter.decide(574, 498).accepted());
         assertFalse(ClientAdapter.decide(497, 498).accepted());
-        assertFalse(ClientAdapter.decide(340, 498).accepted());
+        assertFalse(ClientAdapter.decide(339, 498).accepted());
     }
 
     @Test
@@ -48,15 +48,21 @@ class ClientAdapter498Test {
     }
 
     @Test
-    void oldestSupportedIs480() {
-        // 480（1.14.1）対応で最古は 480 になった。485 は2番目、490 は3番目、498 は4番目。
-        assertEquals(480, ClientAdapter.OLDEST_SUPPORTED_CLIENT_PROTOCOL);
+    void oldestSupportedIs477() {
+        // 477（1.14）対応で最古は 477 になった。480 は2番目、485 は3番目、490 は4番目、498 は5番目。
+        assertEquals(335, ClientAdapter.OLDEST_SUPPORTED_CLIENT_PROTOCOL);
         List<Integer> supported = ClientAdapter.supportedClientProtocols();
-        assertEquals(480, supported.get(0), supported.toString());
-        assertEquals(485, supported.get(1), supported.toString());
-        assertEquals(490, supported.get(2), supported.toString());
-        assertEquals(498, supported.get(3), supported.toString());
-        assertEquals(26, supported.size(), supported.toString());
+        assertEquals(335, supported.get(0), supported.toString());
+        assertEquals(338, supported.get(1), supported.toString());
+        assertEquals(340, supported.get(2), supported.toString());
+        assertEquals(393, supported.get(3), supported.toString());
+        assertEquals(401, supported.get(4), supported.toString());
+        assertEquals(404, supported.get(5), supported.toString());
+        assertEquals(477, supported.get(6), supported.toString());
+        assertEquals(480, supported.get(7), supported.toString());
+        assertEquals(485, supported.get(8), supported.toString());
+        assertEquals(490, supported.get(9), supported.toString());
+        assertEquals(33, supported.size(), supported.toString());
         assertTrue(supported.contains(758), supported.toString());
     }
 

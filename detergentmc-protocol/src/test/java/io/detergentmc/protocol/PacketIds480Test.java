@@ -23,7 +23,7 @@ class PacketIds480Test {
     @Test
     void tableKnows480() {
         assertTrue(PacketIds.isSupported(V480));
-        assertEquals(List.of(480, 485, 490, 498, 573, 575, 578, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776),
+        assertEquals(List.of(335, 338, 340, 393, 401, 404, 477, 480, 485, 490, 498, 573, 575, 578, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776),
                 PacketIds.supportedProtocols());
     }
 

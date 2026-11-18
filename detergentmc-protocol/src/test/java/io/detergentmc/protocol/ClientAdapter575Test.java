@@ -38,7 +38,7 @@ class ClientAdapter575Test {
         // 777より新しい／574より古いは断る。
         assertFalse(ClientAdapter.decide(777, 575).accepted());
         assertFalse(ClientAdapter.decide(574, 575).accepted());
-        assertFalse(ClientAdapter.decide(340, 575).accepted());
+        assertFalse(ClientAdapter.decide(339, 575).accepted());
     }
 
     @Test
@@ -48,13 +48,19 @@ class ClientAdapter575Test {
 
     @Test
     void oldestSupportedIs573() {
-        assertEquals(480, ClientAdapter.OLDEST_SUPPORTED_CLIENT_PROTOCOL);
+        assertEquals(335, ClientAdapter.OLDEST_SUPPORTED_CLIENT_PROTOCOL);
         List<Integer> supported = ClientAdapter.supportedClientProtocols();
-        assertEquals(480, supported.get(0), supported.toString());
-        assertEquals(485, supported.get(1), supported.toString());
-        assertEquals(490, supported.get(2), supported.toString());
-        assertEquals(498, supported.get(3), supported.toString());
-        assertEquals(26, supported.size(), supported.toString());
+        assertEquals(335, supported.get(0), supported.toString());
+        assertEquals(338, supported.get(1), supported.toString());
+        assertEquals(340, supported.get(2), supported.toString());
+        assertEquals(393, supported.get(3), supported.toString());
+        assertEquals(401, supported.get(4), supported.toString());
+        assertEquals(404, supported.get(5), supported.toString());
+        assertEquals(477, supported.get(6), supported.toString());
+        assertEquals(480, supported.get(7), supported.toString());
+        assertEquals(485, supported.get(8), supported.toString());
+        assertEquals(490, supported.get(9), supported.toString());
+        assertEquals(33, supported.size(), supported.toString());
         assertTrue(supported.contains(758), supported.toString());
     }
 

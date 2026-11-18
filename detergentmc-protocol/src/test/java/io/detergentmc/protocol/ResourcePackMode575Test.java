@@ -43,6 +43,8 @@ class ResourcePackMode575Test {
                 "", "",
                 // 480（未設定）
                 "", "",
+                // 477（未設定）
+                "", "",
                 false, "");
     }
 

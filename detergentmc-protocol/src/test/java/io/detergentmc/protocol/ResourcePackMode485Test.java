@@ -45,6 +45,8 @@ class ResourcePackMode485Test {
                 url485, sha1485,
                 // 480（未設定）
                 "", "",
+                // 477（未設定）
+                "", "",
                 false, "");
     }
 

@@ -40,6 +40,8 @@ class ResourcePackMode480Test {
                 // 485（フォールバック先として設定）
                 URL_485, VALID_SHA1_485,
                 url480, sha1480,
+                // 477（未設定）
+                "", "",
                 false, "");
     }
 

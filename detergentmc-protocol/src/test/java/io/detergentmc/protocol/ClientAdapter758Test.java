@@ -59,19 +59,26 @@ class ClientAdapter758Test {
 
     @Test
     void oldestSupportedIs573And758IsFourth() {
-        // 480（1.14.1）対応で最古は 480 になった。並びは 480・485・490・498・573・575・578・758…。
-        assertEquals(480, ClientAdapter.OLDEST_SUPPORTED_CLIENT_PROTOCOL);
-        assertEquals(ProtocolVersion.V1_14_1, ClientAdapter.OLDEST_SUPPORTED_CLIENT_PROTOCOL);
+        // 404（1.13.2）対応で最古は 404 になった。並びは 404・477・480・485・490・498・573・575・578・758…。
+        assertEquals(335, ClientAdapter.OLDEST_SUPPORTED_CLIENT_PROTOCOL);
+        assertEquals(ProtocolVersion.V1_12, ClientAdapter.OLDEST_SUPPORTED_CLIENT_PROTOCOL);
         List<Integer> supported = ClientAdapter.supportedClientProtocols();
+        assertEquals(335, supported.get(0), supported.toString());
+        assertEquals(338, supported.get(1), supported.toString());
+        assertEquals(340, supported.get(2), supported.toString());
+        assertEquals(393, supported.get(3), supported.toString());
         assertTrue(supported.contains(758), supported.toString());
-        assertEquals(480, supported.get(0), supported.toString());
-        assertEquals(485, supported.get(1), supported.toString());
-        assertEquals(490, supported.get(2), supported.toString());
-        assertEquals(498, supported.get(3), supported.toString());
-        assertEquals(573, supported.get(4), supported.toString());
-        assertEquals(575, supported.get(5), supported.toString());
-        assertEquals(578, supported.get(6), supported.toString());
-        assertEquals(758, supported.get(7), supported.toString());
+        assertEquals(401, supported.get(4), supported.toString());
+        assertEquals(404, supported.get(5), supported.toString());
+        assertEquals(477, supported.get(6), supported.toString());
+        assertEquals(480, supported.get(7), supported.toString());
+        assertEquals(485, supported.get(8), supported.toString());
+        assertEquals(490, supported.get(9), supported.toString());
+        assertEquals(498, supported.get(10), supported.toString());
+        assertEquals(573, supported.get(11), supported.toString());
+        assertEquals(575, supported.get(12), supported.toString());
+        assertEquals(578, supported.get(13), supported.toString());
+        assertEquals(758, supported.get(14), supported.toString());
     }
 
     @Test

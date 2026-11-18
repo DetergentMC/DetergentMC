@@ -24,7 +24,7 @@ class ClientAdapter480Test {
 
     @Test
     void decide480AgainstAllServerProtocols() {
-        for (int server : new int[]{480, 485, 490, 498, 573, 575, 578, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776}) {
+        for (int server : new int[]{477, 480, 485, 490, 498, 573, 575, 578, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776}) {
             Handshake handshake = ClientAdapter.decide(480, server);
             assertTrue(handshake.accepted(), "server=" + server);
             if (server == 480) {
@@ -41,7 +41,7 @@ class ClientAdapter480Test {
         assertFalse(ClientAdapter.decide(489, 480).accepted());
         assertFalse(ClientAdapter.decide(484, 480).accepted());
         assertFalse(ClientAdapter.decide(479, 480).accepted());
-        assertFalse(ClientAdapter.decide(340, 480).accepted());
+        assertFalse(ClientAdapter.decide(339, 480).accepted());
     }
 
     @Test
@@ -50,13 +50,19 @@ class ClientAdapter480Test {
     }
 
     @Test
-    void oldestSupportedIs480() {
-        assertEquals(480, ClientAdapter.OLDEST_SUPPORTED_CLIENT_PROTOCOL);
+    void oldestSupportedIs477() {
+        assertEquals(335, ClientAdapter.OLDEST_SUPPORTED_CLIENT_PROTOCOL);
         List<Integer> supported = ClientAdapter.supportedClientProtocols();
-        assertEquals(480, supported.get(0), supported.toString());
-        assertEquals(485, supported.get(1), supported.toString());
-        assertEquals(490, supported.get(2), supported.toString());
-        assertEquals(26, supported.size(), supported.toString());
+        assertEquals(335, supported.get(0), supported.toString());
+        assertEquals(338, supported.get(1), supported.toString());
+        assertEquals(340, supported.get(2), supported.toString());
+        assertEquals(393, supported.get(3), supported.toString());
+        assertEquals(401, supported.get(4), supported.toString());
+        assertEquals(404, supported.get(5), supported.toString());
+        assertEquals(477, supported.get(6), supported.toString());
+        assertEquals(480, supported.get(7), supported.toString());
+        assertEquals(485, supported.get(8), supported.toString());
+        assertEquals(33, supported.size(), supported.toString());
         assertTrue(supported.contains(758), supported.toString());
     }
 

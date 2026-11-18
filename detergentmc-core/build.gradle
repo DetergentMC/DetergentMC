@@ -11,6 +11,12 @@ dependencies {
     // Version adapters are runtime-only: the core picks one by the
     // minecraft-version in detergentmc.yml.
     // 1.18.2 is protocol 758 and lives in one module.
+    runtimeOnly project(':detergentmc-adapter-v1_12')
+    runtimeOnly project(':detergentmc-adapter-v1_12_1')
+    runtimeOnly project(':detergentmc-adapter-v1_12_2')
+    runtimeOnly project(':detergentmc-adapter-v1_13')
+    runtimeOnly project(':detergentmc-adapter-v1_13_1')
+    runtimeOnly project(':detergentmc-adapter-v1_13_2')
     runtimeOnly project(':detergentmc-adapter-v1_14')
     runtimeOnly project(':detergentmc-adapter-v1_14_1')
     runtimeOnly project(':detergentmc-adapter-v1_14_2')
@@ -58,6 +64,12 @@ dependencies {
     testImplementation project(':detergentmc-adapter-v1_20_4')
     testRuntimeOnly project(':detergentmc-adapter-v1_20_4')
     // And the 1.18.2 adapter (protocol 758, one module).
+    testImplementation project(':detergentmc-adapter-v1_12')
+    testImplementation project(':detergentmc-adapter-v1_12_1')
+    testImplementation project(':detergentmc-adapter-v1_12_2')
+    testImplementation project(':detergentmc-adapter-v1_13')
+    testImplementation project(':detergentmc-adapter-v1_13_1')
+    testImplementation project(':detergentmc-adapter-v1_13_2')
     testImplementation project(':detergentmc-adapter-v1_14')
     testImplementation project(':detergentmc-adapter-v1_14_1')
     testImplementation project(':detergentmc-adapter-v1_14_2')
@@ -67,6 +79,12 @@ dependencies {
     testImplementation project(':detergentmc-adapter-v1_15_1')
     testImplementation project(':detergentmc-adapter-v1_15_2')
     testImplementation project(':detergentmc-adapter-v1_18_2')
+    testRuntimeOnly project(':detergentmc-adapter-v1_12')
+    testRuntimeOnly project(':detergentmc-adapter-v1_12_1')
+    testRuntimeOnly project(':detergentmc-adapter-v1_12_2')
+    testRuntimeOnly project(':detergentmc-adapter-v1_13')
+    testRuntimeOnly project(':detergentmc-adapter-v1_13_1')
+    testRuntimeOnly project(':detergentmc-adapter-v1_13_2')
     testRuntimeOnly project(':detergentmc-adapter-v1_14')
     testRuntimeOnly project(':detergentmc-adapter-v1_14_1')
     testRuntimeOnly project(':detergentmc-adapter-v1_14_2')
@@ -267,6 +285,8 @@ tasks.register('versionedJars') {
     }
     def buildNumberFor = { mcVersion -> buildNumbers.getProperty(mcVersion, '1') }
     def versions = [
+        '1.12', '1.12.1', '1.12.2',
+        '1.13', '1.13.1', '1.13.2',
         '1.14', '1.14.1', '1.14.2', '1.14.3', '1.14.4',
         '1.15', '1.15.1', '1.15.2',
         '1.18.2',

@@ -188,7 +188,7 @@ public final class VanillaServerHost {
      */
     static String javaBinaryFor(String minecraftVersion) {
         String javaHome = System.getProperty("java.home");
-        if ("1.15.2".equals(minecraftVersion) || "1.15.1".equals(minecraftVersion) || "1.15".equals(minecraftVersion) || "1.14.4".equals(minecraftVersion) || "1.14.3".equals(minecraftVersion) || "1.14.2".equals(minecraftVersion) || "1.14.1".equals(minecraftVersion) || "1.14".equals(minecraftVersion)) {
+        if ("1.15.2".equals(minecraftVersion) || "1.15.1".equals(minecraftVersion) || "1.15".equals(minecraftVersion) || "1.14.4".equals(minecraftVersion) || "1.14.3".equals(minecraftVersion) || "1.14.2".equals(minecraftVersion) || "1.14.1".equals(minecraftVersion) || "1.14".equals(minecraftVersion) || "1.13.2".equals(minecraftVersion) || "1.13.1".equals(minecraftVersion) || "1.13".equals(minecraftVersion) || "1.12.2".equals(minecraftVersion) || "1.12.1".equals(minecraftVersion) || "1.12".equals(minecraftVersion)) {
             // Minecraft 1.15.x は Java 8 世代（version.json の javaVersion は
             // jre-legacy）。Java 17 以降では起動できないため、Java 8 を探す。
             String java8Home = System.getProperty("detergentmc.java8.home");
