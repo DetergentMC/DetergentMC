@@ -231,6 +231,12 @@ public final class JsonToNbt {
                 return new Tag.ListTag(Nbt.COMPOUND, wrapped);
             }
             if (elementType < 0) {
+                if (hasCompound) {
+                    // 要素がすべてコンパウンドの場合（例：転送JSONの
+                    // properties 配列）。要素を落とさずコンパウンドの
+                    // リストとして返す。
+                    return new Tag.ListTag(Nbt.COMPOUND, elements);
+                }
                 // 要素がすべて null だった場合：空の文字列リスト。
                 return new Tag.ListTag(Nbt.STRING, List.of());
             }
