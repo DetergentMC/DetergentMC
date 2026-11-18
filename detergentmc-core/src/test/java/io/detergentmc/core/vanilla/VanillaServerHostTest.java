@@ -144,6 +144,26 @@ class VanillaServerHostTest {
         // 1.17 も Java 16 を要求する（version.json 実測。1.17.1 と同じ）。
         // Java 16 専用の分岐は無く、現在の Java を使う（1.17.1 と同じ判断）。
         assertEquals(expected, VanillaServerHost.javaBinaryFor("1.17"));
+        // 1.16.5／1.16.4 は Java 8 を要求する（piston-meta majorVersion 8 実測）。
+        // javaBinaryFor には Java 8 用の分岐は無い（Java 21／25 の最低
+        // バージョン分岐しかない）。Java 8 向けバイトコードは新しい JVM
+        // でも動くため、現在の Java を使う。実起動の確認は Stage D で行う。
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.16.5"));
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.16.4"));
+        // 1.16.3 も Java 8 を要求する（piston-meta majorVersion 8 実測）。
+        // javaBinaryFor には Java 8 用の分岐は無い（Java 21／25 の最低
+        // バージョン分岐しかない）。Java 8 向けバイトコードは新しい JVM
+        // でも動くため、現在の Java を使う。実起動の確認は Stage D で行う。
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.16.3"));
+        // 1.16.2 も Java 8 を要求する（piston-meta majorVersion 8 実測）。
+        // 1.16.3 と同じ判断で、現在の Java を使う。実起動の確認は Stage D で行う。
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.16.2"));
+        // 1.16.1 も Java 8 を要求する（piston-meta majorVersion 8 実測）。
+        // 1.16.2 と同じ判断で、現在の Java を使う。実起動の確認は Stage D で行う。
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.16.1"));
+        // 1.16 も Java 8 を要求する（piston-meta majorVersion 8 実測）。
+        // 1.16.1 と同じ判断で、現在の Java を使う。実起動の確認は Stage D で行う。
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.16"));
     }
 
     @Test
