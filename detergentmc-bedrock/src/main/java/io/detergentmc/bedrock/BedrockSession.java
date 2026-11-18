@@ -478,12 +478,13 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
         BedrockLogin.LoginInfo login = BedrockLogin.parse(payload);
         if (BedrockProtocol.isNetherNetProtocol(login.protocolVersion())) {
             disconnect("Unsupported Bedrock protocol: " + login.protocolVersion()
-                    + " (Bedrock 26.60+ uses NetherNet, which DetergentMC does not support yet)");
+                    + " (Bedrock 26.60+ uses NetherNet; the packet format is supported,"
+                    + " but the NetherNet transport is not implemented yet)");
             return;
         }
         if (!BedrockProtocol.isSupportedProtocol(login.protocolVersion())) {
             disconnect("Unsupported Bedrock protocol: " + login.protocolVersion()
-                    + " (supported: 589-2193, RakNet only)");
+                    + " (supported: 291-2193 over RakNet; 2225 needs NetherNet)");
             return;
         }
         bedrockVersion = BedrockVersion.fromProtocol(login.protocolVersion());
@@ -563,10 +564,14 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
         int radius = effectiveChunkRadius();
         sendGamePacket(BedrockProtocol.PACKET_CHUNK_RADIUS_UPDATED,
                 BedrockPackets.encodeChunkRadiusUpdated(radius));
-        sendGamePacket(BedrockProtocol.PACKET_NETWORK_CHUNK_PUBLISHER_UPDATE,
-                BedrockPackets.encodeNetworkChunkPublisherUpdate(
-                        (int) Math.floor(playerX), (int) Math.floor(playerY),
-                        (int) Math.floor(playerZ), radius * 16));
+        if (bedrockVersion.hasNetworkChunkPublisherUpdate()) {
+            // 291 にはこのパケット自体が無い（313 で新規登録。
+            // BE-NOTES.md §36）。
+            sendGamePacket(BedrockProtocol.PACKET_NETWORK_CHUNK_PUBLISHER_UPDATE,
+                    BedrockPackets.encodeNetworkChunkPublisherUpdate(
+                            (int) Math.floor(playerX), (int) Math.floor(playerY),
+                            (int) Math.floor(playerZ), radius * 16, bedrockVersion));
+        }
         flushChunks();
     }
 
@@ -595,7 +600,7 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
         for (BedrockChunkTranslator.TranslatedChunk chunk : pending) {
             sendGamePacket(BedrockProtocol.PACKET_LEVEL_CHUNK,
                     BedrockPackets.encodeLevelChunk(chunk.chunkX(), chunk.chunkZ(),
-                            chunk.subChunkCount(), chunk.payload()));
+                            chunk.subChunkCount(), chunk.payload(), bedrockVersion));
             sentChunks.add(chunkKey(chunk.chunkX(), chunk.chunkZ()));
         }
     }
@@ -743,7 +748,7 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
         try {
             sendGamePacket(BedrockProtocol.PACKET_MOVE_PLAYER,
                     BedrockPackets.encodeMovePlayerTeleport(javaEntityId,
-                            (float) x, (float) y, (float) z, pitch, yaw));
+                            (float) x, (float) y, (float) z, pitch, yaw, bedrockVersion));
         } catch (IOException e) {
             LOG.warning("Bedrock へのテレポート送信に失敗しました: " + e.getMessage());
         }
@@ -859,7 +864,8 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
             }
             List<GamePacket> packets = new ArrayList<>();
             packets.add(new GamePacket(BedrockProtocol.PACKET_PLAYER_LIST,
-                    BedrockPackets.encodePlayerListAdd(state.uuid, state.javaId, state.name)));
+                    BedrockPackets.encodePlayerListAdd(state.uuid, state.javaId, state.name,
+                            bedrockVersion)));
             packets.add(new GamePacket(BedrockProtocol.PACKET_ADD_PLAYER,
                     BedrockPackets.encodeAddPlayer(state.uuid, state.name, state.javaId,
                             (float) state.x, (float) state.y, (float) state.z,
@@ -897,12 +903,19 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
             sendEntityPacket(BedrockProtocol.PACKET_ADD_PAINTING,
                     BedrockPackets.encodeAddPainting(state.javaId,
                             (float) state.x, (float) state.y, (float) state.z,
-                            state.objectData, title));
+                            state.objectData, title, bedrockVersion));
             return;
         }
         String type = BedrockEntityTypeIds.bedrockTypeFor(state.type765, serverProtocol);
         if (type == null) {
             // interaction／marker 等、Bedrock に出さないもの。
+            return;
+        }
+        if (bedrockVersion.addEntityUsesLegacyTypeId()
+                && BedrockLegacyEntityTypeIds.legacyIdFor(type) < 0) {
+            // 291 は AddEntity のタイプが数値 ID のため、対応表に無い
+            // エンティティ（1.7 より後の追加分等）は送らない
+            // （BE-NOTES.md §36）。
             return;
         }
         state.spawned = true;
@@ -912,7 +925,8 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
                         state.pitch, state.yaw, state.headYaw,
                         state.velX, state.velY, state.velZ,
                         state.health, state.maxHealth,
-                        BedrockEntityTranslator.defaultData(state.type765)));
+                        BedrockEntityTranslator.defaultData(state.type765),
+                        bedrockVersion));
     }
 
     @Override
@@ -971,18 +985,18 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
             state.health = metadata.health();
         }
         BedrockEntityTranslator.BedrockEntityData data =
-                BedrockEntityTranslator.toBedrockData(metadata, state.type765);
+                BedrockEntityTranslator.toBedrockData(metadata, state.type765, bedrockVersion);
         if (state.leadHolder != -1) {
             data.addLong(BedrockEntityTranslator.BedrockEntityData.KEY_LEAD_HOLDER_EID,
                     state.leadHolder);
         }
         sendEntityPacket(BedrockProtocol.PACKET_SET_ENTITY_DATA,
-                BedrockPackets.encodeSetEntityData(state.javaId, data));
+                BedrockPackets.encodeSetEntityData(state.javaId, data, bedrockVersion));
         // 体力が変わったら属性も更新する。
         if (metadata.health() != null) {
             sendEntityPacket(BedrockProtocol.PACKET_UPDATE_ATTRIBUTES,
                     BedrockPackets.encodeUpdateAttributes(
-                            state.javaId, state.health, state.maxHealth));
+                            state.javaId, state.health, state.maxHealth, bedrockVersion));
         }
     }
 
@@ -1027,7 +1041,7 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
                     BedrockPackets.encodeRemoveEntity(id));
             if (state.isPlayer() && state.uuid != null) {
                 sendEntityPacket(BedrockProtocol.PACKET_PLAYER_LIST,
-                        BedrockPackets.encodePlayerListRemove(state.uuid));
+                        BedrockPackets.encodePlayerListRemove(state.uuid, bedrockVersion));
             }
         }
     }
@@ -1063,7 +1077,8 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
             sendEntityPacket(BedrockProtocol.PACKET_MOVE_PLAYER,
                     BedrockPackets.encodeMovePlayerEntity(state.javaId,
                             (float) state.x, (float) state.y, (float) state.z,
-                            state.pitch, state.yaw, state.headYaw, 2, state.onGround));
+                            state.pitch, state.yaw, state.headYaw, 2, state.onGround,
+                            bedrockVersion));
         } else {
             sendEntityPacket(BedrockProtocol.PACKET_MOVE_ENTITY,
                     BedrockPackets.encodeMoveEntity(state.javaId,
@@ -1072,6 +1087,30 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
                             BedrockEntityTranslator.angleToByte(state.pitch),
                             BedrockEntityTranslator.angleToByte(state.headYaw),
                             state.onGround, true));
+        }
+    }
+
+    /**
+     * 非プレイヤーエンティティの移動を送る。419 以降は MoveEntityDelta
+     * （FloatLE 絶対座標）。419 未満の MoveEntityDelta は VarInt 差分形式で
+     * 差分のスケールが実測ソースで確認できないため、絶対座標の MoveEntity
+     * で代替する（MoveEntity の形式は 408 と 419 で同一。BE-NOTES.md §26）。
+     * state の位置・向きは呼び出し側で更新済みのものを使う。
+     */
+    private void sendEntityMoveDelta(EntityState state, int flags,
+            Float x, Float y, Float z, Integer rotX, Integer rotY, Integer rotZ) {
+        if (bedrockVersion.moveEntityDeltaUsesAbsolutePosition()) {
+            sendEntityPacket(BedrockProtocol.PACKET_MOVE_ENTITY_DELTA,
+                    BedrockPackets.encodeMoveEntityDelta(state.javaId, flags,
+                            x, y, z, rotX, rotY, rotZ));
+        } else {
+            sendEntityPacket(BedrockProtocol.PACKET_MOVE_ENTITY,
+                    BedrockPackets.encodeMoveEntity(state.javaId,
+                            (float) state.x, (float) state.y, (float) state.z,
+                            BedrockEntityTranslator.angleToByte(state.yaw),
+                            BedrockEntityTranslator.angleToByte(state.pitch),
+                            BedrockEntityTranslator.angleToByte(state.headYaw),
+                            state.onGround, false));
         }
     }
 
@@ -1092,15 +1131,15 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
             sendEntityPacket(BedrockProtocol.PACKET_MOVE_PLAYER,
                     BedrockPackets.encodeMovePlayerEntity(state.javaId,
                             (float) state.x, (float) state.y, (float) state.z,
-                            state.pitch, state.yaw, state.headYaw, 0, state.onGround));
+                            state.pitch, state.yaw, state.headYaw, 0, state.onGround,
+                            bedrockVersion));
         } else {
             int flags = BedrockProtocol.MOVE_DELTA_HAS_X | BedrockProtocol.MOVE_DELTA_HAS_Y
                     | BedrockProtocol.MOVE_DELTA_HAS_Z
                     | (state.onGround ? BedrockProtocol.MOVE_DELTA_ON_GROUND : 0);
-            sendEntityPacket(BedrockProtocol.PACKET_MOVE_ENTITY_DELTA,
-                    BedrockPackets.encodeMoveEntityDelta(state.javaId, flags,
-                            (float) state.x, (float) state.y, (float) state.z,
-                            null, null, null));
+            sendEntityMoveDelta(state, flags,
+                    (float) state.x, (float) state.y, (float) state.z,
+                    null, null, null);
         }
     }
 
@@ -1124,19 +1163,19 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
             sendEntityPacket(BedrockProtocol.PACKET_MOVE_PLAYER,
                     BedrockPackets.encodeMovePlayerEntity(state.javaId,
                             (float) state.x, (float) state.y, (float) state.z,
-                            state.pitch, state.yaw, state.headYaw, 0, state.onGround));
+                            state.pitch, state.yaw, state.headYaw, 0, state.onGround,
+                            bedrockVersion));
         } else {
             int flags = BedrockProtocol.MOVE_DELTA_HAS_X | BedrockProtocol.MOVE_DELTA_HAS_Y
                     | BedrockProtocol.MOVE_DELTA_HAS_Z
                     | BedrockProtocol.MOVE_DELTA_HAS_ROT_X | BedrockProtocol.MOVE_DELTA_HAS_ROT_Y
                     | BedrockProtocol.MOVE_DELTA_HAS_ROT_Z
                     | (state.onGround ? BedrockProtocol.MOVE_DELTA_ON_GROUND : 0);
-            sendEntityPacket(BedrockProtocol.PACKET_MOVE_ENTITY_DELTA,
-                    BedrockPackets.encodeMoveEntityDelta(state.javaId, flags,
-                            (float) state.x, (float) state.y, (float) state.z,
-                            BedrockEntityTranslator.angleToByte(state.pitch),
-                            BedrockEntityTranslator.angleToByte(state.yaw),
-                            BedrockEntityTranslator.angleToByte(state.headYaw)));
+            sendEntityMoveDelta(state, flags,
+                    (float) state.x, (float) state.y, (float) state.z,
+                    BedrockEntityTranslator.angleToByte(state.pitch),
+                    BedrockEntityTranslator.angleToByte(state.yaw),
+                    BedrockEntityTranslator.angleToByte(state.headYaw));
         }
     }
 
@@ -1157,18 +1196,18 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
             sendEntityPacket(BedrockProtocol.PACKET_MOVE_PLAYER,
                     BedrockPackets.encodeMovePlayerEntity(state.javaId,
                             (float) state.x, (float) state.y, (float) state.z,
-                            state.pitch, state.yaw, state.headYaw, 0, state.onGround));
+                            state.pitch, state.yaw, state.headYaw, 0, state.onGround,
+                            bedrockVersion));
         } else {
             int flags = BedrockProtocol.MOVE_DELTA_HAS_ROT_X
                     | BedrockProtocol.MOVE_DELTA_HAS_ROT_Y
                     | BedrockProtocol.MOVE_DELTA_HAS_ROT_Z
                     | (state.onGround ? BedrockProtocol.MOVE_DELTA_ON_GROUND : 0);
-            sendEntityPacket(BedrockProtocol.PACKET_MOVE_ENTITY_DELTA,
-                    BedrockPackets.encodeMoveEntityDelta(state.javaId, flags,
-                            null, null, null,
-                            BedrockEntityTranslator.angleToByte(state.pitch),
-                            BedrockEntityTranslator.angleToByte(state.yaw),
-                            BedrockEntityTranslator.angleToByte(state.headYaw)));
+            sendEntityMoveDelta(state, flags,
+                    null, null, null,
+                    BedrockEntityTranslator.angleToByte(state.pitch),
+                    BedrockEntityTranslator.angleToByte(state.yaw),
+                    BedrockEntityTranslator.angleToByte(state.headYaw));
         }
     }
 
@@ -1186,14 +1225,14 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
             sendEntityPacket(BedrockProtocol.PACKET_MOVE_PLAYER,
                     BedrockPackets.encodeMovePlayerEntity(state.javaId,
                             (float) state.x, (float) state.y, (float) state.z,
-                            state.pitch, state.yaw, state.headYaw, 0, state.onGround));
+                            state.pitch, state.yaw, state.headYaw, 0, state.onGround,
+                            bedrockVersion));
         } else {
             int flags = BedrockProtocol.MOVE_DELTA_HAS_ROT_Z
                     | (state.onGround ? BedrockProtocol.MOVE_DELTA_ON_GROUND : 0);
-            sendEntityPacket(BedrockProtocol.PACKET_MOVE_ENTITY_DELTA,
-                    BedrockPackets.encodeMoveEntityDelta(state.javaId, flags,
-                            null, null, null, null, null,
-                            BedrockEntityTranslator.angleToByte(state.headYaw)));
+            sendEntityMoveDelta(state, flags,
+                    null, null, null, null, null,
+                    BedrockEntityTranslator.angleToByte(state.headYaw));
         }
     }
 
@@ -1274,7 +1313,7 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
         }
         sendEntityPacket(BedrockProtocol.PACKET_UPDATE_ATTRIBUTES,
                 BedrockPackets.encodeUpdateAttributes(
-                        state.javaId, state.health, state.maxHealth));
+                        state.javaId, state.health, state.maxHealth, bedrockVersion));
     }
 
     @Override
@@ -1329,7 +1368,7 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
             data.addLong(BedrockEntityTranslator.BedrockEntityData.KEY_LEAD_HOLDER_EID,
                     attach.vehicleId());
             sendEntityPacket(BedrockProtocol.PACKET_SET_ENTITY_DATA,
-                    BedrockPackets.encodeSetEntityData(javaEntityId, data));
+                    BedrockPackets.encodeSetEntityData(javaEntityId, data, bedrockVersion));
             return;
         }
         EntityState state = entityState(attach.entityId());
@@ -1345,7 +1384,7 @@ public final class BedrockSession implements JavaBackendConnection.Listener {
         data.addLong(BedrockEntityTranslator.BedrockEntityData.KEY_LEAD_HOLDER_EID,
                 attach.vehicleId());
         sendEntityPacket(BedrockProtocol.PACKET_SET_ENTITY_DATA,
-                BedrockPackets.encodeSetEntityData(state.javaId, data));
+                BedrockPackets.encodeSetEntityData(state.javaId, data, bedrockVersion));
     }
 
     @Override
