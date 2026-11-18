@@ -13,8 +13,53 @@ import java.util.List;
  *
  * <p>段階の違い：
  * <ul>
- *   <li>1.18.2（758）：ハンドシェイク → ログイン → プレイ → 参加
- *       → ゲーム内。1.20.2で追加された「設定フェーズ」が無い（759・760・761・762・763と同じ）。</li>
+ *   <li>1.16（735）：736と同形。ハンドシェイク → ログイン → プレイ → 参加
+ *       → ゲーム内。1.20.2で追加された「設定フェーズ」が無い。プレイ状態の
+ *       新規パケットは0件、削除は0件、パケットIDは736と0件変わる。
+ *       Join Game・Respawn は736とフィールド同一（LoginPacket 14件で
+ *       isHardcore が無い。dimension は文字列、dimensionCodec は
+ *       {"dimension": [...]} だけでバイオームレジストリが無い。実バニラ1.16の
+ *       Join Game は1,159バイト）。</li>
+ *   <li>1.16.1（736）：751と同形。ハンドシェイク → ログイン → プレイ → 参加
+ *       → ゲーム内。1.20.2で追加された「設定フェーズ」が無い。プレイ状態の
+ *       新規パケットは0件、削除は1件（displayed_recipe）、パケットIDは751から
+ *       62件変わる。Join Game は751とフィールド構成が違う（LoginPacket 14件で
+ *       isHardcore が無い。dimension は文字列、dimensionCodec は
+ *       {"dimension": [...]} だけでバイオームレジストリが無い。実バニラ1.16.1の
+ *       Join Game は1,159バイト）。</li>
+ *   <li>1.16.2（751）：753と同形。ハンドシェイク → ログイン → プレイ → 参加
+ *       → ゲーム内。1.20.2で追加された「設定フェーズ」が無い。プレイ状態の
+ *       新規パケットは0件、削除は0件、パケットIDは753から0件変わる。
+ *       Join Game・Respawn は753とフィールド同一（LoginPacket 15件・
+ *       RespawnPacket 8件。dimensionCodec のバイオームは79件、dimension
+ *       element に min_y／height は無い）。</li>
+ *   <li>1.16.3（753）：754と同形。ハンドシェイク → ログイン → プレイ → 参加
+ *       → ゲーム内。1.20.2で追加された「設定フェーズ」が無い。プレイ状態の
+ *       新規パケットは0件、削除は0件、パケットIDは754から0件変わる。
+ *       Join Game・Respawn は754とフィールド同一（LoginPacket 15件・
+ *       RespawnPacket 8件。dimensionCodec のバイオームは79件、dimension
+ *       element に min_y／height は無い）。</li>
+ *   <li>1.16.4／1.16.5（754）：755と同形。ハンドシェイク → ログイン → プレイ → 参加
+ *       → ゲーム内。1.20.2で追加された「設定フェーズ」が無い。プレイ状態の
+ *       新規パケットは0件、削除は1件（sculk_vibration_signal）、
+ *       パケットIDは755から120件変わる。Join Game・Respawn は755と
+ *       フィールド同一（dimensionCodec のバイオームは79件、dimension
+ *       element に min_y／height は無い）。</li>
+ *   <li>1.17（755）：756と同形。ハンドシェイク → ログイン → プレイ → 参加
+ *       → ゲーム内。1.20.2で追加された「設定フェーズ」が無い。プレイ状態の
+ *       新規パケットは0件、削除は0件、パケットIDは756と0件変わる。
+ *       Join Game・Respawn は756と同一。</li>
+ *   <li>1.17.1（756）：759と同形。ハンドシェイク → ログイン → プレイ → 参加
+ *       → ゲーム内。1.20.2で追加された「設定フェーズ」が無い。プレイ状態の
+ *       新規パケットは0件（757との差分は simulation_distance 1件の削除による
+ *       -1ずれだけ）で、削除は1件（simulation_distance）。
+ *       Join Game は simulationDistance が無く、Respawn は757と同一。</li>
+ *   <li>1.18／1.18.1（757）：759と同形。ハンドシェイク → ログイン → プレイ → 参加
+ *       → ゲーム内。1.20.2で追加された「設定フェーズ」が無い。プレイ状態の
+ *       新規パケットは5件（spawn_entity_living・spawn_entity_painting・
+ *       sculk_vibration_signal・chat・chat_to_server）で、削除は8件
+ *       （署名付きチャット関係）。Join Game・Respawn は dimensionType が
+ *       値で lastDeathLocation が無い（759ではキーと Optional）。</li>
  *   <li>1.19（759）：ハンドシェイク → ログイン → プレイ → 参加
  *       → ゲーム内。1.20.2で追加された「設定フェーズ」が無い（760・761・762・763と同じ）。</li>
  *   <li>1.19.1／1.19.2（760）：ハンドシェイク → ログイン → プレイ → 参加
@@ -71,12 +116,6 @@ import java.util.List;
  *       パケット番号は774から変わらず、新規パケットは無い。プレイ状態の
  *       新規パケットは5件（Game Rule Values・Low Disk Space Warning・
  *       Attack・Set Game Rule・Spectate Entity）。</li>
- *   <li>26.2（776）：775と同形。ハンドシェイク → ログイン
- *       → <b>設定フェーズ</b> → プレイ → 参加 → ゲーム内。設定フェーズの
- *       パケット番号は775から変わらず、新規パケットは無い。プレイ状態の
- *       新規パケットは0件（Spectate Entity が Spectator Action に
- *       改名されただけ）。Join Game の末尾に onlineMode が、Login Success
- *       の末尾に sessionId が増えた。</li>
  * </ul>
  *
  * <p>順番を間違えた遷移（例：765で設定フェーズを飛ばしてプレイに入る、
@@ -100,7 +139,7 @@ public final class ClientJoinFlow {
     private int index;
 
     /**
-     * @param clientProtocol クライアントのプロトコル番号（477か480か485か490か498か573か575か578か758か759か760か761か762か763か764か765か766か767か768か769か770か771か772か773か774か775か776）。
+     * @param clientProtocol クライアントのプロトコル番号（735か736か751か753か754か755か756か757か759か760か761か762か763か764か765か766か767か768か769か770か771か772か773か774か775）。
      * @throws IllegalArgumentException 対応していないプロトコルの場合
      */
     public ClientJoinFlow(int clientProtocol) {
@@ -115,15 +154,14 @@ public final class ClientJoinFlow {
                 || clientProtocol == ProtocolVersion.V1_19_3
                 || clientProtocol == ProtocolVersion.V1_19_1
                 || clientProtocol == ProtocolVersion.V1_19
-                || clientProtocol == ProtocolVersion.V1_18_2
-                || clientProtocol == ProtocolVersion.V1_15_2
-                || clientProtocol == ProtocolVersion.V1_15_1
-                || clientProtocol == ProtocolVersion.V1_15
-                || clientProtocol == ProtocolVersion.V1_14_4
-                || clientProtocol == ProtocolVersion.V1_14_3
-                || clientProtocol == ProtocolVersion.V1_14_2
-                || clientProtocol == ProtocolVersion.V1_14_1
-                || clientProtocol == ProtocolVersion.V1_14
+                || clientProtocol == ProtocolVersion.V1_18
+                || clientProtocol == ProtocolVersion.V1_17_1
+                || clientProtocol == ProtocolVersion.V1_17
+                || clientProtocol == ProtocolVersion.V1_16_5
+                || clientProtocol == ProtocolVersion.V1_16_3
+                || clientProtocol == ProtocolVersion.V1_16_2
+                || clientProtocol == ProtocolVersion.V1_16_1
+                || clientProtocol == ProtocolVersion.V1_16
                 ? List.of(Stage.HANDSHAKE, Stage.LOGIN, Stage.PLAY, Stage.JOINED, Stage.IN_GAME)
                 : List.of(Stage.HANDSHAKE, Stage.LOGIN, Stage.CONFIGURATION,
                         Stage.PLAY, Stage.JOINED, Stage.IN_GAME);
@@ -145,7 +183,7 @@ public final class ClientJoinFlow {
         return stages.get(index);
     }
 
-    /** 設定フェーズがあるか（764と765と766と767と768と769と770と771と772と773と774と775と776はあり、477と480と485と490と498と573と575と578と758と759と760と761と762と763はなし）。 */
+    /** 設定フェーズがあるか（764と765と766と767と768と769と770と771と772と773と774と775はあり、735と736と751と753と754と755と756と757と759と760と761と762と763はなし）。 */
     public boolean hasConfigurationPhase() {
         return stages.contains(Stage.CONFIGURATION);
     }
@@ -171,7 +209,7 @@ public final class ClientJoinFlow {
     }
 
     /**
-     * ログインに成功した：ログイン → 設定フェーズ（764・765・766・767・768・769・770・771）かプレイ（758・759・760・761・762・763）。
+     * ログインに成功した：ログイン → 設定フェーズ（764・765・766・767・768・769・770・771）かプレイ（735・736・751・753・754・755・756・757・759・760・761・762・763）。
      */
     public void loginSucceeded() {
         advance(Stage.LOGIN, hasConfigurationPhase() ? Stage.CONFIGURATION : Stage.PLAY);
@@ -179,7 +217,7 @@ public final class ClientJoinFlow {
 
     /**
      * 設定フェーズが終わった：設定フェーズ → プレイ。
-     * 758・759・760・761・762・763のクライアントには設定フェーズが無いので呼んではいけない。
+     * 735・736・751・753・754・755・756・757・759・760・761・762・763のクライアントには設定フェーズが無いので呼んではいけない。
      */
     public void configurationFinished() {
         advance(Stage.CONFIGURATION, Stage.PLAY);

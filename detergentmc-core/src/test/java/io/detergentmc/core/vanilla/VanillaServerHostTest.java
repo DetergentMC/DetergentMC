@@ -128,48 +128,42 @@ class VanillaServerHostTest {
     }
 
     @Test
-    void javaBinaryFor1152PrefersConfiguredJava8Home() {
-        String original = System.getProperty("detergentmc.java8.home");
-        System.setProperty("detergentmc.java8.home", "/opt/example-jdk-8");
-        try {
-            assertEquals(Path.of("/opt/example-jdk-8", "bin", "java").toString(),
-                    VanillaServerHost.javaBinaryFor("1.15.2"));
-            // 1.15 も同じ Java 8 世代。
-            assertEquals(Path.of("/opt/example-jdk-8", "bin", "java").toString(),
-                    VanillaServerHost.javaBinaryFor("1.15"));
-            // 1.15.1 も同じ Java 8 世代。
-            assertEquals(Path.of("/opt/example-jdk-8", "bin", "java").toString(),
-                    VanillaServerHost.javaBinaryFor("1.15.1"));
-            // 1.14.4 も同じ Java 8 世代。
-            assertEquals(Path.of("/opt/example-jdk-8", "bin", "java").toString(),
-                    VanillaServerHost.javaBinaryFor("1.14.4"));
-            // 1.14.3 も同じ Java 8 世代。
-            assertEquals(Path.of("/opt/example-jdk-8", "bin", "java").toString(),
-                    VanillaServerHost.javaBinaryFor("1.14.3"));
-            // 1.14.2 も同じ Java 8 世代。
-            assertEquals(Path.of("/opt/example-jdk-8", "bin", "java").toString(),
-                    VanillaServerHost.javaBinaryFor("1.14.2"));
-            // 1.14.1 も同じ Java 8 世代。
-            assertEquals(Path.of("/opt/example-jdk-8", "bin", "java").toString(),
-                    VanillaServerHost.javaBinaryFor("1.14.1"));
-            // 1.20.4 には Java 8 の指定は使わない。
-            assertEquals(Path.of(System.getProperty("java.home"), "bin", "java").toString(),
-                    VanillaServerHost.javaBinaryFor("1.20.4"));
-        } finally {
-            if (original == null) {
-                System.clearProperty("detergentmc.java8.home");
-            } else {
-                System.setProperty("detergentmc.java8.home", original);
-            }
-        }
-    }
-
-    @Test
     void javaBinaryFor1204UsesCurrentJavaHome() {
         String expected = Path.of(System.getProperty("java.home"), "bin", "java").toString();
         assertEquals(expected, VanillaServerHost.javaBinaryFor("1.20.4"));
         assertEquals(expected, VanillaServerHost.javaBinaryFor("1.20.1"));
         assertEquals(expected, VanillaServerHost.javaBinaryFor("1.20.2"));
+        // 1.18／1.18.1 は Java 17 を要求し（version.json 実測）、DetergentMC 自身も
+        // Java 17 で動くため、Java 25／Java 21 の分岐には入らず現在の Java を使う。
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.18"));
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.18.1"));
+        // 1.17.1 は Java 16 を要求する（version.json 実測）。Java 16 専用の分岐は
+        // 無く、DetergentMC 自身が動く Java 17（16以上）で 1.17.1 サーバーは
+        // 起動できるため、Java 25／Java 21 の分岐には入らず現在の Java を使う。
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.17.1"));
+        // 1.17 も Java 16 を要求する（version.json 実測。1.17.1 と同じ）。
+        // Java 16 専用の分岐は無く、現在の Java を使う（1.17.1 と同じ判断）。
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.17"));
+        // 1.16.5／1.16.4 は Java 8 を要求する（piston-meta majorVersion 8 実測）。
+        // javaBinaryFor には Java 8 用の分岐は無い（Java 21／25 の最低
+        // バージョン分岐しかない）。Java 8 向けバイトコードは新しい JVM
+        // でも動くため、現在の Java を使う。実起動の確認は Stage D で行う。
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.16.5"));
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.16.4"));
+        // 1.16.3 も Java 8 を要求する（piston-meta majorVersion 8 実測）。
+        // javaBinaryFor には Java 8 用の分岐は無い（Java 21／25 の最低
+        // バージョン分岐しかない）。Java 8 向けバイトコードは新しい JVM
+        // でも動くため、現在の Java を使う。実起動の確認は Stage D で行う。
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.16.3"));
+        // 1.16.2 も Java 8 を要求する（piston-meta majorVersion 8 実測）。
+        // 1.16.3 と同じ判断で、現在の Java を使う。実起動の確認は Stage D で行う。
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.16.2"));
+        // 1.16.1 も Java 8 を要求する（piston-meta majorVersion 8 実測）。
+        // 1.16.2 と同じ判断で、現在の Java を使う。実起動の確認は Stage D で行う。
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.16.1"));
+        // 1.16 も Java 8 を要求する（piston-meta majorVersion 8 実測）。
+        // 1.16.1 と同じ判断で、現在の Java を使う。実起動の確認は Stage D で行う。
+        assertEquals(expected, VanillaServerHost.javaBinaryFor("1.16"));
     }
 
     @Test
@@ -183,9 +177,6 @@ class VanillaServerHostTest {
                     VanillaServerHost.javaBinaryFor("26.1.1"));
             assertEquals(Path.of("/opt/example-jdk-25", "bin", "java").toString(),
                     VanillaServerHost.javaBinaryFor("26.1.2"));
-            // 26.2 も Java 25 が必要（26.1 と同じ）。
-            assertEquals(Path.of("/opt/example-jdk-25", "bin", "java").toString(),
-                    VanillaServerHost.javaBinaryFor("26.2"));
             // 1.20.4 には Java 25 の指定は使わない。
             assertEquals(Path.of(System.getProperty("java.home"), "bin", "java").toString(),
                     VanillaServerHost.javaBinaryFor("1.20.4"));
