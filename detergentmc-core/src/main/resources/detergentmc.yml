@@ -381,7 +381,7 @@ resource-pack:
   # 1.19.1／1.19.2用パック（設定時のみ）、1.19.3用パック（設定時のみ）、
   # 1.19.4用パック（設定時のみ）、1.20.1用パック（設定時のみ）または
   # 1.20.4用パックを出します。
-  # ループバック配信では無視されます（23つとも自動生成・配信します）。
+  # ループバック配信では無視されます（25つとも自動生成・配信します）。
   url-757: ""
   sha1-757: ""
   # 1.17.1 pack for 756 clients (optional; external mode only).
@@ -393,7 +393,7 @@ resource-pack:
   # configured), the 1.19.3 pack (when configured), the 1.19.4 pack (when
   # configured), the 1.20.1 pack (when configured) or the 1.20.4 pack
   # to 756 clients.
-  # In loopback mode these two are ignored: all twenty-three packs are
+  # In loopback mode these two are ignored: all twenty-five packs are
   # generated and served locally.
   # 756クライアント向けの1.17.1用パック（任意・外部配信時のみ）。
   # url-757 / sha1-757 と同じ決まりですが、ホストするパックは
@@ -403,7 +403,7 @@ resource-pack:
   # 1.19用パック（設定時のみ）、1.19.1／1.19.2用パック（設定時のみ）、
   # 1.19.3用パック（設定時のみ）、1.19.4用パック（設定時のみ）、
   # 1.20.1用パック（設定時のみ）または1.20.4用パックを出します。
-  # ループバック配信では無視されます（23つとも自動生成・配信します）。
+  # ループバック配信では無視されます（25つとも自動生成・配信します）。
   url-756: ""
   sha1-756: ""
   # 1.17 pack for 755 clients (optional; external mode only).
@@ -415,7 +415,7 @@ resource-pack:
   # configured), the 1.19.1 / 1.19.2 pack (when configured), the
   # 1.19.3 pack (when configured), the 1.19.4 pack (when configured),
   # the 1.20.1 pack (when configured) or the 1.20.4 pack to 755 clients.
-  # In loopback mode these two are ignored: all twenty-three packs are
+  # In loopback mode these two are ignored: all twenty-five packs are
   # generated and served locally.
   # 755クライアント向けの1.17用パック（任意・外部配信時のみ）。
   # url-756 / sha1-756 と同じ決まりですが、ホストするパックは
@@ -426,7 +426,7 @@ resource-pack:
   # 1.19.1／1.19.2用パック（設定時のみ）、1.19.3用パック（設定時のみ）、
   # 1.19.4用パック（設定時のみ）、1.20.1用パック（設定時のみ）
   # または1.20.4用パックを出します。
-  # ループバック配信では無視されます（23つとも自動生成・配信します）。
+  # ループバック配信では無視されます（25つとも自動生成・配信します）。
   url-755: ""
   sha1-755: ""
   # 1.16.4 / 1.16.5 pack for 754 clients (optional; external mode only).
@@ -440,7 +440,7 @@ resource-pack:
   # pack (when configured), the 1.19.3 pack (when configured), the
   # 1.19.4 pack (when configured), the 1.20.1 pack (when configured)
   # or the 1.20.4 pack to 754 clients.
-  # In loopback mode these two are ignored: all twenty-three packs are
+  # In loopback mode these two are ignored: all twenty-five packs are
   # generated and served locally.
   # 754クライアント向けの1.16.4／1.16.5用パック（任意・外部配信時のみ）。
   # url-755 / sha1-755 と同じ決まりですが、ホストするパックは
@@ -452,7 +452,7 @@ resource-pack:
   # 1.19用パック（設定時のみ）、1.19.1／1.19.2用パック（設定時のみ）、
   # 1.19.3用パック（設定時のみ）、1.19.4用パック（設定時のみ）、
   # 1.20.1用パック（設定時のみ）または1.20.4用パックを出します。
-  # ループバック配信では無視されます（23つとも自動生成・配信します）。
+  # ループバック配信では無視されます（25つとも自動生成・配信します）。
   url-754: ""
   sha1-754: ""
   # 1.16.3 pack for 753 clients (optional; external mode only).
@@ -465,7 +465,7 @@ resource-pack:
   # configured), the 1.19.1 / 1.19.2 pack (when configured), the
   # 1.19.3 pack (when configured), the 1.19.4 pack (when configured),
   # the 1.20.1 pack (when configured) or the 1.20.4 pack to 753 clients.
-  # In loopback mode these two are ignored: all twenty-three packs are
+  # In loopback mode these two are ignored: all twenty-five packs are
   # generated and served locally.
   # 753クライアント向けの1.16.3用パック（任意・外部配信時のみ）。
   # url-754 / sha1-754 と同じ決まりですが、ホストするパックは
@@ -477,7 +477,7 @@ resource-pack:
   # 1.19.1／1.19.2用パック（設定時のみ）、1.19.3用パック（設定時のみ）、
   # 1.19.4用パック（設定時のみ）、1.20.1用パック（設定時のみ）
   # または1.20.4用パックを出します。
-  # ループバック配信では無視されます（23つとも自動生成・配信します）。
+  # ループバック配信では無視されます（25つとも自動生成・配信します）。
   url-753: ""
   sha1-753: ""
   # 1.16.2 pack for 751 clients (optional; external mode only).
@@ -491,7 +491,7 @@ resource-pack:
   # pack (when configured), the 1.19.3 pack (when configured), the
   # 1.19.4 pack (when configured), the 1.20.1 pack (when configured)
   # or the 1.20.4 pack to 751 clients.
-  # In loopback mode these two are ignored: all twenty-three packs are
+  # In loopback mode these two are ignored: all twenty-five packs are
   # generated and served locally.
   # 751クライアント向けの1.16.2用パック（任意・外部配信時のみ）。
   # url-753 / sha1-753 と同じ決まりですが、ホストするパックは
@@ -503,9 +503,64 @@ resource-pack:
   # 1.19用パック（設定時のみ）、1.19.1／1.19.2用パック（設定時のみ）、
   # 1.19.3用パック（設定時のみ）、1.19.4用パック（設定時のみ）、
   # 1.20.1用パック（設定時のみ）または1.20.4用パックを出します。
-  # ループバック配信では無視されます（23つとも自動生成・配信します）。
+  # ループバック配信では無視されます（25つとも自動生成・配信します）。
   url-751: ""
   sha1-751: ""
+  # 1.16.1 pack for 736 clients (optional; external mode only).
+  # Same rules as url-751 / sha1-751, but the hosted pack must be
+  # pack_format 5 (plain integer form: 1.16.1 has no min_format /
+  # max_format, unlike 26.3 — see ResourcePackBuilder PACK_MCMETA_736).
+  # Leave both empty to offer the 1.16.2 pack (when configured),
+  # the 1.16.3 pack (when configured), the 1.16.5 pack (when configured),
+  # the 1.17 pack (when configured), the 1.17.1 pack (when configured),
+  # the 1.18 / 1.18.1 pack (when configured), the 1.19 pack (when
+  # configured), the 1.19.1 / 1.19.2 pack (when configured), the
+  # 1.19.3 pack (when configured), the 1.19.4 pack (when configured),
+  # the 1.20.1 pack (when configured) or the 1.20.4 pack to 736 clients.
+  # In loopback mode these two are ignored: all twenty-five packs are
+  # generated and served locally.
+  # 736クライアント向けの1.16.1用パック（任意・外部配信時のみ）。
+  # url-751 / sha1-751 と同じ決まりですが、ホストするパックは
+  # pack_format 5（plain形式。1.16.1には min_format／max_format が
+  # ありません。ResourcePackBuilder PACK_MCMETA_736参照）のものが必要です。
+  # 空のままなら736クライアントには1.16.2用パック（設定時のみ）、
+  # 1.16.3用パック（設定時のみ）、1.16.5用パック（設定時のみ）、
+  # 1.17用パック（設定時のみ）、1.17.1用パック（設定時のみ）、
+  # 1.18／1.18.1用パック（設定時のみ）、1.19用パック（設定時のみ）、
+  # 1.19.1／1.19.2用パック（設定時のみ）、1.19.3用パック（設定時のみ）、
+  # 1.19.4用パック（設定時のみ）、1.20.1用パック（設定時のみ）
+  # または1.20.4用パックを出します。
+  # ループバック配信では無視されます（25つとも自動生成・配信します）。
+  url-736: ""
+  sha1-736: ""
+  # 1.16 pack for 735 clients (optional; external mode only).
+  # Same rules as url-751 / sha1-751, but the hosted pack must be
+  # pack_format 5 (plain integer form: 1.16 has no min_format /
+  # max_format, unlike 26.3 — see ResourcePackBuilder PACK_MCMETA_735).
+  # Leave both empty to offer the 1.16.1 pack (when configured),
+  # the 1.16.2 pack (when configured), the 1.16.3 pack (when configured),
+  # the 1.16.5 pack (when configured), the 1.17 pack (when configured),
+  # the 1.17.1 pack (when configured), the 1.18 / 1.18.1 pack (when
+  # configured), the 1.19 pack (when configured), the 1.19.1 / 1.19.2
+  # pack (when configured), the 1.19.3 pack (when configured), the
+  # 1.19.4 pack (when configured), the 1.20.1 pack (when configured)
+  # or the 1.20.4 pack to 735 clients.
+  # In loopback mode these two are ignored: all twenty-five packs are
+  # generated and served locally.
+  # 735クライアント向けの1.16用パック（任意・外部配信時のみ）。
+  # url-751 / sha1-751 と同じ決まりですが、ホストするパックは
+  # pack_format 5（plain形式。1.16には min_format／max_format が
+  # ありません。ResourcePackBuilder PACK_MCMETA_735参照）のものが必要です。
+  # 空のままなら735クライアントには1.16.1用パック（設定時のみ）、
+  # 1.16.2用パック（設定時のみ）、1.16.3用パック（設定時のみ）、
+  # 1.16.5用パック（設定時のみ）、1.17用パック（設定時のみ）、
+  # 1.17.1用パック（設定時のみ）、1.18／1.18.1用パック（設定時のみ）、
+  # 1.19用パック（設定時のみ）、1.19.1／1.19.2用パック（設定時のみ）、
+  # 1.19.3用パック（設定時のみ）、1.19.4用パック（設定時のみ）、
+  # 1.20.1用パック（設定時のみ）または1.20.4用パックを出します。
+  # ループバック配信では無視されます（25つとも自動生成・配信します）。
+  url-735: ""
+  sha1-735: ""
   # Translation key for the prompt shown to the player (optional).
   # Empty means the default prompt (resource-pack.prompt).
   # クライアントに表示するプロンプトの翻訳キー（任意）。
