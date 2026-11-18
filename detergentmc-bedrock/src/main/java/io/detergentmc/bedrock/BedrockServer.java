@@ -80,7 +80,8 @@ public final class BedrockServer {
         listenerThread.setDaemon(true);
         listenerThread.start();
         LOG.info("Bedrock リスナーを開始しました（UDP " + config.port()
-                + "、対象 Bedrock 1.20.0〜26.51 / プロトコル 589〜2193（RakNet））");
+                + "、対象 Bedrock 1.7.1〜26.52 / プロトコル 291〜2193（RakNet）。"
+                + "2225 はパケット形式のみ対応し、NetherNet リスナーは未実装）");
     }
 
     /** 待ち受けを止め、全セッションを閉じる。 */
