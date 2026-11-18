@@ -30,6 +30,68 @@ import java.util.logging.Logger;
  * server.stop();
  * }</pre>
  *
+ * <h2>1.16 variant</h2>
+ *
+ * <p>When a twenty-fifth pack is given (see
+ * {@link #ResourcePackServer(ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, int, boolean)}),
+ * the server also serves it at {@link #PACK_PATH_735} and
+ * {@link #pack735()} returns the {@link ResourcePack} the proxy offers
+ * to 735 clients (pack_format 5).
+ * All twenty-five packs share the same port.
+ *
+ * <h2>1.16.1 variant</h2>
+ *
+ * <p>When a twenty-fourth pack is given (see
+ * {@link #ResourcePackServer(ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, int, boolean)}),
+ * the server also serves it at {@link #PACK_PATH_736} and
+ * {@link #pack736()} returns the {@link ResourcePack} the proxy offers
+ * to 736 clients (pack_format 5).
+ * All twenty-four packs share the same port.
+ *
+ * <h2>1.16.2 variant</h2>
+ *
+ * <p>When a twenty-third pack is given (see
+ * {@link #ResourcePackServer(ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, int, boolean)}),
+ * the server also serves it at {@link #PACK_PATH_751} and
+ * {@link #pack751()} returns the {@link ResourcePack} the proxy offers
+ * to 751 clients (pack_format 6).
+ * All twenty-three packs share the same port.
+ *
+ * <h2>1.16.3 variant</h2>
+ *
+ * <p>When a twenty-second pack is given (see
+ * {@link #ResourcePackServer(ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, int, boolean)}),
+ * the server also serves it at {@link #PACK_PATH_753} and
+ * {@link #pack753()} returns the {@link ResourcePack} the proxy offers
+ * to 753 clients (pack_format 6).
+ * All twenty-two packs share the same port.
+ *
+ * <h2>1.16.4 / 1.16.5 variant</h2>
+ *
+ * <p>When a twenty-first pack is given (see
+ * {@link #ResourcePackServer(ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, int, boolean)}),
+ * the server also serves it at {@link #PACK_PATH_754} and
+ * {@link #pack754()} returns the {@link ResourcePack} the proxy offers
+ * to 754 clients (pack_format 6). One pack serves both 1.16.4 and
+ * 1.16.5: they share protocol 754 and pack_format 6.
+ * All twenty-one packs share the same port.
+ *
+ * <h2>1.17 variant</h2>
+ *
+ * <p>When a twentieth pack is given (see
+ * {@link #ResourcePackServer(ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, int, boolean)}),
+ * the server also serves it at {@link #PACK_PATH_755} and
+ * {@link #pack755()} returns the {@link ResourcePack} the proxy offers
+ * to 755 clients (pack_format 7). All twenty packs share the same port.
+ *
+ * <h2>1.17.1 variant</h2>
+ *
+ * <p>When a nineteenth pack is given (see
+ * {@link #ResourcePackServer(ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, ResourcePackBuilder.BuiltPack, int, boolean)}),
+ * the server also serves it at {@link #PACK_PATH_756} and
+ * {@link #pack756()} returns the {@link ResourcePack} the proxy offers
+ * to 756 clients (pack_format 7). All nineteen packs share the same port.
+ *
  * <h2>1.18 / 1.18.1 variant</h2>
  *
  * <p>When an eighteenth pack is given (see
@@ -151,6 +213,29 @@ public final class ResourcePackServer {
     /** The only path this server answers. */
     public static final String PACK_PATH = "/detergentmc-pack.zip";
 
+    /** Path of the 1.16.4 / 1.16.5 (pack_format 6) variant, when one is served.
+     * One pack serves both versions: they share protocol 754. */
+    /** Path of the 1.16 (pack_format 5) variant, when one is served. */
+    public static final String PACK_PATH_735 = "/detergentmc-pack-1.16.zip";
+
+    /** Path of the 1.16.1 (pack_format 5) variant, when one is served. */
+    public static final String PACK_PATH_736 = "/detergentmc-pack-1.16.1.zip";
+
+    /** Path of the 1.16.2 (pack_format 6) variant, when one is served. */
+    public static final String PACK_PATH_751 = "/detergentmc-pack-1.16.2.zip";
+
+    /** Path of the 1.16.3 (pack_format 6) variant, when one is served. */
+    public static final String PACK_PATH_753 = "/detergentmc-pack-1.16.3.zip";
+
+    public static final String PACK_PATH_754 = "/detergentmc-pack-1.16.5.zip";
+
+    /** Path of the 1.17 (pack_format 7) variant, when one is served. */
+    public static final String PACK_PATH_755 = "/detergentmc-pack-1.17.zip";
+
+    /** Path of the 1.18 / 1.18.1 (pack_format 8) variant, when one is served. */
+    /** Path of the 1.17.1 (pack_format 7) variant, when one is served. */
+    public static final String PACK_PATH_756 = "/detergentmc-pack-1.17.1.zip";
+
     /** Path of the 1.18 / 1.18.1 (pack_format 8) variant, when one is served. */
     public static final String PACK_PATH_757 = "/detergentmc-pack-1.18.zip";
 
@@ -217,6 +302,20 @@ public final class ResourcePackServer {
 
     private final Path packFile;
     private final String sha1;
+    private final Path pack735File;
+    private final String sha1735;
+    private final Path pack736File;
+    private final String sha1736;
+    private final Path pack751File;
+    private final String sha1751;
+    private final Path pack753File;
+    private final String sha1753;
+    private final Path pack754File;
+    private final String sha1754;
+    private final Path pack755File;
+    private final String sha1755;
+    private final Path pack756File;
+    private final String sha1756;
     private final Path pack757File;
     private final String sha1757;
     private final Path pack759File;
@@ -258,6 +357,13 @@ public final class ResourcePackServer {
     private HttpServer httpServer;
     private ExecutorService executor;
     private byte[] packBytes;
+    private byte[] pack735Bytes;
+    private byte[] pack736Bytes;
+    private byte[] pack751Bytes;
+    private byte[] pack753Bytes;
+    private byte[] pack754Bytes;
+    private byte[] pack755Bytes;
+    private byte[] pack756Bytes;
     private byte[] pack757Bytes;
     private byte[] pack759Bytes;
     private byte[] pack760Bytes;
@@ -445,7 +551,7 @@ public final class ResourcePackServer {
             Path pack771File, String sha1771, Path pack772File, String sha1772,
             Path pack773File, String sha1773,
             int port, boolean required, String promptKey) {
-        this(packFile, sha1, null, null, pack763File, sha1763, pack764File, sha1764,
+        this(packFile, sha1, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, pack763File, sha1763, pack764File, sha1764,
                 pack766File, sha1766, pack767File, sha1767, pack768File, sha1768,
                 pack769File, sha1769, pack770File, sha1770, pack771File, sha1771,
                 pack772File, sha1772, pack773File, sha1773, null, null, null, null,
@@ -463,7 +569,7 @@ public final class ResourcePackServer {
             Path pack771File, String sha1771, Path pack772File, String sha1772,
             Path pack773File, String sha1773, Path pack774File, String sha1774,
             int port, boolean required, String promptKey) {
-        this(packFile, sha1, null, null, pack763File, sha1763, pack764File, sha1764,
+        this(packFile, sha1, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, pack763File, sha1763, pack764File, sha1764,
                 pack766File, sha1766, pack767File, sha1767, pack768File, sha1768,
                 pack769File, sha1769, pack770File, sha1770, pack771File, sha1771,
                 pack772File, sha1772, pack773File, sha1773, pack774File, sha1774, null, null,
@@ -471,6 +577,14 @@ public final class ResourcePackServer {
     }
 
     /**
+     * @param pack755File 1.17 variant zip file, or {@code null}
+     *                    to serve no 1.17 variant
+     * @param sha1755     lower-case hex SHA-1 of {@code pack755File}
+     *                    (required when {@code pack755File} is given)
+     * @param pack756File 1.17.1 variant zip file, or {@code null}
+     *                    to serve no 1.17.1 variant
+     * @param sha1756     lower-case hex SHA-1 of {@code pack756File}
+     *                    (required when {@code pack756File} is given)
      * @param pack757File 1.18 / 1.18.1 variant zip file, or {@code null}
      *                    to serve no 1.18 / 1.18.1 variant (one pack serves
      *                    1.18 / 1.18.1: protocol 757)
@@ -506,7 +620,7 @@ public final class ResourcePackServer {
      * @param sha1775     lower-case hex SHA-1 of {@code pack775File}
      *                    (required when {@code pack775File} is given)
      */
-    public ResourcePackServer(Path packFile, String sha1, Path pack757File, String sha1757, Path pack763File, String sha1763,
+    public ResourcePackServer(Path packFile, String sha1, Path pack735File, String sha1735, Path pack736File, String sha1736, Path pack751File, String sha1751, Path pack753File, String sha1753, Path pack754File, String sha1754, Path pack755File, String sha1755, Path pack756File, String sha1756, Path pack757File, String sha1757, Path pack763File, String sha1763,
             Path pack764File, String sha1764, Path pack766File, String sha1766,
             Path pack767File, String sha1767, Path pack768File, String sha1768,
             Path pack769File, String sha1769, Path pack770File, String sha1770,
@@ -518,6 +632,27 @@ public final class ResourcePackServer {
         }
         if (sha1 == null || sha1.isBlank()) {
             throw new IllegalArgumentException("sha1 is required");
+        }
+        if (pack735File != null && (sha1735 == null || sha1735.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16 pack is required");
+        }
+        if (pack736File != null && (sha1736 == null || sha1736.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.1 pack is required");
+        }
+        if (pack751File != null && (sha1751 == null || sha1751.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.2 pack is required");
+        }
+        if (pack753File != null && (sha1753 == null || sha1753.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.3 pack is required");
+        }
+        if (pack754File != null && (sha1754 == null || sha1754.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.5 pack is required");
+        }
+        if (pack755File != null && (sha1755 == null || sha1755.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.17 pack is required");
+        }
+        if (pack756File != null && (sha1756 == null || sha1756.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.17.1 pack is required");
         }
         if (pack757File != null && (sha1757 == null || sha1757.isBlank())) {
             throw new IllegalArgumentException("sha1 for the 1.18 pack is required");
@@ -563,6 +698,20 @@ public final class ResourcePackServer {
         }
         this.packFile = packFile;
         this.sha1 = sha1;
+        this.pack735File = pack735File;
+        this.sha1735 = sha1735;
+        this.pack736File = pack736File;
+        this.sha1736 = sha1736;
+        this.pack751File = pack751File;
+        this.sha1751 = sha1751;
+        this.pack753File = pack753File;
+        this.sha1753 = sha1753;
+        this.pack754File = pack754File;
+        this.sha1754 = sha1754;
+        this.pack755File = pack755File;
+        this.sha1755 = sha1755;
+        this.pack756File = pack756File;
+        this.sha1756 = sha1756;
         this.pack757File = pack757File;
         this.sha1757 = sha1757;
         this.pack759File = null;
@@ -609,6 +758,14 @@ public final class ResourcePackServer {
      * 13-pack constructor above; {@code pack762File} / {@code sha1762}
      * come first among the variants.
      *
+     * @param pack755File 1.17 variant zip file, or {@code null}
+     *                    to serve no 1.17 variant
+     * @param sha1755     lower-case hex SHA-1 of {@code pack755File}
+     *                    (required when {@code pack755File} is given)
+     * @param pack756File 1.17.1 variant zip file, or {@code null}
+     *                    to serve no 1.17.1 variant
+     * @param sha1756     lower-case hex SHA-1 of {@code pack756File}
+     *                    (required when {@code pack756File} is given)
      * @param pack757File 1.18 / 1.18.1 variant zip file, or {@code null}
      *                    to serve no 1.18 / 1.18.1 variant (one pack serves
      *                    1.18 / 1.18.1: protocol 757)
@@ -619,7 +776,7 @@ public final class ResourcePackServer {
      * @param sha1762     lower-case hex SHA-1 of {@code pack762File}
      *                    (required when {@code pack762File} is given)
      */
-    public ResourcePackServer(Path packFile, String sha1, Path pack757File, String sha1757, Path pack762File, String sha1762,
+    public ResourcePackServer(Path packFile, String sha1, Path pack735File, String sha1735, Path pack736File, String sha1736, Path pack751File, String sha1751, Path pack753File, String sha1753, Path pack754File, String sha1754, Path pack755File, String sha1755, Path pack756File, String sha1756, Path pack757File, String sha1757, Path pack762File, String sha1762,
             Path pack763File, String sha1763,
             Path pack764File, String sha1764, Path pack766File, String sha1766,
             Path pack767File, String sha1767, Path pack768File, String sha1768,
@@ -632,6 +789,27 @@ public final class ResourcePackServer {
         }
         if (sha1 == null || sha1.isBlank()) {
             throw new IllegalArgumentException("sha1 is required");
+        }
+        if (pack735File != null && (sha1735 == null || sha1735.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16 pack is required");
+        }
+        if (pack736File != null && (sha1736 == null || sha1736.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.1 pack is required");
+        }
+        if (pack751File != null && (sha1751 == null || sha1751.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.2 pack is required");
+        }
+        if (pack753File != null && (sha1753 == null || sha1753.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.3 pack is required");
+        }
+        if (pack754File != null && (sha1754 == null || sha1754.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.5 pack is required");
+        }
+        if (pack755File != null && (sha1755 == null || sha1755.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.17 pack is required");
+        }
+        if (pack756File != null && (sha1756 == null || sha1756.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.17.1 pack is required");
         }
         if (pack757File != null && (sha1757 == null || sha1757.isBlank())) {
             throw new IllegalArgumentException("sha1 for the 1.18 pack is required");
@@ -680,6 +858,20 @@ public final class ResourcePackServer {
         }
         this.packFile = packFile;
         this.sha1 = sha1;
+        this.pack735File = pack735File;
+        this.sha1735 = sha1735;
+        this.pack736File = pack736File;
+        this.sha1736 = sha1736;
+        this.pack751File = pack751File;
+        this.sha1751 = sha1751;
+        this.pack753File = pack753File;
+        this.sha1753 = sha1753;
+        this.pack754File = pack754File;
+        this.sha1754 = sha1754;
+        this.pack755File = pack755File;
+        this.sha1755 = sha1755;
+        this.pack756File = pack756File;
+        this.sha1756 = sha1756;
         this.pack757File = pack757File;
         this.sha1757 = sha1757;
         this.pack759File = null;
@@ -726,6 +918,14 @@ public final class ResourcePackServer {
      * 15-pack constructor above; {@code pack759File} / {@code sha1759}
      * come first among the variants.
      *
+     * @param pack755File 1.17 variant zip file, or {@code null}
+     *                    to serve no 1.17 variant
+     * @param sha1755     lower-case hex SHA-1 of {@code pack755File}
+     *                    (required when {@code pack755File} is given)
+     * @param pack756File 1.17.1 variant zip file, or {@code null}
+     *                    to serve no 1.17.1 variant
+     * @param sha1756     lower-case hex SHA-1 of {@code pack756File}
+     *                    (required when {@code pack756File} is given)
      * @param pack757File 1.18 / 1.18.1 variant zip file, or {@code null}
      *                    to serve no 1.18 / 1.18.1 variant (one pack serves
      *                    1.18 / 1.18.1: protocol 757)
@@ -736,7 +936,7 @@ public final class ResourcePackServer {
      * @param sha1759     lower-case hex SHA-1 of {@code pack759File}
      *                    (required when {@code pack759File} is given)
      */
-    public ResourcePackServer(Path packFile, String sha1, Path pack757File, String sha1757, Path pack759File, String sha1759,
+    public ResourcePackServer(Path packFile, String sha1, Path pack735File, String sha1735, Path pack736File, String sha1736, Path pack751File, String sha1751, Path pack753File, String sha1753, Path pack754File, String sha1754, Path pack755File, String sha1755, Path pack756File, String sha1756, Path pack757File, String sha1757, Path pack759File, String sha1759,
             Path pack760File, String sha1760, Path pack761File, String sha1761,
             Path pack762File, String sha1762,
             Path pack763File, String sha1763,
@@ -751,6 +951,27 @@ public final class ResourcePackServer {
         }
         if (sha1 == null || sha1.isBlank()) {
             throw new IllegalArgumentException("sha1 is required");
+        }
+        if (pack735File != null && (sha1735 == null || sha1735.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16 pack is required");
+        }
+        if (pack736File != null && (sha1736 == null || sha1736.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.1 pack is required");
+        }
+        if (pack751File != null && (sha1751 == null || sha1751.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.2 pack is required");
+        }
+        if (pack753File != null && (sha1753 == null || sha1753.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.3 pack is required");
+        }
+        if (pack754File != null && (sha1754 == null || sha1754.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.5 pack is required");
+        }
+        if (pack755File != null && (sha1755 == null || sha1755.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.17 pack is required");
+        }
+        if (pack756File != null && (sha1756 == null || sha1756.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.17.1 pack is required");
         }
         if (pack757File != null && (sha1757 == null || sha1757.isBlank())) {
             throw new IllegalArgumentException("sha1 for the 1.18 pack is required");
@@ -808,6 +1029,20 @@ public final class ResourcePackServer {
         }
         this.packFile = packFile;
         this.sha1 = sha1;
+        this.pack735File = pack735File;
+        this.sha1735 = sha1735;
+        this.pack736File = pack736File;
+        this.sha1736 = sha1736;
+        this.pack751File = pack751File;
+        this.sha1751 = sha1751;
+        this.pack753File = pack753File;
+        this.sha1753 = sha1753;
+        this.pack754File = pack754File;
+        this.sha1754 = sha1754;
+        this.pack755File = pack755File;
+        this.sha1755 = sha1755;
+        this.pack756File = pack756File;
+        this.sha1756 = sha1756;
         this.pack757File = pack757File;
         this.sha1757 = sha1757;
         this.pack759File = pack759File;
@@ -854,6 +1089,14 @@ public final class ResourcePackServer {
      * 15-pack constructor above; {@code pack760File} / {@code sha1760}
      * come first among the variants.
      *
+     * @param pack755File 1.17 variant zip file, or {@code null}
+     *                    to serve no 1.17 variant
+     * @param sha1755     lower-case hex SHA-1 of {@code pack755File}
+     *                    (required when {@code pack755File} is given)
+     * @param pack756File 1.17.1 variant zip file, or {@code null}
+     *                    to serve no 1.17.1 variant
+     * @param sha1756     lower-case hex SHA-1 of {@code pack756File}
+     *                    (required when {@code pack756File} is given)
      * @param pack757File 1.18 / 1.18.1 variant zip file, or {@code null}
      *                    to serve no 1.18 / 1.18.1 variant (one pack serves
      *                    1.18 / 1.18.1: protocol 757)
@@ -864,7 +1107,7 @@ public final class ResourcePackServer {
      * @param sha1760     lower-case hex SHA-1 of {@code pack760File}
      *                    (required when {@code pack760File} is given)
      */
-    public ResourcePackServer(Path packFile, String sha1, Path pack757File, String sha1757, Path pack760File, String sha1760,
+    public ResourcePackServer(Path packFile, String sha1, Path pack735File, String sha1735, Path pack736File, String sha1736, Path pack751File, String sha1751, Path pack753File, String sha1753, Path pack754File, String sha1754, Path pack755File, String sha1755, Path pack756File, String sha1756, Path pack757File, String sha1757, Path pack760File, String sha1760,
             Path pack761File, String sha1761,
             Path pack762File, String sha1762,
             Path pack763File, String sha1763,
@@ -879,6 +1122,27 @@ public final class ResourcePackServer {
         }
         if (sha1 == null || sha1.isBlank()) {
             throw new IllegalArgumentException("sha1 is required");
+        }
+        if (pack735File != null && (sha1735 == null || sha1735.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16 pack is required");
+        }
+        if (pack736File != null && (sha1736 == null || sha1736.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.1 pack is required");
+        }
+        if (pack751File != null && (sha1751 == null || sha1751.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.2 pack is required");
+        }
+        if (pack753File != null && (sha1753 == null || sha1753.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.3 pack is required");
+        }
+        if (pack754File != null && (sha1754 == null || sha1754.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.5 pack is required");
+        }
+        if (pack755File != null && (sha1755 == null || sha1755.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.17 pack is required");
+        }
+        if (pack756File != null && (sha1756 == null || sha1756.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.17.1 pack is required");
         }
         if (pack757File != null && (sha1757 == null || sha1757.isBlank())) {
             throw new IllegalArgumentException("sha1 for the 1.18 pack is required");
@@ -933,6 +1197,20 @@ public final class ResourcePackServer {
         }
         this.packFile = packFile;
         this.sha1 = sha1;
+        this.pack735File = pack735File;
+        this.sha1735 = sha1735;
+        this.pack736File = pack736File;
+        this.sha1736 = sha1736;
+        this.pack751File = pack751File;
+        this.sha1751 = sha1751;
+        this.pack753File = pack753File;
+        this.sha1753 = sha1753;
+        this.pack754File = pack754File;
+        this.sha1754 = sha1754;
+        this.pack755File = pack755File;
+        this.sha1755 = sha1755;
+        this.pack756File = pack756File;
+        this.sha1756 = sha1756;
         this.pack757File = pack757File;
         this.sha1757 = sha1757;
         this.pack759File = null;
@@ -979,6 +1257,14 @@ public final class ResourcePackServer {
      * 14-pack constructor above; {@code pack761File} / {@code sha1761}
      * come first among the variants.
      *
+     * @param pack755File 1.17 variant zip file, or {@code null}
+     *                    to serve no 1.17 variant
+     * @param sha1755     lower-case hex SHA-1 of {@code pack755File}
+     *                    (required when {@code pack755File} is given)
+     * @param pack756File 1.17.1 variant zip file, or {@code null}
+     *                    to serve no 1.17.1 variant
+     * @param sha1756     lower-case hex SHA-1 of {@code pack756File}
+     *                    (required when {@code pack756File} is given)
      * @param pack757File 1.18 / 1.18.1 variant zip file, or {@code null}
      *                    to serve no 1.18 / 1.18.1 variant (one pack serves
      *                    1.18 / 1.18.1: protocol 757)
@@ -989,7 +1275,7 @@ public final class ResourcePackServer {
      * @param sha1761     lower-case hex SHA-1 of {@code pack761File}
      *                    (required when {@code pack761File} is given)
      */
-    public ResourcePackServer(Path packFile, String sha1, Path pack757File, String sha1757, Path pack761File, String sha1761,
+    public ResourcePackServer(Path packFile, String sha1, Path pack735File, String sha1735, Path pack736File, String sha1736, Path pack751File, String sha1751, Path pack753File, String sha1753, Path pack754File, String sha1754, Path pack755File, String sha1755, Path pack756File, String sha1756, Path pack757File, String sha1757, Path pack761File, String sha1761,
             Path pack762File, String sha1762,
             Path pack763File, String sha1763,
             Path pack764File, String sha1764, Path pack766File, String sha1766,
@@ -1003,6 +1289,27 @@ public final class ResourcePackServer {
         }
         if (sha1 == null || sha1.isBlank()) {
             throw new IllegalArgumentException("sha1 is required");
+        }
+        if (pack735File != null && (sha1735 == null || sha1735.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16 pack is required");
+        }
+        if (pack736File != null && (sha1736 == null || sha1736.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.1 pack is required");
+        }
+        if (pack751File != null && (sha1751 == null || sha1751.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.2 pack is required");
+        }
+        if (pack753File != null && (sha1753 == null || sha1753.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.3 pack is required");
+        }
+        if (pack754File != null && (sha1754 == null || sha1754.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.16.5 pack is required");
+        }
+        if (pack755File != null && (sha1755 == null || sha1755.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.17 pack is required");
+        }
+        if (pack756File != null && (sha1756 == null || sha1756.isBlank())) {
+            throw new IllegalArgumentException("sha1 for the 1.17.1 pack is required");
         }
         if (pack757File != null && (sha1757 == null || sha1757.isBlank())) {
             throw new IllegalArgumentException("sha1 for the 1.18 pack is required");
@@ -1054,6 +1361,20 @@ public final class ResourcePackServer {
         }
         this.packFile = packFile;
         this.sha1 = sha1;
+        this.pack735File = pack735File;
+        this.sha1735 = sha1735;
+        this.pack736File = pack736File;
+        this.sha1736 = sha1736;
+        this.pack751File = pack751File;
+        this.sha1751 = sha1751;
+        this.pack753File = pack753File;
+        this.sha1753 = sha1753;
+        this.pack754File = pack754File;
+        this.sha1754 = sha1754;
+        this.pack755File = pack755File;
+        this.sha1755 = sha1755;
+        this.pack756File = pack756File;
+        this.sha1756 = sha1756;
         this.pack757File = pack757File;
         this.sha1757 = sha1757;
         this.pack759File = null;
@@ -1416,7 +1737,7 @@ public final class ResourcePackServer {
             ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
             ResourcePackBuilder.BuiltPack built774,
             int port, boolean required, String promptKey) {
-        this(built.file(), built.sha1(), null, null, built762.file(), built762.sha1(),
+        this(built.file(), built.sha1(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, built762.file(), built762.sha1(),
                 built763.file(), built763.sha1(),
                 built764.file(), built764.sha1(), built766.file(), built766.sha1(),
                 built767.file(), built767.sha1(), built768.file(), built768.sha1(),
@@ -1459,7 +1780,7 @@ public final class ResourcePackServer {
             ResourcePackBuilder.BuiltPack built774,
             ResourcePackBuilder.BuiltPack built775,
             int port, boolean required, String promptKey) {
-        this(built.file(), built.sha1(), null, null, built759.file(), built759.sha1(), built760.file(), built760.sha1(),
+        this(built.file(), built.sha1(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, built759.file(), built759.sha1(), built760.file(), built760.sha1(),
                 built761.file(), built761.sha1(), built762.file(), built762.sha1(),
                 built763.file(), built763.sha1(),
                 built764.file(), built764.sha1(), built766.file(), built766.sha1(),
@@ -1526,7 +1847,301 @@ public final class ResourcePackServer {
             ResourcePackBuilder.BuiltPack built774,
             ResourcePackBuilder.BuiltPack built775,
             int port, boolean required, String promptKey) {
-        this(built.file(), built.sha1(), built757.file(), built757.sha1(), built759.file(), built759.sha1(), built760.file(), built760.sha1(),
+        this(built.file(), built.sha1(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, built757.file(), built757.sha1(), built759.file(), built759.sha1(), built760.file(), built760.sha1(),
+                built761.file(), built761.sha1(), built762.file(), built762.sha1(),
+                built763.file(), built763.sha1(),
+                built764.file(), built764.sha1(), built766.file(), built766.sha1(),
+                built767.file(), built767.sha1(), built768.file(), built768.sha1(),
+                built769.file(), built769.sha1(), built770.file(), built770.sha1(),
+                built771.file(), built771.sha1(), built772.file(), built772.sha1(),
+                built773.file(), built773.sha1(), built774.file(), built774.sha1(),
+                built775.file(), built775.sha1(),
+                port, required, promptKey);
+    }
+
+    /** Convenience: serve all nineteen packs. */
+    public ResourcePackServer(ResourcePackBuilder.BuiltPack built,
+            ResourcePackBuilder.BuiltPack built756, ResourcePackBuilder.BuiltPack built757, ResourcePackBuilder.BuiltPack built759, ResourcePackBuilder.BuiltPack built760, ResourcePackBuilder.BuiltPack built761,
+            ResourcePackBuilder.BuiltPack built762,
+            ResourcePackBuilder.BuiltPack built763,
+            ResourcePackBuilder.BuiltPack built764,
+            ResourcePackBuilder.BuiltPack built766, ResourcePackBuilder.BuiltPack built767,
+            ResourcePackBuilder.BuiltPack built768, ResourcePackBuilder.BuiltPack built769,
+            ResourcePackBuilder.BuiltPack built770, ResourcePackBuilder.BuiltPack built771,
+            ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
+            ResourcePackBuilder.BuiltPack built774,
+            ResourcePackBuilder.BuiltPack built775,
+            int port, boolean required) {
+        this(built, built756, built757, built759, built760, built761, built762, built763, built764, built766, built767, built768, built769,
+                built770, built771, built772, built773, built774, built775, port, required, DEFAULT_PROMPT_KEY);
+    }
+
+    /** Convenience: serve all nineteen packs, with an explicit prompt key. */
+    public ResourcePackServer(ResourcePackBuilder.BuiltPack built,
+            ResourcePackBuilder.BuiltPack built756, ResourcePackBuilder.BuiltPack built757, ResourcePackBuilder.BuiltPack built759, ResourcePackBuilder.BuiltPack built760, ResourcePackBuilder.BuiltPack built761,
+            ResourcePackBuilder.BuiltPack built762,
+            ResourcePackBuilder.BuiltPack built763,
+            ResourcePackBuilder.BuiltPack built764,
+            ResourcePackBuilder.BuiltPack built766, ResourcePackBuilder.BuiltPack built767,
+            ResourcePackBuilder.BuiltPack built768, ResourcePackBuilder.BuiltPack built769,
+            ResourcePackBuilder.BuiltPack built770, ResourcePackBuilder.BuiltPack built771,
+            ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
+            ResourcePackBuilder.BuiltPack built774,
+            ResourcePackBuilder.BuiltPack built775,
+            int port, boolean required, String promptKey) {
+        this(built.file(), built.sha1(), null, null, null, null, null, null, null, null, null, null, null, null, built756.file(), built756.sha1(), built757.file(), built757.sha1(), built759.file(), built759.sha1(), built760.file(), built760.sha1(),
+                built761.file(), built761.sha1(), built762.file(), built762.sha1(),
+                built763.file(), built763.sha1(),
+                built764.file(), built764.sha1(), built766.file(), built766.sha1(),
+                built767.file(), built767.sha1(), built768.file(), built768.sha1(),
+                built769.file(), built769.sha1(), built770.file(), built770.sha1(),
+                built771.file(), built771.sha1(), built772.file(), built772.sha1(),
+                built773.file(), built773.sha1(), built774.file(), built774.sha1(),
+                built775.file(), built775.sha1(),
+                port, required, promptKey);
+    }
+
+    /** Convenience: serve all twenty packs. */
+    public ResourcePackServer(ResourcePackBuilder.BuiltPack built,
+            ResourcePackBuilder.BuiltPack built755, ResourcePackBuilder.BuiltPack built756, ResourcePackBuilder.BuiltPack built757, ResourcePackBuilder.BuiltPack built759, ResourcePackBuilder.BuiltPack built760, ResourcePackBuilder.BuiltPack built761,
+            ResourcePackBuilder.BuiltPack built762,
+            ResourcePackBuilder.BuiltPack built763,
+            ResourcePackBuilder.BuiltPack built764,
+            ResourcePackBuilder.BuiltPack built766, ResourcePackBuilder.BuiltPack built767,
+            ResourcePackBuilder.BuiltPack built768, ResourcePackBuilder.BuiltPack built769,
+            ResourcePackBuilder.BuiltPack built770, ResourcePackBuilder.BuiltPack built771,
+            ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
+            ResourcePackBuilder.BuiltPack built774,
+            ResourcePackBuilder.BuiltPack built775,
+            int port, boolean required) {
+        this(built, built755, built756, built757, built759, built760, built761, built762, built763, built764, built766, built767, built768, built769,
+                built770, built771, built772, built773, built774, built775, port, required, DEFAULT_PROMPT_KEY);
+    }
+
+    /** Convenience: serve all twenty packs, with an explicit prompt key. */
+    public ResourcePackServer(ResourcePackBuilder.BuiltPack built,
+            ResourcePackBuilder.BuiltPack built755, ResourcePackBuilder.BuiltPack built756, ResourcePackBuilder.BuiltPack built757, ResourcePackBuilder.BuiltPack built759, ResourcePackBuilder.BuiltPack built760, ResourcePackBuilder.BuiltPack built761,
+            ResourcePackBuilder.BuiltPack built762,
+            ResourcePackBuilder.BuiltPack built763,
+            ResourcePackBuilder.BuiltPack built764,
+            ResourcePackBuilder.BuiltPack built766, ResourcePackBuilder.BuiltPack built767,
+            ResourcePackBuilder.BuiltPack built768, ResourcePackBuilder.BuiltPack built769,
+            ResourcePackBuilder.BuiltPack built770, ResourcePackBuilder.BuiltPack built771,
+            ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
+            ResourcePackBuilder.BuiltPack built774,
+            ResourcePackBuilder.BuiltPack built775,
+            int port, boolean required, String promptKey) {
+        this(built.file(), built.sha1(), null, null, null, null, null, null, null, null, null, null, built755.file(), built755.sha1(), built756.file(), built756.sha1(), built757.file(), built757.sha1(), built759.file(), built759.sha1(), built760.file(), built760.sha1(),
+                built761.file(), built761.sha1(), built762.file(), built762.sha1(),
+                built763.file(), built763.sha1(),
+                built764.file(), built764.sha1(), built766.file(), built766.sha1(),
+                built767.file(), built767.sha1(), built768.file(), built768.sha1(),
+                built769.file(), built769.sha1(), built770.file(), built770.sha1(),
+                built771.file(), built771.sha1(), built772.file(), built772.sha1(),
+                built773.file(), built773.sha1(), built774.file(), built774.sha1(),
+                built775.file(), built775.sha1(),
+                port, required, promptKey);
+    }
+
+    /** Convenience: serve all twenty-one packs. */
+    public ResourcePackServer(ResourcePackBuilder.BuiltPack built,
+            ResourcePackBuilder.BuiltPack built754, ResourcePackBuilder.BuiltPack built755, ResourcePackBuilder.BuiltPack built756, ResourcePackBuilder.BuiltPack built757, ResourcePackBuilder.BuiltPack built759, ResourcePackBuilder.BuiltPack built760, ResourcePackBuilder.BuiltPack built761,
+            ResourcePackBuilder.BuiltPack built762,
+            ResourcePackBuilder.BuiltPack built763,
+            ResourcePackBuilder.BuiltPack built764,
+            ResourcePackBuilder.BuiltPack built766, ResourcePackBuilder.BuiltPack built767,
+            ResourcePackBuilder.BuiltPack built768, ResourcePackBuilder.BuiltPack built769,
+            ResourcePackBuilder.BuiltPack built770, ResourcePackBuilder.BuiltPack built771,
+            ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
+            ResourcePackBuilder.BuiltPack built774,
+            ResourcePackBuilder.BuiltPack built775,
+            int port, boolean required) {
+        this(built, built754, built755, built756, built757, built759, built760, built761, built762, built763, built764, built766, built767, built768, built769,
+                built770, built771, built772, built773, built774, built775, port, required, DEFAULT_PROMPT_KEY);
+    }
+
+    /** Convenience: serve all twenty-one packs, with an explicit prompt key. */
+    public ResourcePackServer(ResourcePackBuilder.BuiltPack built,
+            ResourcePackBuilder.BuiltPack built754, ResourcePackBuilder.BuiltPack built755, ResourcePackBuilder.BuiltPack built756, ResourcePackBuilder.BuiltPack built757, ResourcePackBuilder.BuiltPack built759, ResourcePackBuilder.BuiltPack built760, ResourcePackBuilder.BuiltPack built761,
+            ResourcePackBuilder.BuiltPack built762,
+            ResourcePackBuilder.BuiltPack built763,
+            ResourcePackBuilder.BuiltPack built764,
+            ResourcePackBuilder.BuiltPack built766, ResourcePackBuilder.BuiltPack built767,
+            ResourcePackBuilder.BuiltPack built768, ResourcePackBuilder.BuiltPack built769,
+            ResourcePackBuilder.BuiltPack built770, ResourcePackBuilder.BuiltPack built771,
+            ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
+            ResourcePackBuilder.BuiltPack built774,
+            ResourcePackBuilder.BuiltPack built775,
+            int port, boolean required, String promptKey) {
+        this(built.file(), built.sha1(), null, null, null, null, null, null, null, null, built754.file(), built754.sha1(), built755.file(), built755.sha1(), built756.file(), built756.sha1(), built757.file(), built757.sha1(), built759.file(), built759.sha1(), built760.file(), built760.sha1(),
+                built761.file(), built761.sha1(), built762.file(), built762.sha1(),
+                built763.file(), built763.sha1(),
+                built764.file(), built764.sha1(), built766.file(), built766.sha1(),
+                built767.file(), built767.sha1(), built768.file(), built768.sha1(),
+                built769.file(), built769.sha1(), built770.file(), built770.sha1(),
+                built771.file(), built771.sha1(), built772.file(), built772.sha1(),
+                built773.file(), built773.sha1(), built774.file(), built774.sha1(),
+                built775.file(), built775.sha1(),
+                port, required, promptKey);
+    }
+
+    /** Convenience: serve all twenty-two packs, built by {@link ResourcePackBuilder}. */
+    public ResourcePackServer(ResourcePackBuilder.BuiltPack built,
+            ResourcePackBuilder.BuiltPack built753, ResourcePackBuilder.BuiltPack built754, ResourcePackBuilder.BuiltPack built755, ResourcePackBuilder.BuiltPack built756, ResourcePackBuilder.BuiltPack built757, ResourcePackBuilder.BuiltPack built759, ResourcePackBuilder.BuiltPack built760, ResourcePackBuilder.BuiltPack built761,
+            ResourcePackBuilder.BuiltPack built762,
+            ResourcePackBuilder.BuiltPack built763,
+            ResourcePackBuilder.BuiltPack built764,
+            ResourcePackBuilder.BuiltPack built766, ResourcePackBuilder.BuiltPack built767,
+            ResourcePackBuilder.BuiltPack built768, ResourcePackBuilder.BuiltPack built769,
+            ResourcePackBuilder.BuiltPack built770, ResourcePackBuilder.BuiltPack built771,
+            ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
+            ResourcePackBuilder.BuiltPack built774,
+            ResourcePackBuilder.BuiltPack built775,
+            int port, boolean required) {
+        this(built, built753, built754, built755, built756, built757, built759, built760, built761, built762, built763, built764, built766, built767, built768, built769,
+                built770, built771, built772, built773, built774, built775, port, required, DEFAULT_PROMPT_KEY);
+    }
+
+    /** Convenience: serve all twenty-two packs, with an explicit prompt key. */
+    public ResourcePackServer(ResourcePackBuilder.BuiltPack built,
+            ResourcePackBuilder.BuiltPack built753, ResourcePackBuilder.BuiltPack built754, ResourcePackBuilder.BuiltPack built755, ResourcePackBuilder.BuiltPack built756, ResourcePackBuilder.BuiltPack built757, ResourcePackBuilder.BuiltPack built759, ResourcePackBuilder.BuiltPack built760, ResourcePackBuilder.BuiltPack built761,
+            ResourcePackBuilder.BuiltPack built762,
+            ResourcePackBuilder.BuiltPack built763,
+            ResourcePackBuilder.BuiltPack built764,
+            ResourcePackBuilder.BuiltPack built766, ResourcePackBuilder.BuiltPack built767,
+            ResourcePackBuilder.BuiltPack built768, ResourcePackBuilder.BuiltPack built769,
+            ResourcePackBuilder.BuiltPack built770, ResourcePackBuilder.BuiltPack built771,
+            ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
+            ResourcePackBuilder.BuiltPack built774,
+            ResourcePackBuilder.BuiltPack built775,
+            int port, boolean required, String promptKey) {
+        this(built.file(), built.sha1(), null, null, null, null, null, null, built753.file(), built753.sha1(), built754.file(), built754.sha1(), built755.file(), built755.sha1(), built756.file(), built756.sha1(), built757.file(), built757.sha1(), built759.file(), built759.sha1(), built760.file(), built760.sha1(),
+                built761.file(), built761.sha1(), built762.file(), built762.sha1(),
+                built763.file(), built763.sha1(),
+                built764.file(), built764.sha1(), built766.file(), built766.sha1(),
+                built767.file(), built767.sha1(), built768.file(), built768.sha1(),
+                built769.file(), built769.sha1(), built770.file(), built770.sha1(),
+                built771.file(), built771.sha1(), built772.file(), built772.sha1(),
+                built773.file(), built773.sha1(), built774.file(), built774.sha1(),
+                built775.file(), built775.sha1(),
+                port, required, promptKey);
+    }
+
+    /** Convenience: serve all twenty-three packs, built by {@link ResourcePackBuilder}. */
+    public ResourcePackServer(ResourcePackBuilder.BuiltPack built,
+            ResourcePackBuilder.BuiltPack built751, ResourcePackBuilder.BuiltPack built753, ResourcePackBuilder.BuiltPack built754, ResourcePackBuilder.BuiltPack built755, ResourcePackBuilder.BuiltPack built756, ResourcePackBuilder.BuiltPack built757, ResourcePackBuilder.BuiltPack built759, ResourcePackBuilder.BuiltPack built760, ResourcePackBuilder.BuiltPack built761,
+            ResourcePackBuilder.BuiltPack built762,
+            ResourcePackBuilder.BuiltPack built763,
+            ResourcePackBuilder.BuiltPack built764,
+            ResourcePackBuilder.BuiltPack built766, ResourcePackBuilder.BuiltPack built767,
+            ResourcePackBuilder.BuiltPack built768, ResourcePackBuilder.BuiltPack built769,
+            ResourcePackBuilder.BuiltPack built770, ResourcePackBuilder.BuiltPack built771,
+            ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
+            ResourcePackBuilder.BuiltPack built774,
+            ResourcePackBuilder.BuiltPack built775,
+            int port, boolean required) {
+        this(built, built751, built753, built754, built755, built756, built757, built759, built760, built761, built762, built763, built764, built766, built767, built768, built769,
+                built770, built771, built772, built773, built774, built775, port, required, DEFAULT_PROMPT_KEY);
+    }
+
+    /** Convenience: serve all twenty-three packs, with an explicit prompt key. */
+    public ResourcePackServer(ResourcePackBuilder.BuiltPack built,
+            ResourcePackBuilder.BuiltPack built751, ResourcePackBuilder.BuiltPack built753, ResourcePackBuilder.BuiltPack built754, ResourcePackBuilder.BuiltPack built755, ResourcePackBuilder.BuiltPack built756, ResourcePackBuilder.BuiltPack built757, ResourcePackBuilder.BuiltPack built759, ResourcePackBuilder.BuiltPack built760, ResourcePackBuilder.BuiltPack built761,
+            ResourcePackBuilder.BuiltPack built762,
+            ResourcePackBuilder.BuiltPack built763,
+            ResourcePackBuilder.BuiltPack built764,
+            ResourcePackBuilder.BuiltPack built766, ResourcePackBuilder.BuiltPack built767,
+            ResourcePackBuilder.BuiltPack built768, ResourcePackBuilder.BuiltPack built769,
+            ResourcePackBuilder.BuiltPack built770, ResourcePackBuilder.BuiltPack built771,
+            ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
+            ResourcePackBuilder.BuiltPack built774,
+            ResourcePackBuilder.BuiltPack built775,
+            int port, boolean required, String promptKey) {
+        this(built.file(), built.sha1(), null, null, null, null, built751.file(), built751.sha1(), built753.file(), built753.sha1(), built754.file(), built754.sha1(), built755.file(), built755.sha1(), built756.file(), built756.sha1(), built757.file(), built757.sha1(), built759.file(), built759.sha1(), built760.file(), built760.sha1(),
+                built761.file(), built761.sha1(), built762.file(), built762.sha1(),
+                built763.file(), built763.sha1(),
+                built764.file(), built764.sha1(), built766.file(), built766.sha1(),
+                built767.file(), built767.sha1(), built768.file(), built768.sha1(),
+                built769.file(), built769.sha1(), built770.file(), built770.sha1(),
+                built771.file(), built771.sha1(), built772.file(), built772.sha1(),
+                built773.file(), built773.sha1(), built774.file(), built774.sha1(),
+                built775.file(), built775.sha1(),
+                port, required, promptKey);
+    }
+
+    /** Convenience: serve all twenty-four packs, built by {@link ResourcePackBuilder}. */
+    public ResourcePackServer(ResourcePackBuilder.BuiltPack built,
+            ResourcePackBuilder.BuiltPack built736, ResourcePackBuilder.BuiltPack built751, ResourcePackBuilder.BuiltPack built753, ResourcePackBuilder.BuiltPack built754, ResourcePackBuilder.BuiltPack built755, ResourcePackBuilder.BuiltPack built756, ResourcePackBuilder.BuiltPack built757, ResourcePackBuilder.BuiltPack built759, ResourcePackBuilder.BuiltPack built760, ResourcePackBuilder.BuiltPack built761,
+            ResourcePackBuilder.BuiltPack built762,
+            ResourcePackBuilder.BuiltPack built763,
+            ResourcePackBuilder.BuiltPack built764,
+            ResourcePackBuilder.BuiltPack built766, ResourcePackBuilder.BuiltPack built767,
+            ResourcePackBuilder.BuiltPack built768, ResourcePackBuilder.BuiltPack built769,
+            ResourcePackBuilder.BuiltPack built770, ResourcePackBuilder.BuiltPack built771,
+            ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
+            ResourcePackBuilder.BuiltPack built774,
+            ResourcePackBuilder.BuiltPack built775,
+            int port, boolean required) {
+        this(built, built736, built751, built753, built754, built755, built756, built757, built759, built760, built761, built762, built763, built764, built766, built767, built768, built769,
+                built770, built771, built772, built773, built774, built775, port, required, DEFAULT_PROMPT_KEY);
+    }
+
+    /** Convenience: serve all twenty-four packs, with an explicit prompt key. */
+    public ResourcePackServer(ResourcePackBuilder.BuiltPack built,
+            ResourcePackBuilder.BuiltPack built736, ResourcePackBuilder.BuiltPack built751, ResourcePackBuilder.BuiltPack built753, ResourcePackBuilder.BuiltPack built754, ResourcePackBuilder.BuiltPack built755, ResourcePackBuilder.BuiltPack built756, ResourcePackBuilder.BuiltPack built757, ResourcePackBuilder.BuiltPack built759, ResourcePackBuilder.BuiltPack built760, ResourcePackBuilder.BuiltPack built761,
+            ResourcePackBuilder.BuiltPack built762,
+            ResourcePackBuilder.BuiltPack built763,
+            ResourcePackBuilder.BuiltPack built764,
+            ResourcePackBuilder.BuiltPack built766, ResourcePackBuilder.BuiltPack built767,
+            ResourcePackBuilder.BuiltPack built768, ResourcePackBuilder.BuiltPack built769,
+            ResourcePackBuilder.BuiltPack built770, ResourcePackBuilder.BuiltPack built771,
+            ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
+            ResourcePackBuilder.BuiltPack built774,
+            ResourcePackBuilder.BuiltPack built775,
+            int port, boolean required, String promptKey) {
+        this(built.file(), built.sha1(), null, null, built736.file(), built736.sha1(), built751.file(), built751.sha1(), built753.file(), built753.sha1(), built754.file(), built754.sha1(), built755.file(), built755.sha1(), built756.file(), built756.sha1(), built757.file(), built757.sha1(), built759.file(), built759.sha1(), built760.file(), built760.sha1(),
+                built761.file(), built761.sha1(), built762.file(), built762.sha1(),
+                built763.file(), built763.sha1(),
+                built764.file(), built764.sha1(), built766.file(), built766.sha1(),
+                built767.file(), built767.sha1(), built768.file(), built768.sha1(),
+                built769.file(), built769.sha1(), built770.file(), built770.sha1(),
+                built771.file(), built771.sha1(), built772.file(), built772.sha1(),
+                built773.file(), built773.sha1(), built774.file(), built774.sha1(),
+                built775.file(), built775.sha1(),
+                port, required, promptKey);
+    }
+
+    /** Convenience: serve all twenty-five packs, built by {@link ResourcePackBuilder}. */
+    public ResourcePackServer(ResourcePackBuilder.BuiltPack built,
+            ResourcePackBuilder.BuiltPack built735, ResourcePackBuilder.BuiltPack built736, ResourcePackBuilder.BuiltPack built751, ResourcePackBuilder.BuiltPack built753, ResourcePackBuilder.BuiltPack built754, ResourcePackBuilder.BuiltPack built755, ResourcePackBuilder.BuiltPack built756, ResourcePackBuilder.BuiltPack built757, ResourcePackBuilder.BuiltPack built759, ResourcePackBuilder.BuiltPack built760, ResourcePackBuilder.BuiltPack built761,
+            ResourcePackBuilder.BuiltPack built762,
+            ResourcePackBuilder.BuiltPack built763,
+            ResourcePackBuilder.BuiltPack built764,
+            ResourcePackBuilder.BuiltPack built766, ResourcePackBuilder.BuiltPack built767,
+            ResourcePackBuilder.BuiltPack built768, ResourcePackBuilder.BuiltPack built769,
+            ResourcePackBuilder.BuiltPack built770, ResourcePackBuilder.BuiltPack built771,
+            ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
+            ResourcePackBuilder.BuiltPack built774,
+            ResourcePackBuilder.BuiltPack built775,
+            int port, boolean required) {
+        this(built, built735, built736, built751, built753, built754, built755, built756, built757, built759, built760, built761, built762, built763, built764, built766, built767, built768, built769,
+                built770, built771, built772, built773, built774, built775, port, required, DEFAULT_PROMPT_KEY);
+    }
+
+    /** Convenience: serve all twenty-five packs, with an explicit prompt key. */
+    public ResourcePackServer(ResourcePackBuilder.BuiltPack built,
+            ResourcePackBuilder.BuiltPack built735, ResourcePackBuilder.BuiltPack built736, ResourcePackBuilder.BuiltPack built751, ResourcePackBuilder.BuiltPack built753, ResourcePackBuilder.BuiltPack built754, ResourcePackBuilder.BuiltPack built755, ResourcePackBuilder.BuiltPack built756, ResourcePackBuilder.BuiltPack built757, ResourcePackBuilder.BuiltPack built759, ResourcePackBuilder.BuiltPack built760, ResourcePackBuilder.BuiltPack built761,
+            ResourcePackBuilder.BuiltPack built762,
+            ResourcePackBuilder.BuiltPack built763,
+            ResourcePackBuilder.BuiltPack built764,
+            ResourcePackBuilder.BuiltPack built766, ResourcePackBuilder.BuiltPack built767,
+            ResourcePackBuilder.BuiltPack built768, ResourcePackBuilder.BuiltPack built769,
+            ResourcePackBuilder.BuiltPack built770, ResourcePackBuilder.BuiltPack built771,
+            ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
+            ResourcePackBuilder.BuiltPack built774,
+            ResourcePackBuilder.BuiltPack built775,
+            int port, boolean required, String promptKey) {
+        this(built.file(), built.sha1(), built735.file(), built735.sha1(), built736.file(), built736.sha1(), built751.file(), built751.sha1(), built753.file(), built753.sha1(), built754.file(), built754.sha1(), built755.file(), built755.sha1(), built756.file(), built756.sha1(), built757.file(), built757.sha1(), built759.file(), built759.sha1(), built760.file(), built760.sha1(),
                 built761.file(), built761.sha1(), built762.file(), built762.sha1(),
                 built763.file(), built763.sha1(),
                 built764.file(), built764.sha1(), built766.file(), built766.sha1(),
@@ -1550,7 +2165,7 @@ public final class ResourcePackServer {
             ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
             ResourcePackBuilder.BuiltPack built774,
             int port, boolean required, String promptKey) {
-        this(built.file(), built.sha1(), null, null, built760.file(), built760.sha1(),
+        this(built.file(), built.sha1(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, built760.file(), built760.sha1(),
                 built761.file(), built761.sha1(), built762.file(), built762.sha1(),
                 built763.file(), built763.sha1(),
                 built764.file(), built764.sha1(), built766.file(), built766.sha1(),
@@ -1593,7 +2208,7 @@ public final class ResourcePackServer {
             ResourcePackBuilder.BuiltPack built772, ResourcePackBuilder.BuiltPack built773,
             ResourcePackBuilder.BuiltPack built774,
             int port, boolean required, String promptKey) {
-        this(built.file(), built.sha1(), null, null, built761.file(), built761.sha1(),
+        this(built.file(), built.sha1(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, built761.file(), built761.sha1(),
                 built762.file(), built762.sha1(), built763.file(), built763.sha1(),
                 built764.file(), built764.sha1(), built766.file(), built766.sha1(),
                 built767.file(), built767.sha1(), built768.file(), built768.sha1(),
@@ -1617,6 +2232,27 @@ public final class ResourcePackServer {
             throw new IllegalStateException("Resource pack server is already running");
         }
         packBytes = readAndVerify(packFile, sha1);
+        if (pack735File != null) {
+            pack735Bytes = readAndVerify(pack735File, sha1735);
+        }
+        if (pack736File != null) {
+            pack736Bytes = readAndVerify(pack736File, sha1736);
+        }
+        if (pack751File != null) {
+            pack751Bytes = readAndVerify(pack751File, sha1751);
+        }
+        if (pack753File != null) {
+            pack753Bytes = readAndVerify(pack753File, sha1753);
+        }
+        if (pack754File != null) {
+            pack754Bytes = readAndVerify(pack754File, sha1754);
+        }
+        if (pack755File != null) {
+            pack755Bytes = readAndVerify(pack755File, sha1755);
+        }
+        if (pack756File != null) {
+            pack756Bytes = readAndVerify(pack756File, sha1756);
+        }
         if (pack757File != null) {
             pack757Bytes = readAndVerify(pack757File, sha1757);
         }
@@ -1671,6 +2307,27 @@ public final class ResourcePackServer {
         // Bind explicitly to IPv4 loopback (see class javadoc).
         httpServer = HttpServer.create(new InetSocketAddress("127.0.0.1", requestedPort), 0);
         httpServer.createContext(PACK_PATH, exchange -> serveBytes(exchange, packBytes));
+        if (pack735Bytes != null) {
+            httpServer.createContext(PACK_PATH_735, exchange -> serveBytes(exchange, pack735Bytes));
+        }
+        if (pack736Bytes != null) {
+            httpServer.createContext(PACK_PATH_736, exchange -> serveBytes(exchange, pack736Bytes));
+        }
+        if (pack751Bytes != null) {
+            httpServer.createContext(PACK_PATH_751, exchange -> serveBytes(exchange, pack751Bytes));
+        }
+        if (pack753Bytes != null) {
+            httpServer.createContext(PACK_PATH_753, exchange -> serveBytes(exchange, pack753Bytes));
+        }
+        if (pack754Bytes != null) {
+            httpServer.createContext(PACK_PATH_754, exchange -> serveBytes(exchange, pack754Bytes));
+        }
+        if (pack755Bytes != null) {
+            httpServer.createContext(PACK_PATH_755, exchange -> serveBytes(exchange, pack755Bytes));
+        }
+        if (pack756Bytes != null) {
+            httpServer.createContext(PACK_PATH_756, exchange -> serveBytes(exchange, pack756Bytes));
+        }
         if (pack757Bytes != null) {
             httpServer.createContext(PACK_PATH_757, exchange -> serveBytes(exchange, pack757Bytes));
         }
@@ -1777,6 +2434,13 @@ public final class ResourcePackServer {
             executor = null;
         }
         packBytes = null;
+        pack735Bytes = null;
+        pack736Bytes = null;
+        pack751Bytes = null;
+        pack753Bytes = null;
+        pack754Bytes = null;
+        pack755Bytes = null;
+        pack756Bytes = null;
         pack757Bytes = null;
         pack759Bytes = null;
         pack760Bytes = null;
@@ -1806,6 +2470,134 @@ public final class ResourcePackServer {
     public synchronized String url() {
         int port = httpServer != null ? httpServer.getAddress().getPort() : requestedPort;
         return "http://127.0.0.1:" + port + PACK_PATH;
+    }
+
+    /** The download URL of the 1.16 variant, or {@code null} when not served. */
+    public synchronized String url735() {
+        if (pack735File == null) {
+            return null;
+        }
+        int port = httpServer != null ? httpServer.getAddress().getPort() : requestedPort;
+        return "http://127.0.0.1:" + port + PACK_PATH_735;
+    }
+
+    /**
+     * The 1.16 {@link ResourcePack} to offer to 735 clients, or
+     * {@code null} when no 1.16 variant is served.
+     */
+    public synchronized ResourcePack pack735() {
+        return pack735File == null ? null
+                : new ResourcePack(url735(), sha1735, required, promptKey);
+    }
+
+    /** The download URL of the 1.16.1 variant, or {@code null} when not served. */
+    public synchronized String url736() {
+        if (pack736File == null) {
+            return null;
+        }
+        int port = httpServer != null ? httpServer.getAddress().getPort() : requestedPort;
+        return "http://127.0.0.1:" + port + PACK_PATH_736;
+    }
+
+    /**
+     * The 1.16.1 {@link ResourcePack} to offer to 736 clients, or
+     * {@code null} when no 1.16.1 variant is served.
+     */
+    public synchronized ResourcePack pack736() {
+        return pack736File == null ? null
+                : new ResourcePack(url736(), sha1736, required, promptKey);
+    }
+
+    /** The download URL of the 1.16.2 variant, or {@code null} when not served. */
+    public synchronized String url751() {
+        if (pack751File == null) {
+            return null;
+        }
+        int port = httpServer != null ? httpServer.getAddress().getPort() : requestedPort;
+        return "http://127.0.0.1:" + port + PACK_PATH_751;
+    }
+
+    /**
+     * The 1.16.2 {@link ResourcePack} to offer to 751 clients, or
+     * {@code null} when no 1.16.2 variant is served.
+     */
+    public synchronized ResourcePack pack751() {
+        return pack751File == null ? null
+                : new ResourcePack(url751(), sha1751, required, promptKey);
+    }
+
+    /** The download URL of the 1.16.3 variant, or {@code null} when not served. */
+    public synchronized String url753() {
+        if (pack753File == null) {
+            return null;
+        }
+        int port = httpServer != null ? httpServer.getAddress().getPort() : requestedPort;
+        return "http://127.0.0.1:" + port + PACK_PATH_753;
+    }
+
+    /**
+     * The 1.16.3 {@link ResourcePack} to offer to 753 clients, or
+     * {@code null} when no 1.16.3 variant is served.
+     */
+    public synchronized ResourcePack pack753() {
+        return pack753File == null ? null
+                : new ResourcePack(url753(), sha1753, required, promptKey);
+    }
+
+    /** The download URL of the 1.16.4 / 1.16.5 variant, or {@code null} when not served.
+     * One pack serves both versions: they share protocol 754. */
+    public synchronized String url754() {
+        if (pack754File == null) {
+            return null;
+        }
+        int port = httpServer != null ? httpServer.getAddress().getPort() : requestedPort;
+        return "http://127.0.0.1:" + port + PACK_PATH_754;
+    }
+
+    /**
+     * The 1.16.4 / 1.16.5 {@link ResourcePack} to offer to 754 clients, or
+     * {@code null} when no 1.16.4 / 1.16.5 variant is served. One pack
+     * serves both versions: they share protocol 754 and pack_format 6.
+     */
+    public synchronized ResourcePack pack754() {
+        return pack754File == null ? null
+                : new ResourcePack(url754(), sha1754, required, promptKey);
+    }
+
+    /** The download URL of the 1.17 variant, or {@code null} when not served. */
+    public synchronized String url755() {
+        if (pack755File == null) {
+            return null;
+        }
+        int port = httpServer != null ? httpServer.getAddress().getPort() : requestedPort;
+        return "http://127.0.0.1:" + port + PACK_PATH_755;
+    }
+
+    /**
+     * The 1.17 {@link ResourcePack} to offer to 755 clients, or
+     * {@code null} when no 1.17 variant is served.
+     */
+    public synchronized ResourcePack pack755() {
+        return pack755File == null ? null
+                : new ResourcePack(url755(), sha1755, required, promptKey);
+    }
+
+    /** The download URL of the 1.17.1 variant, or {@code null} when not served. */
+    public synchronized String url756() {
+        if (pack756File == null) {
+            return null;
+        }
+        int port = httpServer != null ? httpServer.getAddress().getPort() : requestedPort;
+        return "http://127.0.0.1:" + port + PACK_PATH_756;
+    }
+
+    /**
+     * The 1.17.1 {@link ResourcePack} to offer to 756 clients, or
+     * {@code null} when no 1.17.1 variant is served.
+     */
+    public synchronized ResourcePack pack756() {
+        return pack756File == null ? null
+                : new ResourcePack(url756(), sha1756, required, promptKey);
     }
 
     /** The download URL of the 1.18 / 1.18.1 variant, or {@code null} when not served. */
@@ -2119,6 +2911,23 @@ public final class ResourcePackServer {
 
     /**
      * クライアントのプロトコルに合ったリソースパックを返す。
+     * 751→{@link #pack751()}（pack_format 6。無い場合は753パック、さらに無い場合は754パック、
+     * さらに無い場合は755パック、さらに無い場合は756パック、さらに無い場合は757パック、
+     * さらに無い場合は759パック、さらに無い場合は760パック、さらに無い場合は761パック、
+     * さらに無い場合は762パック、さらに無い場合は763パックに代替）、
+     * 753→{@link #pack753()}（pack_format 6。無い場合は754パック、さらに無い場合は755パック、
+     * さらに無い場合は756パック、さらに無い場合は757パック、さらに無い場合は759パック、
+     * さらに無い場合は760パック、さらに無い場合は761パック、さらに無い場合は762パック、
+     * さらに無い場合は763パックに代替）、
+     * 754→{@link #pack754()}（pack_format 6。無い場合は755パック、さらに無い場合は756パック、
+     * さらに無い場合は757パック、さらに無い場合は759パック、さらに無い場合は760パック、
+     * さらに無い場合は761パック、さらに無い場合は762パック、さらに無い場合は763パックに代替）、
+     * 755→{@link #pack755()}（pack_format 7。無い場合は756パック、さらに無い場合は757パック、
+     * さらに無い場合は759パック、さらに無い場合は760パック、さらに無い場合は761パック、
+     * さらに無い場合は762パック、さらに無い場合は763パックに代替）、
+     * 756→{@link #pack756()}（pack_format 7。無い場合は757パック、さらに無い場合は759パック、
+     * さらに無い場合は760パック、さらに無い場合は761パック、さらに無い場合は762パック、
+     * さらに無い場合は763パックに代替）、
      * 757→{@link #pack757()}（pack_format 8。無い場合は759パック、さらに無い場合は760パック、
      * さらに無い場合は761パック、さらに無い場合は762パック、さらに無い場合は763パックに代替）、
      * 761→{@link #pack761()}（pack_format 12。無い場合は762パック、さらに無い場合は763パックに代替）、
@@ -2143,6 +2952,304 @@ public final class ResourcePackServer {
      * 基準で {@code packForProtocol(serverProtocol)} を使って選ぶこと。
      */
     public synchronized ResourcePack packForProtocol(int clientProtocol) {
+        if (clientProtocol == ProtocolVersion.V1_16) {
+            // 735パックが無い旧コンストラクタでは736パック、さらに無い場合は751パック、
+            // さらに無い場合は753パック、さらに無い場合は754パック、さらに無い場合は755パック、
+            // さらに無い場合は756パック、さらに無い場合は757パック、
+            // さらに無い場合は759パック、さらに無い場合は760パック、さらに無い場合は761パック、
+            // さらに無い場合は762パック、さらに無い場合は763パックに代替する。
+            // 735は今のツリー内最古のため、隣接する新しい pack736 に落とす
+            // （ProxySession のフォールバックと同じ決まり。735も736も
+            // pack_format 5のため、落としても形式は変わらない）。
+            ResourcePack pack735 = pack735();
+            if (pack735 != null) {
+                return pack735;
+            }
+            ResourcePack pack736 = pack736();
+            if (pack736 != null) {
+                return pack736;
+            }
+            ResourcePack pack751 = pack751();
+            if (pack751 != null) {
+                return pack751;
+            }
+            ResourcePack pack753 = pack753();
+            if (pack753 != null) {
+                return pack753;
+            }
+            ResourcePack pack754 = pack754();
+            if (pack754 != null) {
+                return pack754;
+            }
+            ResourcePack pack755 = pack755();
+            if (pack755 != null) {
+                return pack755;
+            }
+            ResourcePack pack756 = pack756();
+            if (pack756 != null) {
+                return pack756;
+            }
+            ResourcePack pack757 = pack757();
+            if (pack757 != null) {
+                return pack757;
+            }
+            ResourcePack pack759 = pack759();
+            if (pack759 != null) {
+                return pack759;
+            }
+            ResourcePack pack760 = pack760();
+            if (pack760 != null) {
+                return pack760;
+            }
+            ResourcePack pack761 = pack761();
+            if (pack761 != null) {
+                return pack761;
+            }
+            ResourcePack pack762 = pack762();
+            return pack762 != null ? pack762 : pack763();
+        }
+        if (clientProtocol == ProtocolVersion.V1_16_1) {
+            // 736パックが無い旧コンストラクタでは751パック、さらに無い場合は753パック、
+            // さらに無い場合は754パック、さらに無い場合は755パック、さらに無い場合は756パック、さらに無い場合は757パック、
+            // さらに無い場合は759パック、さらに無い場合は760パック、さらに無い場合は761パック、
+            // さらに無い場合は762パック、さらに無い場合は763パックに代替する。
+            // 隣接する新しい pack751 に落とす
+            // （ProxySession のフォールバックと同じ決まり。736は pack_format 5、
+            // 751は pack_format 6のため、落とすと形式が変わる点に注意。754のときの
+            // pack755へのフォールバック（6→7）と同じく、境界を越える落とし方）。
+            ResourcePack pack736 = pack736();
+            if (pack736 != null) {
+                return pack736;
+            }
+            ResourcePack pack751 = pack751();
+            if (pack751 != null) {
+                return pack751;
+            }
+            ResourcePack pack753 = pack753();
+            if (pack753 != null) {
+                return pack753;
+            }
+            ResourcePack pack754 = pack754();
+            if (pack754 != null) {
+                return pack754;
+            }
+            ResourcePack pack755 = pack755();
+            if (pack755 != null) {
+                return pack755;
+            }
+            ResourcePack pack756 = pack756();
+            if (pack756 != null) {
+                return pack756;
+            }
+            ResourcePack pack757 = pack757();
+            if (pack757 != null) {
+                return pack757;
+            }
+            ResourcePack pack759 = pack759();
+            if (pack759 != null) {
+                return pack759;
+            }
+            ResourcePack pack760 = pack760();
+            if (pack760 != null) {
+                return pack760;
+            }
+            ResourcePack pack761 = pack761();
+            if (pack761 != null) {
+                return pack761;
+            }
+            ResourcePack pack762 = pack762();
+            return pack762 != null ? pack762 : pack763();
+        }
+        if (clientProtocol == ProtocolVersion.V1_16_2) {
+            // 751パックが無い旧コンストラクタでは753パック、さらに無い場合は754パック、
+            // さらに無い場合は755パック、さらに無い場合は756パック、さらに無い場合は757パック、
+            // さらに無い場合は759パック、さらに無い場合は760パック、さらに無い場合は761パック、
+            // さらに無い場合は762パック、さらに無い場合は763パックに代替する。
+            // 隣接する新しい pack753 に落とす
+            // （ProxySession のフォールバックと同じ決まり。751と753はどちらも
+            // pack_format 6のため、落としても形式は変わらない）。
+            ResourcePack pack751 = pack751();
+            if (pack751 != null) {
+                return pack751;
+            }
+            ResourcePack pack753 = pack753();
+            if (pack753 != null) {
+                return pack753;
+            }
+            ResourcePack pack754 = pack754();
+            if (pack754 != null) {
+                return pack754;
+            }
+            ResourcePack pack755 = pack755();
+            if (pack755 != null) {
+                return pack755;
+            }
+            ResourcePack pack756 = pack756();
+            if (pack756 != null) {
+                return pack756;
+            }
+            ResourcePack pack757 = pack757();
+            if (pack757 != null) {
+                return pack757;
+            }
+            ResourcePack pack759 = pack759();
+            if (pack759 != null) {
+                return pack759;
+            }
+            ResourcePack pack760 = pack760();
+            if (pack760 != null) {
+                return pack760;
+            }
+            ResourcePack pack761 = pack761();
+            if (pack761 != null) {
+                return pack761;
+            }
+            ResourcePack pack762 = pack762();
+            return pack762 != null ? pack762 : pack763();
+        }
+        if (clientProtocol == ProtocolVersion.V1_16_3) {
+            // 753パックが無い旧コンストラクタでは754パック、さらに無い場合は755パック、
+            // さらに無い場合は756パック、さらに無い場合は757パック、さらに無い場合は759パック、
+            // さらに無い場合は760パック、さらに無い場合は761パック、さらに無い場合は762パック、
+            // さらに無い場合は763パックに代替する。
+            // 隣接する新しい pack754 に落とす
+            // （ProxySession のフォールバックと同じ決まり。753と754はどちらも
+            // pack_format 6のため、落としても形式は変わらない）。
+            ResourcePack pack753 = pack753();
+            if (pack753 != null) {
+                return pack753;
+            }
+            ResourcePack pack754 = pack754();
+            if (pack754 != null) {
+                return pack754;
+            }
+            ResourcePack pack755 = pack755();
+            if (pack755 != null) {
+                return pack755;
+            }
+            ResourcePack pack756 = pack756();
+            if (pack756 != null) {
+                return pack756;
+            }
+            ResourcePack pack757 = pack757();
+            if (pack757 != null) {
+                return pack757;
+            }
+            ResourcePack pack759 = pack759();
+            if (pack759 != null) {
+                return pack759;
+            }
+            ResourcePack pack760 = pack760();
+            if (pack760 != null) {
+                return pack760;
+            }
+            ResourcePack pack761 = pack761();
+            if (pack761 != null) {
+                return pack761;
+            }
+            ResourcePack pack762 = pack762();
+            return pack762 != null ? pack762 : pack763();
+        }
+        if (clientProtocol == ProtocolVersion.V1_16_5) {
+            // 754パックが無い旧コンストラクタでは755パック、さらに無い場合は756パック、
+            // さらに無い場合は757パック、さらに無い場合は759パック、さらに無い場合は760パック、
+            // さらに無い場合は761パック、さらに無い場合は762パック、さらに無い場合は763パックに代替する。
+            // 754は今のツリー内最古のため、隣接する新しい pack755 に落とす
+            // （ProxySession のフォールバックと同じ決まり）。
+            ResourcePack pack754 = pack754();
+            if (pack754 != null) {
+                return pack754;
+            }
+            ResourcePack pack755 = pack755();
+            if (pack755 != null) {
+                return pack755;
+            }
+            ResourcePack pack756 = pack756();
+            if (pack756 != null) {
+                return pack756;
+            }
+            ResourcePack pack757 = pack757();
+            if (pack757 != null) {
+                return pack757;
+            }
+            ResourcePack pack759 = pack759();
+            if (pack759 != null) {
+                return pack759;
+            }
+            ResourcePack pack760 = pack760();
+            if (pack760 != null) {
+                return pack760;
+            }
+            ResourcePack pack761 = pack761();
+            if (pack761 != null) {
+                return pack761;
+            }
+            ResourcePack pack762 = pack762();
+            return pack762 != null ? pack762 : pack763();
+        }
+        if (clientProtocol == ProtocolVersion.V1_17) {
+            // 755パックが無い旧コンストラクタでは756パック、さらに無い場合は757パック、
+            // さらに無い場合は759パック、さらに無い場合は760パック、さらに無い場合は761パック、
+            // さらに無い場合は762パック、さらに無い場合は763パックに代替する。
+            // 隣接する新しい pack756 に落とす（ProxySession のフォールバックと
+            // 同じ決まり。755と756はどちらも pack_format 7のため、落としても
+            // 形式は変わらない）。
+            ResourcePack pack755 = pack755();
+            if (pack755 != null) {
+                return pack755;
+            }
+            ResourcePack pack756 = pack756();
+            if (pack756 != null) {
+                return pack756;
+            }
+            ResourcePack pack757 = pack757();
+            if (pack757 != null) {
+                return pack757;
+            }
+            ResourcePack pack759 = pack759();
+            if (pack759 != null) {
+                return pack759;
+            }
+            ResourcePack pack760 = pack760();
+            if (pack760 != null) {
+                return pack760;
+            }
+            ResourcePack pack761 = pack761();
+            if (pack761 != null) {
+                return pack761;
+            }
+            ResourcePack pack762 = pack762();
+            return pack762 != null ? pack762 : pack763();
+        }
+        if (clientProtocol == ProtocolVersion.V1_17_1) {
+            // 756パックが無い旧コンストラクタでは757パック、さらに無い場合は759パック、
+            // さらに無い場合は760パック、さらに無い場合は761パック、さらに無い場合は762パック、
+            // さらに無い場合は763パックに代替する。
+            // 隣接する新しい pack757 に落とす（ProxySession のフォールバックと
+            // 同じ決まり。Stage B §13.3）。
+            ResourcePack pack756 = pack756();
+            if (pack756 != null) {
+                return pack756;
+            }
+            ResourcePack pack757 = pack757();
+            if (pack757 != null) {
+                return pack757;
+            }
+            ResourcePack pack759 = pack759();
+            if (pack759 != null) {
+                return pack759;
+            }
+            ResourcePack pack760 = pack760();
+            if (pack760 != null) {
+                return pack760;
+            }
+            ResourcePack pack761 = pack761();
+            if (pack761 != null) {
+                return pack761;
+            }
+            ResourcePack pack762 = pack762();
+            return pack762 != null ? pack762 : pack763();
+        }
         if (clientProtocol == ProtocolVersion.V1_18) {
             // 757パックが無い旧コンストラクタでは759パック、さらに無い場合は760パック、
             // さらに無い場合は761パック、さらに無い場合は762パック、さらに無い場合は763パックに代替する。
