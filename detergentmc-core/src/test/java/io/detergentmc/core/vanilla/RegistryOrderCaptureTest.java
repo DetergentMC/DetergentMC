@@ -192,6 +192,19 @@ class RegistryOrderCaptureTest {
         return null;
     }
 
+    private static Path findRealVanilla262Jar() {
+        for (String candidate : List.of(
+                "run/vanilla/server-26.2.jar",
+                "../run/vanilla/server-26.2.jar",
+                "../../run/vanilla/server-26.2.jar")) {
+            Path path = Path.of(candidate).toAbsolutePath().normalize();
+            if (Files.isRegularFile(path)) {
+                return path;
+            }
+        }
+        return null;
+    }
+
     private static Path findRealVanilla1205Jar() {
         for (String candidate : List.of(
                 "run/vanilla/server-1.20.5.jar",
@@ -478,6 +491,7 @@ class RegistryOrderCaptureTest {
             case "1.21.8" -> findRealVanilla1218Jar();
             case "1.21.11" -> findRealVanilla12111Jar();
             case "26.1" -> findRealVanilla261Jar();
+            case "26.2" -> findRealVanilla262Jar();
             default -> findRealVanilla1205Jar();
         };
         assumeTrue(realJar != null,
@@ -513,8 +527,8 @@ class RegistryOrderCaptureTest {
                             clientInformation(clientProtocol == 768 || clientProtocol == 769
                                     || clientProtocol == 770 || clientProtocol == 771
                                     || clientProtocol == 772 || clientProtocol == 774
-                                    || clientProtocol == 775)));
-                    int joinGameId = clientProtocol == 775 ? 0x31
+                                    || clientProtocol == 775 || clientProtocol == 776)));
+                    int joinGameId = clientProtocol == 775 || clientProtocol == 776 ? 0x31
                             : clientProtocol == 774 ? 0x30
                             : clientProtocol == 768 || clientProtocol == 769 ? 0x2C : 0x2B;
                     MinecraftPacket joinGame = client.waitForId(joinGameId, 30_000);
@@ -861,6 +875,12 @@ class RegistryOrderCaptureTest {
                 capture("26.1", "server-26.1.jar", 775, 775), "26.1");
     }
 
+    @Test
+    void registryOrderOfRealVanilla262() throws Exception {
+        assertRegistryOrder262Like(
+                capture("26.2", "server-26.2.jar", 776, 776), "26.2");
+    }
+
     /**
      * 26.1 の並び。774→775 のレジストリ差分（ViaVersion mapping-26.1.json と
      * minecraft-data 26.1 で確認）では、エンチャント・絵画・旗の模様・
@@ -957,6 +977,127 @@ class RegistryOrderCaptureTest {
             assertEquals("minecraft:test_block", blockEntities.get(46));
             assertEquals("minecraft:test_instance_block", blockEntities.get(47));
             assertEquals("minecraft:copper_golem_statue", blockEntities.get(48));
+        }
+        List<String> instruments = registries.get("minecraft:instrument");
+        if (instruments != null) {
+            assertEquals(8, instruments.size(), version + " の楽器は 8 件: " + instruments);
+            assertEquals("minecraft:admire_goat_horn", instruments.get(0));
+            assertEquals("minecraft:yearn_goat_horn", instruments.get(7));
+        }
+        List<String> dialogs = registries.get("minecraft:dialog");
+        assertNotNullList(dialogs, "minecraft:dialog");
+        assertEquals(3, dialogs.size(), version + " のダイアログは 3 件: " + dialogs);
+        assertEquals("minecraft:custom_options", dialogs.get(0));
+        assertEquals("minecraft:quick_actions", dialogs.get(1));
+        assertEquals("minecraft:server_links", dialogs.get(2));
+    }
+
+    /**
+     * 26.2 の並び。775→776 のレジストリ差分（ViaVersion mapping-26.2.json と
+     * 本物の26.2のjarのダンプで確認）では、エンチャント・絵画・旗の模様・
+     * トリム・楽器（ヤギの角）・ダイアログは 775 と同一の顔ぶれ・同じ順番のはずである。
+     * 変わるのはダメージ種別（+1：sulfur_cube_hot が42番に挿入）、
+     * ジュークボックスの歌（+1：bounce が4番に挿入）、バイオーム（+1：sulfur_caves が
+     * 53番に挿入）、属性（+5：air_drag_modifier 0、below_name_distance 6、bounciness 9、
+     * friction_modifier 17、name_tag_distance 27）、ブロックエンティティ種別
+     * （bed が無くなり potent_sulfur が48番に追加。25番以降が1つずれる）で、
+     * これらは Join Game の codec の並びに現れる。
+     * なお sulfur_cube_archetype（新設・12件）は Join Game の codec には現れない。
+     *
+     * <p>このテストはその「はず」を本物の 26.2 の codec で確かめるためのもので、
+     * もし 26.2 で並びが違っていたらここが失敗して真の並びを教えてくれる。
+     * その場合はこの期待値と RegistryRemapper の 776 側の小レジストリ表を直すこと。
+     */
+    private static void assertRegistryOrder262Like(Map<String, List<String>> registries,
+            String version) {
+        List<String> enchantments = registries.get("minecraft:enchantment");
+        assertNotNullList(enchantments, "minecraft:enchantment");
+        assertEquals(43, enchantments.size(), version + " のエンチャントは 43 件: " + enchantments);
+        assertEquals("minecraft:aqua_affinity", enchantments.get(0));
+        assertEquals("minecraft:luck_of_the_sea", enchantments.get(20));
+        assertEquals("minecraft:lunge", enchantments.get(21));
+        assertEquals("minecraft:lure", enchantments.get(22));
+        assertEquals("minecraft:mending", enchantments.get(23));
+        assertEquals("minecraft:wind_burst", enchantments.get(42));
+
+        List<String> paintings = registries.get("minecraft:painting_variant");
+        assertNotNullList(paintings, "minecraft:painting_variant");
+        assertEquals(51, paintings.size(), version + " の絵画は 51 件: " + paintings);
+        assertEquals("minecraft:dennis", paintings.get(14));
+        assertEquals("minecraft:kebab", paintings.get(24));
+        assertEquals("minecraft:wither", paintings.get(50));
+
+        List<String> banners = registries.get("minecraft:banner_pattern");
+        assertNotNullList(banners, "minecraft:banner_pattern");
+        assertEquals(43, banners.size(), version + " の旗の模様は 43 件: " + banners);
+        assertEquals("minecraft:flow", banners.get(11));
+        assertEquals("minecraft:flower", banners.get(12));
+        assertEquals("minecraft:guster", banners.get(16));
+
+        List<String> trims = registries.get("minecraft:trim_pattern");
+        assertNotNullList(trims, "minecraft:trim_pattern");
+        assertEquals(18, trims.size(), version + " のトリムは 18 件: " + trims);
+        assertEquals("minecraft:bolt", trims.get(0));
+        assertEquals("minecraft:flow", trims.get(4));
+
+        List<String> damages = registries.get("minecraft:damage_type");
+        assertNotNullList(damages, "minecraft:damage_type");
+        assertEquals(51, damages.size(), version + " のダメージ種別は 51 件: " + damages);
+        assertEquals("minecraft:ender_pearl", damages.get(8));
+        assertEquals("minecraft:mace_smash", damages.get(26));
+        assertEquals("minecraft:magic", damages.get(27));
+        assertEquals("minecraft:spear", damages.get(37));
+        assertEquals("minecraft:spit", damages.get(38));
+        assertEquals("minecraft:sulfur_cube_hot", damages.get(42));
+        assertEquals("minecraft:wither_skull", damages.get(50));
+
+        List<String> songs = registries.get("minecraft:jukebox_song");
+        assertNotNullList(songs, "minecraft:jukebox_song");
+        assertEquals(22, songs.size(), version + " のジュークボックスの歌は 22 件: " + songs);
+        assertEquals("minecraft:bounce", songs.get(4));
+        assertEquals("minecraft:lava_chicken", songs.get(10));
+        assertEquals("minecraft:mall", songs.get(11));
+        assertEquals("minecraft:tears", songs.get(19));
+        assertEquals("minecraft:wait", songs.get(20));
+        assertEquals("minecraft:ward", songs.get(21));
+
+        List<String> biomes = registries.get("minecraft:worldgen/biome");
+        assertNotNullList(biomes, "minecraft:worldgen/biome");
+        assertEquals(66, biomes.size(), version + " のバイオームは 66 件: " + biomes);
+        assertEquals("minecraft:pale_garden", biomes.get(39));
+        assertEquals("minecraft:plains", biomes.get(40));
+        assertEquals("minecraft:sulfur_caves", biomes.get(53));
+        assertEquals("minecraft:sunflower_plains", biomes.get(54));
+
+        List<String> attributes = registries.get("minecraft:attribute");
+        if (attributes != null) {
+            assertEquals(40, attributes.size(), version + " の属性は 40 件: " + attributes);
+            assertEquals("minecraft:air_drag_modifier", attributes.get(0));
+            assertEquals("minecraft:below_name_distance", attributes.get(6));
+            assertEquals("minecraft:bounciness", attributes.get(9));
+            assertEquals("minecraft:burning_time", attributes.get(10));
+            assertEquals("minecraft:camera_distance", attributes.get(11));
+            assertEquals("minecraft:friction_modifier", attributes.get(17));
+            assertEquals("minecraft:movement_speed", attributes.get(26));
+            assertEquals("minecraft:name_tag_distance", attributes.get(27));
+            assertEquals("minecraft:tempt_range", attributes.get(36));
+            assertEquals("minecraft:water_movement_efficiency", attributes.get(37));
+            assertEquals("minecraft:waypoint_transmit_range", attributes.get(38));
+            assertEquals("minecraft:waypoint_receive_range", attributes.get(39));
+        }
+        List<String> blockEntities = registries.get("minecraft:block_entity_type");
+        if (blockEntities != null) {
+            assertEquals(49, blockEntities.size(),
+                    version + " のブロックエンティティ種別は 49 件: " + blockEntities);
+            assertEquals("minecraft:creaking_heart", blockEntities.get(10));
+            assertEquals("minecraft:shelf", blockEntities.get(39));
+            assertEquals("minecraft:vault", blockEntities.get(44));
+            assertEquals("minecraft:test_block", blockEntities.get(45));
+            assertEquals("minecraft:test_instance_block", blockEntities.get(46));
+            assertEquals("minecraft:copper_golem_statue", blockEntities.get(47));
+            assertEquals("minecraft:potent_sulfur", blockEntities.get(48));
+            assertFalse(blockEntities.contains("minecraft:bed"),
+                    version + " のブロックエンティティ種別に bed は無いはず: " + blockEntities);
         }
         List<String> instruments = registries.get("minecraft:instrument");
         if (instruments != null) {
