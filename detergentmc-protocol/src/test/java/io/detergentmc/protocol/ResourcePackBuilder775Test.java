@@ -110,8 +110,8 @@ class ResourcePackBuilder775Test {
 
     @Test
     void packFormatForProtocolRejectsUnknownProtocol() {
-        // 776（26.2以降の未対応番号）は拒否される。
+        // 777（26.3以降の未対応番号）は拒否される。
         assertThrows(IllegalArgumentException.class,
-                () -> ResourcePackBuilder.packFormatForProtocol(776));
+                () -> ResourcePackBuilder.packFormatForProtocol(777));
     }
 }

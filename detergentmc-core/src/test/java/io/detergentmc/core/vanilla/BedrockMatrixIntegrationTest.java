@@ -251,6 +251,16 @@ class BedrockMatrixIntegrationTest {
         runMatrix("26.1", 775);
     }
 
+    @Test
+    void matrixAgainst26_2() throws Exception {
+        runMatrix("26.2", 776);
+    }
+
+    @Test
+    void matrixAgainst1_18_2() throws Exception {
+        runMatrix("1.18.2", 758);
+    }
+
     /**
      * 内部サーバー 1 台を起動し、Bedrock 6 プロトコル分の組み合わせを回す。
      */
@@ -275,7 +285,7 @@ class BedrockMatrixIntegrationTest {
             }
         }
         boolean java25PropertySetHere = false;
-        if (serverProtocol == 775) {
+        if (serverProtocol == 775 || serverProtocol == 776) {
             String java25Home = Java25TestSupport.findJava25Home();
             assumeTrue(java25Home != null,
                     "Java 25 が見つからないため " + serverVersion + " 行をスキップします。");
@@ -308,8 +318,10 @@ class BedrockMatrixIntegrationTest {
                 });
                 host.start();
                 try {
-                    assertTrue(host.waitForReady(180_000),
-                            "バニラ " + serverVersion + " が180秒以内に起動しませんでした。");
+                    // 1.18.2 の起動はこの環境で約460〜520秒かかるため、758 だけ長く待つ。
+                    int readyTimeoutMs = serverProtocol == 758 ? 600_000 : 180_000;
+                    assertTrue(host.waitForReady(readyTimeoutMs),
+                            "バニラ " + serverVersion + " が" + (readyTimeoutMs / 1000) + "秒以内に起動しませんでした。");
                     for (int bedrockProtocol : BEDROCK_PROTOCOLS) {
                         ComboResult result = runCombo(host, vanillaPort, serverVersion,
                                 serverProtocol, bedrockProtocol);
@@ -362,6 +374,13 @@ class BedrockMatrixIntegrationTest {
             @Override
             public void onSpawnPosition(double x, double y, double z) {
                 spawns.add(new double[]{x, y, z});
+                // スポーン地点のチャンクが先に届いている場合はここで数える
+                // （758 など、チャンクがスポーン位置より先に届く順序でも落ちないように）。
+                int spawnChunkX = (int) Math.floor(x / 16.0);
+                int spawnChunkZ = (int) Math.floor(z / 16.0);
+                if (chunks.containsKey(spawnChunkX + "," + spawnChunkZ)) {
+                    spawnChunkSeen.countDown();
+                }
             }
 
             @Override
