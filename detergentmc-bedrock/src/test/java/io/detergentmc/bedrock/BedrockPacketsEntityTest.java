@@ -2,6 +2,7 @@ package io.detergentmc.bedrock;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -319,6 +320,220 @@ class BedrockPacketsEntityTest {
     }
 
     @Test
+    void entityPacketsOmitPropertiesFor1_19_30() {
+        // 554（1.19.30）の add_player・add_entity・set_entity_data には
+        // properties（EntityProperties）が無い（557 で追加）。554 形は
+        // 557 形より properties 分（空の int 0・float 0 の varint 2 バイト）
+        // だけ短い（554・557 の protocol.json で実測。BE-NOTES.md §8）。
+        BedrockEntityTranslator.BedrockEntityData data =
+                new BedrockEntityTranslator.BedrockEntityData();
+        data.addLong(BedrockEntityTranslator.BedrockEntityData.KEY_FLAGS, 1L << 11); // baby
+        data.addInt(BedrockEntityTranslator.BedrockEntityData.KEY_HEALTH, 15);
+
+        // SetEntityData：554 形は metadata の直後に tick が来る。
+        byte[] set554 = BedrockPackets.encodeSetEntityData(101, data, BedrockVersion.V1_19_31);
+        byte[] set557 = BedrockPackets.encodeSetEntityData(101, data, BedrockVersion.V1_19_41);
+        assertEquals(set557.length - 2, set554.length);
+        ByteReader in = new ByteReader(set554);
+        assertEquals(101, BedrockVarInt.readVarLong(in));
+        java.util.Map<Integer, Object> decoded = decodeMetadataDictionary(in);
+        assertEquals(1L << 11, decoded.get(0));
+        assertEquals(15, decoded.get(1));
+        assertEquals(0, BedrockVarInt.readUnsignedVarInt(in)); // tick（properties は無い）
+        assertEquals(0, in.remaining());
+
+        // AddEntity：554 形は 557 形より 2 バイト短い。
+        byte[] add554 = BedrockPackets.encodeAddEntity(101, "minecraft:zombie",
+                10.5f, 64.0f, -3.25f, 0, 90, 45,
+                0, 0, 0, 20, 20, data, BedrockVersion.V1_19_31);
+        byte[] add557 = BedrockPackets.encodeAddEntity(101, "minecraft:zombie",
+                10.5f, 64.0f, -3.25f, 0, 90, 45,
+                0, 0, 0, 20, 20, data, BedrockVersion.V1_19_41);
+        assertEquals(add557.length - 2, add554.length);
+
+        // AddEntity：527 形は 534 形より body_yaw（lf32＝4 バイト）分短い。
+        byte[] add527 = BedrockPackets.encodeAddEntity(101, "minecraft:zombie",
+                10.5f, 64.0f, -3.25f, 0, 90, 45,
+                0, 0, 0, 20, 20, data, BedrockVersion.V1_19_2);
+        byte[] add534 = BedrockPackets.encodeAddEntity(101, "minecraft:zombie",
+                10.5f, 64.0f, -3.25f, 0, 90, 45,
+                0, 0, 0, 20, 20, data, BedrockVersion.V1_19_11);
+        assertEquals(add534.length - 4, add527.length);
+
+        // AddPlayer：554 形は 557 形より 2 バイト短い。
+        UUID uuid = UUID.randomUUID();
+        byte[] player554 = BedrockPackets.encodeAddPlayer(uuid, "Alex", 42,
+                8.5f, 64.0f, 8.5f, 0, 180, 180, 0,
+                new BedrockEntityTranslator.BedrockEntityData(), BedrockVersion.V1_19_31);
+        byte[] player557 = BedrockPackets.encodeAddPlayer(uuid, "Alex", 42,
+                8.5f, 64.0f, 8.5f, 0, 180, 180, 0,
+                new BedrockEntityTranslator.BedrockEntityData(), BedrockVersion.V1_19_41);
+        assertEquals(player557.length - 2, player554.length);
+
+        // AddPlayer：527 形は 534 形より 3 バイト長い（ID が unique_entity_id
+        // zigzag64＋runtime_entity_id varint64 の 2 バイトで +1、末尾が直書き
+        // 能力系 6 項目 13 バイトで abilities 配列形 11 バイトより +2）。
+        byte[] player527 = BedrockPackets.encodeAddPlayer(uuid, "Alex", 42,
+                8.5f, 64.0f, 8.5f, 0, 180, 180, 0,
+                new BedrockEntityTranslator.BedrockEntityData(), BedrockVersion.V1_19_2);
+        byte[] player534 = BedrockPackets.encodeAddPlayer(uuid, "Alex", 42,
+                8.5f, 64.0f, 8.5f, 0, 180, 180, 0,
+                new BedrockEntityTranslator.BedrockEntityData(), BedrockVersion.V1_19_11);
+        assertEquals(player534.length + 3, player527.length);
+
+        // SetEntityData：527 形と 534 形は同じ長さ（properties は両方に無い）。
+        byte[] set527 = BedrockPackets.encodeSetEntityData(101, data, BedrockVersion.V1_19_2);
+        byte[] set534 = BedrockPackets.encodeSetEntityData(101, data, BedrockVersion.V1_19_11);
+        assertEquals(set534.length, set527.length);
+
+        // AddPlayer：527 形を 527 の protocol.json の配置で読み直す。
+        AddPlayerData decoded527 = decodeAddPlayer527(player527);
+        assertEquals(uuid, decoded527.uuid());
+        assertEquals("Alex", decoded527.username());
+        assertEquals(8.5f, decoded527.x(), 0.001f);
+        assertEquals(0, decoded527.gamemode());
+        assertEquals(42, decoded527.uniqueId());
+    }
+
+    @Test
+    void entityPackets2225HavePassengerOfBlock() {
+        // 2225 の add_player・add_entity には passenger_of_block
+        // （option）が増える。この実装は常に「なし」（bool false＝
+        // 1 バイト）で書くため、2193 形より 1 バイトだけ長い
+        // （2225 の protocol.json で実測。BE-NOTES.md §24）。
+        BedrockEntityTranslator.BedrockEntityData data =
+                new BedrockEntityTranslator.BedrockEntityData();
+        byte[] add2193 = BedrockPackets.encodeAddEntity(101, "minecraft:zombie",
+                10.5f, 64.0f, -3.25f, 0, 90, 45,
+                0, 0, 0, 20, 20, data, BedrockVersion.V1_26_52);
+        byte[] add2225 = BedrockPackets.encodeAddEntity(101, "minecraft:zombie",
+                10.5f, 64.0f, -3.25f, 0, 90, 45,
+                0, 0, 0, 20, 20, data, BedrockVersion.V1_26_60);
+        assertEquals(add2193.length + 1, add2225.length,
+                "2225 の AddEntity は passenger_of_block（なし）分だけ長い");
+        assertEquals(0, add2225[add2225.length - 1],
+                "passenger_of_block は末尾で「なし」");
+
+        UUID uuid = UUID.randomUUID();
+        byte[] player2193 = BedrockPackets.encodeAddPlayer(uuid, "Alex", 42,
+                8.5f, 64.0f, 8.5f, 0, 180, 180, 0,
+                data, BedrockVersion.V1_26_52);
+        byte[] player2225 = BedrockPackets.encodeAddPlayer(uuid, "Alex", 42,
+                8.5f, 64.0f, 8.5f, 0, 180, 180, 0,
+                data, BedrockVersion.V1_26_60);
+        assertEquals(player2193.length + 1, player2225.length,
+                "2225 の AddPlayer は passenger_of_block（なし）分だけ長い");
+    }
+
+    @Test
+    void addPlayer486IsOneByteShorterThan503() {
+        // AddPlayer：486 形は 503 形より gamemode（zigzag32＝1 バイト）分短い。
+        // entity_id_self は unique_entity_id と型（zigzag64）が同じで
+        // 名称のみ違うため差は無い。
+        UUID uuid = UUID.randomUUID();
+        byte[] player486 = BedrockPackets.encodeAddPlayer(uuid, "Alex", 42,
+                8.5f, 64.0f, 8.5f, 0, 180, 180, 0,
+                new BedrockEntityTranslator.BedrockEntityData(), BedrockVersion.V1_18_12);
+        byte[] player503 = BedrockPackets.encodeAddPlayer(uuid, "Alex", 42,
+                8.5f, 64.0f, 8.5f, 0, 180, 180, 0,
+                new BedrockEntityTranslator.BedrockEntityData(), BedrockVersion.V1_18_33);
+        assertEquals(player503.length - 1, player486.length);
+
+        // AddPlayer：486 形を 486 の protocol.json の配置で読み直す
+        // （gamemode 欄は無い）。
+        AddPlayerData decoded486 = decodeAddPlayer486(player486);
+        assertEquals(uuid, decoded486.uuid());
+        assertEquals("Alex", decoded486.username());
+        assertEquals(8.5f, decoded486.x(), 0.001f);
+        assertEquals(42, decoded486.uniqueId());
+    }
+
+    /** AddPlayer を読む（486 形：entity_id_self、gamemode 無し）。 */
+    private static AddPlayerData decodeAddPlayer486(byte[] payload) {
+        ByteReader in = new ByteReader(payload);
+        long msb = in.readBigLong();
+        long lsb = in.readBigLong();
+        UUID uuid = new UUID(msb, lsb);
+        String username = BedrockVarInt.readString(in);
+        long entityIdSelf = BedrockVarInt.readZigzag64(in);
+        long runtimeEntityId = BedrockVarInt.readVarLong(in);
+        assertEquals(entityIdSelf, runtimeEntityId);
+        BedrockVarInt.readString(in); // platform chat id
+        float x = in.readLittleFloat();
+        float y = in.readLittleFloat();
+        float z = in.readLittleFloat();
+        in.readLittleFloat(); // vel x
+        in.readLittleFloat(); // vel y
+        in.readLittleFloat(); // vel z
+        in.readLittleFloat(); // pitch
+        in.readLittleFloat(); // yaw
+        in.readLittleFloat(); // head yaw
+        int heldNetworkId = BedrockVarInt.readZigzag32(in);
+        assertEquals(0, heldNetworkId, "held item は空");
+        long metadataCount = BedrockVarInt.readUnsignedVarInt(in);
+        for (long i = 0; i < metadataCount; i++) {
+            BedrockVarInt.readUnsignedVarInt(in);
+            int entryType = (int) BedrockVarInt.readUnsignedVarInt(in);
+            skipMetadataValue(in, entryType);
+        }
+        assertEquals(0, BedrockVarInt.readUnsignedVarInt(in), "flags は 0");
+        assertEquals(0, BedrockVarInt.readUnsignedVarInt(in), "command permission は normal");
+        assertEquals(0, BedrockVarInt.readUnsignedVarInt(in), "action permissions は 0");
+        assertEquals(1, BedrockVarInt.readUnsignedVarInt(in), "permission level は member");
+        assertEquals(0, BedrockVarInt.readUnsignedVarInt(in), "custom stored permissions は 0");
+        long userId = in.readLittleLong();
+        assertEquals(0, userId);
+        assertEquals(0, BedrockVarInt.readUnsignedVarInt(in)); // links
+        BedrockVarInt.readString(in); // device id
+        in.readLittleInt(); // device os
+        assertEquals(0, in.remaining());
+        return new AddPlayerData(uuid, username, x, y, z, -1, entityIdSelf);
+    }
+
+    /** AddPlayer を読む（527 形：能力系を直書き、unique_entity_id／runtime_entity_id）。 */
+    private static AddPlayerData decodeAddPlayer527(byte[] payload) {
+        ByteReader in = new ByteReader(payload);
+        long msb = in.readBigLong();
+        long lsb = in.readBigLong();
+        UUID uuid = new UUID(msb, lsb);
+        String username = BedrockVarInt.readString(in);
+        long uniqueEntityId = BedrockVarInt.readZigzag64(in);
+        long runtimeEntityId = BedrockVarInt.readVarLong(in);
+        assertEquals(uniqueEntityId, runtimeEntityId);
+        BedrockVarInt.readString(in); // platform chat id
+        float x = in.readLittleFloat();
+        float y = in.readLittleFloat();
+        float z = in.readLittleFloat();
+        in.readLittleFloat(); // vel x
+        in.readLittleFloat(); // vel y
+        in.readLittleFloat(); // vel z
+        in.readLittleFloat(); // pitch
+        in.readLittleFloat(); // yaw
+        in.readLittleFloat(); // head yaw
+        int heldNetworkId = BedrockVarInt.readZigzag32(in);
+        assertEquals(0, heldNetworkId, "held item は空");
+        int gamemode = BedrockVarInt.readZigzag32(in);
+        long metadataCount = BedrockVarInt.readUnsignedVarInt(in);
+        for (long i = 0; i < metadataCount; i++) {
+            BedrockVarInt.readUnsignedVarInt(in);
+            int entryType = (int) BedrockVarInt.readUnsignedVarInt(in);
+            skipMetadataValue(in, entryType);
+        }
+        assertEquals(0, BedrockVarInt.readUnsignedVarInt(in), "flags は 0");
+        assertEquals(0, BedrockVarInt.readUnsignedVarInt(in), "command permission は normal");
+        assertEquals(0, BedrockVarInt.readUnsignedVarInt(in), "action permissions は 0");
+        assertEquals(1, BedrockVarInt.readUnsignedVarInt(in), "permission level は member");
+        assertEquals(0, BedrockVarInt.readUnsignedVarInt(in), "custom stored permissions は 0");
+        long userId = in.readLittleLong();
+        assertEquals(0, userId);
+        assertEquals(0, BedrockVarInt.readUnsignedVarInt(in)); // links
+        BedrockVarInt.readString(in); // device id
+        in.readLittleInt(); // device os
+        assertEquals(0, in.remaining());
+        return new AddPlayerData(uuid, username, x, y, z, gamemode, uniqueEntityId);
+    }
+
+    @Test
     void setEntityMotionAndLinkRoundTrip() {
         byte[] motion = BedrockPackets.encodeSetEntityMotion(101, 1.0f, 0.5f, 0.0f);
         ByteReader in = new ByteReader(motion);
@@ -477,6 +692,97 @@ class BedrockPacketsEntityTest {
         assertEquals(uuid.getMostSignificantBits(), rin.readBigLong());
         assertEquals(uuid.getLeastSignificantBits(), rin.readBigLong());
         assertEquals(0, rin.remaining());
+    }
+
+    @Test
+    void addPainting428UsesBlockCoordinates() {
+        // 428 の add_painting は coordinates が BlockCoordinates
+        // （x zigzag32・y varint・z zigzag32）。431 以降は vec3f。
+        assertTrue(BedrockVersion.V1_16_210.addPaintingUsesBlockCoordinates());
+        assertFalse(BedrockVersion.V1_16_221.addPaintingUsesBlockCoordinates());
+        byte[] painting428 = BedrockPackets.encodeAddPainting(108,
+                10.0f, 65.0f, 10.0f, 2, "Kebab", BedrockVersion.V1_16_210);
+        ByteReader pin428 = new ByteReader(painting428);
+        assertEquals(108, BedrockVarInt.readZigzag64(pin428));
+        assertEquals(108, BedrockVarInt.readVarLong(pin428));
+        assertEquals(10, BedrockVarInt.readZigzag32(pin428)); // x
+        assertEquals(65, BedrockVarInt.readUnsignedVarInt(pin428)); // y
+        assertEquals(10, BedrockVarInt.readZigzag32(pin428)); // z
+        assertEquals(2, BedrockVarInt.readZigzag32(pin428));
+        assertEquals("Kebab", BedrockVarInt.readString(pin428));
+        assertEquals(0, pin428.remaining());
+
+        // 431 は vec3f（lf32 × 3）のまま。
+        byte[] painting431 = BedrockPackets.encodeAddPainting(108,
+                10.0f, 65.0f, 10.0f, 2, "Kebab", BedrockVersion.V1_16_221);
+        ByteReader pin431 = new ByteReader(painting431);
+        assertEquals(108, BedrockVarInt.readZigzag64(pin431));
+        assertEquals(108, BedrockVarInt.readVarLong(pin431));
+        assertEquals(10.0f, pin431.readLittleFloat(), 0.001f);
+        assertEquals(65.0f, pin431.readLittleFloat(), 0.001f);
+        assertEquals(10.0f, pin431.readLittleFloat(), 0.001f);
+        assertEquals(2, BedrockVarInt.readZigzag32(pin431));
+        assertEquals("Kebab", BedrockVarInt.readString(pin431));
+        assertEquals(0, pin431.remaining());
+    }
+
+    @Test
+    void playerListRemove428HasVerified() {
+        // 428 の PlayerRecords.verified は remove でも存在する
+        // （records_count 個の bool 配列）。431 以降は add のみ。
+        assertTrue(BedrockVersion.V1_16_210.playerListRemoveHasVerified());
+        assertFalse(BedrockVersion.V1_16_221.playerListRemoveHasVerified());
+        UUID uuid = UUID.randomUUID();
+        byte[] remove428 = BedrockPackets.encodePlayerListRemove(uuid, BedrockVersion.V1_16_210);
+        ByteReader rin428 = new ByteReader(remove428);
+        assertEquals(1, rin428.readUnsignedByte()); // type: remove
+        assertEquals(1, BedrockVarInt.readUnsignedVarInt(rin428));
+        assertEquals(uuid.getMostSignificantBits(), rin428.readBigLong());
+        assertEquals(uuid.getLeastSignificantBits(), rin428.readBigLong());
+        assertEquals(false, rin428.readBoolean()); // verified
+        assertEquals(0, rin428.remaining());
+
+        // 431 は verified が無いまま。
+        byte[] remove431 = BedrockPackets.encodePlayerListRemove(uuid, BedrockVersion.V1_16_221);
+        ByteReader rin431 = new ByteReader(remove431);
+        assertEquals(1, rin431.readUnsignedByte());
+        assertEquals(1, BedrockVarInt.readUnsignedVarInt(rin431));
+        assertEquals(uuid.getMostSignificantBits(), rin431.readBigLong());
+        assertEquals(uuid.getLeastSignificantBits(), rin431.readBigLong());
+        assertEquals(0, rin431.remaining());
+    }
+
+    @Test
+    void addPlayer422Equals428() {
+        // 422 と 428 の AddPlayer は runtime_entity_id の型だけが違う
+        // （422 は varint、428 は varint64）。どちらも符号なし LEB128 で、
+        // 値が 32 ビットに収まる限りバイトは同一になるため、422 用と 428 用の
+        // ペイロードはバイト同一になる。分岐は要らないことの確認。
+        // 422 も AddPainting は BlockCoordinates・PlayerList の remove でも
+        // verified がある（422・428 のみ。§28 で下限を追加）。
+        assertTrue(BedrockVersion.V1_16_201.addPaintingUsesBlockCoordinates());
+        assertTrue(BedrockVersion.V1_16_201.playerListRemoveHasVerified());
+        UUID uuid = UUID.randomUUID();
+        byte[] player422 = BedrockPackets.encodeAddPlayer(uuid, "Steve", 108,
+                10.0f, 65.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0, null,
+                BedrockVersion.V1_16_201);
+        byte[] player428 = BedrockPackets.encodeAddPlayer(uuid, "Steve", 108,
+                10.0f, 65.0f, 10.0f, 0.0f, 0.0f, 0.0f, 0, null,
+                BedrockVersion.V1_16_210);
+        assertArrayEquals(player428, player422,
+                "AddPlayer は 422 と 428 でバイト同一（runtime_entity_id の varint／varint64 は値が小さい限り同じ）");
+        // 422 の AddPainting も 428 と同じく BlockCoordinates。
+        byte[] painting422 = BedrockPackets.encodeAddPainting(108,
+                10.0f, 65.0f, 10.0f, 2, "Kebab", BedrockVersion.V1_16_201);
+        byte[] painting428 = BedrockPackets.encodeAddPainting(108,
+                10.0f, 65.0f, 10.0f, 2, "Kebab", BedrockVersion.V1_16_210);
+        assertArrayEquals(painting428, painting422,
+                "AddPainting は 422 と 428 でバイト同一");
+        // 422 の PlayerList remove も 428 と同じく verified 付き。
+        byte[] remove422 = BedrockPackets.encodePlayerListRemove(uuid, BedrockVersion.V1_16_201);
+        byte[] remove428 = BedrockPackets.encodePlayerListRemove(uuid, BedrockVersion.V1_16_210);
+        assertArrayEquals(remove428, remove422,
+                "PlayerList remove は 422 と 428 でバイト同一");
     }
 
     /** InventoryTransaction（item use on entity）のペイロードを作る。 */
