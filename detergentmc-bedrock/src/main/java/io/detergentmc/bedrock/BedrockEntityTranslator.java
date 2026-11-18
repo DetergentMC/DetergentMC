@@ -2751,6 +2751,17 @@ public final class BedrockEntityTranslator {
 
     /** Java のメタデータを Bedrock の Entity Data に直す。 */
     public static BedrockEntityData toBedrockData(JavaMetadata meta, int type765) {
+        return toBedrockData(meta, type765, BedrockVersion.V1_20_50);
+    }
+
+    /**
+     * Java の Entity Metadata を Bedrock の Entity Data に変換する（バージョン別）。
+     * 431 では MetadataDictionary の key 123 は base_runtime_id のため、
+     * ヤギの角の数（goat_horn_count）は書かない（440 で key 123 が
+     * goat_horn_count になる。hasGoatHornCountKey() を参照）。
+     */
+    public static BedrockEntityData toBedrockData(JavaMetadata meta, int type765,
+            BedrockVersion version) {
         BedrockEntityData data = new BedrockEntityData();
         long flags = 0;
         int javaFlags = meta.flags();
@@ -2990,7 +3001,8 @@ public final class BedrockEntityTranslator {
             data.addInt(BedrockEntityData.KEY_STRENGTH, meta.strength());
             data.addInt(BedrockEntityData.KEY_MAX_STRENGTH, 5);
         }
-        if (meta.goatHornCount() != null) {
+        if (meta.goatHornCount() != null && version.hasGoatHornCountKey()) {
+            // 431 の key 123 は base_runtime_id のため書かない（440 以降のみ）。
             data.addInt(BedrockEntityData.KEY_GOAT_HORN_COUNT, meta.goatHornCount());
         }
         if (meta.pufferfishState() != null) {
