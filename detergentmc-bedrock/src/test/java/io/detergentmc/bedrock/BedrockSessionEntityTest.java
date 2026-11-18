@@ -167,9 +167,13 @@ class BedrockSessionEntityTest {
         }
 
         void playUntilStartGame() {
+            playUntilStartGame(630);
+        }
+
+        void playUntilStartGame(int protocol) {
             establishRakNet();
             sendGamePacket(BedrockProtocol.PACKET_LOGIN,
-                    TestJwt.loginPayload(630, "Steve", "2535461234567890",
+                    TestJwt.loginPayload(protocol, "Steve", "2535461234567890",
                             "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
                     3);
             backend.listener.onJoined(7);
@@ -404,6 +408,190 @@ class BedrockSessionEntityTest {
         GamePacket remove = fixture.transport.find(BedrockProtocol.PACKET_REMOVE_ENTITY);
         assertNotNull(remove, "RemoveEntity が送られること");
         assertEquals(101, BedrockVarInt.readZigzag64(new ByteReader(remove.payload())));
+    }
+
+    @Test
+    void entityMove408UsesMoveEntityNotDelta() throws Exception {
+        // 408 の MoveEntityDelta は VarInt 差分形式で差分のスケールが
+        // 実測ソースで確認できないため、408 のセッションは非プレイヤーの
+        // 移動を絶対座標の MoveEntity で送る（BE-NOTES.md §26）。
+        Fixture fixture = new Fixture();
+        fixture.playUntilStartGame(408);
+        fixture.transport.clear();
+        JavaBackendConnection.Listener listener = fixture.backend.listener;
+
+        listener.onSpawnEntity(BedrockEntityTranslator.parseSpawnEntity(
+                spawnEntityPayload(101, UUID.randomUUID(), 120,
+                        10.5, 64.0, -3.25, 0, 64, 32, 0), 765));
+        assertNotNull(fixture.transport.find(BedrockProtocol.PACKET_ADD_ENTITY),
+                "AddEntity が送られること");
+        fixture.transport.clear();
+
+        PacketIO.Writer move = new PacketIO.Writer();
+        move.writeVarInt(101);
+        move.writeShort(4096); // +1.0
+        move.writeShort(0);
+        move.writeShort(0);
+        move.writeBoolean(true);
+        listener.onEntityMove(BedrockEntityTranslator.parseRelativeMove(move.bytes()));
+        assertNull(fixture.transport.find(BedrockProtocol.PACKET_MOVE_ENTITY_DELTA),
+                "408 では MoveEntityDelta を送らないこと");
+        GamePacket absolute = fixture.transport.find(BedrockProtocol.PACKET_MOVE_ENTITY);
+        assertNotNull(absolute, "408 では代わりに MoveEntity が送られること");
+        ByteReader in = new ByteReader(absolute.payload());
+        assertEquals(101, BedrockVarInt.readUnsignedVarInt(in), "runtime id");
+        in.readUnsignedByte(); // flags
+        assertEquals(11.5f, in.readLittleFloat(), 0.001f);
+        assertEquals(64.0f, in.readLittleFloat(), 0.001f);
+        assertEquals(-3.25f, in.readLittleFloat(), 0.001f);
+    }
+
+    @Test
+    void entityMove389UsesMoveEntityNotDelta() throws Exception {
+        // 389 の MoveEntityDelta も 390 と同じく v388 世代の形式で、
+        // 差分のスケールが実測ソースで確認できないため、389 のセッションも
+        // 非プレイヤーの移動を絶対座標の MoveEntity で送る
+        // （BE-NOTES.md §29）。
+        Fixture fixture = new Fixture();
+        fixture.playUntilStartGame(389);
+        fixture.transport.clear();
+        JavaBackendConnection.Listener listener = fixture.backend.listener;
+
+        listener.onSpawnEntity(BedrockEntityTranslator.parseSpawnEntity(
+                spawnEntityPayload(101, UUID.randomUUID(), 120,
+                        10.5, 64.0, -3.25, 0, 64, 32, 0), 765));
+        assertNotNull(fixture.transport.find(BedrockProtocol.PACKET_ADD_ENTITY),
+                "AddEntity が送られること");
+        fixture.transport.clear();
+
+        PacketIO.Writer move = new PacketIO.Writer();
+        move.writeVarInt(101);
+        move.writeShort(4096); // +1.0
+        move.writeShort(0);
+        move.writeShort(0);
+        move.writeBoolean(true);
+        listener.onEntityMove(BedrockEntityTranslator.parseRelativeMove(move.bytes()));
+        assertNull(fixture.transport.find(BedrockProtocol.PACKET_MOVE_ENTITY_DELTA),
+                "389 では MoveEntityDelta を送らないこと");
+        GamePacket absolute = fixture.transport.find(BedrockProtocol.PACKET_MOVE_ENTITY);
+        assertNotNull(absolute, "389 では代わりに MoveEntity が送られること");
+        ByteReader in = new ByteReader(absolute.payload());
+        assertEquals(101, BedrockVarInt.readUnsignedVarInt(in), "runtime id");
+        in.readUnsignedByte(); // flags
+        assertEquals(11.5f, in.readLittleFloat(), 0.001f);
+        assertEquals(64.0f, in.readLittleFloat(), 0.001f);
+        assertEquals(-3.25f, in.readLittleFloat(), 0.001f);
+    }
+
+    @Test
+    void entityMove388UsesMoveEntityNotDelta() throws Exception {
+        // 388 の MoveEntityDelta は MoveEntityDeltaSerializer_v388 自身が
+        // 実効だが、389・390 と同じく差分のスケールが実測ソースで
+        // 確認できないため、388 のセッションも非プレイヤーの移動を
+        // 絶対座標の MoveEntity で送る（BE-NOTES.md §30）。
+        Fixture fixture = new Fixture();
+        fixture.playUntilStartGame(388);
+        fixture.transport.clear();
+        JavaBackendConnection.Listener listener = fixture.backend.listener;
+
+        listener.onSpawnEntity(BedrockEntityTranslator.parseSpawnEntity(
+                spawnEntityPayload(101, UUID.randomUUID(), 120,
+                        10.5, 64.0, -3.25, 0, 64, 32, 0), 765));
+        assertNotNull(fixture.transport.find(BedrockProtocol.PACKET_ADD_ENTITY),
+                "AddEntity が送られること");
+        fixture.transport.clear();
+
+        PacketIO.Writer move = new PacketIO.Writer();
+        move.writeVarInt(101);
+        move.writeShort(4096); // +1.0
+        move.writeShort(0);
+        move.writeShort(0);
+        move.writeBoolean(true);
+        listener.onEntityMove(BedrockEntityTranslator.parseRelativeMove(move.bytes()));
+        assertNull(fixture.transport.find(BedrockProtocol.PACKET_MOVE_ENTITY_DELTA),
+                "388 では MoveEntityDelta を送らないこと");
+        GamePacket absolute = fixture.transport.find(BedrockProtocol.PACKET_MOVE_ENTITY);
+        assertNotNull(absolute, "388 では代わりに MoveEntity が送られること");
+        ByteReader in = new ByteReader(absolute.payload());
+        assertEquals(101, BedrockVarInt.readUnsignedVarInt(in), "runtime id");
+        in.readUnsignedByte(); // flags
+        assertEquals(11.5f, in.readLittleFloat(), 0.001f);
+        assertEquals(64.0f, in.readLittleFloat(), 0.001f);
+        assertEquals(-3.25f, in.readLittleFloat(), 0.001f);
+    }
+
+    @Test
+    void entityMove407UsesMoveEntityNotDelta() throws Exception {
+        // 407 の MoveEntityDelta も 408 と同じ VarInt 差分形式で差分の
+        // スケールが実測ソースで確認できないため、407 のセッションも
+        // 非プレイヤーの移動を絶対座標の MoveEntity で送る
+        // （BE-NOTES.md §27）。
+        Fixture fixture = new Fixture();
+        fixture.playUntilStartGame(407);
+        fixture.transport.clear();
+        JavaBackendConnection.Listener listener = fixture.backend.listener;
+
+        listener.onSpawnEntity(BedrockEntityTranslator.parseSpawnEntity(
+                spawnEntityPayload(101, UUID.randomUUID(), 120,
+                        10.5, 64.0, -3.25, 0, 64, 32, 0), 765));
+        assertNotNull(fixture.transport.find(BedrockProtocol.PACKET_ADD_ENTITY),
+                "AddEntity が送られること");
+        fixture.transport.clear();
+
+        PacketIO.Writer move = new PacketIO.Writer();
+        move.writeVarInt(101);
+        move.writeShort(4096); // +1.0
+        move.writeShort(0);
+        move.writeShort(0);
+        move.writeBoolean(true);
+        listener.onEntityMove(BedrockEntityTranslator.parseRelativeMove(move.bytes()));
+        assertNull(fixture.transport.find(BedrockProtocol.PACKET_MOVE_ENTITY_DELTA),
+                "407 では MoveEntityDelta を送らないこと");
+        GamePacket absolute = fixture.transport.find(BedrockProtocol.PACKET_MOVE_ENTITY);
+        assertNotNull(absolute, "407 では代わりに MoveEntity が送られること");
+        ByteReader in = new ByteReader(absolute.payload());
+        assertEquals(101, BedrockVarInt.readUnsignedVarInt(in), "runtime id");
+        in.readUnsignedByte(); // flags
+        assertEquals(11.5f, in.readLittleFloat(), 0.001f);
+        assertEquals(64.0f, in.readLittleFloat(), 0.001f);
+        assertEquals(-3.25f, in.readLittleFloat(), 0.001f);
+    }
+
+    @Test
+    void entityMove390UsesMoveEntityNotDelta() throws Exception {
+        // 390 の MoveEntityDelta も 407・408 と同じ VarInt 差分形式で
+        // 差分のスケールが実測ソースで確認できないため、390 のセッションも
+        // 非プレイヤーの移動を絶対座標の MoveEntity で送る
+        // （BE-NOTES.md §28）。
+        Fixture fixture = new Fixture();
+        fixture.playUntilStartGame(390);
+        fixture.transport.clear();
+        JavaBackendConnection.Listener listener = fixture.backend.listener;
+
+        listener.onSpawnEntity(BedrockEntityTranslator.parseSpawnEntity(
+                spawnEntityPayload(101, UUID.randomUUID(), 120,
+                        10.5, 64.0, -3.25, 0, 64, 32, 0), 765));
+        assertNotNull(fixture.transport.find(BedrockProtocol.PACKET_ADD_ENTITY),
+                "AddEntity が送られること");
+        fixture.transport.clear();
+
+        PacketIO.Writer move = new PacketIO.Writer();
+        move.writeVarInt(101);
+        move.writeShort(4096); // +1.0
+        move.writeShort(0);
+        move.writeShort(0);
+        move.writeBoolean(true);
+        listener.onEntityMove(BedrockEntityTranslator.parseRelativeMove(move.bytes()));
+        assertNull(fixture.transport.find(BedrockProtocol.PACKET_MOVE_ENTITY_DELTA),
+                "390 では MoveEntityDelta を送らないこと");
+        GamePacket absolute = fixture.transport.find(BedrockProtocol.PACKET_MOVE_ENTITY);
+        assertNotNull(absolute, "390 では代わりに MoveEntity が送られること");
+        ByteReader in = new ByteReader(absolute.payload());
+        assertEquals(101, BedrockVarInt.readUnsignedVarInt(in), "runtime id");
+        in.readUnsignedByte(); // flags
+        assertEquals(11.5f, in.readLittleFloat(), 0.001f);
+        assertEquals(64.0f, in.readLittleFloat(), 0.001f);
+        assertEquals(-3.25f, in.readLittleFloat(), 0.001f);
     }
 
     @Test
