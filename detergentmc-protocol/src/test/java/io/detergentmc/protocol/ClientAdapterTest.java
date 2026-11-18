@@ -36,7 +36,7 @@ class ClientAdapterTest {
 
     @Test
     void rejectsOlderClients() {
-        for (int protocol : List.of(47, 340, 753)) {
+        for (int protocol : List.of(47, 340, 752)) {
             Handshake handshake = ClientAdapter.decide(protocol);
             assertEquals(Decision.REJECT_OUTDATED, handshake.decision(),
                     "protocol " + protocol + " should be rejected as outdated");
@@ -61,7 +61,7 @@ class ClientAdapterTest {
 
     @Test
     void supportedProtocolsAre1201And1202And1204() {
-        assertEquals(List.of(754, 755, 756, 757, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775), ClientAdapter.supportedClientProtocols());
+        assertEquals(List.of(735, 736, 751, 753, 754, 755, 756, 757, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775), ClientAdapter.supportedClientProtocols());
     }
 
     @Test
