@@ -53,6 +53,11 @@ PMMP_BASE = 'https://raw.githubusercontent.com/pmmp/BedrockData'
 # 630（1.20.50）は BedrockItemIds.java の表があるためここには含めない。
 # タグが無いバージョンは最も近い既存タグを使う（値はそのタグのもの）。
 VERSION_TAGS = {
+    557: 'bedrock-1.19.40',
+    560: 'bedrock-1.19.50',
+    567: 'bedrock-1.19.60',
+    575: 'bedrock-1.19.70',
+    582: 'bedrock-1.19.80',
     589: 'bedrock-1.20.0', 594: 'bedrock-1.20.10', 618: 'bedrock-1.20.30',
     622: 'bedrock-1.20.40', 630: 'bedrock-1.20.50', 649: 'bedrock-1.20.60',
     662: 'bedrock-1.20.70', 671: 'bedrock-1.20.80',
