@@ -26,15 +26,19 @@ package io.detergentmc.bedrock;
  *       NACK 0xa0、フレームセット 0x80〜0x8f。</li>
  * </ul>
  *
- * <p>対象バージョンの選択：<b>Bedrock 1.20.0〜26.51（プロトコル 589〜2193、
- * RakNet 世代）</b>を受け入れる。バージョンごとの形式差分は
- * {@link BedrockVersion} にまとめてあり、プロトコル番号と各パケットの形式は
- * wiki.vg と PrismarineJS minecraft-data の protocol.json（29 バージョン分）
- * で 1 つずつ確認した。Bedrock 26.60（2026年10月）で RakNet は廃止され
- * NetherNet（WebRTC ベース）に置き換わったため、最近の Bedrock を対象にする
- * には全く別のトランスポートが必要になる。26.60 以降のクライアントは
- * NetherNet のため対象外で、切断メッセージを返す（くわしくは
- * docs/BEDROCK.md「NetherNet対応の設計」を参照）。
+ * <p>対象バージョンの選択：<b>Bedrock 1.7.1〜26.52（プロトコル 291〜2193、
+ * RakNet 世代）</b>を RakNet で受け入れる。プロトコル 2225（26.60〜26.65）は
+ * パケット形式のみ対応し、トランスポートが NetherNet（WebRTC ベース）の
+ * ため RakNet では受け入れず、切断メッセージを返す。バージョンごとの
+ * 形式差分は {@link BedrockVersion} にまとめてあり、プロトコル番号と
+ * 各パケットの形式は wiki.vg と PrismarineJS minecraft-data の
+ * protocol.json（62 バージョン分）で 1 つずつ確認した（419・408・407・390・389・388・361・354・340・332・313・291 は
+ * protocol.json が存在しないため CloudburstMC Protocol の v419・v408・
+ * v407・v390・v389・v388・v361・v354・v340・v332・v313・v291 コーデックで確認した。BE-NOTES.md §25・§26・§27・§28・§29・§30・§31・§32・§33・§34・§35・§36）。Bedrock 26.60
+ * （2026年10月）で RakNet は廃止され NetherNet に置き換わったため、
+ * 26.60 以降の実クライアントを受け入れるには NetherNet リスナーが
+ * 別途必要になる（くわしくは docs/BEDROCK.md「NetherNet対応の設計」と
+ * BE-NOTES.md §24 を参照）。
  */
 public final class BedrockProtocol {
 
@@ -50,7 +54,7 @@ public final class BedrockProtocol {
     /** Bedrock 1.20.40 のプロトコル番号。核パケットの形式は 630 と同じため受け入れる。 */
     public static final int PROTOCOL_1_20_40 = 622;
 
-    /** NetherNet 世代のプロトコル番号（Bedrock 26.60 / 26.62）。 */
+    /** NetherNet 世代のプロトコル番号（Bedrock 26.60 / 26.62 / 26.63 / 26.65）。 */
     public static final int NETHERNET_PROTOCOL = BedrockVersion.NETHERNET_PROTOCOL;
 
     /** この実装が受け入れる Bedrock プロトコル番号。 */
@@ -58,7 +62,7 @@ public final class BedrockProtocol {
         return BedrockVersion.isSupportedProtocol(protocol);
     }
 
-    /** NetherNet 世代（26.60 / 26.62）のプロトコルか。 */
+    /** NetherNet 世代（26.60 / 26.62 / 26.63 / 26.65）のプロトコルか。 */
     public static boolean isNetherNetProtocol(int protocol) {
         return BedrockVersion.isNetherNetProtocol(protocol);
     }
