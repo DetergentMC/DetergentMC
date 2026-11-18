@@ -1,0 +1,7 @@
+// Version adapter for Minecraft 1.17 (protocol 755).
+// This module contains mapping tables only. It contains no Mojang code:
+// the real NMS binding (via official Mojang mappings) is TODO - see
+// docs/VERSIONS.md. The vanilla server jar is never a dependency here.
+dependencies {
+    implementation project(':detergentmc-api')
+}
