@@ -195,6 +195,24 @@ class BedrockPacketsTest {
     }
 
     @Test
+    void levelChunk2225HasClientBiomeUpdate() {
+        // 2225 の LevelChunk は末尾に client_biome_update（bool）が付く
+        // （2225 の protocol.json で実測。BE-NOTES.md §24）。2193 形より
+        // 1 バイト長く、末尾は false。
+        byte[] payload = new byte[]{1, 2, 3, 4, 5};
+        byte[] encoded2193 = BedrockPackets.encodeLevelChunk(-3, 7, 24, payload,
+                BedrockVersion.V1_26_52);
+        byte[] encoded2225 = BedrockPackets.encodeLevelChunk(-3, 7, 24, payload,
+                BedrockVersion.V1_26_60);
+        assertEquals(encoded2193.length + 1, encoded2225.length);
+        assertEquals(0, encoded2225[encoded2225.length - 1],
+                "client_biome_update は false");
+        // 旧 4 引数版は従来通り（末尾フィールドなし＝2193 形と同じ長さ）。
+        assertEquals(encoded2193.length,
+                BedrockPackets.encodeLevelChunk(-3, 7, 24, payload).length);
+    }
+
+    @Test
     void chunkRadiusPackets() {
         BedrockVarInt.ByteWriter request = new BedrockVarInt.ByteWriter();
         BedrockVarInt.writeZigzag32(request, 6);
