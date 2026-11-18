@@ -50937,4 +50937,613 @@ public final class ChunkTranslator {
             return payload;
         }
     }
+    // ------------------------------------------------------------------
+    // 735 <=> 736（1.16 <=> 1.16.1）
+    // パケットIDは ProxySession が付け替える（付け替えは不要で全て同一。
+    // Chunk Data 0x21／0x21、Set Slot 0x16／0x16、Window Items 0x14／0x14、
+    // Window Click 0x09／0x09、Entity Destroy 0x37／0x37、
+    // Update Light 0x24／0x24、Edit Book 0x0c／0x0c、
+    // Multi Block Change 0x0f／0x0f。packet-ids-735.json で実測。
+    // ID差分は変更0・新規0・削除0（Stage A §8）。レジストリ差分も
+    // 全種0件で非恒等0件（Stage A §11。1.16と1.16.1の blocks／registries
+    // レポートはバイト同一。verify-735-tables.py 43/43）。
+    // ブロック763・ブロック状態17,104・アイテム975・エンティティ107・
+    // 音985・パーティクル72・メニュー24・属性13・エンチャント38・
+    // エフェクト32・ブロックエンティティ33・バイオーム79は全て同一順序・
+    // 同一 id のため、RegistryRemapper の 735⇔736 写像は全て恒等写像。
+    // この節の変換器は全て、パースして恒等写像で書き戻す（往復バイト一致）。
+    // ただし Entity Destroy・Multi Block Change・Update Light は
+    // フィールド同一のためパースせずペイロードをそのまま返す（恒等写像）。
+    // [minecraft-data の罠：pc/1.16 は使わない]
+    // minecraft-data の pc/1.16/protocol.json は pc/1.16.2 とバイト同一の
+    // 誤写で、1.16.2 のレイアウト（map_chunk に ignoreOldData が無く
+    // biomes が [count varint][varint]、multi_block_change が bitfield＋
+    // varlong、map_chunk 0x20・multi_block_change 0x3b）である。
+    // 実バニラ 1.16 とは食い違うため、この節の根拠には使っていない
+    // （Stage A パケット側ノート Step 2 参照）。この節の 1.16 側の根拠は
+    // 下記の実バニラ jar の javap と生キャプチャである。
+    // [差分の裏付け：実バニラ jar の javap]
+    // server_mappings.txt（piston-meta の sha1 照合済み。
+    // 1.16 と 1.16.1 で同一ファイル sha1 11120c39da4df293c4bd020896391fb9ddd6c2ba）
+    // で求めた難読化クラス名で実バニラ server-1.16.jar を確認。
+    // Chunk Data（ot）、ChunkBiomeContainer（cgz）、BitStorage（adj）、
+    // PalettedContainer（chq）、Window Click（rj）、Update Light（ow）、
+    // Entity Destroy（pm）、Multi Block Change（ob）、
+    // ServerGamePacketListenerImpl（zv）の 9クラスは全て 1.16.1 の
+    // 同名クラスとバイト同一（cmp で確認。sha1 も一致。adj は
+    // de84c41ac24826b3461aae4916c39626380f1710）。つまり 1.16 の
+    // ワイヤ形式は 1.16.1 とクラス単位で同一である。
+    // - Chunk Data：1.16 の ot の read は readInt x・readInt z・
+    //   readBoolean groundUp・readBoolean ignoreOldData・readVarInt bitMap・
+    //   readNamedNbt heightmaps・groundUp のとき new ChunkBiomeContainer(mg)・
+    //   readVarInt 長＋readBytes・readVarInt 件数＋readNamedNbt 列。
+    //   write も同じ順序（writeInt×2・writeBoolean×2・writeVarInt・
+    //   writeNamedNbt・cgz.a・writeVarInt 長＋writeBytes・writeVarInt 件数＋
+    //   writeNamedNbt 列）。736 の ot と同一。
+    //   ChunkBiomeContainer（cgz）のコンストラクタは 1024回 readInt
+    //   （静的初期化子で a = 1 << 10 = 1024 を計算）、write（cgz.a）は
+    //   1024回 writeInt（biomes は i32×1024・件数接頭辞なし）。736 と同一。
+    //   セクションは [blockCount i16][PalettedContainer] で、
+    //   PalettedContainer（chq）の write は [BPE u8][パレット][long 配列]。
+    //   BitStorage（adj）は non-straddling（get は1つの long だけを
+    //   laload して読む。境界をまたがない。736 の adj とバイト同一で、
+    //   736 の生キャプチャでも BPE 5 の Data Array 長 342 を確認済み）。
+    // - Window Click：1.16 の rj の read は readByte windowId・
+    //   readShort slot・readByte button・readShort action・
+    //   mg.a(Class bgq)＝readEnum（varint の enum 序数）・readSlot item。
+    //   write も同じ順序で writeEnum。minecraft-data の「i8」は誤り
+    //   （736 §14.4 と同じ罠。1.16 の rj は 1.16.1 の rj とバイト同一）。
+    //   mode は両方向とも varint のまま写す。単一スロットがカーソル
+    //   アイテムであることは 1.16.1 のハンドラ（zv.a(rj)）で確認済みで、
+    //   1.16 の zv は 1.16.1 の zv とバイト同一のため 1.16 にも当てはまる。
+    //   ただし 735⇔736 では両版とも単一スロット形式のため組み替えは不要。
+    // - Entity Destroy：1.16 の pm の read は readVarInt 件数＋
+    //   readVarInt×件数、write も同じ（配列形式）。736 と同一。
+    // - Multi Block Change：1.16 の ob の read は readInt chunkX・
+    //   readInt chunkZ・readVarInt 件数＋記録ごと readShort＋readVarInt
+    //   （blockId）。readShort は horizontalPos u8＋y u8 の2バイトと
+    //   同じワイヤ（736 の変換器が u8×2 で読むのと等価）。736 と同一。
+    // - Update Light：1.16 の ow の read は readVarInt chunkX・
+    //   readVarInt chunkZ・readBoolean trustEdges・readVarInt×4
+    //   （skyLightMask／blockLightMask／emptySkyLightMask／
+    //   emptyBlockLightMask）・マスクで決まる byte[2048] 列。write も同じ。
+    //   736 の ow とバイト同一。
+    // - ViaVersion：Protocol1_16To1_16_1.java は付け替え無しの空プロトコル
+    //   （両側とも 1.16 enum。コンストラクタのみ 29行）。UPDATE_LIGHT を
+    //   含め登録は一切無く、1.16→1.16.1 で変わるパケットは無い。
+    //   736⇔751 の3系統（protocol.json・javap・ViaVersion）のうち、
+    //   protocol.json は上記の誤写のため 1.16.1 側の定義＋1.16 jar の
+    //   バイト同一性で代用した（736節の mc-1.16.1-protocol.json の定義と
+    //   1.16.1 jar の javap が一致することは 736 §14.4 で確認済み）。
+    // - jar のパケット登録順（tools/extract-jar-packets.py）も
+    //   1.16 と 1.16.1 で全状態・全方向で同一（Stage A パケット側ノート
+    //   Step 2。Join Game 0x25、Chunk Data 0x21、toServer 47件）。
+    // [チャンク形式の実測（生キャプチャ）]
+    // 実バニラ 1.16 サーバー（Java 8、オフラインモード、圧縮 -1、
+    // view-distance 10、ポート 25568。ワールドは Stage A 後に削除されたため
+    // 再生成。Done 65.399s）から Python ソケットの偽クライアント
+    // （/tmp/cap735_chunk.py。fake_client_735.py と同じ段取り）で
+    // Chunk Data 0x21 を 3件受信し、736形式として全パースした。
+    // -3,-15（13,011バイト）・-3,-14（13,011バイト）・-3,-13（13,015バイト）。
+    // パース結果（3件とも）：groundUp=true、ignoreOldData=true、
+    // bitMap 0x000f（4セクション）、biomes 1024件（全て 24。i32 で読んで
+    // 初めて意味のある値になる。varint で読むと壊れる）、heightmaps は
+    // MOTION_BLOCKING＋WORLD_SURFACE、セクション y=0〜3 は BPE 4・
+    // Data Array 長 256、ブロックエンティティ 0件。
+    // 消費量はペイロード長と完全一致（3件とも）。
+    // 生バイトは .tmp-735/packet/cap735-chunk-{0,1,2}.bin、
+    // パース結果は .tmp-735/packet/cap735-chunk.json に保存した。
+    // BPE 5 のセクションは今回の3件には無かった（スポーン周辺は BPE 4 のみ）
+    // ため、Data Array 長 342 による non-straddling の生キャプチャ確認は
+    // 735 ではできていない。ただし adj.class が 1.16.1 とバイト同一で、
+    // 736 の生キャプチャで BPE 5・Data Array 長 342 を確認済みのため、
+    // non-straddling は javap＋736 の実測で確定している。
+    // サーバーは停止済み（SIGKILL。SIGTERM では止まらない。Stage A と同じ）。
+    // ワールド・logs は削除済み（server.jar・server.properties・eula.txt は
+    // Stage D で再利用するため残してある）。
+    // [決めたこと（落とすもの・補完値）と根拠]
+    // - ignoreOldData は両版ともあるため、そのまま通す（落とさない・補わない）。
+    //   736→751 で落としていたのは 751 に無いためで、735⇔736 には当てはまらない。
+    // - groundUp=false のとき、両版とも biomes は無い（書かない）。
+    //   736⇔751 のときと同じ扱い（minecraft-data・javap ot.a(mg) の
+    //   `ifeq 67` で確認。736節の 751 側と同じく groundUp のときだけ）。
+    // - ブロックエンティティは両方向とも全て通す。735 と 736 のブロック
+    //   エンティティ種別は 33件・同一順序で、NBT の id は文字列のため付け替えは
+    //   不要。NBT がコンパウンドでないもの・id／x／y／z が無いものは落とす
+    //   （736節と同じ扱い）。
+    // - 変換失敗時は従来通り素通し（ペイロード unchanged）を返す。
+    //   ただし Entity Destroy・Multi Block Change・Update Light の
+    //   恒等写像は失敗のしようが無いためそのまま返す。
+    // [作らない変換器（この節の範囲外。根拠と申し送り）]
+    // - 値の付け替え変換器（Block Change、Set Cooldown、Entity Equipment、
+    //   Trade List、Block Entity Data、Entity Metadata、Sound Effect、
+    //   Entity Sound Effect、Named Sound Effect、Stop Sound、World Particles、
+    //   Spawn Entity）と Edit Book は作らない。フィールド同一（736節の
+    //   protocol.json 突き合わせで 736⇔751 が同一であることを確認済みで、
+    //   735⇔736 はパケットID・レジストリとも同一）かつレジストリ写像が
+    //   全て恒等写像のため、作っても入力をそのまま返すだけになる。
+    //   任務文の変換器一覧に無いため、この節では追加しない。
+    //   必要になれば恒等写像として追加できる（ProxySession からは素通しで呼べる）。
+    // - Entity Effect（エフェクト 32件・同一順序のため恒等写像。Stage A §11.1）、
+    //   Open Window（メニュー 24件・同一順序のため恒等写像。Stage A §11.1）。
+    //   どちらもフィールド同一・ID同一のため素通しで正しい（736節と同じ）。
+    // - その他のフィールド差分パケット（declare_recipes／respawn／
+    //   unlock_recipes／crafting_book_data の分割、Join Game）は
+    //   PlayTranslator／ClientJoinFlow 担当の範囲のためこの節では作らない。
+    //   735⇔736 では Join Game は 1,159バイトで同一形式のため、736節の
+    //   変換器はそのまま使える見込み（PlayTranslator 担当の確認待ち）。
+    // - entity（1.16／1.16.1 のみ 0x2b）は 1.17 で削除されたため変換器は無い。
+    //   ViaVersion でも落とされる。sculk_vibration_signal（1.17 のみ）は
+    //   735 では -1 のため落とす。displayed_recipe（751 のみ 0x1f）は
+    //   735 では -1 のため落とす（Stage A §8.1 の削除1件。736 と同じ）。
+    // ------------------------------------------------------------------
+
+    /** 735のスロット1個を736向けに読む。アイテムIDは RegistryTables735 の表で付け替える（恒等写像）。 */
+    public static void translateSlot735To736(Reader reader, Writer writer) {
+        boolean present = reader.readBoolean();
+        writer.writeBoolean(present);
+        if (!present) {
+            return;
+        }
+        writer.writeVarInt(RegistryRemapper.mapItem735To736(reader.readVarInt()));
+        writer.writeByte(reader.readByte());
+        writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+    }
+
+    /** 736のスロット1個を735向けに読む。アイテムIDは RegistryTables735 の表で付け替える（恒等写像）。 */
+    public static void translateSlot736To735(Reader reader, Writer writer) {
+        boolean present = reader.readBoolean();
+        writer.writeBoolean(present);
+        if (!present) {
+            return;
+        }
+        writer.writeVarInt(RegistryRemapper.mapItem736To735(reader.readVarInt()));
+        writer.writeByte(reader.readByte());
+        writeOptionalNamedNbt(writer, readOptionalNamedNbt(reader));
+    }
+
+    /**
+     * 735 のブロックのパレット付きコンテナ1個を736向け（up=true）または
+     * 735向け（up=false）に読む。パレットのエントリ（BPE 0 の単一値と
+     * BPE 1〜8 のパレット）はブロック状態IDそのものなので付け替え、
+     * Data Array はパレット添字の列のためそのまま写す。直接パレット
+     * （BPE 9〜15）は Data Array がブロック状態IDそのものなのでほぐして
+     * 付け替えて詰め直す。BitStorage は両版とも non-straddling
+     * （実バニラ 1.16 jar の adj.class が 1.16.1 とバイト同一で、
+     * 736 の生キャプチャで BPE 5 の Data Array 長 342 を確認）。
+     * 735⇔736 の写像は全て恒等写像のため、出力は入力とバイト同一になる。
+     */
+    private static void translateBlockContainer735(Reader reader, Writer writer, boolean up) {
+        int bitsPerEntry = reader.readUnsignedByte();
+        if (bitsPerEntry > 15) {
+            throw new IllegalArgumentException("Bits Per Entry が大きすぎます: " + bitsPerEntry);
+        }
+        writer.writeUnsignedByte(bitsPerEntry);
+        if (bitsPerEntry == 0) {
+            int single = reader.readVarInt();
+            writer.writeVarInt(up ? RegistryRemapper.mapBlockState735To736(single)
+                    : RegistryRemapper.mapBlockState736To735(single));
+            int dataLength = reader.readVarInt();
+            if (dataLength != 0) {
+                throw new IllegalArgumentException(
+                        "シングルパレットの Data Array 長が 0 ではありません: " + dataLength);
+            }
+            writer.writeVarInt(0);
+            return;
+        }
+        if (bitsPerEntry <= 8) {
+            int paletteLength = reader.readVarInt();
+            if (paletteLength <= 0 || paletteLength > (1 << bitsPerEntry)) {
+                throw new IllegalArgumentException("パレット長が不正です: " + paletteLength);
+            }
+            writer.writeVarInt(paletteLength);
+            for (int i = 0; i < paletteLength; i++) {
+                int state = reader.readVarInt();
+                writer.writeVarInt(up ? RegistryRemapper.mapBlockState735To736(state)
+                        : RegistryRemapper.mapBlockState736To735(state));
+            }
+            copyNonStraddlingDataArray(reader, writer, 4096, bitsPerEntry);
+            return;
+        }
+        long[] longs = readNonStraddlingDataArray(reader, 4096, bitsPerEntry);
+        int[] entries = unpackNonStraddling(longs, bitsPerEntry, 4096);
+        for (int i = 0; i < entries.length; i++) {
+            entries[i] = up ? RegistryRemapper.mapBlockState735To736(entries[i])
+                    : RegistryRemapper.mapBlockState736To735(entries[i]);
+        }
+        long[] out = packNonStraddling(entries, bitsPerEntry);
+        writer.writeVarInt(out.length);
+        for (long value : out) {
+            writer.writeLong(value);
+        }
+    }
+
+    /**
+     * チャンクのブロックエンティティ列を読む。NBT は両版とも [id／x／y／z
+     * 付きの名前付き NBT] のためそのまま通す。735 と 736 のブロックエンティティ
+     * 種別は 33件・同一順序のため、落とすものは無い（736節の sculk_sensor の
+     * ような落としは無い）。NBT がコンパウンドでないもの・id／x／y／z が
+     * 無いものは落とす（736節と同じ扱い）。
+     */
+    private static List<Tag> readChunkBlockEntities735(Reader reader) {
+        int count = reader.readVarInt();
+        if (count < 0) {
+            throw new IllegalArgumentException("ブロックエンティティの件数が負です: " + count);
+        }
+        List<Tag> kept = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            Tag tag = reader.readNamedNbt().tag();
+            if (!(tag instanceof Tag.CompoundTag compound)) {
+                LOG.warning("ブロックエンティティ NBT がコンパウンドではないため落とします。");
+                continue;
+            }
+            String id = compound.getString("id").orElse(null);
+            Integer x = blockEntityCoord(compound, "x");
+            Integer y = blockEntityCoord(compound, "y");
+            Integer z = blockEntityCoord(compound, "z");
+            if (id == null || x == null || y == null || z == null) {
+                LOG.warning("ブロックエンティティ NBT に id／x／y／z が無いため落とします。");
+                continue;
+            }
+            kept.add(tag);
+        }
+        return kept;
+    }
+
+    /**
+     * Chunk Data（735 0x21 → 736 0x21）。両版とも [x i32][z i32]
+     * [groundUp bool][ignoreOldData bool][bitMap varint][heightmaps NBT]
+     * [biomes（groundUp のときだけ i32×1024・件数接頭辞なし）]
+     * [chunkData buffer][blockEntities varint[NBT]] のため、パースして
+     * 恒等写像で書き戻す。ignoreOldData は両版ともあるためそのまま通す
+     * （736→751 のように落とさない）。groundUp=false のとき両版とも
+     * biomes は無い（書かない）。heightmaps NBT はそのまま通す。
+     * 読めない場合は素通しする。
+     */
+    public static byte[] translateChunkData735To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int chunkX = reader.readInt();
+            int chunkZ = reader.readInt();
+            boolean groundUp = reader.readBoolean();
+            boolean ignoreOldData = reader.readBoolean();
+            int bitMap = reader.readVarInt();
+            if ((bitMap & ~0xFFFF) != 0) {
+                LOG.warning("735 の bitMap に16セクションを超えるビットがあるため落とします。");
+                bitMap &= 0xFFFF;
+            }
+            Nbt.NamedResult heightmaps = reader.readNamedNbt();
+            int[] biomes = null;
+            if (groundUp) {
+                biomes = new int[1024];
+                for (int i = 0; i < 1024; i++) {
+                    biomes[i] = RegistryRemapper.mapBiome735To736(reader.readInt());
+                }
+            }
+            int dataLength = reader.readVarInt();
+            byte[] chunkData = reader.readBytes(dataLength);
+            Reader sections = new Reader(chunkData);
+            Writer outSections = new Writer();
+            for (int s = 0; s < 16; s++) {
+                if ((bitMap & (1 << s)) == 0) {
+                    continue;
+                }
+                outSections.writeShort(sections.readShort());
+                translateBlockContainer735(sections, outSections, true);
+            }
+            if (sections.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "チャンクデータに余分なバイトがあります（残り=" + sections.remaining() + "）。");
+            }
+            List<Tag> blockEntities = readChunkBlockEntities735(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeInt(chunkX);
+            writer.writeInt(chunkZ);
+            writer.writeBoolean(groundUp);
+            writer.writeBoolean(ignoreOldData);
+            writer.writeVarInt(bitMap);
+            if (heightmaps.tag() == null) {
+                writer.writeByte(0);
+            } else {
+                writer.writeNamedNbt("", heightmaps.tag());
+            }
+            if (groundUp) {
+                for (int i = 0; i < 1024; i++) {
+                    writer.writeInt(biomes[i]);
+                }
+            }
+            writer.writeByteArray(outSections.bytes());
+            writer.writeVarInt(blockEntities.size());
+            for (Tag tag : blockEntities) {
+                writer.writeNamedNbt("", tag);
+            }
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chunk Data を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Chunk Data（736 0x21 → 735 0x21）。735→736 と同じく両版同一形式の
+     * ため、パースして恒等写像で書き戻す。ignoreOldData はそのまま通す。
+     * 読めない場合は素通しする。
+     */
+    public static byte[] translateChunkData736To735(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int chunkX = reader.readInt();
+            int chunkZ = reader.readInt();
+            boolean groundUp = reader.readBoolean();
+            boolean ignoreOldData = reader.readBoolean();
+            int bitMap = reader.readVarInt();
+            if ((bitMap & ~0xFFFF) != 0) {
+                LOG.warning("736 の bitMap に16セクションを超えるビットがあるため落とします。");
+                bitMap &= 0xFFFF;
+            }
+            Nbt.NamedResult heightmaps = reader.readNamedNbt();
+            int[] biomes = null;
+            if (groundUp) {
+                biomes = new int[1024];
+                for (int i = 0; i < 1024; i++) {
+                    biomes[i] = RegistryRemapper.mapBiome736To735(reader.readInt());
+                }
+            }
+            int dataLength = reader.readVarInt();
+            byte[] chunkData = reader.readBytes(dataLength);
+            Reader sections = new Reader(chunkData);
+            Writer outSections = new Writer();
+            for (int s = 0; s < 16; s++) {
+                if ((bitMap & (1 << s)) == 0) {
+                    continue;
+                }
+                outSections.writeShort(sections.readShort());
+                translateBlockContainer735(sections, outSections, false);
+            }
+            if (sections.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "チャンクデータに余分なバイトがあります（残り=" + sections.remaining() + "）。");
+            }
+            List<Tag> blockEntities = readChunkBlockEntities735(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeInt(chunkX);
+            writer.writeInt(chunkZ);
+            writer.writeBoolean(groundUp);
+            writer.writeBoolean(ignoreOldData);
+            writer.writeVarInt(bitMap);
+            if (heightmaps.tag() == null) {
+                writer.writeByte(0);
+            } else {
+                writer.writeNamedNbt("", heightmaps.tag());
+            }
+            if (groundUp) {
+                for (int i = 0; i < 1024; i++) {
+                    writer.writeInt(biomes[i]);
+                }
+            }
+            writer.writeByteArray(outSections.bytes());
+            writer.writeVarInt(blockEntities.size());
+            for (Tag tag : blockEntities) {
+                writer.writeNamedNbt("", tag);
+            }
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chunk Data を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Set Slot（735 → 736）。フィールドは両版で同一（[windowId i8]
+     * [slot i16][item]。stateId は無い）ため、スロットのアイテムIDの
+     * 付け替え（恒等写像）だけを行う。
+     */
+    public static byte[] translateSetSlot735To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeByte(reader.readByte()); // windowId i8
+            writer.writeShort(reader.readShort()); // slot i16
+            translateSlot735To736(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Slot を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Set Slot（736 → 735）。フィールドは両版で同一のため、スロットのアイテムIDの付け替え（恒等写像）だけを行う。 */
+    public static byte[] translateSetSlot736To735(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeByte(reader.readByte()); // windowId i8
+            writer.writeShort(reader.readShort()); // slot i16
+            translateSlot736To735(reader, writer);
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Slot を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Window Items（735 → 736）。フィールドは両版で同一（[windowId u8]
+     * [count i16][items]。stateId・carriedItem は無い）ため、スロットの
+     * アイテムIDの付け替え（恒等写像）だけを行う。
+     */
+    public static byte[] translateWindowItems735To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte()); // windowId u8
+            int count = reader.readShort(); // count は i16
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Items の件数が負です: " + count);
+            }
+            writer.writeShort(count);
+            for (int i = 0; i < count; i++) {
+                translateSlot735To736(reader, writer);
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Items を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Window Items（736 → 735）。フィールドは両版で同一のため、スロットのアイテムIDの付け替え（恒等写像）だけを行う。 */
+    public static byte[] translateWindowItems736To735(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte()); // windowId u8
+            int count = reader.readShort(); // count は i16
+            if (count < 0) {
+                throw new IllegalArgumentException("Window Items の件数が負です: " + count);
+            }
+            writer.writeShort(count);
+            for (int i = 0; i < count; i++) {
+                translateSlot736To735(reader, writer);
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Items を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Window Click（735 → 736）。フィールドは両版で同一（[windowId u8]
+     * [slot i16][button i8][action i16][mode varint][item slot]）ため、
+     * スロットのアイテムIDの付け替え（恒等写像）だけを行う。mode は両方とも
+     * varint（実バニラ 1.16 jar の rj で readEnum／writeEnum を確認。
+     * minecraft-data の「i8」は誤り。736節と同じ罠）のためそのまま写す。
+     * action（uid）も両版にあるため落とさない。736⇔751 のような
+     * changedSlots／cursorItem への組み替えは不要。
+     */
+    public static byte[] translateWindowClick735To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte()); // windowId u8
+            writer.writeShort(reader.readShort()); // slot i16
+            writer.writeByte(reader.readByte()); // button i8
+            writer.writeShort(reader.readShort()); // action i16
+            writer.writeVarInt(reader.readVarInt()); // mode（両方とも varint）
+            translateSlot735To736(reader, writer); // 単一スロット
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Click を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Window Click（736 → 735）。フィールドは両版で同一のため、スロットの
+     * アイテムIDの付け替え（恒等写像）だけを行う。action（uid）も両版にあるため
+     * 0補完は不要。mode は両方とも varint。
+     */
+    public static byte[] translateWindowClick736To735(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            writer.writeUnsignedByte(reader.readUnsignedByte()); // windowId u8
+            writer.writeShort(reader.readShort()); // slot i16
+            writer.writeByte(reader.readByte()); // button i8
+            writer.writeShort(reader.readShort()); // action i16
+            writer.writeVarInt(reader.readVarInt()); // mode（両方とも varint）
+            translateSlot736To735(reader, writer); // 単一スロット
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Window Click を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Entity Destroy（735 → 736）。両版とも [count varint][entityIds] の
+     * 配列形式のため恒等写像。count 2以上もそのまま通す。
+     */
+    public static byte[] translateEntityDestroy735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Entity Destroy（736 → 735）。両版とも [count varint][entityIds] の
+     * 配列形式のため恒等写像。count 2以上もそのまま通す。
+     */
+    public static byte[] translateEntityDestroy736To735(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // Multi Block Change（735 <=> 736。恒等写像）
+    // 両版とも [chunkX i32][chunkZ i32][records varint
+    // [{horizontalPos u8, y u8, blockId varint}]] の同一形式
+    // （実バニラ 1.16 jar の ob で確認。readShort は horizontalPos u8＋y u8
+    // の2バイトと同じワイヤ。1.16.1 の ob とバイト同一）。
+    // 736→751 のような List版への分割は不要（形式が違うための分割で、
+    // 735⇔736 は同一形式のため）。パケットIDも両版とも 0x0f。
+    // ブロック状態IDの付け替えも恒等写像のため、ペイロードをそのまま返す。
+    // ------------------------------------------------------------------
+
+    /**
+     * Multi Block Change（735 → 736）。両版同一形式のため恒等写像。
+     */
+    public static byte[] translateMultiBlockChange735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Multi Block Change（736 → 735）。両版同一形式のため恒等写像。
+     */
+    public static byte[] translateMultiBlockChange736To735(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // Update Light（735 <=> 736。素通し・ID付け替えのみ）
+    // フィールド同一のため変換器は恒等写像（入力ペイロードをそのまま返す）。
+    // 根拠は3系統（736節と同じ組み立て。ただし protocol.json は 1.16.1 側の
+    // 定義＋1.16 jar のバイト同一性で代用。pc/1.16 は 1.16.2 の誤写のため
+    // 1.16 の根拠には使えない）：
+    // - 実バニラ 1.16 jar の javap：ClientboundLightUpdatePacket（ow）の
+    //   read は readVarInt×2・readBoolean・readVarInt×4・byte[2048] 列、
+    //   write も同じ順序。1.16.1 の ow とバイト同一。
+    // - minecraft-data mc-1.16.1-protocol.json の update_light が
+    //   [chunkX varint][chunkZ varint][trustEdges bool]
+    //   [skyLightMask／blockLightMask／emptySkyLightMask／emptyBlockLightMask
+    //   varint][data restBuffer] で、1.16.1 の ow と一致（736 §14.4）。
+    //   1.16 の ow は 1.16.1 の ow とバイト同一のため同じ形式。
+    // - ViaVersion の Protocol1_16To1_16_1.java は付け替え無しの空プロトコル
+    //   （登録は一切無し。UPDATE_LIGHT にも触れない）。
+    // ProxySession の to736ServerPacketFrom735／to735ServerPacketFrom736 で
+    // 明示の case に載せる。751⇔753 節・736⇔751 節と同じ扱い。
+    // ------------------------------------------------------------------
+
+    /**
+     * Update Light（735 → 736）。フィールド同一のため恒等写像。
+     * 根拠は本節の冒頭（javap・protocol.json（1.16.1側）・ViaVersion の3系統で同一を確認）。
+     */
+    public static byte[] translateUpdateLight735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Update Light（736 → 735）。フィールド同一のため恒等写像。
+     * 根拠は {@link #translateUpdateLight735To736(byte[])} と同じ。
+     */
+    public static byte[] translateUpdateLight736To735(byte[] payload) {
+        return payload;
+    }
+
 }

@@ -570,6 +570,61 @@ class ResourcePackWiringTest {
     }
 
     @Test
+    void enabledConfigBuildsAndServes735Pack() throws Exception {
+        DetergentServer server = serverWith(Map.of(
+                "resource-pack", Map.of("enabled", true, "port", 0, "required", false)));
+        try {
+            ResourcePack pack = server.startResourcePack();
+            assertNotNull(pack);
+            // The 1.16 variant is built, served and offered alongside.
+            ResourcePack pack735 = server.resourcePackServer().pack735();
+            assertNotNull(pack735);
+            assertNotEquals(pack.sha1(), pack735.sha1());
+            assertNotEquals(pack.url(), pack735.url());
+            assertTrue(pack735.url().endsWith("/detergentmc-pack-1.16.zip"), pack735.url());
+            assertTrue(Files.exists(tempDir.resolve("data").resolve("resource-pack")
+                    .resolve("detergentmc-pack-1.16.zip")));
+            // The 735 and 736 packs differ (same pack_format 5, different
+            // description).
+            assertNotEquals(server.resourcePackServer().pack736().sha1(), pack735.sha1());
+            // The 735 and 751 packs differ (pack_format 5 vs 6).
+            assertNotEquals(server.resourcePackServer().pack751().sha1(), pack735.sha1());
+
+            HttpURLConnection connection = (HttpURLConnection)
+                    URI.create(pack735.url()).toURL().openConnection();
+            try {
+                assertEquals(200, connection.getResponseCode());
+                byte[] body = connection.getInputStream().readAllBytes();
+                assertEquals(pack735.sha1(),
+                        io.detergentmc.protocol.ResourcePackBuilder.sha1Hex(body));
+            } finally {
+                connection.disconnect();
+            }
+        } finally {
+            server.stopResourcePack();
+        }
+        assertNull(server.resourcePack());
+        assertNull(server.resourcePackServer());
+    }
+
+    @Test
+    void hostResourcePackIs735PackFor116Server() throws Exception {
+        // The internal vanilla server offers the pack matching its own
+        // version in server.properties: 735 (pack_format 5) for a
+        // 1.16 server, 765 (pack_format 22) otherwise.
+        DetergentServer server = serverWith(Map.of(
+                "minecraft-version", "1.16",
+                "resource-pack", Map.of("enabled", true, "port", 0, "required", false)));
+        try {
+            assertNotNull(server.startResourcePack());
+            assertNotNull(server.resourcePackServer().pack735());
+            assertEquals(server.resourcePackServer().pack735(), server.hostResourcePack());
+        } finally {
+            server.stopResourcePack();
+        }
+    }
+
+    @Test
     void enabledConfigBuildsAndServes751Pack() throws Exception {
         DetergentServer server = serverWith(Map.of(
                 "resource-pack", Map.of("enabled", true, "port", 0, "required", false)));

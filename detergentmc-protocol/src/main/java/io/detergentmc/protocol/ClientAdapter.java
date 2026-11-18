@@ -26,7 +26,7 @@ import java.util.List;
  * {@code map*763To764}／{@code map*764To763} が持つ（763→765→764 の
  * 二段変換はしない。既存の765→763表と765→764表の合成である）。
  *
- * <p>対応クライアントは 1.16.1（736）と 1.16.2（751）と 1.16.3（753）と 1.16.4／1.16.5（754）と 1.17（755）と 1.17.1（756）と 1.18／1.18.1（757）と 1.19（759）と 1.19.1／1.19.2（760）と 1.19.3（761）と 1.19.4（762）と 1.20.1（763）と 1.20.2（764）と 1.20.4（765）
+ * <p>対応クライアントは 1.16（735）と 1.16.1（736）と 1.16.2（751）と 1.16.3（753）と 1.16.4／1.16.5（754）と 1.17（755）と 1.17.1（756）と 1.18／1.18.1（757）と 1.19（759）と 1.19.1／1.19.2（760）と 1.19.3（761）と 1.19.4（762）と 1.20.1（763）と 1.20.2（764）と 1.20.4（765）
  * と 1.20.5／1.20.6（766）と 1.21／1.21.1（767）と 1.21.2／1.21.3（768）
  * と 1.21.4（769）と 1.21.5（770）と 1.21.6（771）と 1.21.7／1.21.8（772）と 1.21.9／1.21.10（773）と 1.21.11（774）と 26.1（775）。それより古いクライアントは「古すぎる」、
  * それより新しいクライアントは「新しすぎる」として、ハンドシェイクで
@@ -61,7 +61,7 @@ public final class ClientAdapter {
     public static final int SERVER_PROTOCOL = ProtocolVersion.V1_20_4;
 
     /**
-     * 受け入れるクライアントのうち 1.19（759）を指す定数。736が最古に
+     * 受け入れるクライアントのうち 1.19（759）を指す定数。735が最古に
      * なっても759のままにする：decide() の受け入れは別の一覧で決まり、
      * この定数は759を指す別名として differences() の振り分けでも使うため、
      * 754に変えると759の扱いが壊れる（755・756・757のStage Bと同じ扱い）。
@@ -159,13 +159,14 @@ public final class ClientAdapter {
      *   <li>760（1.19.1／1.19.2）：変換して受け入れる。設定フェーズが無いのは763と同じ。</li>
      *   <li>759（1.19）：変換して受け入れる。設定フェーズが無いのは763と同じ。</li>
      *   <li>757（1.18／1.18.1）：変換して受け入れる。設定フェーズが無いのは763と同じ。</li>
+     *   <li>735（1.16）：変換して受け入れる。設定フェーズが無いのは763と同じ。パケットIDは736と変わらないため番号の付け替えは不要で、レジストリも736と同一。</li>
      *   <li>736（1.16.1）：変換して受け入れる。設定フェーズが無いのは763と同じ。パケットIDは751から62件変わり、レジストリも751と違う。</li>
      *   <li>751（1.16.2）：変換して受け入れる。設定フェーズが無いのは763と同じ。パケットIDは753から0件変わり、レジストリも753と同一。</li>
      *   <li>753（1.16.3）：変換して受け入れる。設定フェーズが無いのは763と同じ。パケットIDは754から0件変わり、レジストリも754と同一。</li>
      *   <li>754（1.16.4／1.16.5）：変換して受け入れる。設定フェーズが無いのは763と同じ。パケットIDは755から120件変わり、レジストリも755と違う。</li>
      *   <li>755（1.17）：変換して受け入れる。設定フェーズが無いのは763と同じ。パケットIDは756と同一で、レジストリも756と同一。</li>
      *   <li>756（1.17.1）：変換して受け入れる。設定フェーズが無いのは763と同じ。</li>
-     *   <li>736より古い：古すぎるとして断る。</li>
+     *   <li>735より古い：古すぎるとして断る。</li>
      *   <li>775より新しい：新しすぎるとして断る。</li>
      * </ul>
      */
@@ -175,7 +176,7 @@ public final class ClientAdapter {
 
     /**
      * {@link #decide(int)} の内部プロトコル指定版（逆向き対応）。
-     * 受け入れるクライアントの集合は内部によらず 736・751・753・754・755・756・757・759・760・761・762・763・764・765・766・767・768・769・770・771・772・773・774・775 で、
+     * 受け入れるクライアントの集合は内部によらず 735・736・751・753・754・755・756・757・759・760・761・762・763・764・765・766・767・768・769・770・771・772・773・774・775 で、
      * 向きだけが内部との比較で決まる：同じなら素通し、古ければ上向き、
      * 新しければ下向き変換で受け入れる。
      *
@@ -264,7 +265,7 @@ public final class ClientAdapter {
      *   <li>内部756＋764／765／766／767／768／769／770／771／772／773／774／775クライアント：
      *       設定フェーズが無い内部に対し、プロキシが Join Game の codec から
      *       設定フェーズを合成する（ {@link io.detergentmc.protocol.ProxySession} 参照）。</li>
-     *   <li>736より古い：古すぎるとして断る。</li>
+     *   <li>735より古い：古すぎるとして断る。</li>
      *   <li>775より新しい：新しすぎるとして断る。</li>
      * </ul>
      */
@@ -273,7 +274,8 @@ public final class ClientAdapter {
             return new Handshake(Decision.ACCEPT_NATIVE, clientProtocol,
                     "プロトコル" + clientProtocol + "のクライアントをそのまま受け入れます。");
         }
-        if (clientProtocol == ProtocolVersion.V1_16_1
+        if (clientProtocol == ProtocolVersion.V1_16
+                || clientProtocol == ProtocolVersion.V1_16_1
                 || clientProtocol == ProtocolVersion.V1_16_2
                 || clientProtocol == ProtocolVersion.V1_16_3
                 || clientProtocol == ProtocolVersion.V1_16_5
@@ -303,6 +305,15 @@ public final class ClientAdapter {
                 return new Handshake(Decision.ACCEPT_VIA_ADAPTER, clientProtocol,
                         "プロトコル764（1.20.2）のクライアントを変換して受け入れます。"
                                 + "設定フェーズはそのまま中継し、レジストリ差分だけを変換します。");
+            }
+            if (clientProtocol == ProtocolVersion.V1_16) {
+                return new Handshake(Decision.ACCEPT_VIA_ADAPTER, clientProtocol,
+                        "プロトコル735（1.16）のクライアントを変換して受け入れます。"
+                                + "設定フェーズは無い（1.20.2／764で追加）ため、"
+                                + "設定フェーズの省略とブロックの代替が必要です。"
+                                + "パケットIDは736と変わらないため番号の付け替えは不要です。"
+                                + "レジストリも736と同一です。"
+                                + "Join Game は 0x25、pack_format は 5 です。");
             }
             if (clientProtocol == ProtocolVersion.V1_16_1) {
                 return new Handshake(Decision.ACCEPT_VIA_ADAPTER, clientProtocol,
@@ -518,7 +529,7 @@ public final class ClientAdapter {
         if (clientProtocol < OLDEST_SUPPORTED_CLIENT_PROTOCOL) {
             return new Handshake(Decision.REJECT_OUTDATED, clientProtocol,
                     "プロトコル" + clientProtocol + "は古すぎます。"
-                            + "1.16.1（736）以降のクライアントで参加してください。");
+                            + "1.16（735）以降のクライアントで参加してください。");
         }
         return new Handshake(Decision.REJECT_TOO_NEW, clientProtocol,
                 "プロトコル" + clientProtocol + "は新しすぎます。"
@@ -529,7 +540,7 @@ public final class ClientAdapter {
     public static List<Integer> supportedClientProtocols() {
         // OLDEST（759）だけでは760が漏れるため、760は明示する。
         // 760をここから外すと ClientJoinFlow が760クライアントを拒否する。
-        return List.of(ProtocolVersion.V1_16_1, ProtocolVersion.V1_16_2, ProtocolVersion.V1_16_3, ProtocolVersion.V1_16_5, ProtocolVersion.V1_17, ProtocolVersion.V1_17_1, ProtocolVersion.V1_18, OLDEST_SUPPORTED_CLIENT_PROTOCOL, ProtocolVersion.V1_19_1, ProtocolVersion.V1_19_3,
+        return List.of(ProtocolVersion.V1_16, ProtocolVersion.V1_16_1, ProtocolVersion.V1_16_2, ProtocolVersion.V1_16_3, ProtocolVersion.V1_16_5, ProtocolVersion.V1_17, ProtocolVersion.V1_17_1, ProtocolVersion.V1_18, OLDEST_SUPPORTED_CLIENT_PROTOCOL, ProtocolVersion.V1_19_1, ProtocolVersion.V1_19_3,
                 ProtocolVersion.V1_19_4,
                 ProtocolVersion.V1_20_1,
                 ProtocolVersion.V1_20_2,
@@ -541,6 +552,9 @@ public final class ClientAdapter {
 
     /** プロトコル番号に対応する表示バージョン（"1.20.1" 等）。未知の番号は null。 */
     public static String versionName(int protocol) {
+        if (protocol == ProtocolVersion.V1_16) {
+            return "1.16";
+        }
         if (protocol == ProtocolVersion.V1_16_1) {
             return "1.16.1";
         }
@@ -1677,6 +1691,62 @@ public final class ClientAdapter {
                                     + "（落とさない）。Declare Recipes・Tags・Statistics・"
                                     + "World Event は全方向で未対応。"));
         }
+        if (clientProtocol == ProtocolVersion.V1_16) {
+            return List.of(
+                    new Difference("HANDSHAKE",
+                            "ハンドシェイク自体の形は同じ。プロトコル番号が735と名乗るだけ。",
+                            Handling.UNAFFECTED,
+                            "ハンドシェイクパケットの構造は1.16と1.20.4で変わっていない。"),
+                    new Difference("LOGIN",
+                            "ログイン開始は名前だけ（735）。playerUUID は無い。署名データも無い（署名付きチャットは759で導入）。",
+                            Handling.TRANSLATED,
+                            "735の Login Start は名前だけで、760の任意UUIDも759の署名データも無い。"
+                                    + "プロキシは認証済みの名前・UUID で Login Start を作り直すため、"
+                                    + "クライアントの署名データは内部へは届かない。"),
+                    new Difference("CONFIGURATION",
+                            "1.20.2で追加された「設定フェーズ」が735クライアントには無い（736と同じ）。",
+                            Handling.TRANSLATED,
+                            "735はログイン成功のあとすぐプレイ状態へ進む。765のサーバーが"
+                                    + "設定フェーズで送るレジストリ情報は、735向けには Join Game の"
+                                    + "codec としてプレイ状態で送り直す。設定フェーズ用のパケットを"
+                                    + "735に送ってはいけない。プロキシは765クライアント役として"
+                                    + "設定フェーズを消費する。"),
+                    new Difference("REGISTRY",
+                            "736と735のレジストリは同一。ブロック状態 17,104→17,104、"
+                                    + "ブロック 763→763、アイテム 975→975、エンティティ 107→107、"
+                                    + "音 985→985、パーティクル 72→72、エンチャント 38→38、"
+                                    + "バイオーム 79→79、ブロックエンティティ 33→33、メニュー 24→24。",
+                            Handling.TRANSLATED,
+                            "ブロック状態は 17,104→17,104（同一・同一順序。非恒等0件）、"
+                                    + "ブロックは 763→763（同一・同一順序）、アイテムは 975→975"
+                                    + "（同一・同一順序。非恒等0件）、"
+                                    + "エンティティは 107→107（同一。非恒等0件）、音は 985→985"
+                                    + "（同一。非恒等0件）、パーティクルは 72→72（同一）、エンチャントは 38→38"
+                                    + "（同一）、バイオームは 79→79（同一。id 0〜173は同じ id・"
+                                    + "同じ名前）、ブロックエンティティは 33→33（同一）、メニュー 24→24（同一）。"
+                                    + "verify-735-tables.py は43件中43件通過。"),
+                    new Difference("PLAY",
+                            "プレイ状態は736↔735の直接変換のあと、既存の736↔751↔753↔754↔755↔756↔757↔759↔760↔761↔762↔763↔764↔765の変換を重ねる。"
+                                    + "新規パケットは0件、削除は0件、パケットIDは0件変わる。",
+                            Handling.TRANSLATED,
+                            "Join Game 0x25（736では0x25）、Chunk Data 0x21（0x21）。"
+                                    + "Join Game は736とフィールド構成が同じ（LoginPacket 14件で"
+                                    + "isHardcore が無い。dimension は NBT ではなく文字列、"
+                                    + "dimensionCodec は {\"dimension\": [...]} だけでバイオームレジストリが"
+                                    + "無い。dimension element に min_y／height が無い）。"
+                                    + "実バニラ1.16の Join Game は1,159バイト（1.16.1と同じ。1.16.2は30,847バイト）。"
+                                    + "Respawn の1.16形式は未確認（1.16.1と同じ形の見込み。Stage Bで実測する）。"
+                                    + "Registry Data パケットはどちらにも無い。"
+                                    + "combat_event／title／world_border は735でも736でも1個のIDを共有する"
+                                    + "（735は0x32／0x4f／0x3d、736も0x32／0x4f／0x3d）。ping／pong は735では"
+                                    + "transaction（0x12／0x07）に対応する。Client Information は735では"
+                                    + "6フィールド（1.17の disableTextFiltering は無い。実バニラ1.16 jar の javap で確認）。"
+                                    + "735クライアントには pack_format 5 のパックを出す"
+                                    + "（プレイ状態での旧式オファー）。"
+                                    + "Window Click・Set Creative Slot は736↔735で番号は変わらない"
+                                    + "（落とさない）。Declare Recipes・Tags・Statistics・"
+                                    + "World Event は全方向で未対応。"));
+        }
         if (clientProtocol == ProtocolVersion.V1_16_1) {
             return List.of(
                     new Difference("HANDSHAKE",
@@ -2291,6 +2361,224 @@ public final class ClientAdapter {
         }
         if (serverProtocol == SERVER_PROTOCOL) {
             return differences(clientProtocol);
+        }
+        if (clientProtocol == ProtocolVersion.V1_16) {
+            // クライアント735＋内部736／751／753／754／755／756／757／759〜775。735↔736は
+            // パケットID0件変更・レジストリ同一のため、736との間は番号の
+            // 付け替えもレジストリ変換も不要で、そのまま通る。751向けは736経由の多段変換、
+            // 759〜763向けは設定フェーズが無く、764以降向けは
+            // プロキシが設定フェーズを合成する。
+            if (serverProtocol == ProtocolVersion.V1_16_1) {
+                return List.of(
+                        new Difference("CONFIGURATION",
+                                "どちらにも設定フェーズが無い。ログイン成功のあとすぐプレイ状態へ進む。",
+                                Handling.TRANSLATED,
+                                "735も736も設定フェーズを持たないため、プロキシは Login Acknowledged を"
+                                        + "送らず、両方をそのままプレイ状態へ進める。"),
+                        new Difference("PLAY",
+                                "プレイ状態は736↔735の直接変換だけで済む（パケットIDは0件変更・新規0件・削除0件）。",
+                                Handling.TRANSLATED,
+                                "Join Game 0x25（736では0x25）、Chunk Data 0x21（0x21）。"
+                                        + "Join Game・Respawn はフィールド同一（LoginPacket 14件。"
+                                        + "dimension は両方とも文字列、dimensionCodec は {\"dimension\": [...]}"
+                                        + "だけでバイオームレジストリが無い、dimension element に min_y／height が無い）。"
+                                        + "レジストリも同一（ブロック状態 17,104件・アイテム 975件・"
+                                        + "エンティティ 107件・音 985件・バイオーム 79件とも同一）。"
+                                        + "combat_event／title／world_border は735でも736でも1個のIDを共有する。"
+                                        + "ping／pong は735でも736でも transaction に対応する。"
+                                        + "Window Click・Set Creative Slot も番号は変わらない。"),
+                        new Difference("RESOURCE_PACK",
+                                "735クライアントには pack_format 5 のパックを出す。",
+                                Handling.TRANSLATED,
+                                "735はプレイ状態での旧式オファー（UUIDなし）で pack_format 5 のパックを出す。"
+                                        + "内部736のパック（pack_format 5）と同じ形式だが、735用パックを別ファイルで用意する。"));
+            }
+            if (serverProtocol == ProtocolVersion.V1_16_2) {
+                return List.of(
+                        new Difference("CONFIGURATION",
+                                "どちらにも設定フェーズが無い。ログイン成功のあとすぐプレイ状態へ進む。",
+                                Handling.TRANSLATED,
+                                "735も751も設定フェーズを持たないため、プロキシは Login Acknowledged を"
+                                        + "送らず、両方をそのままプレイ状態へ進める。"),
+                        new Difference("PLAY",
+                                "プレイ状態は735→736→751の二段変換で済む（パケットIDは735↔736で0件変更、736↔751で62件変更・1件削除）。",
+                                Handling.TRANSLATED,
+                                "735↔736はパケットID・レジストリ・Join Game／Respawn codec とも"
+                                        + "同一のため番号の付け替えは不要。736↔751は Join Game 0x25⇔0x24・"
+                                        + "Chunk Data 0x21⇔0x20 の付け替えとレジストリの736↔751対応表で"
+                                        + "変換し、バイオームは79件⇔79件の dimensionCodec の付け替え。"
+                                        + "削除は displayed_recipe 1件（751で0x1f）。"
+                                        + "Window Click・Set Creative Slot も変換する。"),
+                        new Difference("RESOURCE_PACK",
+                                "735クライアントには pack_format 5 のパックを出す。",
+                                Handling.TRANSLATED,
+                                "735はプレイ状態での旧式オファー（UUIDなし）で pack_format 5 のパックを出す。"
+                                        + "内部751のパック（pack_format 6）とは別に735用パックを用意する。"));
+            }
+            if (serverProtocol == ProtocolVersion.V1_16_3) {
+                return List.of(
+                        new Difference("CONFIGURATION",
+                                "どちらにも設定フェーズが無い。ログイン成功のあとすぐプレイ状態へ進む。",
+                                Handling.TRANSLATED,
+                                "735も753も設定フェーズを持たないため、プロキシは Login Acknowledged を"
+                                        + "送らず、両方をそのままプレイ状態へ進める。"),
+                        new Difference("PLAY",
+                                "プレイ状態は735→736→751→753の三段変換で済む（パケットIDは735↔736で0件変更、736↔751で62件変更・1件削除、751↔753で0件変更）。",
+                                Handling.TRANSLATED,
+                                "735↔736は同一のため変換は736↔751から始まる。736↔751は Join Game・"
+                                        + "Chunk Data の付け替えとレジストリの736↔751対応表で変換し、"
+                                        + "バイオームは79件⇔79件の dimensionCodec の付け替え。751↔753は"
+                                        + "パケットID・レジストリ・Join Game／Respawn codec とも同一のため"
+                                        + "番号の付け替えは不要。削除は displayed_recipe 1件（751で0x1f）。"
+                                        + "Window Click・Set Creative Slot も変換する。"),
+                        new Difference("RESOURCE_PACK",
+                                "735クライアントには pack_format 5 のパックを出す。",
+                                Handling.TRANSLATED,
+                                "735はプレイ状態での旧式オファー（UUIDなし）で pack_format 5 のパックを出す。"
+                                        + "内部753のパック（pack_format 6）とは別に735用パックを用意する。"));
+            }
+            if (serverProtocol == ProtocolVersion.V1_16_5) {
+                return List.of(
+                        new Difference("CONFIGURATION",
+                                "どちらにも設定フェーズが無い。ログイン成功のあとすぐプレイ状態へ進む。",
+                                Handling.TRANSLATED,
+                                "735も754も設定フェーズを持たないため、プロキシは Login Acknowledged を"
+                                        + "送らず、両方をそのままプレイ状態へ進める。"),
+                        new Difference("PLAY",
+                                "プレイ状態は735→736→751→753→754の四段変換で済む（パケットIDは735↔736で0件変更、736↔751で62件変更・1件削除、751↔753で0件変更、753↔754で0件変更）。",
+                                Handling.TRANSLATED,
+                                "735↔736は同一のため変換は736↔751から始まる。736↔751は Join Game・"
+                                        + "Chunk Data の付け替えとレジストリの736↔751対応表で変換する。"
+                                        + "751↔753も753↔754も同一のため、内部754までの変換は"
+                                        + "736↔751から始まる。Window Click・Set Creative Slot も"
+                                        + "番号は変わらない。"),
+                        new Difference("RESOURCE_PACK",
+                                "735クライアントには pack_format 5 のパックを出す。",
+                                Handling.TRANSLATED,
+                                "735はプレイ状態での旧式オファー（UUIDなし）で pack_format 5 のパックを出す。"
+                                        + "内部754のパック（pack_format 6）とは別に735用パックを用意する。"));
+            }
+            if (serverProtocol == ProtocolVersion.V1_17) {
+                return List.of(
+                        new Difference("CONFIGURATION",
+                                "どちらにも設定フェーズが無い。ログイン成功のあとすぐプレイ状態へ進む。",
+                                Handling.TRANSLATED,
+                                "735も755も設定フェーズを持たないため、プロキシは Login Acknowledged を"
+                                        + "送らず、両方をそのままプレイ状態へ進める。"),
+                        new Difference("PLAY",
+                                "プレイ状態は735→736→751→753→754→755の五段変換で済む（パケットIDは735↔736で0件変更、736↔751で62件変更・1件削除、751↔753で0件変更、753↔754で0件変更、754↔755で120件変更・1件削除）。",
+                                Handling.TRANSLATED,
+                                "735↔736は同一のため変換は736↔751から始まる。736↔751は Join Game・"
+                                        + "Chunk Data の付け替えとレジストリの736↔751対応表で変換する。"
+                                        + "751↔753も753↔754も同一のため変換は754↔755から始まる。"
+                                        + "754↔755は Join Game 0x24⇔0x26・Chunk Data 0x20⇔0x22 の付け替えと"
+                                        + "レジストリの755↔754対応表で変換し、バイオームは79件⇔81件の"
+                                        + "dimensionCodec の付け替え。削除は sculk_vibration_signal 1件（755で0x05）。"
+                                        + "Window Click・Set Creative Slot も変換する。"),
+                        new Difference("RESOURCE_PACK",
+                                "735クライアントには pack_format 5 のパックを出す。",
+                                Handling.TRANSLATED,
+                                "735はプレイ状態での旧式オファー（UUIDなし）で pack_format 5 のパックを出す。"
+                                        + "内部755のパック（pack_format 7）とは別に735用パックを用意する。"));
+            }
+            if (serverProtocol == ProtocolVersion.V1_17_1) {
+                return List.of(
+                        new Difference("CONFIGURATION",
+                                "どちらにも設定フェーズが無い。ログイン成功のあとすぐプレイ状態へ進む。",
+                                Handling.TRANSLATED,
+                                "735も756も設定フェーズを持たないため、プロキシは Login Acknowledged を"
+                                        + "送らず、両方をそのままプレイ状態へ進める。"),
+                        new Difference("PLAY",
+                                "プレイ状態は735→736→751→753→754→755→756の六段変換で済む（パケットIDは735↔736で0件変更、736↔751で62件変更・1件削除、751↔753で0件変更、753↔754で0件変更、754↔755で120件変更・1件削除、755↔756で0件変更）。",
+                                Handling.TRANSLATED,
+                                "735↔736は同一のため変換は736↔751から始まる。736↔751は Join Game・"
+                                        + "Chunk Data の付け替えとレジストリの736↔751対応表で変換する。"
+                                        + "751↔753も753↔754も同一のため変換は754↔755から始まる。"
+                                        + "754↔755は Join Game・Chunk Data の付け替えとレジストリの755↔754対応表で"
+                                        + "変換し、バイオームは79件⇔81件の dimensionCodec の付け替え。755↔756は"
+                                        + "パケットID・レジストリ・Join Game／Respawn codec とも同一のため"
+                                        + "番号の付け替えは不要。Window Click・Set Creative Slot も変換する。"),
+                        new Difference("RESOURCE_PACK",
+                                "735クライアントには pack_format 5 のパックを出す。",
+                                Handling.TRANSLATED,
+                                "735はプレイ状態での旧式オファー（UUIDなし）で pack_format 5 のパックを出す。"
+                                        + "内部756のパック（pack_format 7）とは別に735用パックを用意する。"));
+            }
+            if (serverProtocol == ProtocolVersion.V1_18) {
+                return List.of(
+                        new Difference("CONFIGURATION",
+                                "どちらにも設定フェーズが無い。ログイン成功のあとすぐプレイ状態へ進む。",
+                                Handling.TRANSLATED,
+                                "735も757も設定フェーズを持たないため、プロキシは Login Acknowledged を"
+                                        + "送らず、両方をそのままプレイ状態へ進める。"),
+                        new Difference("PLAY",
+                                "プレイ状態は735→736→751→753→754→755→756→757の七段変換で済む（パケットIDは735↔736で0件変更、736↔751で62件変更・1件削除、751↔753で0件変更、753↔754で0件変更、754↔755で120件変更・1件削除、755↔756で0件変更、756↔757で16件変更・1件削除）。",
+                                Handling.TRANSLATED,
+                                "735↔736は同一のため変換は736↔751から始まる。736↔751は Join Game・"
+                                        + "Chunk Data の付け替えとレジストリの736↔751対応表で変換する。"
+                                        + "751↔753も753↔754も同一のため変換は754↔755から始まる。"
+                                        + "754↔755は Join Game・Chunk Data の付け替えとレジストリの755↔754対応表で"
+                                        + "変換する。755↔756は同一のため変換は756↔757から始まる。756↔757は"
+                                        + "simulationDistance の付け外しと simulation_distance（757で0x57）の"
+                                        + "削除による-1ずれ（0x58以降）を変換し、レジストリは756↔757対応表で"
+                                        + "変換する。バイオームは79件⇔81件⇔61件の dimensionCodec の付け替え。"
+                                        + "Window Click・Set Creative Slot も変換する。"),
+                        new Difference("RESOURCE_PACK",
+                                "735クライアントには pack_format 5 のパックを出す。",
+                                Handling.TRANSLATED,
+                                "735はプレイ状態での旧式オファー（UUIDなし）で pack_format 5 のパックを出す。"
+                                        + "内部757のパック（pack_format 8）とは別に735用パックを用意する。"));
+            }
+            if (serverProtocol == ProtocolVersion.V1_19
+                    || serverProtocol == ProtocolVersion.V1_19_1
+                    || serverProtocol == ProtocolVersion.V1_19_3
+                    || serverProtocol == ProtocolVersion.V1_19_4
+                    || serverProtocol == ProtocolVersion.V1_20_1) {
+                return List.of(
+                        new Difference("CONFIGURATION",
+                                "どちらにも設定フェーズが無い。ログイン成功のあとすぐプレイ状態へ進む。",
+                                Handling.TRANSLATED,
+                                "735も759／760／761／762／763も設定フェーズを持たないため、プロキシは "
+                                        + "Login Acknowledged を送らず、両方をそのままプレイ状態へ進める。"),
+                        new Difference("PLAY",
+                                "プレイ状態は736↔735の直接変換のあと、736から内部までの既存の変換を重ねる。",
+                                Handling.TRANSLATED,
+                                "735↔736はパケットID・レジストリ・Join Game／Respawn codec とも同一のため"
+                                        + "番号の付け替えは不要。736↔751は Join Game・Chunk Data の付け替えと"
+                                        + "レジストリの736↔751対応表で変換する。751↔753は同一のため変換は753↔754から始まる。"
+                                        + "753↔754も同一のため変換は754↔755から始まる。Player Chat／"
+                                        + "Chat Message／Chat Command の署名付きチャット形式、Player Info の"
+                                        + "action 形式、Server Data の previewsChat、Sound Effect の Holder 形式を"
+                                        + "変換し、レジストリは757↔759対応表で変換する。Message Header は落とす。"
+                                        + "Window Click・Set Creative Slot も変換する。"),
+                        new Difference("RESOURCE_PACK",
+                                "735クライアントには pack_format 5 のパックを出す。",
+                                Handling.TRANSLATED,
+                                "735はプレイ状態での旧式オファー（UUIDなし）で pack_format 5 のパックを出す。"
+                                        + "内部759／760／761／762／763のパック（pack_format 9／9／12／13／15）とは別に735用パックを用意する。"));
+            }
+            return List.of(
+                    new Difference("CONFIGURATION",
+                            "内部" + serverProtocol + "の設定フェーズは、735クライアントにはプロキシが"
+                                    + serverProtocol + "クライアント役として消費し、735クライアントには送らない。",
+                            Handling.TRANSLATED,
+                            "735には設定フェーズが無い。内部サーバーの Registry Data は Join Game の"
+                                    + "codec として735向けに送り直す。"),
+                    new Difference("PLAY",
+                            "プレイ状態は736↔735の直接変換のあと、736から内部" + serverProtocol
+                                    + "までの既存の変換を重ねる。Window Click・Set Creative Slot は754↔755では"
+                                    + "変換するが、766以降のデータコンポーネント形式との間では落とす。",
+                            Handling.TRANSLATED,
+                            "Join Game は simulationDistance の付け外しと、バイオーム"
+                                    + "79件⇔61件の dimensionCodec の付け替え、署名なし chat と"
+                                    + "署名付きチャット形式の変換をし、レジストリは754↔755対応表で"
+                                    + "変換する。Declare Recipes・Tags・Statistics・World Event は"
+                                    + "全方向で未対応。"),
+                    new Difference("RESOURCE_PACK",
+                            "735クライアントには pack_format 5 のパックを出す。",
+                            Handling.TRANSLATED,
+                            "内部サーバーの設定フェーズのリソースパックはプロキシが消費し、735向けには"
+                                    + "プレイ状態の旧式オファーで pack_format 5 のパックを出し直す。"));
         }
         if (clientProtocol == ProtocolVersion.V1_16_1) {
             // クライアント736＋内部751／753／754／755／756／757／759〜775。736↔751は
@@ -3750,12 +4038,19 @@ public final class ClientAdapter {
         // Stage B で751の受け入れを配線し、このブロックの条件にも751を
         // 追加したが、「6」は休眠のまま（753の「6」と同じ段取り）。
         // 「6」の根拠：1.16.2 の version.json 実測で pack_version 6。
+        // V1_16 → "5" も同じく休眠エントリ：専用の735分岐
+        // （differences(int, int) の clientProtocol == V1_16）
+        // が先に735を処理するため、この条件には実際には到達しない。
+        // Stage B で735の受け入れを配線し、このブロックの条件にも735を
+        // 追加したが、「5」は休眠のまま（736の「5」と同じ段取り）。
+        // 「5」の根拠：1.16 の version.json 実測で pack_version 5。
         // V1_16_1 → "5" も同じく休眠エントリ：Stage A の時点では
         // decide() が736を断るため differences(736, 764) は
         // NOT_SUPPORTED で、専用の736分岐もまだ無い。Stage B で736の
         // 受け入れを配線しても「5」は休眠のまま（751の「6」と同じ段取り）。
         // 「5」の根拠：1.16.1 の version.json 実測で pack_version 5。
-        if (clientProtocol == ProtocolVersion.V1_16_1
+        if (clientProtocol == ProtocolVersion.V1_16
+                || clientProtocol == ProtocolVersion.V1_16_1
                 || clientProtocol == ProtocolVersion.V1_16_2
                 || clientProtocol == ProtocolVersion.V1_16_3
                 || clientProtocol == ProtocolVersion.V1_16_5
@@ -3806,7 +4101,8 @@ public final class ClientAdapter {
                             Handling.TRANSLATED,
                             "764は UUID なしの単一パケットのため、UUID を合成して変換する。"
                                     + clientProtocol + "クライアントには pack_format "
-                                    + (clientProtocol == ProtocolVersion.V1_16_1 ? "5"
+                                    + (clientProtocol == ProtocolVersion.V1_16 ? "5"
+                                            : clientProtocol == ProtocolVersion.V1_16_1 ? "5"
                                             : clientProtocol == ProtocolVersion.V1_16_2 ? "6"
                                             : clientProtocol == ProtocolVersion.V1_16_3 ? "6"
                                             : clientProtocol == ProtocolVersion.V1_16_5 ? "6"
