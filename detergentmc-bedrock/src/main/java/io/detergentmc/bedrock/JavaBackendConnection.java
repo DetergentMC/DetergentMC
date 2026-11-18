@@ -237,10 +237,12 @@ public final class JavaBackendConnection implements JavaBackend {
         }
         try {
             PacketIO.Writer writer = new PacketIO.Writer();
-            if (serverProtocol == 756 || serverProtocol == 757) {
-                // 756／757 のチャット（サーバー行き 0x03）は署名なしの {message} だけ。
+            if (serverProtocol == 735 || serverProtocol == 736 || serverProtocol == 751 || serverProtocol == 753 || serverProtocol == 754 || serverProtocol == 755 || serverProtocol == 756 || serverProtocol == 757) {
+                // 735／736／751／753／754／755／756／757 のチャット（サーバー行き 0x03）は署名なしの {message} だけ。
                 // 1.19 で Chat Message／Chat Command に分離される前の形式。
-                // minecraft-data mc-1.17.1／mc-1.18-protocol.json で確認。
+                // minecraft-data mc-1.16.1／mc-1.16／mc-1.17／mc-1.17.1／mc-1.18-protocol.json で確認。
+                // 736 のサーバー行きチャットは 0x03（packet-ids-736.json。751 と同じ）。
+                // 735 のサーバー行きチャットは 0x03（packet-ids-735.json。736 と同じ）。
                 writer.writeString(message);
                 send(new MinecraftPacket(
                         PacketIds.id(PacketIds.PacketName.PLAY_CHAT_TO_SERVER, serverProtocol)
@@ -305,8 +307,8 @@ public final class JavaBackendConnection implements JavaBackend {
         }
         try {
             PacketIO.Writer writer = new PacketIO.Writer();
-            if (serverProtocol == 756 || serverProtocol == 757) {
-                // 756／757 には Chat Command パケットが無い（1.19 で分離）。
+            if (serverProtocol == 735 || serverProtocol == 736 || serverProtocol == 751 || serverProtocol == 753 || serverProtocol == 754 || serverProtocol == 755 || serverProtocol == 756 || serverProtocol == 757) {
+                // 735／736／751／753／754／755／756／757 には Chat Command パケットが無い（1.19 で分離）。
                 // コマンドは "/" 付きのチャット（0x03）として送る。
                 writer.writeString("/" + command);
                 send(new MinecraftPacket(
@@ -496,8 +498,8 @@ public final class JavaBackendConnection implements JavaBackend {
             }
             if (id == PacketIds.id(PacketIds.PacketName.LOGIN_SUCCESS, serverProtocol)
                     .orElse(-1)) {
-                if (serverProtocol == 756 || serverProtocol == 757 || serverProtocol == 759 || serverProtocol == 760 || serverProtocol == 761 || serverProtocol == 762 || serverProtocol == 763) {
-                    // 756・757・759・760・761・762・763 には設定フェーズが無い：このままプレイに入る。
+                if (serverProtocol == 735 || serverProtocol == 736 || serverProtocol == 751 || serverProtocol == 753 || serverProtocol == 754 || serverProtocol == 755 || serverProtocol == 756 || serverProtocol == 757 || serverProtocol == 759 || serverProtocol == 760 || serverProtocol == 761 || serverProtocol == 762 || serverProtocol == 763) {
+                    // 735・736・751・753・754・755・756・757・759・760・761・762・763 には設定フェーズが無い：このままプレイに入る。
                     return 2;
                 }
                 // 764 以上：Login Acknowledged を送り、設定フェーズに入る。
@@ -663,9 +665,12 @@ public final class JavaBackendConnection implements JavaBackend {
         }
         if (id == PacketIds.id(PacketIds.PacketName.PLAY_CHAT, serverProtocol)
                 .orElse(-1)) {
-            // 756／757 のチャット（クライアント行き 0x0F）：{message string, position i8,
+            // 735／736／751／753／754 のチャット（クライアント行き 0x0E）、755／756／757 のチャット
+            // （クライアント行き 0x0F）：{message string, position i8,
             // sender UUID}。1.19 で System Chat／Player Chat に分離される前の形式。
-            // minecraft-data mc-1.17.1／mc-1.18-protocol.json で確認。
+            // minecraft-data mc-1.16.1／mc-1.16／mc-1.17／mc-1.17.1／mc-1.18-protocol.json で確認。
+            // 736 のクライアント行きチャットは 0x0E（packet-ids-736.json。751 と同じ）。
+            // 735 のクライアント行きチャットは 0x0E（packet-ids-735.json。736 と同じ）。
             try {
                 PacketIO.Reader reader = new PacketIO.Reader(packet.payload());
                 String json = reader.readString();
@@ -761,8 +766,8 @@ public final class JavaBackendConnection implements JavaBackend {
             // 759・760 は旧式（action 付き）、761以上はビットセット形式
             // （0x01 add player、0x04 gamemode 等）。
             // 769 は update_hat（0x40）と update_list_order（0x80）が増えた。
-            // 756・757 も 759・760 と同じ旧式（action 付き）。
-            if (serverProtocol == 756 || serverProtocol == 757 || serverProtocol == 759 || serverProtocol == 760) {
+            // 735・736・751・753・754・755・756・757 も 759・760 と同じ旧式（action 付き）。
+            if (serverProtocol == 735 || serverProtocol == 736 || serverProtocol == 751 || serverProtocol == 753 || serverProtocol == 754 || serverProtocol == 755 || serverProtocol == 756 || serverProtocol == 757 || serverProtocol == 759 || serverProtocol == 760) {
                 recordPlayerInfo760(packet.payload());
             } else {
                 recordPlayerInfo(packet.payload());
@@ -793,14 +798,45 @@ public final class JavaBackendConnection implements JavaBackend {
             try {
                 PacketIO.Reader reader = new PacketIO.Reader(packet.payload());
                 String dimension;
-                if (serverProtocol == 756 || serverProtocol == 757) {
-                    // 756／757 の Respawn の次元は DimensionType の値そのもの（NBT）。
+                if (serverProtocol == 735 || serverProtocol == 736 || serverProtocol == 751 || serverProtocol == 753 || serverProtocol == 754 || serverProtocol == 755 || serverProtocol == 756 || serverProtocol == 757) {
+                    // 735／736／751／753／754／755／756／757 の Respawn の次元は DimensionType の値そのもの。
+                    // 751〜757 は NBT、735／736 は文字列（Stage B §14.3・§14.4 実測。mc-1.16.1-protocol.json の
+                    // packet_respawn は dimension が string。751 の packet_respawn は NBT）。
                     // 759 形式（次元名の文字列）に直してから読む。
-                    // translateRespawn756To757／translateRespawn757To759 は
-                    // Stage B の実測済み変換。
-                    byte[] payload757 = serverProtocol == 756
-                            ? PlayTranslator.translateRespawn756To757(packet.payload())
-                            : packet.payload();
+                    // translateRespawn736To751／translateRespawn751To753／translateRespawn753To754／translateRespawn754To755／translateRespawn755To756／
+                    // translateRespawn756To757／translateRespawn757To759 は Stage B の実測済み変換。
+                    // 735 は translateRespawn736To751 をそのまま使う（735⇔736 は恒等写像。Stage B §14.3 実測）。
+                    byte[] payload757;
+                    if (serverProtocol == 735 || serverProtocol == 736) {
+                        payload757 = PlayTranslator.translateRespawn756To757(
+                                PlayTranslator.translateRespawn755To756(
+                                        PlayTranslator.translateRespawn754To755(
+                                                PlayTranslator.translateRespawn753To754(
+                                                        PlayTranslator.translateRespawn751To753(
+                                                                PlayTranslator.translateRespawn736To751(packet.payload()))))));
+                    } else if (serverProtocol == 751) {
+                        payload757 = PlayTranslator.translateRespawn756To757(
+                                PlayTranslator.translateRespawn755To756(
+                                        PlayTranslator.translateRespawn754To755(
+                                                PlayTranslator.translateRespawn753To754(
+                                                        PlayTranslator.translateRespawn751To753(packet.payload())))));
+                    } else if (serverProtocol == 753) {
+                        payload757 = PlayTranslator.translateRespawn756To757(
+                                PlayTranslator.translateRespawn755To756(
+                                        PlayTranslator.translateRespawn754To755(
+                                                PlayTranslator.translateRespawn753To754(packet.payload()))));
+                    } else if (serverProtocol == 754) {
+                        payload757 = PlayTranslator.translateRespawn756To757(
+                                PlayTranslator.translateRespawn755To756(
+                                        PlayTranslator.translateRespawn754To755(packet.payload())));
+                    } else if (serverProtocol == 755) {
+                        payload757 = PlayTranslator.translateRespawn756To757(
+                                PlayTranslator.translateRespawn755To756(packet.payload()));
+                    } else if (serverProtocol == 756) {
+                        payload757 = PlayTranslator.translateRespawn756To757(packet.payload());
+                    } else {
+                        payload757 = packet.payload();
+                    }
                     byte[] payload759 =
                             PlayTranslator.translateRespawn757To759(payload757);
                     dimension = new PacketIO.Reader(payload759).readString();
@@ -866,7 +902,12 @@ public final class JavaBackendConnection implements JavaBackend {
         if (id == PacketIds.id(PacketIds.PacketName.PLAY_MULTI_BLOCK_CHANGE, serverProtocol)
                 .orElse(-1)) {
             try {
-                parseMultiBlockChange(packet.payload());
+                if (serverProtocol == 735 || serverProtocol == 736) {
+                    // 735／736 の Multi Block Change は 751 と形式が違う（下記の parseMultiBlockChange736 参照。735 は同じ形式のため同じ読み方を使う）。
+                    parseMultiBlockChange736(packet.payload());
+                } else {
+                    parseMultiBlockChange(packet.payload());
+                }
             } catch (RuntimeException e) {
                 LOG.warning("Multi Block Change が読めませんでした: " + e.getMessage());
             }
@@ -887,7 +928,7 @@ public final class JavaBackendConnection implements JavaBackend {
         }
         if (id == PacketIds.id(PacketIds.PacketName.PLAY_SPAWN_ENTITY_LIVING, serverProtocol)
                 .orElse(-1)) {
-            // 756／757 のモブスポーン（0x02）。1.19 で Spawn Entity（0x00）に統合された。
+            // 735／736／751／753／754／755／756／757 のモブスポーン（0x02）。1.19 で Spawn Entity（0x00）に統合された。
             try {
                 BedrockEntityTranslator.SpawnEntity spawn =
                         BedrockEntityTranslator.parseSpawnEntityLiving(
@@ -901,8 +942,8 @@ public final class JavaBackendConnection implements JavaBackend {
         }
         if (id == PacketIds.id(PacketIds.PacketName.PLAY_SPAWN_ENTITY_PAINTING, serverProtocol)
                 .orElse(-1)) {
-            // 756／757 の絵画スポーン（0x03）。1.19 で Spawn Entity（0x00）に統合された。
-            // 1.17.1／1.18 の絵画には variant のメタデータが無いため、題名はこのパケットの
+            // 735／736／751／753／754／755／756／757 の絵画スポーン（0x03）。1.19 で Spawn Entity（0x00）に統合された。
+            // 1.16／1.16.1／1.16.2／1.16.3／1.16.5／1.17／1.17.1／1.18 の絵画には variant のメタデータが無いため、題名はこのパケットの
             // title から合成メタデータで渡す（そうしないと Bedrock 側に送られない）。
             try {
                 BedrockEntityTranslator.SpawnPainting painting =
@@ -921,7 +962,19 @@ public final class JavaBackendConnection implements JavaBackend {
                 listener.onSpawnEntity(spawn);
                 listener.onEntityMetadata(BedrockEntityTranslator.paintingMetadata(
                         painting.entityId(),
-                        serverProtocol == 756
+                        serverProtocol == 735
+                                ? BedrockEntityTranslator.paintingId735To765(painting.title757())
+                                : serverProtocol == 736
+                                ? BedrockEntityTranslator.paintingId736To765(painting.title757())
+                                : serverProtocol == 751
+                                ? BedrockEntityTranslator.paintingId751To765(painting.title757())
+                                : serverProtocol == 753
+                                ? BedrockEntityTranslator.paintingId753To765(painting.title757())
+                                : serverProtocol == 754
+                                ? BedrockEntityTranslator.paintingId754To765(painting.title757())
+                                : serverProtocol == 755
+                                ? BedrockEntityTranslator.paintingId755To765(painting.title757())
+                                : serverProtocol == 756
                                 ? BedrockEntityTranslator.paintingId756To765(painting.title757())
                                 : BedrockEntityTranslator.paintingId757To765(painting.title757())));
             } catch (RuntimeException e) {
@@ -942,7 +995,24 @@ public final class JavaBackendConnection implements JavaBackend {
         if (id == PacketIds.id(PacketIds.PacketName.PLAY_ENTITY_DESTROY, serverProtocol)
                 .orElse(-1)) {
             try {
-                List<Integer> removed = BedrockEntityTranslator.parseRemoveEntities(
+                // 735／736／751／753／754 は [count varint][entityIds] の配列（entity_destroy）。
+                // 755 は [entityId varint] 1 体だけ（destroy_entity）。756 以上は
+                // [count varint][entityIds]（Stage B §14.4 実測）。
+                // 736 の Entity Destroy は 0x37（751 の 0x36 と番号だけ違う。packet-ids-736.json）。
+                // 735 の Entity Destroy は 0x37（736 と同じ。packet-ids-735.json）。
+                List<Integer> removed = serverProtocol == 755
+                        ? BedrockEntityTranslator.parseRemoveEntity755(packet.payload())
+                        : serverProtocol == 735
+                        ? BedrockEntityTranslator.parseRemoveEntity735(packet.payload())
+                        : serverProtocol == 736
+                        ? BedrockEntityTranslator.parseRemoveEntity736(packet.payload())
+                        : serverProtocol == 751
+                        ? BedrockEntityTranslator.parseRemoveEntity751(packet.payload())
+                        : serverProtocol == 753
+                        ? BedrockEntityTranslator.parseRemoveEntity753(packet.payload())
+                        : serverProtocol == 754
+                        ? BedrockEntityTranslator.parseRemoveEntity754(packet.payload())
+                        : BedrockEntityTranslator.parseRemoveEntities(
                         packet.payload());
                 for (int removedId : removed) {
                     entityTypes.remove(removedId);
@@ -1120,8 +1190,249 @@ public final class JavaBackendConnection implements JavaBackend {
         return (value << shift) >> shift;
     }
 
+    /**
+     * Multi Block Change（735／736）をほどいて onBlockChange を 1 件ずつ呼ぶ。
+     * 735／736 の形式は [chunkX i32][chunkZ i32][count varint][{offset short, blockId varint}]。
+     * 735 は 736 と形式が同一（Stage B §14.4 実測。translateMultiBlockChange735To736 は恒等写像）のため
+     * 同じ読み方を使う。
+     * offset short は (localX&lt;&lt;12)|(localZ&lt;&lt;8)|y（y は絶対 Y 0〜255）で、751 の
+     * [chunkCoordinates bitfield][notTrustEdges][varlong records] とは違うため別読みする。
+     * 根拠は実測：mc-1.16.1-protocol.json の packet_multi_block_change、
+     * 実バニラ 1.16.1 jar の ClientboundChunkBlocksUpdatePacket（ob）#read の javap
+     * （readInt×2、readVarInt、record ごとに readShort＋ブロック状態 varint）、
+     * ChunkTranslator.translateMultiBlockChange736To751List（Stage B §14.6 実測。
+     * short を u8×2（horizontalPos、y）に分けて読むのと同じ）。
+     * ブロック状態IDは 736 のまま渡す（BedrockSession 側で 765 に正規化する）。
+     */
+    private void parseMultiBlockChange736(byte[] payload) {
+        PacketIO.Reader reader = new PacketIO.Reader(payload);
+        int chunkX = reader.readInt();
+        int chunkZ = reader.readInt();
+        int count = reader.readVarInt();
+        for (int i = 0; i < count; i++) {
+            int offset = reader.readShort() & 0xFFFF;
+            int stateId = reader.readVarInt();
+            int x = chunkX * 16 + ((offset >> 12) & 0xF);
+            int z = chunkZ * 16 + ((offset >> 8) & 0xF);
+            int y = offset & 0xFF;
+            listener.onBlockChange(x, y, z, stateId);
+        }
+    }
+
     /** Join Game から次元を読み、現在の次元を決める。 */
     private void parseJoinGame(byte[] payload) {
+        if (serverProtocol == 735 || serverProtocol == 736) {
+            // 735／736 の Join Game：dimension は文字列、codec は {"dimension": [...]} だけ
+            // （バイオームレジストリ無し）。parseJoinGame736 は Stage B の実測済みパーサで、735 も同じものを使う
+            // （実バニラ 1.16.1 の Join Game は 1,159 バイトで消費量 1,159／1,159 で完全一致。
+            // 実バニラ 1.16 の Join Game も 1,159 バイトで同一（cap735-joingame-1.16.bin。Stage A §11.6）。
+            // Stage A §11.6）。codec を 751 形式に直すと dimension_type（4 件・
+            // logical_height 付き）とバイオーム（79 件・実バニラ 1.16.2 のもの。736 と 751 の
+            // バイオームは同一順序・同一内容のため）が補われる
+            // （PlayTranslator.translateDimensionCodec736To751）。
+            // 751 の分岐と同じく 751 形式の codec をそのまま使い、バイオーム名は
+            // 751 順で覚える。736 の dimension element には min_y／height が無く
+            // （Stage A §11.6。実バニラ 1.16.1 の element のキーは logical_height 等で、
+            // min_y／height は無い）、1.16 のワールドは y=0 から始まるため minY=0、
+            // 高さは logical_height（overworld 256、nether 128、end 256）を使う。
+            // applyDimensionRegistryCodec の既定値（-64／384）は 1.18 以降のものの
+            // ため、735／736 では 751 と同じく上書きする。dimension は文字列のため
+            // dimensionNameFromElement は使わず、そのまま setDimension に渡す。
+            PlayTranslator.JoinGame736 join = PlayTranslator.parseJoinGame736(payload);
+            Nbt.Tag.CompoundTag codec751 =
+                    PlayTranslator.translateDimensionCodec736To751(join.dimensionCodec());
+            Map<String, Nbt.Tag.CompoundTag> registries =
+                    PlayTranslator.registriesFromJoinGameCodec(codec751);
+            Nbt.Tag.CompoundTag dimensionRegistry = registries.get("minecraft:dimension_type");
+            if (dimensionRegistry != null) {
+                applyDimensionRegistryCodec(dimensionRegistry);
+                dimensionRegistry.getList("value").ifPresent(list -> {
+                    for (Nbt.Tag entry : list.value()) {
+                        if (!(entry instanceof Nbt.Tag.CompoundTag compound)) {
+                            continue;
+                        }
+                        String name = compound.getString("name").orElse(null);
+                        Nbt.Tag.CompoundTag element =
+                                compound.getCompound("element").orElse(null);
+                        if (name == null || element == null) {
+                            continue;
+                        }
+                        if (element.get("min_y").isEmpty()) {
+                            int logicalHeight = intTag(element, "logical_height", 256);
+                            dimensionTypes.put(name, new int[]{0, logicalHeight});
+                        }
+                    }
+                });
+            }
+            Nbt.Tag.CompoundTag biomeRegistry = registries.get("minecraft:worldgen/biome");
+            if (biomeRegistry != null) {
+                applyBiomeRegistryCodec(biomeRegistry);
+            }
+            setDimension(join.dimension());
+            return;
+        }
+
+        if (serverProtocol == 751) {
+            // 751 の Join Game：dimension は DimensionType の値そのもの（NBT）、
+            // lastDeathLocation／simulationDistance は無い（Stage A §11.6。
+            // parseJoinGame751 は 753 と同一形式の実測済みパーサ（parseJoinGame753 への委譲）。実バニラ 1.16.2 の
+            // Join Game は 30,847 バイトで 1.16.3 と同一）。
+            // 753 形式に直すと codec のバイオームが 753 順（79 件）になって
+            // チャンクの 751 番号（79 件・id 0〜173 の非連番）とずれる心配は無い
+            // （751 と 753 のバイオームは同一順序・同一内容のため）が、
+            // 753 の分岐と同じく 751 の codec をそのまま使い、バイオーム名は
+            // 751 順で覚える。751 の dimension element には min_y／height が無く
+            // （Stage A §11.6。実バニラ 1.16.2 の element のキーは logical_height 等で、
+            // min_y／height は無い）、1.16 のワールドは y=0 から始まるため minY=0、
+            // 高さは logical_height（overworld 256、nether 128、end 256）を使う。
+            // applyDimensionRegistryCodec の既定値（-64／384）は 1.18 以降のものの
+            // ため、751 では 753 と同じく上書きする。
+            PlayTranslator.JoinGame754 join = PlayTranslator.parseJoinGame751(payload);
+            Map<String, Nbt.Tag.CompoundTag> registries =
+                    PlayTranslator.registriesFromJoinGameCodec(join.dimensionCodec());
+            Nbt.Tag.CompoundTag dimensionRegistry = registries.get("minecraft:dimension_type");
+            if (dimensionRegistry != null) {
+                applyDimensionRegistryCodec(dimensionRegistry);
+                dimensionRegistry.getList("value").ifPresent(list -> {
+                    for (Nbt.Tag entry : list.value()) {
+                        if (!(entry instanceof Nbt.Tag.CompoundTag compound)) {
+                            continue;
+                        }
+                        String name = compound.getString("name").orElse(null);
+                        Nbt.Tag.CompoundTag element =
+                                compound.getCompound("element").orElse(null);
+                        if (name == null || element == null) {
+                            continue;
+                        }
+                        if (element.get("min_y").isEmpty()) {
+                            int logicalHeight = intTag(element, "logical_height", 256);
+                            dimensionTypes.put(name, new int[]{0, logicalHeight});
+                        }
+                    }
+                });
+            }
+            Nbt.Tag.CompoundTag biomeRegistry = registries.get("minecraft:worldgen/biome");
+            if (biomeRegistry != null) {
+                applyBiomeRegistryCodec(biomeRegistry);
+            }
+            setDimension(dimensionNameFromElement(join.dimension(), dimensionRegistry));
+            return;
+        }
+
+        if (serverProtocol == 753) {
+            // 753 の Join Game：dimension は DimensionType の値そのもの（NBT）、
+            // lastDeathLocation／simulationDistance は無い（Stage A §11.6。
+            // parseJoinGame753 は 754 と同一形式の実測済みパーサ。実バニラ 1.16.3 の
+            // Join Game は 30,847 バイトで 1.16.5 と同一）。
+            // 754 形式に直すと codec のバイオームが 754 順（79 件）になって
+            // チャンクの 753 番号（79 件・id 0〜173 の非連番）とずれる心配は無い
+            // （753 と 754 のバイオームは同一順序・同一内容のため）が、
+            // 754 の分岐と同じく 753 の codec をそのまま使い、バイオーム名は
+            // 753 順で覚える。753 の dimension element には min_y／height が無く
+            // （Stage A §11.6。実バニラ 1.16.3 の element のキーは logical_height 等で、
+            // min_y／height は無い）、1.16 のワールドは y=0 から始まるため minY=0、
+            // 高さは logical_height（overworld 256、nether 128、end 256）を使う。
+            // applyDimensionRegistryCodec の既定値（-64／384）は 1.18 以降のものの
+            // ため、753 では 754 と同じく上書きする。
+            PlayTranslator.JoinGame754 join = PlayTranslator.parseJoinGame753(payload);
+            Map<String, Nbt.Tag.CompoundTag> registries =
+                    PlayTranslator.registriesFromJoinGameCodec(join.dimensionCodec());
+            Nbt.Tag.CompoundTag dimensionRegistry = registries.get("minecraft:dimension_type");
+            if (dimensionRegistry != null) {
+                applyDimensionRegistryCodec(dimensionRegistry);
+                dimensionRegistry.getList("value").ifPresent(list -> {
+                    for (Nbt.Tag entry : list.value()) {
+                        if (!(entry instanceof Nbt.Tag.CompoundTag compound)) {
+                            continue;
+                        }
+                        String name = compound.getString("name").orElse(null);
+                        Nbt.Tag.CompoundTag element =
+                                compound.getCompound("element").orElse(null);
+                        if (name == null || element == null) {
+                            continue;
+                        }
+                        if (element.get("min_y").isEmpty()) {
+                            int logicalHeight = intTag(element, "logical_height", 256);
+                            dimensionTypes.put(name, new int[]{0, logicalHeight});
+                        }
+                    }
+                });
+            }
+            Nbt.Tag.CompoundTag biomeRegistry = registries.get("minecraft:worldgen/biome");
+            if (biomeRegistry != null) {
+                applyBiomeRegistryCodec(biomeRegistry);
+            }
+            setDimension(dimensionNameFromElement(join.dimension(), dimensionRegistry));
+            return;
+        }
+
+        if (serverProtocol == 754) {
+            // 754 の Join Game：dimension は DimensionType の値そのもの（NBT）、
+            // lastDeathLocation／simulationDistance は無い（Stage A §11.6。
+            // parseJoinGame754 は Stage B の実測済みパーサ）。
+            // 755 形式に直すと codec のバイオームが 755 順（81 件）になって
+            // チャンクの 754 番号（79 件・id 0〜173 の非連番）とずれるため、
+            // 754 の codec をそのまま使い、バイオーム名は 754 順で覚える。
+            // 754 の dimension element には min_y／height が無い（Stage A §11.6。
+            // 実バニラ 1.16.5 の element のキーは logical_height 等で、min_y／height は無い）。
+            // 1.16 のワールドは y=0 から始まるため minY=0、高さは logical_height
+            // （overworld 256、nether 128、end 256）を使う。applyDimensionRegistryCodec
+            // の既定値（-64／384）は 1.18 以降のもののため、754 では上書きする。
+            PlayTranslator.JoinGame754 join = PlayTranslator.parseJoinGame754(payload);
+            Map<String, Nbt.Tag.CompoundTag> registries =
+                    PlayTranslator.registriesFromJoinGameCodec(join.dimensionCodec());
+            Nbt.Tag.CompoundTag dimensionRegistry = registries.get("minecraft:dimension_type");
+            if (dimensionRegistry != null) {
+                applyDimensionRegistryCodec(dimensionRegistry);
+                dimensionRegistry.getList("value").ifPresent(list -> {
+                    for (Nbt.Tag entry : list.value()) {
+                        if (!(entry instanceof Nbt.Tag.CompoundTag compound)) {
+                            continue;
+                        }
+                        String name = compound.getString("name").orElse(null);
+                        Nbt.Tag.CompoundTag element =
+                                compound.getCompound("element").orElse(null);
+                        if (name == null || element == null) {
+                            continue;
+                        }
+                        if (element.get("min_y").isEmpty()) {
+                            int logicalHeight = intTag(element, "logical_height", 256);
+                            dimensionTypes.put(name, new int[]{0, logicalHeight});
+                        }
+                    }
+                });
+            }
+            Nbt.Tag.CompoundTag biomeRegistry = registries.get("minecraft:worldgen/biome");
+            if (biomeRegistry != null) {
+                applyBiomeRegistryCodec(biomeRegistry);
+            }
+            setDimension(dimensionNameFromElement(join.dimension(), dimensionRegistry));
+            return;
+        }
+        if (serverProtocol == 755) {
+            // 755 の Join Game：dimension は DimensionType の値そのもの（NBT）、
+            // lastDeathLocation／simulationDistance は無い（Stage A §11.6。
+            // parseJoinGame755 は Stage B の実測済みパーサ）。
+            // 756 形式に直すと codec のバイオームが 756 順（81 件）になって
+            // チャンクの 755 番号（81 件・id 0〜175 の非連番）とずれる心配は無い
+            // （755 と 756 のバイオームは同一順序・同一内容のため）が、
+            // 756 の分岐と同じく 755 の codec をそのまま使い、バイオーム名は
+            // 755 順で覚える。755 のオーバーワールドは min_y 0・高さ 256
+            // （codec の element から読む）。
+            PlayTranslator.JoinGame755 join = PlayTranslator.parseJoinGame755(payload);
+            Map<String, Nbt.Tag.CompoundTag> registries =
+                    PlayTranslator.registriesFromJoinGameCodec(join.dimensionCodec());
+            Nbt.Tag.CompoundTag dimensionRegistry = registries.get("minecraft:dimension_type");
+            if (dimensionRegistry != null) {
+                applyDimensionRegistryCodec(dimensionRegistry);
+            }
+            Nbt.Tag.CompoundTag biomeRegistry = registries.get("minecraft:worldgen/biome");
+            if (biomeRegistry != null) {
+                applyBiomeRegistryCodec(biomeRegistry);
+            }
+            setDimension(dimensionNameFromElement(join.dimension(), dimensionRegistry));
+            return;
+        }
         if (serverProtocol == 756) {
             // 756 の Join Game：dimension は DimensionType の値そのもの（NBT）、
             // lastDeathLocation／simulationDistance は無い（Stage A §11.6。
@@ -1223,8 +1534,9 @@ public final class JavaBackendConnection implements JavaBackend {
     }
 
     /**
-     * 756・757 の Join Game／Respawn の dimension（DimensionType の値そのものの NBT）から
-     * 次元名を引く。codec の dimension_type レジストリの各エントリの element と
+     * 751・753・754・755・756・757 の Join Game／Respawn の dimension（DimensionType の値そのものの NBT）から
+     * 次元名を引く。735／736 の dimension は文字列のためこの照合は使わず、そのまま setDimension に渡す。
+     * codec の dimension_type レジストリの各エントリの element と
      * 構造比較し、一致したものの name を返す。一致しなければオーバーワールド。
      * （PlayTranslator.dimensionName757 と同じ考え方。あちらは private のため
      * ここで同じ照合をする。）
@@ -1387,11 +1699,11 @@ public final class JavaBackendConnection implements JavaBackend {
      * 読めない一覧は無視する（チャット名が空になるだけ）。
      */
     /**
-     * 756・759・760の Player Info（旧式、action 付き）からプレイヤー名・ゲームモードを
+     * 735・736・751・753・754・755・756・759・760の Player Info（旧式、action 付き）からプレイヤー名・ゲームモードを
      * 対応表に入れる。action は 0=add_player、1=update_game_mode、
      * 2=update_latency、3=update_display_name、4=remove_player。
      * display name は JSON 文字列（761・762・763 と同じ）。
-     * 756・757 の add_player には crypto（公開鍵・署名）が無い（1.19 で追加）。
+     * 735・736・751・753・754・755・756・757 の add_player には crypto（公開鍵・署名）が無い（1.19 で追加）。
      */
     private void recordPlayerInfo760(byte[] payload) {
         try {
@@ -1416,10 +1728,10 @@ public final class JavaBackendConnection implements JavaBackend {
                         if (reader.readBoolean()) {
                             reader.readString(); // display name（JSON）
                         }
-                        if (serverProtocol != 756 && serverProtocol != 757
+                        if (serverProtocol != 735 && serverProtocol != 736 && serverProtocol != 751 && serverProtocol != 753 && serverProtocol != 754 && serverProtocol != 755 && serverProtocol != 756 && serverProtocol != 757
                                 && reader.readBoolean()) {
-                            // 756・757 の add_player には crypto（公開鍵・署名）が無い
-                            // （1.19 で追加。minecraft-data mc-1.17.1／mc-1.18／mc-1.19 の
+                            // 735・736・751・753・754・755・756・757 の add_player には crypto（公開鍵・署名）が無い
+                            // （1.19 で追加。minecraft-data mc-1.16.1／mc-1.16／mc-1.17／mc-1.17.1／mc-1.18／mc-1.19 の
                             // packet_player_info で確認）。
                             // 760 の crypto は {timestamp, 公開鍵, 署名} で UUID は無い
                             //（minecraft-data 1.19.2 packet_player_info）。
@@ -1557,12 +1869,20 @@ public final class JavaBackendConnection implements JavaBackend {
      * {locale, viewDistance i8, chatMode varint, chatColors bool, skinParts u8,
      * mainHand varint, enableTextFiltering bool, allowServerListings bool}
      * （minecraft-data mc-1.18／mc-1.19-protocol.json の packet_settings で確認）。
-     * 756 は 7 フィールドで、末尾が disableTextFiltering bool（意味が反転。
-     * enableServerListings は無い。minecraft-data mc-1.17.1-protocol.json の
-     * packet_settings で確認）。particleStatus（末尾の varint）は 768 から
+     * 755／756 は 7 フィールドで、末尾が disableTextFiltering bool（意味が反転。
+     * enableServerListings は無い。minecraft-data mc-1.17／mc-1.17.1-protocol.json の
+     * packet_settings で確認）。735／736／751／753／754 は 6 フィールドで、disableTextFiltering も無い
+     * （735 の 6 フィールドは Stage B §14.3 実測。1.16 の Client Information は javap（rf）で 1.16.1 とバイト同一）。
+     * （minecraft-data mc-1.16.1-protocol.json の packet_settings で確認。
+     * mc-1.16.1-protocol.json の packet_settings は {locale, viewDistance i8, chatFlags varint,
+     * chatColors bool, skinParts u8, mainHand varint} の 6 フィールド。
+     * mc-1.16.3-protocol.json の packet_settings で確認。
+     * mc-1.16-protocol.json とバイト同一（152,123 バイト）。mc-1.16.2-protocol.json も
+     * mc-1.16.3-protocol.json とバイト同一（Stage D §15.2 実測）。
+     * 末尾の mainHand が最後）。particleStatus（末尾の varint）は 768 から
      * （777 の前例と同じ）。
-     * 756／757／759〜763 には設定フェーズが無いため、このペイロードは 764 以上でのみ
-     * 送られる（756・757 も 759 と同じく送らない。サーバーは既定値を使う）。
+     * 735／736／751／753／754／755／756／757／759〜763 には設定フェーズが無いため、このペイロードは 764 以上でのみ
+     * 送られる（754・755・756・757 も 759 と同じく送らない。サーバーは既定値を使う）。
      */
     static byte[] clientSettingsPayload(int serverProtocol) {
         PacketIO.Writer writer = new PacketIO.Writer();
@@ -1572,8 +1892,13 @@ public final class JavaBackendConnection implements JavaBackend {
         writer.writeBoolean(true); // chat colors
         writer.writeByte(0x7f); // skin parts
         writer.writeVarInt(1); // main hand: 右
-        if (serverProtocol == 756) {
-            // 756 の末尾は disableTextFiltering（757 の enableTextFiltering と
+        if (serverProtocol == 735 || serverProtocol == 736 || serverProtocol == 751 || serverProtocol == 753 || serverProtocol == 754) {
+            // 735／736／751／753／754 は 6 フィールドで終わり（disableTextFiltering は無い。
+            // 1.16／1.16.1／1.16.2／1.16.3／1.16.5 にはチャットフィルタの設定が無い）。
+            return writer.bytes();
+        }
+        if (serverProtocol == 755 || serverProtocol == 756) {
+            // 755／756 の末尾は disableTextFiltering（757 の enableTextFiltering と
             // 意味が反転）。757 の enableTextFiltering=false（フィルタ無効）と
             // 同じ意味にするため true を書く。allowServerListings は無い。
             writer.writeBoolean(true); // disable text filtering
