@@ -264,6 +264,214 @@ final class TestJavaChunk {
         return out.bytes();
     }
 
+    /** 753 形式の Chunk Data を作る（オーバーワールド、minY 0、高さ 256）。全 16 セクションあり。 */
+    static byte[] build753(int chunkX, int chunkZ, BlockAt blocks, BiomeAt biomes) {
+        return build753(chunkX, chunkZ, blocks, biomes, 0xFFFF);
+    }
+
+    /**
+     * 753 形式の Chunk Data を作る。754 と完全同一の書き方（頭部は groundUp bool＋
+     * bitMap（varint の 16 ビット）＋名前付き heightmaps＋groundUp のときだけ
+     * バイオーム int[1024]＋masked 節のみ。BitStorage は non-straddling＋長さ接頭辞あり）。
+     * 根拠は実測：mc-1.16.3-protocol.json は mc-1.16-protocol.json とバイト同一
+     * （152,123 バイト）で packet_map_chunk も同一。レジストリ差分も 0 件
+     * （Stage A §11.1・Stage B §14.4）。実バニラ 1.16.5 の生キャプチャ
+     * cap754-chunk-x-15-z-7.bin は 753 形式のバイトでもある。
+     */
+    static byte[] build753(int chunkX, int chunkZ, BlockAt blocks, BiomeAt biomes,
+                           int sectionMask) {
+        PacketIO.Writer out = new PacketIO.Writer();
+        out.writeInt(chunkX);
+        out.writeInt(chunkZ);
+        // groundUp：全チャンク。
+        out.writeBoolean(true);
+        // bitMap：varint の 16 ビット。
+        out.writeVarInt(sectionMask & 0xFFFF);
+        // heightmaps：名前付き NBT の空 compound（型 0x0A＋名前長 0＋0x00）。
+        out.writeBytes(Nbt.writeNamed("", new Nbt.Tag.CompoundTag(Map.of())));
+        // biomes：varint[1024]。index = yCell*16 + zCell*4 + xCell。
+        out.writeVarInt(1024);
+        for (int i = 0; i < 1024; i++) {
+            int xCell = i & 3;
+            int zCell = (i >> 2) & 3;
+            int yCell = i >> 4;
+            out.writeVarInt(biomes.biome(xCell * 4, yCell * 4, zCell * 4));
+        }
+        ByteArrayOutputStream sections = new ByteArrayOutputStream();
+        for (int s = 0; s < 16; s++) {
+            if ((sectionMask & (1 << s)) == 0) {
+                continue;
+            }
+            int yBase = s * 16;
+            int[] blockValues = new int[4096];
+            for (int j = 0; j < 4096; j++) {
+                int x = j & 15;
+                int z = (j >> 4) & 15;
+                int yLocal = (j >> 8) & 15;
+                blockValues[j] = blocks.state(x, yBase + yLocal, z);
+            }
+            int nonAir = 0;
+            for (int value : blockValues) {
+                if (value != 0) {
+                    nonAir++;
+                }
+            }
+            writeShort(sections, nonAir); // blockCount のみ（fluidCount は 1.16.3 には無い）
+            writePalettedContainer757(sections, blockValues, true);
+        }
+        byte[] sectionBytes = sections.toByteArray();
+        out.writeVarInt(sectionBytes.length);
+        out.writeBytes(sectionBytes);
+        out.writeVarInt(0); // block entity: なし
+        return out.bytes();
+    }
+
+
+    /** 751 形式の Chunk Data を作る（オーバーワールド、minY 0、高さ 256）。全 16 セクションあり。 */
+    static byte[] build751(int chunkX, int chunkZ, BlockAt blocks, BiomeAt biomes) {
+        return build751(chunkX, chunkZ, blocks, biomes, 0xFFFF);
+    }
+
+    /**
+     * 751 形式の Chunk Data を作る。753 と完全同一の書き方（頭部は groundUp bool＋
+     * bitMap（varint の 16 ビット）＋名前付き heightmaps＋groundUp のときだけ
+     * バイオーム int[1024]＋masked 節のみ。BitStorage は non-straddling＋長さ接頭辞あり）。
+     * 根拠は実測：mc-1.16.2-protocol.json は mc-1.16.3-protocol.json とバイト同一
+     * （152,123 バイト）で packet_map_chunk も同一。レジストリ差分も 0 件
+     * （Stage A §11.1・Stage B §14.4）。実バニラ 1.16.5 の生キャプチャ
+     * cap754-chunk-x-15-z-7.bin は 751 形式のバイトでもある。
+     */
+    static byte[] build751(int chunkX, int chunkZ, BlockAt blocks, BiomeAt biomes,
+                           int sectionMask) {
+        PacketIO.Writer out = new PacketIO.Writer();
+        out.writeInt(chunkX);
+        out.writeInt(chunkZ);
+        // groundUp：全チャンク。
+        out.writeBoolean(true);
+        // bitMap：varint の 16 ビット。
+        out.writeVarInt(sectionMask & 0xFFFF);
+        // heightmaps：名前付き NBT の空 compound（型 0x0A＋名前長 0＋0x00）。
+        out.writeBytes(Nbt.writeNamed("", new Nbt.Tag.CompoundTag(Map.of())));
+        // biomes：varint[1024]。index = yCell*16 + zCell*4 + xCell。
+        out.writeVarInt(1024);
+        for (int i = 0; i < 1024; i++) {
+            int xCell = i & 3;
+            int zCell = (i >> 2) & 3;
+            int yCell = i >> 4;
+            out.writeVarInt(biomes.biome(xCell * 4, yCell * 4, zCell * 4));
+        }
+        ByteArrayOutputStream sections = new ByteArrayOutputStream();
+        for (int s = 0; s < 16; s++) {
+            if ((sectionMask & (1 << s)) == 0) {
+                continue;
+            }
+            int yBase = s * 16;
+            int[] blockValues = new int[4096];
+            for (int j = 0; j < 4096; j++) {
+                int x = j & 15;
+                int z = (j >> 4) & 15;
+                int yLocal = (j >> 8) & 15;
+                blockValues[j] = blocks.state(x, yBase + yLocal, z);
+            }
+            int nonAir = 0;
+            for (int value : blockValues) {
+                if (value != 0) {
+                    nonAir++;
+                }
+            }
+            writeShort(sections, nonAir); // blockCount のみ（fluidCount は 1.16.2 には無い）
+            writePalettedContainer757(sections, blockValues, true);
+        }
+        byte[] sectionBytes = sections.toByteArray();
+        out.writeVarInt(sectionBytes.length);
+        out.writeBytes(sectionBytes);
+        out.writeVarInt(0); // block entity: なし
+        return out.bytes();
+    }
+
+
+    /**
+     * 736 形式の Chunk Data を作る。751 と頭部が違う（groundUp bool＋ignoreOldData bool＋
+     * bitMap（varint の 16 ビット）＋名前付き heightmaps＋groundUp のときだけ
+     * バイオーム i32[1024]（件数接頭辞なし）＋masked 節のみ。BitStorage は non-straddling＋長さ接頭辞あり）。
+     * 根拠は実測：mc-1.16.1-protocol.json の packet_map_chunk（Stage B §14.4。
+     * biomes は [count 1024][i32] の固定長で件数 varint は無い）、実バニラ 1.16.1 の
+     * 生キャプチャ cap736-chunk-x--17-z--23.bin（ignoreOldData=true、bitMap 0x001f、
+     * biomes 1024 件全て 1＝平原）、ChunkTranslator.translateChunkData736To751。
+     * セクション内部は 751 と同じ [blockCount i16]＋ブロックコンテナ。
+     */
+    static byte[] build736(int chunkX, int chunkZ, BlockAt blocks, BiomeAt biomes) {
+        return build736(chunkX, chunkZ, blocks, biomes, 0xFFFF);
+    }
+
+    static byte[] build736(int chunkX, int chunkZ, BlockAt blocks, BiomeAt biomes,
+                           int sectionMask) {
+        PacketIO.Writer out = new PacketIO.Writer();
+        out.writeInt(chunkX);
+        out.writeInt(chunkZ);
+        // groundUp：全チャンク。
+        out.writeBoolean(true);
+        // ignoreOldData：全チャンク送出で true（751 には無い）。
+        out.writeBoolean(true);
+        // bitMap：varint の 16 ビット。
+        out.writeVarInt(sectionMask & 0xFFFF);
+        // heightmaps：名前付き NBT の空 compound（型 0x0A＋名前長 0＋0x00）。
+        out.writeBytes(Nbt.writeNamed("", new Nbt.Tag.CompoundTag(Map.of())));
+        // biomes：i32[1024]（件数接頭辞なし。751 の [count varint][varint×1024] と違う）。
+        // index = yCell*16 + zCell*4 + xCell。
+        for (int i = 0; i < 1024; i++) {
+            int xCell = i & 3;
+            int zCell = (i >> 2) & 3;
+            int yCell = i >> 4;
+            out.writeInt(biomes.biome(xCell * 4, yCell * 4, zCell * 4));
+        }
+        ByteArrayOutputStream sections = new ByteArrayOutputStream();
+        for (int s = 0; s < 16; s++) {
+            if ((sectionMask & (1 << s)) == 0) {
+                continue;
+            }
+            int yBase = s * 16;
+            int[] blockValues = new int[4096];
+            for (int j = 0; j < 4096; j++) {
+                int x = j & 15;
+                int z = (j >> 4) & 15;
+                int yLocal = (j >> 8) & 15;
+                blockValues[j] = blocks.state(x, yBase + yLocal, z);
+            }
+            int nonAir = 0;
+            for (int value : blockValues) {
+                if (value != 0) {
+                    nonAir++;
+                }
+            }
+            writeShort(sections, nonAir); // blockCount のみ（fluidCount は 1.16.1 には無い）
+            writePalettedContainer757(sections, blockValues, true);
+        }
+        byte[] sectionBytes = sections.toByteArray();
+        out.writeVarInt(sectionBytes.length);
+        out.writeBytes(sectionBytes);
+        out.writeVarInt(0); // block entity: なし
+        return out.bytes();
+    }
+
+
+    /**
+     * 735 形式の Chunk Data を作る。736 と完全同一（Stage A §11.1・Stage B §14.4 実測。
+     * 736⇔735 はパケットID・レジストリとも差分 0 件）のため build736 をそのまま使う。
+     * 根拠は実測：実バニラ 1.16 の生キャプチャ cap735-chunk-x--3-z--15.bin
+     * （ignoreOldData=true、bitMap 0x000f、biomes 1024 件全て 24＝deep_ocean）、
+     * ChunkTranslator.translateChunkData735To736（恒等写像）。
+     */
+    static byte[] build735(int chunkX, int chunkZ, BlockAt blocks, BiomeAt biomes) {
+        return build736(chunkX, chunkZ, blocks, biomes);
+    }
+
+    static byte[] build735(int chunkX, int chunkZ, BlockAt blocks, BiomeAt biomes,
+                           int sectionMask) {
+        return build736(chunkX, chunkZ, blocks, biomes, sectionMask);
+    }
+
+
     /** 755 形式の Chunk Data を作る（オーバーワールド、minY 0、高さ 256）。全 16 セクションあり。 */
     static byte[] build755(int chunkX, int chunkZ, BlockAt blocks, BiomeAt biomes) {
         return build755(chunkX, chunkZ, blocks, biomes, 0xFFFF);
