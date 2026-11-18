@@ -178,10 +178,87 @@ public final class ClientProxy {
      */
     private final ResourcePack pack774;
     private final ResourcePack pack775;
+    private final ResourcePack pack757;
+    /**
+     * 756クライアントに送るリソースパック（pack_format 7）。内部が756で
+     * ない場合にだけ使う。内部が756の場合はバニラが送ってきたパックをその
+     * まま出すため null のままでよい。無ければ null。セッションへは
+     * ProxySession#setPack756 で渡す。未設定の場合のフォールバックは pack757
+     * （pack_format 8）：756は今のツリー内最古のため、757のときの
+     * pack759（format 9）と同じく隣接する新しいパックに落とす。
+     * 1.17.1クライアントは新しい形式のパックを警告付きで読み込む）。
+     */
+    private final ResourcePack pack756;
+    /**
+     * 755クライアントに送るリソースパック（pack_format 7）。内部が755で
+     * ない場合にだけ使う。内部が755の場合はバニラが送ってきたパックをその
+     * まま出すため null のままでよい。無ければ null。セッションへは
+     * ProxySession#setPack755 で渡す（別担当が {@code resolveHandshake}
+     * に追加する）。未設定の場合のフォールバックは pack756
+     * （pack_format 7）：755は今のツリー内最古のため、756のときの
+     * pack757と同じく隣接する新しいパックに落とす。755と756のパックは
+     * どちらも pack_format 7 のため、落としても形式は変わらない。
+     */
+    private final ResourcePack pack755;
+    /**
+     * 754クライアントに送るリソースパック（pack_format 6）。内部が754で
+     * ない場合にだけ使う。内部が754の場合はバニラが送ってきたパックをその
+     * まま出すため null のままでよい。無ければ null。セッションへは
+     * ProxySession#setPack754 で渡す（別担当が {@code resolveHandshake}
+     * に追加する）。未設定の場合のフォールバックは pack755
+     * （pack_format 7）：754は以前のツリー内最古だったため、755のときの
+     * pack756と同じく隣接する新しいパックに落とす。754クライアントは
+     * 新しい形式のパックを警告付きで読み込む（今の最古は735）。
+     */
+    private final ResourcePack pack754;
+    /**
+     * 753クライアントに送るリソースパック（pack_format 6）。内部が753で
+     * ない場合にだけ使う。内部が753の場合はバニラが送ってきたパックをその
+     * まま出すため null のままでよい。無ければ null。セッションへは
+     * ProxySession#setPack753 で渡す（別担当が {@code resolveHandshake}
+     * に追加する）。未設定の場合のフォールバックは pack754
+     * （pack_format 6）：753の未設定時は隣接する新しいパックに落とす。753と754のパックは
+     * どちらも pack_format 6 のため、落としても形式は変わらない。
+     */
+    private final ResourcePack pack753;
+    /**
+     * 751クライアントに送るリソースパック（pack_format 6）。内部が751で
+     * ない場合にだけ使う。内部が751の場合はバニラが送ってきたパックをその
+     * まま出すため null のままでよい。無ければ null。セッションへは
+     * ProxySession#setPack751 で渡す（別担当が {@code resolveHandshake}
+     * に追加する）。未設定の場合のフォールバックは pack753
+     * （pack_format 6）：751は以前のツリー内最古だったため、隣接する
+     * 新しいパックに落とす。751と753のパックはどちらも pack_format 6 のため、
+     * 落としても形式は変わらない。
+     */
+    private final ResourcePack pack751;
+    /**
+     * 736クライアントに送るリソースパック（pack_format 5）。内部が736で
+     * ない場合にだけ使う。内部が736の場合はバニラが送ってきたパックをその
+     * まま出すため null のままでよい。無ければ null。セッションへは
+     * ProxySession#setPack736 で渡す（別担当が {@code resolveHandshake}
+     * に追加する）。未設定の場合のフォールバックは pack751
+     * （pack_format 6）：736より古いパックはツリーに無いため、隣接する
+     * 新しいパックに落とす。736は以前のツリー内最古だったため、754のときの
+     * pack755と同じく隣接する新しいパックに落とす。736クライアントは
+     * 新しい形式のパックを警告付きで読み込む（pack_format 5 と 6 は違う）。
+     */
+    private final ResourcePack pack736;
+    /**
+     * 735クライアントに送るリソースパック（pack_format 5）。内部が735で
+     * ない場合にだけ使う。内部が735の場合はバニラが送ってきたパックをその
+     * まま出すため null のままでよい。無ければ null。セッションへは
+     * ProxySession#setPack735 で渡す（別担当が {@code resolveHandshake}
+     * に追加する）。未設定の場合のフォールバックは pack736
+     * （pack_format 5）：735は今のツリー内最古のため、隣接する
+     * 新しいパックに落とす。どちらも pack_format 5 のため、
+     * 落としても形式は変わらない。
+     */
+    private final ResourcePack pack735;
     /**
      * 内部バニラのプロトコル（763＝1.20／1.20.1、766＝1.20.5／1.20.6、
      * 765＝1.20.4、764＝1.20.2、767＝1.21／1.21.1、768＝1.21.2／1.21.3、
-     * 769＝1.21.4、770＝1.21.5、771＝1.21.6、772＝1.21.7／1.21.8、773＝1.21.9／1.21.10、774＝1.21.11）。呼び出し元は
+     * 769＝1.21.4、770＝1.21.5、771＝1.21.6、772＝1.21.7／1.21.8、773＝1.21.9／1.21.10、774＝1.21.11、757＝1.18／1.18.1、756＝1.17.1、755＝1.17、754＝1.16.4／1.16.5、753＝1.16.3、751＝1.16.2、736＝1.16.1、735＝1.16）。呼び出し元は
      * {@code ProtocolVersion.serverProtocolFor(minecraftVersion)} で
      * 求めた値を渡すこと。プロキシはクライアントの
      * プロトコルとこの内部プロトコルを比べ、同じなら素通し、違えば
@@ -600,7 +677,7 @@ public final class ClientProxy {
             ResourcePack pack767, ResourcePack pack768, ResourcePack pack769,
             ResourcePack pack770, ResourcePack pack771, ResourcePack pack772, ResourcePack pack773, int internalProtocol) {
         this(publicPort, vanillaHost, vanillaPort, onlineMode, null, null, null, pack762, pack763, pack764,
-                authConfig, pack765, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, null, null,
+                authConfig, pack765, pack766, pack767, pack768, pack769, pack770, pack771, pack772, pack773, null, null, null, null, null, null, null, null, null, null,
                 internalProtocol);
     }
 
@@ -667,8 +744,55 @@ public final class ClientProxy {
      *                        （pack_format 84）。内部が775でない場合に使う。
      *                        {@code null} の場合は775クライアントにも
      *                        774用パックを出す（ProxySession の既定の扱い）
+     * @param pack757         757クライアントに送るリソースパック
+     *                        （pack_format 8）。内部が757でない場合に使う。
+     *                        {@code null} の場合は757クライアントにも
+     *                        pack759用パックを出す（ProxySession の既定の扱い）
+     * @param pack756         756クライアントに送るリソースパック
+     *                        （pack_format 7）。内部が756でない場合に使う。
+     *                        {@code null} の場合は756クライアントにも
+     *                        pack757用パックを出す（ProxySession の既定の扱い。
+     *                        756は今のツリー内最古のため、隣接する新しい
+     *                        pack757 に落とす）
+     * @param pack755         755クライアントに送るリソースパック
+     *                        （pack_format 7）。内部が755でない場合に使う。
+     *                        {@code null} の場合は755クライアントにも
+     *                        pack756用パックを出す（ProxySession の既定の扱い。
+     *                        755は今のツリー内最古のため、隣接する新しい
+     *                        pack756 に落とす。どちらも pack_format 7）
+     * @param pack754         754クライアントに送るリソースパック
+     *                        （pack_format 6）。内部が754でない場合に使う。
+     *                        {@code null} の場合は754クライアントにも
+     *                        pack755用パックを出す（ProxySession の既定の扱い。
+     *                        754は以前のツリー内最古だったため、隣接する新しい
+     *                        pack755 に落とす）
+     * @param pack753         753クライアントに送るリソースパック
+     *                        （pack_format 6）。内部が753でない場合に使う。
+     *                        {@code null} の場合は753クライアントにも
+     *                        pack754用パックを出す（ProxySession の既定の扱い。
+     *                        753の未設定時は隣接する新しい
+     *                        pack754 に落とす。どちらも pack_format 6）
+     * @param pack751         751クライアントに送るリソースパック
+     *                        （pack_format 6）。内部が751でない場合に使う。
+     *                        {@code null} の場合は751クライアントにも
+     *                        pack753用パックを出す（ProxySession の既定の扱い。
+     *                        751は以前のツリー内最古だったため、隣接する新しい
+     *                        pack753 に落とす。どちらも pack_format 6）
+     * @param pack736         736クライアントに送るリソースパック
+     *                        （pack_format 5）。内部が736でない場合に使う。
+     *                        {@code null} の場合は736クライアントにも
+     *                        pack751用パックを出す（ProxySession の既定の扱い。
+     *                        736は以前のツリー内最古だったため、隣接する新しい
+     *                        pack751 に落とす。736クライアントは新しい形式の
+     *                        パックを警告付きで読み込む）
+     * @param pack735         735クライアントに送るリソースパック
+     *                        （pack_format 5）。内部が735でない場合に使う。
+     *                        {@code null} の場合は735クライアントにも
+     *                        pack736用パックを出す（ProxySession の既定の扱い。
+     *                        735は今のツリー内最古のため、隣接する新しい
+     *                        pack736 に落とす。どちらも pack_format 5）
      * @param internalProtocol 内部バニラのプロトコル（759＝1.19、760＝1.19.1／1.19.2、761＝1.19.3、762＝1.19.4、
-     *                        763＝1.20／1.20.1、764＝1.20.2、765＝1.20.4、766＝1.20.5／1.20.6、767＝1.21／1.21.1、768＝1.21.2／1.21.3、769＝1.21.4、770＝1.21.5、771＝1.21.6、772＝1.21.7／1.21.8、773＝1.21.9／1.21.10、774＝1.21.11、775＝26.1）。呼び出し元は
+     *                        763＝1.20／1.20.1、764＝1.20.2、765＝1.20.4、766＝1.20.5／1.20.6、767＝1.21／1.21.1、768＝1.21.2／1.21.3、769＝1.21.4、770＝1.21.5、771＝1.21.6、772＝1.21.7／1.21.8、773＝1.21.9／1.21.10、774＝1.21.11、775＝26.1、757＝1.18／1.18.1、756＝1.17.1、755＝1.17、754＝1.16.4／1.16.5、753＝1.16.3、751＝1.16.2、736＝1.16.1、735＝1.16）。呼び出し元は
      *                        {@code ProtocolVersion.serverProtocolFor(minecraftVersion)}
      *                        で求めた値を渡すこと
      */
@@ -676,7 +800,7 @@ public final class ClientProxy {
             boolean onlineMode, ResourcePack pack759, ResourcePack pack760, ResourcePack pack761, ResourcePack pack762, ResourcePack pack763, ResourcePack pack764,
             ProxyAuthConfig authConfig, ResourcePack pack765, ResourcePack pack766,
             ResourcePack pack767, ResourcePack pack768, ResourcePack pack769,
-            ResourcePack pack770, ResourcePack pack771, ResourcePack pack772, ResourcePack pack773, ResourcePack pack774, ResourcePack pack775, int internalProtocol) {
+            ResourcePack pack770, ResourcePack pack771, ResourcePack pack772, ResourcePack pack773, ResourcePack pack774, ResourcePack pack775, ResourcePack pack757, ResourcePack pack756, ResourcePack pack755, ResourcePack pack754, ResourcePack pack753, ResourcePack pack751, ResourcePack pack736, ResourcePack pack735, int internalProtocol) {
         if (publicPort < 1 || publicPort > 65535) {
             throw new IllegalArgumentException("publicPort out of range: " + publicPort);
         }
@@ -709,11 +833,19 @@ public final class ClientProxy {
                 && internalProtocol != ProtocolVersion.V1_21_7
                 && internalProtocol != ProtocolVersion.V1_21_9
                 && internalProtocol != ProtocolVersion.V1_21_11
-                && internalProtocol != ProtocolVersion.V26_1) {
+                && internalProtocol != ProtocolVersion.V26_1
+                && internalProtocol != ProtocolVersion.V1_18
+                && internalProtocol != ProtocolVersion.V1_17_1
+                && internalProtocol != ProtocolVersion.V1_17
+                && internalProtocol != ProtocolVersion.V1_16_5
+                && internalProtocol != ProtocolVersion.V1_16_3
+                && internalProtocol != ProtocolVersion.V1_16_2
+                && internalProtocol != ProtocolVersion.V1_16_1
+                && internalProtocol != ProtocolVersion.V1_16) {
             throw new IllegalArgumentException(
                     "internalProtocol must be 759 (1.19), 760 (1.19.1/1.19.2), 761 (1.19.3), 762 (1.19.4), 763 (1.20.1), 764 (1.20.2), "
                             + "765 (1.20.4), 766 (1.20.5), 767 (1.21), 768 (1.21.2), "
-                            + "769 (1.21.4), 770 (1.21.5), 771 (1.21.6), 772 (1.21.7／1.21.8), 773 (1.21.9／1.21.10), 774 (1.21.11) or 775 (26.1): "
+                            + "769 (1.21.4), 770 (1.21.5), 771 (1.21.6), 772 (1.21.7／1.21.8), 773 (1.21.9／1.21.10), 774 (1.21.11), 775 (26.1), 757 (1.18/1.18.1), 756 (1.17.1), 755 (1.17), 754 (1.16.5), 753 (1.16.3), 751 (1.16.2), 736 (1.16.1) or 735 (1.16): "
                             + internalProtocol);
         }
         this.publicPort = publicPort;
@@ -737,6 +869,14 @@ public final class ClientProxy {
         this.pack773 = pack773;
         this.pack774 = pack774;
         this.pack775 = pack775;
+        this.pack757 = pack757;
+        this.pack756 = pack756;
+        this.pack755 = pack755;
+        this.pack754 = pack754;
+        this.pack753 = pack753;
+        this.pack751 = pack751;
+        this.pack736 = pack736;
+        this.pack735 = pack735;
         this.internalProtocol = internalProtocol;
         this.authConfig = authConfig == null ? ProxyAuthConfig.defaults() : authConfig;
     }
@@ -859,6 +999,14 @@ public final class ClientProxy {
         this.pack773 = pack773;
         this.pack774 = pack774;
         this.pack775 = null; // 旧コンストラクタには pack775 引数が無い（呼び出し元なしの旧経路のため null 固定）
+        this.pack757 = null; // 旧コンストラクタには pack757 引数が無い（呼び出し元なしの旧経路のため null 固定）
+        this.pack756 = null; // 旧コンストラクタには pack756 引数が無い（呼び出し元なしの旧経路のため null 固定）
+        this.pack755 = null; // 旧コンストラクタには pack755 引数が無い（呼び出し元なしの旧経路のため null 固定）
+        this.pack754 = null; // 旧コンストラクタには pack754 引数が無い（呼び出し元なしの旧経路のため null 固定）
+        this.pack753 = null; // 旧コンストラクタには pack753 引数が無い（呼び出し元なしの旧経路のため null 固定）
+        this.pack751 = null; // 旧コンストラクタには pack751 引数が無い（呼び出し元なしの旧経路のため null 固定）
+        this.pack736 = null; // 旧コンストラクタには pack736 引数が無い（呼び出し元なしの旧経路のため null 固定）
+        this.pack735 = null; // 旧コンストラクタには pack735 引数が無い（呼び出し元なしの旧経路のため null 固定）
         this.internalProtocol = internalProtocol;
         this.authConfig = authConfig == null ? ProxyAuthConfig.defaults() : authConfig;
     }
@@ -996,7 +1144,79 @@ public final class ClientProxy {
         return pack775;
     }
 
-    /** 内部バニラのプロトコル（763＝1.20.1、764＝1.20.2、765＝1.20.4、766＝1.20.5、767＝1.21、768＝1.21.2、769＝1.21.4、770＝1.21.5、771＝1.21.6、772＝1.21.7／1.21.8、773＝1.21.9／1.21.10、774＝1.21.11）。 */
+    /**
+     * 757クライアントに送るリソースパック（無ければ null）。内部が757で
+     * ない場合に使う差し替え用で、内部が757の場合は null のまま
+     * （バニラのパックをそのまま出す）。
+     */
+    public ResourcePack pack757() {
+        return pack757;
+    }
+
+    /**
+     * 756クライアントに送るリソースパック（無ければ null）。内部が756で
+     * ない場合に使う差し替え用で、内部が756の場合は null のまま
+     * （バニラのパックをそのまま出す）。
+     */
+    public ResourcePack pack756() {
+        return pack756;
+    }
+
+    /**
+     * 755クライアントに送るリソースパック（無ければ null）。内部が755で
+     * ない場合に使う差し替え用で、内部が755の場合は null のまま
+     * （バニラのパックをそのまま出す）。
+     */
+    public ResourcePack pack755() {
+        return pack755;
+    }
+
+    /**
+     * 754クライアントに送るリソースパック（無ければ null）。内部が754で
+     * ない場合に使う差し替え用で、内部が754の場合は null のまま
+     * （バニラのパックをそのまま出す）。
+     */
+    public ResourcePack pack754() {
+        return pack754;
+    }
+
+    /**
+     * 753クライアントに送るリソースパック（無ければ null）。内部が753で
+     * ない場合に使う差し替え用で、内部が753の場合は null のまま
+     * （バニラのパックをそのまま出す）。
+     */
+    public ResourcePack pack753() {
+        return pack753;
+    }
+
+    /**
+     * 751クライアントに送るリソースパック（無ければ null）。内部が751で
+     * ない場合に使う差し替え用で、内部が751の場合は null のまま
+     * （バニラのパックをそのまま出す）。
+     */
+    public ResourcePack pack751() {
+        return pack751;
+    }
+
+    /**
+     * 736クライアントに送るリソースパック（無ければ null）。内部が736で
+     * ない場合に使う差し替え用で、内部が736の場合は null のまま
+     * （バニラのパックをそのまま出す）。
+     */
+    public ResourcePack pack736() {
+        return pack736;
+    }
+
+    /**
+     * 735クライアントに送るリソースパック（無ければ null）。内部が735で
+     * ない場合に使う差し替え用で、内部が735の場合は null のまま
+     * （バニラのパックをそのまま出す）。
+     */
+    public ResourcePack pack735() {
+        return pack735;
+    }
+
+    /** 内部バニラのプロトコル（763＝1.20.1、764＝1.20.2、765＝1.20.4、766＝1.20.5、767＝1.21、768＝1.21.2、769＝1.21.4、770＝1.21.5、771＝1.21.6、772＝1.21.7／1.21.8、773＝1.21.9／1.21.10、774＝1.21.11、757＝1.18／1.18.1、756＝1.17.1、755＝1.17、754＝1.16.4／1.16.5、753＝1.16.3、751＝1.16.2、736＝1.16.1、735＝1.16）。 */
     public int internalProtocol() {
         return internalProtocol;
     }
@@ -1242,7 +1462,7 @@ public final class ClientProxy {
                 session = result.session();
                 peerHandler.session = session;
                 // 759／760／761／762／767／768／769／770／771／772／773／774用パックは resolveHandshake の引数には無いため、
-                // セッションへ直接渡す（ProxySession#setPack759／setPack760／setPack761／setPack762／setPack767／setPack768／setPack769／setPack770／setPack772／setPack773／setPack774／setPack775）。
+                // セッションへ直接渡す（ProxySession#setPack759／setPack760／setPack761／setPack762／setPack767／setPack768／setPack769／setPack770／setPack772／setPack773／setPack774／setPack775／setPack757）。
                 // 759クライアントには pack759（pack_format 9）を出し、
                 // 未設定の場合は ProxySession が pack760 に落とす。
                 // 760クライアントには pack760（pack_format 9）を出し、
@@ -1267,6 +1487,33 @@ public final class ClientProxy {
                 // 未設定の場合は ProxySession が pack773 に落とす。
                 // 775クライアントには pack775（pack_format 84）を出し、
                 // 未設定の場合は ProxySession が pack774 に落とす。
+                // 757クライアントには pack757（pack_format 8）を出し、
+                // 未設定の場合は ProxySession が pack759 に落とす。
+                // 756クライアントには pack756（pack_format 7）を出し、
+                // 未設定の場合は ProxySession が pack757 に落とす。
+                // 755クライアントには pack755（pack_format 7）を出し、
+                // 未設定の場合は ProxySession が pack756 に落とす
+                // （755は今のツリー内最古のため、隣接する新しいパックに落とす。
+                // どちらも pack_format 7）。
+                // 754クライアントには pack754（pack_format 6）を出し、
+                // 未設定の場合は ProxySession が pack755 に落とす
+                // （754は以前のツリー内最古だったため、隣接する新しいパックに落とす）。
+                // 753クライアントには pack753（pack_format 6）を出し、
+                // 未設定の場合は ProxySession が pack754 に落とす
+                // （隣接する新しいパックに落とす。どちらも pack_format 6）。
+                // 751クライアントには pack751（pack_format 6）を出し、
+                // 未設定の場合は ProxySession が pack753 に落とす
+                // （751は以前のツリー内最古だったため、隣接する新しいパックに落とす。
+                // どちらも pack_format 6）。
+                // 736クライアントには pack736（pack_format 5）を出し、
+                // 未設定の場合は ProxySession が pack751 に落とす
+                // （736は以前のツリー内最古だったため、隣接する新しいパックに落とす。
+                // pack_format 5 と 6 は違うため、736クライアントは新しい形式の
+                // パックを警告付きで読み込む）。
+                // 735クライアントには pack735（pack_format 5）を出し、
+                // 未設定の場合は ProxySession が pack736 に落とす
+                // （735は今のツリー内最古のため、隣接する新しいパックに落とす。
+                // どちらも pack_format 5）。
                 // 772クライアントには pack772（pack_format 64）を出し、
                 // 未設定の場合は ProxySession が pack771 に落とす。
                 session.setPack759(proxy.pack759);
@@ -1281,6 +1528,14 @@ public final class ClientProxy {
                 session.setPack773(proxy.pack773);
                 session.setPack774(proxy.pack774);
                 session.setPack775(proxy.pack775);
+                session.setPack757(proxy.pack757);
+                session.setPack756(proxy.pack756);
+                session.setPack755(proxy.pack755);
+                session.setPack754(proxy.pack754);
+                session.setPack753(proxy.pack753);
+                session.setPack751(proxy.pack751);
+                session.setPack735(proxy.pack735);
+                session.setPack736(proxy.pack736);
                 session.setPack772(proxy.pack772);
                 if (result.toServer() != null) {
                     writeToServer(ctx, result.toServer());
