@@ -8094,7 +8094,11 @@ public final class PlayTranslator {
         Map<String, Tag.CompoundTag> defaults = toProtocol == ProtocolVersion.V1_19
                 ? DIMENSION_TYPE_759_ELEMENTS
                 : toProtocol == ProtocolVersion.V1_17_1
-                        ? DIMENSION_TYPE_756_ELEMENTS : DIMENSION_TYPE_757_ELEMENTS;
+                        ? DIMENSION_TYPE_756_ELEMENTS
+                        : toProtocol == ProtocolVersion.V1_16_5
+                                ? DIMENSION_TYPE_754_ELEMENTS
+                                : toProtocol == ProtocolVersion.V1_17
+                                        ? DIMENSION_TYPE_755_ELEMENTS : DIMENSION_TYPE_757_ELEMENTS;
         List<Tag> out = new ArrayList<>(entries.size());
         for (Tag entry : entries) {
             if (!(entry instanceof Tag.CompoundTag compound)) {
@@ -12036,6 +12040,3705 @@ public final class PlayTranslator {
      * 根拠は {@link #translateClientInformation755To756(byte[])} と同じ。IDも両方0x05。
      */
     public static byte[] translateClientInformation756To755(byte[] payload) {
+        return payload;
+    }
+
+
+    // ------------------------------------------------------------------
+    // 754（1.16.5／1.16.4）⇔ 755（1.17）
+    // ------------------------------------------------------------------
+    //
+    // 実測の根拠（推測なし）：
+    // - mc-1.16-protocol.json（pc/1.16.2）と mc-1.17-protocol.json の全パケット・全方向の突き合わせ
+    //   （detergentmc-protocol/tools/compare-protocol-754-755.py）。同一フィールド132件、
+    //   IDだけ違う91件、フィールド構成が違う30件（分割の14件を含む実質19パケット）、
+    //   1.16.5にしか無いもの1件（entity 0x2a）、1.17にしか無いもの1件（sculk 0x05）。
+    //   共有 types の差分は particleData のみ（パーティクルIDのずれ。World Particles の中で扱う）。
+    // - STAGE-A-754-NOTES.md §8（パケットID差分：変更120件・新規0件・削除1件）と §11.6
+    //   （Join Game codec 実測：15フィールド同一、dimensionCodec のバイオーム79 vs 81、
+    //   dimension element に min_y／height 無し）。
+    // - 実バニラ1.16.5の Join Game 生キャプチャ（30,847バイト。dimension_type 4件・
+    //   バイオーム79件。id 0〜173）と実バニラ1.17の Join Game 生キャプチャ（31,555バイト。
+    //   dimension_type 4件・バイオーム81件。id 0〜175）の突き合わせ。共有する79バイオームの
+    //   element はバイト完全同一で、755にだけあるのは dripstone_caves（174）・lush_caves（175）。
+    //   dimension element は755が min_y=0・height=256 を持つ以外は共有フィールドの値まで同一。
+    // - ViaVersion Protocol1_16_4To1_17.java（ローカルの複写。SET_TITLES と CLIENT_INFORMATION
+    //   のみ明示登録。PING／PONG／CONTAINER_ACK、PLAYER_COMBAT、SET_BORDER、MOVE_ENTITY の
+    //   登録は無い）。
+    // - ワールドボーダーの action 3（INITIALIZE）の warning 順序と radius の意味は、実バニラ1.16.5の
+    //   生キャプチャ（x=0, z=0, old_radius=new_radius=60000000.0, speed=0,
+    //   portalBoundary=29999984, その後 5→15）と実バニラ1.17の生キャプチャ
+    //   （oldDiameter=newDiameter=59999968.0, portalTeleportBoundary=29999984,
+    //   warningBlocks=5, warningTime=15）と、javap（1.16.5 ClientboundSetBorderPacket qt#write。
+    //   INITIALIZE は x, z, oldSize, newSize, speed, portalBoundary, warningBlocks, warningTime
+    //   の順）で確認。minecraft-data protocol.json の warning_time→warning_blocks の順序は
+    //   action 3 では誤り（正しくは warningBlocks が先）。radius は直径の値そのもので、
+    //   60000000.0 は既定ボーダーの直径（±30000000）。755の 59999968.0 との32の差は
+    //   1.17の既定値・上限値の変更（21w17a）によるもので、単位の違いではない。
+    // - declare_recipes の成形レシピの入れ子（754は height 外・width 内、755は width 外・
+    //   height 内）は minecraft-data の記述の違いだけで、ワイヤは同一。実バニラ両 jar の
+    //   ShapedRecipe$Serializer#toNetwork（javap -c）は width, height, group の後に材料を
+    //   フラットに1件ずつ書く同じ手順のため、変換器は不要。
+    //
+    // フィールド構成が違う19パケットと扱い（IDは PacketIds.java／packet-ids-754.json 参照）：
+    // - Join Game（0x24⇔0x26）：15フィールド同一。dimensionCodec の中身だけ違う（下記）。
+    //   本節で変換器を作る。
+    // - Respawn（0x39⇔0x3d）：8フィールド同一。dimension の element だけ違う。本節で変換器を作る。
+    // - Client Information（0x05⇔0x05）：755が末尾に disableTextFiltering bool を持つ。本節で変換器を作る。
+    // - Synchronize Player Position（0x34⇔0x38）：755が末尾に dismountVehicle bool を持つ。
+    //   本節で変換器を作る（translatePosition761To762 と同じ段取り）。
+    // - combat_event（0x31）⇔ enter／end／death_combat_event（0x34／0x33／0x35）：本節で振り分ける。
+    // - title（0x4f）⇔ set_title_text／set_title_subtitle／set_title_time／clear_titles／
+    //   action_bar（0x59／0x57／0x5a／0x10／0x41）：本節で振り分ける。
+    // - world_border（0x3d）⇔ initialize／center／lerp_size／size／warning_delay／
+    //   warning_reach（0x20／0x42／0x43／0x44／0x45／0x46）：本節で振り分ける。
+    // - ping（0x30）／pong（0x1d）⇔ transaction（0x11／0x07）：落とす（本節の null 返し）。
+    //   ViaVersion にも対応付けが無く、i32 の id は i16 の actionNumber に往復できないため。
+    // - sculk_vibration_signal（755のみ 0x05）：755→754では落とす（本節の null 返し）。
+    // - entity_destroy（0x36⇔0x3a）：754は [entityIds varint配列]、755は [entityId varint] 1体。
+    //   ChunkTranslator担当（755⇔756の Entity Destroy と同じ）。
+    // - window_click（0x09⇔0x08）：754は {action i16, mode i8, item slot}、755は
+    //   {mode i8, changedSlots 配列, cursorItem slot}。ChunkTranslator担当。
+    // - map_chunk（0x20⇔0x22）：754は groundUp＋bitMap varint＋biomes は groundUp のときだけ、
+    //   755は bitMap i64配列＋biomes 常時＋blockEntities 追加。ChunkTranslator担当。
+    // - update_light（0x23⇔0x25）：754はマスクが varint 4個、755は i64配列4個。ChunkTranslator担当。
+    // - explosion（0x1b⇔0x1c）：記録数の countType が i32→varint。ChunkTranslator担当
+    //   （translateExplosion768To769 と同じ段取り）。
+    // - entity_update_attributes（0x58⇔0x63）：properties の件数が i32→varint。
+    //   「key」→「name」は名前だけの違い（値は同じ文字列）。ChunkTranslator担当。
+    // - map（0x25⇔0x27）：755で trackingPosition bool が無くなり、icons が option 化。
+    //   ViaVersion の MAP_ITEM_DATA 参照。担当は ChunkTranslator（地図系）へ申し送り。
+    // - declare_recipes（0x5a⇔0x65）：ワイヤ同一のため変換器不要（上記の javap 確認参照）。
+    // - tags（0x5b⇔0x66）：754は block／item／fluid／entity の4固定、755は {tagType, tags} の
+    //   汎用配列＋game_event 追加。ViaVersion の UPDATE_TAGS 参照。変換器は未実施で、
+    //   担当は親の判断待ち（ChunkTranslator か PlayTranslator か）。
+    // - resource_pack_send（0x38⇔0x3c）：755で forced bool と promptMessage option を追加。
+    //   ViaVersion の RESOURCE_PACK 参照。本節で変換器を作った（forced=false・prompt 無しを補う）。
+    //   ただし汎用中継経路では、プレイ状態のリソースパックは 756→757・757→759 の段に
+    //   case が無く落とされるため、この変換器だけではクライアントに届かない
+    //   （Join Game 時のオファーは ProxySession の resourcePackOfferPacket が別途担う）。
+    //   下流の段に case を足すのは別課題として親の判断待ち。
+    // - entity（754のみ 0x2a）：PacketIds の対象外のまま落とす（下記の判断参照）。
+    //
+    // 決めたこと：
+    // - entity（クライアント行き 0x2a）は PacketIds にエントリを追加せず、対象外のまま落とす。
+    //   根拠：1.17で削除されたパケットで、ViaVersion の1.17 enum には無く
+    //   Protocol1_16_4To1_17 でも未登録（＝落としている）。内容は entityId varint 1個だけの
+    //   「移動なし」通知で、rel_entity_move 系とは別に位置同期には影響しない。
+    // - ping／pong ⇔ transaction は両方向とも落とす（null）。根拠は上記の通り。
+    //   Keep Alive（0x1f⇔0x21）は別パケットで影響を受けない。
+    // - Client Information の754→755の補完値は false。根拠：false はフィルタ有効で、
+    //   1.17のバニラクライアントの既定値（設定で無効化しない限り false を送る）。
+    //   1.16.5のクライアントは設定を持たないため、1.17の既定値を適用する。
+    // - Synchronize Player Position の754→755の補完値は false。根拠：false は「乗り物から
+    //   降りない」で、1.16.5には降車の概念が無く、乗り続けるのが元の挙動。
+    //   （translatePosition762To761 と同じ選択。）
+    // - dimensionCodec のバイオームは RegistryRemapper.mapBiome による id 付け替えではなく
+    //   名前で付け替える。根拠：共有する79バイオームは id が同一（実測）で、755にだけある
+    //   dripstone_caves・lush_caves は mapBiome755To754 では平原（1）に写るが、codec では
+    //   平原と重複するエントリになってしまうため、落とすのが正しい。
+    //   （RegistryTables754 の表での付け替えは、共有バイオームの id 同一性を
+    //   verify-754-tables.py の G（バイオーム順向き176件・反転174件）で確認済み。）
+    //
+    // 変換器を作らなかったもの（フィールド同一のため。IDだけ違う91件は呼び出し側が付け替える）：
+    // Chat、Player Info、Set Held Item、Update Time、Keep Alive、Set Slot、Window Items、
+    // Set Cooldown、Entity Equipment、Trade List、Tile Entity Data、Entity Metadata、
+    // Sound Effect、Entity Sound Effect、Named Sound Effect、Stop Sound、World Particles、
+    // Multi Block Change、Block Change、Spawn Entity 系、Open Window、Block Action、
+    // Entity Effect、Explosion（※上記の通り countType だけ違うため ChunkTranslator で対応）、
+    // Update Attributes（※同上）、Enchant Item、World Border 系（※分割のため本節で対応）。
+    // なお Update Time は ID が 0x4e⇔0x58 と違うだけで、フィールドは同一（755の訂正4件の
+    // 「Update Time は757・759とも0x59」は755⇔756間の話で、754⇔755間は 0x4e⇔0x58）。
+
+    /** dimension_type の名前（754・755とも同じ4件・同じ順序。実バニラ両キャプチャで確認）。 */
+    private static final String[] DIMENSION_TYPE_754_NAMES = {
+            "minecraft:overworld", "minecraft:overworld_caves", "minecraft:the_nether", "minecraft:the_end",
+    };
+
+    /** 755 の dimension_type の名前は754と同じ。 */
+    private static final String[] DIMENSION_TYPE_755_NAMES = DIMENSION_TYPE_754_NAMES;
+
+    /** DIMENSION_TYPE_754_ELEMENT_HEX：実バニラ1.16.5の Join Game codec から取った element（anonymous NBT の16進）。min_y／height は無い。 */
+    private static final String[] DIMENSION_TYPE_754_ELEMENT_HEX = {
+"0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000008000a" +
+            "696e66696e696275726e001e6d696e6563726166743a696e66696e696275726e5f6f766572776f726c640100147265737061" +
+            "776e5f616e63686f725f776f726b730001000c6861735f736b796c69676874010100096265645f776f726b73010800076566" +
+            "666563747300136d696e6563726166743a6f766572776f726c640100096861735f72616964730103000e6c6f676963616c5f" +
+            "68656967687400000100060010636f6f7264696e6174655f7363616c653ff0000000000000010009756c7472617761726d00" +
+            "01000b6861735f6365696c696e670000",
+            "0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000008000a" +
+            "696e66696e696275726e001e6d696e6563726166743a696e66696e696275726e5f6f766572776f726c640100147265737061" +
+            "776e5f616e63686f725f776f726b730001000c6861735f736b796c69676874010100096265645f776f726b73010800076566" +
+            "666563747300136d696e6563726166743a6f766572776f726c640100096861735f72616964730103000e6c6f676963616c5f" +
+            "68656967687400000100060010636f6f7264696e6174655f7363616c653ff0000000000000010009756c7472617761726d00" +
+            "01000b6861735f6365696c696e670100",
+            "0a01000b7069676c696e5f73616665010100076e61747572616c0005000d616d6269656e745f6c696768743dcccccd08000a" +
+            "696e66696e696275726e001b6d696e6563726166743a696e66696e696275726e5f6e65746865720100147265737061776e5f" +
+            "616e63686f725f776f726b730101000c6861735f736b796c69676874000100096265645f776f726b73000800076566666563" +
+            "747300146d696e6563726166743a7468655f6e657468657204000a66697865645f74696d6500000000000046500100096861" +
+            "735f72616964730003000e6c6f676963616c5f68656967687400000080060010636f6f7264696e6174655f7363616c654020" +
+            "000000000000010009756c7472617761726d0101000b6861735f6365696c696e670100",
+            "0a01000b7069676c696e5f73616665000100076e61747572616c0005000d616d6269656e745f6c696768740000000008000a" +
+            "696e66696e696275726e00186d696e6563726166743a696e66696e696275726e5f656e640100147265737061776e5f616e63" +
+            "686f725f776f726b730001000c6861735f736b796c69676874000100096265645f776f726b73000800076566666563747300" +
+            "116d696e6563726166743a7468655f656e6404000a66697865645f74696d6500000000000017700100096861735f72616964" +
+            "730103000e6c6f676963616c5f68656967687400000100060010636f6f7264696e6174655f7363616c653ff0000000000000" +
+            "010009756c7472617761726d0001000b6861735f6365696c696e670000"
+    };
+
+    /** DIMENSION_TYPE_755_ELEMENT_HEX：実バニラ1.17の Join Game codec から取った element（anonymous NBT の16進）。min_y=0・height=256 付き。 */
+    private static final String[] DIMENSION_TYPE_755_ELEMENT_HEX = {
+"0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000008000a" +
+            "696e66696e696275726e001e6d696e6563726166743a696e66696e696275726e5f6f766572776f726c640100147265737061" +
+            "776e5f616e63686f725f776f726b730001000c6861735f736b796c69676874010100096265645f776f726b73010800076566" +
+            "666563747300136d696e6563726166743a6f766572776f726c640100096861735f72616964730103000e6c6f676963616c5f" +
+            "68656967687400000100060010636f6f7264696e6174655f7363616c653ff00000000000000300056d696e5f790000000001" +
+            "000b6861735f6365696c696e6700010009756c7472617761726d000300066865696768740000010000",
+            "0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000008000a" +
+            "696e66696e696275726e001e6d696e6563726166743a696e66696e696275726e5f6f766572776f726c640100147265737061" +
+            "776e5f616e63686f725f776f726b730001000c6861735f736b796c69676874010100096265645f776f726b73010800076566" +
+            "666563747300136d696e6563726166743a6f766572776f726c640100096861735f72616964730103000e6c6f676963616c5f" +
+            "68656967687400000100060010636f6f7264696e6174655f7363616c653ff00000000000000300056d696e5f790000000001" +
+            "000b6861735f6365696c696e6701010009756c7472617761726d000300066865696768740000010000",
+            "0a01000b7069676c696e5f73616665010100076e61747572616c0005000d616d6269656e745f6c696768743dcccccd08000a" +
+            "696e66696e696275726e001b6d696e6563726166743a696e66696e696275726e5f6e65746865720100147265737061776e5f" +
+            "616e63686f725f776f726b730101000c6861735f736b796c69676874000100096265645f776f726b73000800076566666563" +
+            "747300146d696e6563726166743a7468655f6e657468657204000a66697865645f74696d6500000000000046500100096861" +
+            "735f72616964730003000e6c6f676963616c5f68656967687400000080060010636f6f7264696e6174655f7363616c654020" +
+            "0000000000000300056d696e5f790000000001000b6861735f6365696c696e6701010009756c7472617761726d0103000668" +
+            "65696768740000010000",
+            "0a01000b7069676c696e5f73616665000100076e61747572616c0005000d616d6269656e745f6c696768740000000008000a" +
+            "696e66696e696275726e00186d696e6563726166743a696e66696e696275726e5f656e640100147265737061776e5f616e63" +
+            "686f725f776f726b730001000c6861735f736b796c69676874000100096265645f776f726b73000800076566666563747300" +
+            "116d696e6563726166743a7468655f656e6404000a66697865645f74696d6500000000000017700100096861735f72616964" +
+            "730103000e6c6f676963616c5f68656967687400000100060010636f6f7264696e6174655f7363616c653ff0000000000000" +
+            "0300056d696e5f790000000001000b6861735f6365696c696e6700010009756c7472617761726d0003000668656967687400" +
+            "00010000"
+    };
+
+    /** 実バニラ1.16.5の dimension_type element 4件（名前→element）。 */
+    private static final Map<String, Tag.CompoundTag> DIMENSION_TYPE_754_ELEMENTS =
+            elementMap(DIMENSION_TYPE_754_NAMES, DIMENSION_TYPE_754_ELEMENT_HEX);
+
+    /** 実バニラ1.17の dimension_type element 4件（名前→element）。 */
+    private static final Map<String, Tag.CompoundTag> DIMENSION_TYPE_755_ELEMENTS =
+            elementMap(DIMENSION_TYPE_755_NAMES, DIMENSION_TYPE_755_ELEMENT_HEX);
+
+    /** 754に無く755にあるバイオーム2件の element（名前→element。実バニラ1.17の Join Game codec から取ったもの）。 */
+    private static final Map<String, Tag.CompoundTag> BIOME_755_NEW_ELEMENTS = Map.of(
+            "minecraft:dripstone_caves", parseElementHex(
+"0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720078a7ff03" +
+            "000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f" +
+            "72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000000000" +
+            "0000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f" +
+            "657874656e7400000008000005000564657074683e00000005000b74656d70657261747572653f4ccccd0500057363616c65" +
+            "3d4ccccd050008646f776e66616c6c3ecccccd08000863617465676f7279000b756e64657267726f756e6400"
+            ),
+            "minecraft:lush_caves", parseElementHex(
+"0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4ff03" +
+            "000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f" +
+            "72003f76e40005000564657074683dcccccd05000b74656d70657261747572653f0000000500057363616c653e4ccccd0500" +
+            "08646f776e66616c6c3f00000008000863617465676f7279000b756e64657267726f756e6400"
+            ));
+
+    /**
+     * 754の dimension（NBTの値）に対応する dimension_type の名前を返す。
+     * dimensionName757／dimensionName756 と同じ手順で、既定の element は754のものを使う。
+     * codec が null の場合（Respawn）は codec での検索を飛ばす。
+     */
+    private static String dimensionName754(Tag dimension, Tag.CompoundTag codec) {
+        if (codec != null) {
+            String fromCodec = findDimensionName(codec, dimension);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        for (Map.Entry<String, Tag.CompoundTag> e : DIMENSION_TYPE_754_ELEMENTS.entrySet()) {
+            if (e.getValue().equals(dimension)) {
+                return e.getKey();
+            }
+        }
+        // 推定：effects と has_ceiling の組み合わせで4種を区別する（dimensionName757 と同じ）。
+        if (dimension instanceof Tag.CompoundTag compound) {
+            String effects = compound.getString("effects").orElse("");
+            boolean hasCeiling = compound.get("has_ceiling")
+                    .filter(t -> t instanceof Tag.ByteTag)
+                    .map(t -> ((Tag.ByteTag) t).value() != 0)
+                    .orElse(false);
+            if (effects.equals("minecraft:the_nether")) {
+                return "minecraft:the_nether";
+            }
+            if (effects.equals("minecraft:the_end")) {
+                return "minecraft:the_end";
+            }
+            if (effects.equals("minecraft:overworld")) {
+                return hasCeiling ? "minecraft:overworld_caves" : "minecraft:overworld";
+            }
+        }
+        LOG.warning("dimension の名前が分からなかったため minecraft:overworld にします。");
+        return "minecraft:overworld";
+    }
+
+    /**
+     * 755の dimension（NBTの値）に対応する dimension_type の名前を返す。
+     * dimensionName754 と同じ手順で、既定の element は755のものを使う。
+     * codec が null の場合（Respawn）は codec での検索を飛ばす。
+     */
+    private static String dimensionName755(Tag dimension, Tag.CompoundTag codec) {
+        if (codec != null) {
+            String fromCodec = findDimensionName(codec, dimension);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        for (Map.Entry<String, Tag.CompoundTag> e : DIMENSION_TYPE_755_ELEMENTS.entrySet()) {
+            if (e.getValue().equals(dimension)) {
+                return e.getKey();
+            }
+        }
+        if (dimension instanceof Tag.CompoundTag compound) {
+            String effects = compound.getString("effects").orElse("");
+            boolean hasCeiling = compound.get("has_ceiling")
+                    .filter(t -> t instanceof Tag.ByteTag)
+                    .map(t -> ((Tag.ByteTag) t).value() != 0)
+                    .orElse(false);
+            if (effects.equals("minecraft:the_nether")) {
+                return "minecraft:the_nether";
+            }
+            if (effects.equals("minecraft:the_end")) {
+                return "minecraft:the_end";
+            }
+            if (effects.equals("minecraft:overworld")) {
+                return hasCeiling ? "minecraft:overworld_caves" : "minecraft:overworld";
+            }
+        }
+        LOG.warning("dimension の名前が分からなかったため minecraft:overworld にします。");
+        return "minecraft:overworld";
+    }
+
+    /**
+     * 754の dimension_type の名前に対応する754の element を返す。
+     * 既定の754 element を使う。名前が既定に無く、codec に element があればそれを使い、
+     * それも無ければ overworld の element にする。
+     */
+    private static Tag dimensionValue754(String name, Tag.CompoundTag codec) {
+        Tag.CompoundTag element = DIMENSION_TYPE_754_ELEMENTS.get(name);
+        if (element != null) {
+            return element;
+        }
+        if (codec != null) {
+            Tag fromCodec = findDimensionElement(codec, name);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        LOG.warning("dimension " + name + " の754 element が無いため minecraft:overworld にします。");
+        return DIMENSION_TYPE_754_ELEMENTS.get("minecraft:overworld");
+    }
+
+    /** 754の dimension_type の名前に対応する754の element を返す（codec が無い場合。Respawn 用）。 */
+    private static Tag dimensionValue754(String name) {
+        return dimensionValue754(name, null);
+    }
+
+    /**
+     * 755の dimension_type の名前に対応する755の element を返す。
+     * 既定の755 element を使う。名前が既定に無く、codec に element があればそれを使い、
+     * それも無ければ overworld の element にする。
+     */
+    private static Tag dimensionValue755(String name, Tag.CompoundTag codec) {
+        Tag.CompoundTag element = DIMENSION_TYPE_755_ELEMENTS.get(name);
+        if (element != null) {
+            return element;
+        }
+        if (codec != null) {
+            Tag fromCodec = findDimensionElement(codec, name);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        LOG.warning("dimension " + name + " の755 element が無いため minecraft:overworld にします。");
+        return DIMENSION_TYPE_755_ELEMENTS.get("minecraft:overworld");
+    }
+
+    /** 755の dimension_type の名前に対応する755の element を返す（codec が無い場合。Respawn 用）。 */
+    private static Tag dimensionValue755(String name) {
+        return dimensionValue755(name, null);
+    }
+
+    /**
+     * バイオームのエントリ列を754順から755順にする。共有する79件は id・element とも
+     * そのまま（実測で id 同一）。755にだけある dripstone_caves（174）・lush_caves（175）を
+     * 実バニラ1.17の element で補う。既に両方ある場合はそのまま返す。
+     */
+    private static List<Tag> appendNewBiomes754To755(List<Tag> entries) {
+        boolean hasDripstone = false;
+        boolean hasLush = false;
+        for (Tag entry : entries) {
+            if (entry instanceof Tag.CompoundTag compound) {
+                String name = compound.getString("name").orElse("");
+                if (name.equals("minecraft:dripstone_caves")) {
+                    hasDripstone = true;
+                } else if (name.equals("minecraft:lush_caves")) {
+                    hasLush = true;
+                }
+            }
+        }
+        if (hasDripstone && hasLush) {
+            return entries;
+        }
+        List<Tag> out = new ArrayList<>(entries);
+        if (!hasDripstone) {
+            out.add(biomeEntry("minecraft:dripstone_caves", 174,
+                    BIOME_755_NEW_ELEMENTS.get("minecraft:dripstone_caves")));
+        }
+        if (!hasLush) {
+            out.add(biomeEntry("minecraft:lush_caves", 175,
+                    BIOME_755_NEW_ELEMENTS.get("minecraft:lush_caves")));
+        }
+        return out;
+    }
+
+    /**
+     * バイオームのエントリ列を755順から754順にする。共有する79件は id・element とも
+     * そのまま。755にだけある dripstone_caves・lush_caves は落とす（754には無いため。
+     * 平原への付け替えはしない。平原と重複するエントリになってしまうため）。
+     */
+    private static List<Tag> dropNewBiomes755To754(List<Tag> entries) {
+        List<Tag> out = new ArrayList<>(entries.size());
+        for (Tag entry : entries) {
+            if (entry instanceof Tag.CompoundTag compound) {
+                String name = compound.getString("name").orElse("");
+                if (name.equals("minecraft:dripstone_caves")
+                        || name.equals("minecraft:lush_caves")) {
+                    continue;
+                }
+            }
+            out.add(entry);
+        }
+        return out;
+    }
+
+    /**
+     * 754の dimensionCodec を755形式にする。dimension_type の element を755既定値に
+     * 置き換え（min_y=0・height=256 を足す）、バイオームに dripstone_caves・lush_caves
+     * の2件を補う。共有バイオームの element はそのまま引き継ぐ（実測でバイト同一）。
+     * codec のキーの並びは755の実バニラ通り（dimension_type、worldgen/biome）。
+     * 未知のレジストリがあればそのまま引き継ぐ。
+     */
+    public static Tag.CompoundTag translateDimensionCodec754To755(Tag.CompoundTag codec754) {
+        if (codec754 == null) {
+            return null;
+        }
+        Map<String, Tag> codec = new LinkedHashMap<>();
+        Tag.CompoundTag dimensionRegistry = codec754.getCompound("minecraft:dimension_type")
+                .orElse(null);
+        if (dimensionRegistry != null) {
+            List<Tag> entries = substituteDimensionTypeElements(
+                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
+                    ProtocolVersion.V1_17);
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
+        }
+        Tag.CompoundTag biomeRegistry = codec754.getCompound("minecraft:worldgen/biome")
+                .orElse(null);
+        if (biomeRegistry != null) {
+            List<Tag> entries = appendNewBiomes754To755(
+                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
+        }
+        codec754.value().forEach((k, v) -> {
+            if (!codec.containsKey(k)) {
+                codec.put(k, v);
+            }
+        });
+        return new Tag.CompoundTag(codec);
+    }
+
+    /**
+     * 755の dimensionCodec を754形式にする。dimension_type の element を754既定値に
+     * 置き換え（min_y・height を除く）、バイオームから dripstone_caves・lush_caves の
+     * 2件を落とす。共有バイオームの element はそのまま引き継ぐ。
+     * codec のキーの並びは754の実バニラ通り（dimension_type、worldgen/biome）。
+     * 未知のレジストリがあればそのまま引き継ぐ。
+     */
+    public static Tag.CompoundTag translateDimensionCodec755To754(Tag.CompoundTag codec755) {
+        if (codec755 == null) {
+            return null;
+        }
+        Map<String, Tag> codec = new LinkedHashMap<>();
+        Tag.CompoundTag dimensionRegistry = codec755.getCompound("minecraft:dimension_type")
+                .orElse(null);
+        if (dimensionRegistry != null) {
+            List<Tag> entries = substituteDimensionTypeElements(
+                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
+                    ProtocolVersion.V1_16_5);
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
+        }
+        Tag.CompoundTag biomeRegistry = codec755.getCompound("minecraft:worldgen/biome")
+                .orElse(null);
+        if (biomeRegistry != null) {
+            List<Tag> entries = dropNewBiomes755To754(
+                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
+        }
+        codec755.value().forEach((k, v) -> {
+            if (!codec.containsKey(k)) {
+                codec.put(k, v);
+            }
+        });
+        return new Tag.CompoundTag(codec);
+    }
+
+    // ------------------------------------------------------------------
+    // Join Game（754）
+    // ------------------------------------------------------------------
+
+    /** 754の Join Game の中身。755と同一の15フィールド。dimension は DimensionType の値そのもの（NBT）。previousGameMode は i8 として読む（minecraft-data では754は u8・755は i8 と書かれているが、ワイヤ上は同じ1バイトで、255＝「無し」は i8 の -1 と同じ値。755と同じ読み方）。simulationDistance は無い。 */
+    public record JoinGame754(int entityId, boolean hardcore, int gameMode, int previousGameMode,
+            List<String> worldNames, Tag.CompoundTag dimensionCodec, Tag dimension,
+            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
+            boolean reducedDebug, boolean enableRespawnScreen,
+            boolean isDebug, boolean isFlat) {
+    }
+
+    /**
+     * 754の Join Game を読む。順番は entityId, hardcore, gameMode, previousGameMode(i8),
+     * worldNames, dimensionCodec（名前付き NBT）, dimension（名前付き NBT）,
+     * worldName, hashedSeed, maxPlayers, viewDistance,
+     * reducedDebug, enableRespawnScreen, isDebug, isFlat である
+     * （minecraft-data mc-1.16-protocol.json の packet_login と mc-1.17-protocol.json の
+     * packet_login が previousGameMode の型名以外は完全同一であること、および
+     * STAGE-A-754-NOTES.md §11.6 の実バニラ1.16.5キャプチャ（30,847バイト。
+     * 消費量 30,847／30,847 で完全一致）で確認）。
+     */
+    public static JoinGame754 parseJoinGame754(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        boolean hardcore = reader.readBoolean();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readByte();
+        checkPreviousGameMode757(previousGameMode);
+        List<String> worldNames = PacketIO.readStringList(reader);
+        Tag dimensionCodec = reader.readNamedNbt().tag();
+        if (!(dimensionCodec instanceof Tag.CompoundTag codec)) {
+            throw new IllegalArgumentException("Join Game の dimensionCodec がコンパウンドではありません。");
+        }
+        Tag dimension = reader.readNamedNbt().tag();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int maxPlayers = reader.readVarInt();
+        int viewDistance = reader.readVarInt();
+        boolean reducedDebug = reader.readBoolean();
+        boolean enableRespawnScreen = reader.readBoolean();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        requireEnd(reader);
+        return new JoinGame754(entityId, hardcore, gameMode, previousGameMode, worldNames,
+                codec, dimension, worldName, hashedSeed, maxPlayers, viewDistance,
+                reducedDebug, enableRespawnScreen, isDebug, isFlat);
+    }
+
+    /**
+     * 753の Join Game を読む。753 の packet_login は 754 と完全同一
+     * （minecraft-data mc-1.16.3-protocol.json は mc-1.16-protocol.json と
+     * バイト同一（152,123 バイト）。Stage A §11.6 の実バニラ 1.16.3 キャプチャは
+     * 30,847 バイトで 1.16.5 と同一）のため、754 のパーサにそのまま委譲する。
+     * 戻り値は JoinGame754（753 専用のレコードは作らない。フィールドは同一）。
+     */
+    public static JoinGame754 parseJoinGame753(byte[] payload) {
+        return parseJoinGame754(payload);
+    }
+
+    /**
+     * 751の Join Game を読む。751 の packet_login は 753 と完全同一
+     * （minecraft-data mc-1.16.2-protocol.json は mc-1.16.3-protocol.json と
+     * バイト同一（152,123 バイト）。Stage A §11.6 の実バニラ 1.16.2 キャプチャは
+     * 30,847 バイトで 1.16.3 と同一）のため、753 のパーサにそのまま委譲する。
+     * 戻り値は JoinGame754（751 専用のレコードは作らない。フィールドは同一）。
+     */
+    public static JoinGame754 parseJoinGame751(byte[] payload) {
+        return parseJoinGame753(payload);
+    }
+
+
+    /** 754の Join Game を書く。755と同一のフィールド順。 */
+    public static byte[] writeJoinGame754(JoinGame754 join) {
+        Writer writer = new Writer();
+        writer.writeInt(join.entityId());
+        writer.writeBoolean(join.hardcore());
+        writer.writeByte(join.gameMode());
+        writer.writeByte(join.previousGameMode());
+        PacketIO.writeStringList(writer, join.worldNames());
+        writer.writeNamedNbt("", join.dimensionCodec());
+        writer.writeNamedNbt("", join.dimension());
+        writer.writeString(join.worldName());
+        writer.writeLong(join.hashedSeed());
+        writer.writeVarInt(join.maxPlayers());
+        writer.writeVarInt(join.viewDistance());
+        writer.writeBoolean(join.reducedDebug());
+        writer.writeBoolean(join.enableRespawnScreen());
+        writer.writeBoolean(join.isDebug());
+        writer.writeBoolean(join.isFlat());
+        return writer.bytes();
+    }
+
+    /**
+     * Join Game（754 → 755）。dimension は NBT の値から codec 内の名前を引き、755の element に直す。
+     * dimensionCodec は755形式に直す（dimension_type の element に min_y=0・height=256 を足し、
+     * バイオームに dripstone_caves・lush_caves を補う）。
+     * 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
+     */
+    public static byte[] translateJoinGame754To755(byte[] payload) {
+        try {
+            JoinGame754 join = parseJoinGame754(payload);
+            String dimensionName = dimensionName754(join.dimension(), join.dimensionCodec());
+            return writeJoinGame755(new JoinGame755(join.entityId(), join.hardcore(),
+                    join.gameMode(), join.previousGameMode(), join.worldNames(),
+                    translateDimensionCodec754To755(join.dimensionCodec()),
+                    dimensionValue755(dimensionName),
+                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
+                    join.reducedDebug(), join.enableRespawnScreen(),
+                    join.isDebug(), join.isFlat()));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Join Game（755 → 754）。dimension は NBT の値から codec 内の名前を引き、754の element に直す。
+     * dimensionCodec は754形式に直す（dimension_type の element から min_y・height を除き、
+     * バイオームから dripstone_caves・lush_caves を落とす）。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateJoinGame755To754(byte[] payload) {
+        try {
+            JoinGame755 join = parseJoinGame755(payload);
+            String dimensionName = dimensionName755(join.dimension(), join.dimensionCodec());
+            return writeJoinGame754(new JoinGame754(join.entityId(), join.hardcore(),
+                    join.gameMode(), join.previousGameMode(), join.worldNames(),
+                    translateDimensionCodec755To754(join.dimensionCodec()),
+                    dimensionValue754(dimensionName),
+                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
+                    join.reducedDebug(), join.enableRespawnScreen(),
+                    join.isDebug(), join.isFlat()));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Respawn（754）
+    // ------------------------------------------------------------------
+
+    /** 754の Respawn（SpawnInfo）の中身。755と同一の8フィールド。dimension は DimensionType の値そのもの（NBT）。previousGameMode は u8（Join Game の i8 とは違う。protocol.json で確認）。copyMetadata は末尾。dataToKeep は無い。 */
+    public record SpawnInfo754(Tag dimension, String worldName, long hashedSeed, int gameMode,
+            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata) {
+    }
+
+    /** 754の SpawnInfo を読む。755と同一のフィールド順。 */
+    public static SpawnInfo754 readSpawnInfo754(Reader reader) {
+        Tag dimension = reader.readNamedNbt().tag();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readUnsignedByte();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        boolean copyMetadata = reader.readBoolean();
+        return new SpawnInfo754(dimension, worldName, hashedSeed, gameMode,
+                previousGameMode, isDebug, isFlat, copyMetadata);
+    }
+
+    /** 754の SpawnInfo を書く。755と同一のフィールド順。 */
+    public static void writeSpawnInfo754(Writer writer, SpawnInfo754 info) {
+        writer.writeNamedNbt("", info.dimension());
+        writer.writeString(info.worldName());
+        writer.writeLong(info.hashedSeed());
+        writer.writeByte(info.gameMode());
+        writer.writeByte(info.previousGameMode());
+        writer.writeBoolean(info.isDebug());
+        writer.writeBoolean(info.isFlat());
+        writer.writeBoolean(info.copyMetadata());
+    }
+
+    /**
+     * Respawn（754 → 755）。フィールドは同一のため、dimension の element だけ755既定値に直す
+     * （min_y=0・height=256 を足す）。copyMetadata はそのまま写す。
+     * previousGameMode は u8 のまま写す（範囲検査はしない。Join Game の i8 と違い、"無し" の符号が protocol.json には無いため）。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo754 info = readSpawnInfo754(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo755(writer, new SpawnInfo755(
+                    dimensionValue755(dimensionName754(info.dimension(), null)),
+                    info.worldName(), info.hashedSeed(), info.gameMode(),
+                    info.previousGameMode(), info.isDebug(), info.isFlat(),
+                    info.copyMetadata()));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Respawn（755 → 754）。フィールドは同一のため、dimension の element だけ754既定値に直す
+     * （min_y・height を除く）。copyMetadata はそのまま写す。読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo755 info = readSpawnInfo755(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo754(writer, new SpawnInfo754(
+                    dimensionValue754(dimensionName755(info.dimension(), null)),
+                    info.worldName(), info.hashedSeed(), info.gameMode(),
+                    info.previousGameMode(), info.isDebug(), info.isFlat(),
+                    info.copyMetadata()));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Client Information（Settings、754）
+    // ------------------------------------------------------------------
+
+    /**
+     * Client Information（754 → 755）。754は {locale, viewDistance i8, chatFlags varint,
+     * chatColors bool, skinParts u8, mainHand varint} の6フィールドで、755は末尾に
+     * disableTextFiltering bool が付いた7フィールド。末尾に false を足す。
+     * false の根拠：false はフィルタ有効で、1.17のバニラクライアントの既定値
+     * （設定で無効化しない限り false を送る）。1.16.5のクライアントはこの設定を持たないため、
+     * 1.17の既定値を適用する。ViaVersion の Protocol1_16_4To1_17 は
+     * CLIENT_INFORMATION で1.17側の text filtering bool を読んで落とす（755→754方向）だけで、
+     * 逆向きの補完値は ViaVersion には無いため、この既定値の選択は DetergentMC の判断である。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateClientInformation754To755(byte[] payload) {
+        if (payload == null) {
+            return payload;
+        }
+        try {
+            Reader reader = new Reader(payload);
+            String locale = reader.readString();
+            int viewDistance = reader.readByte();
+            int chatFlags = reader.readVarInt();
+            boolean chatColors = reader.readBoolean();
+            int skinParts = reader.readUnsignedByte();
+            int mainHand = reader.readVarInt();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Client Information に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString(locale);
+            writer.writeByte(viewDistance);
+            writer.writeVarInt(chatFlags);
+            writer.writeBoolean(chatColors);
+            writer.writeUnsignedByte(skinParts);
+            writer.writeVarInt(mainHand);
+            writer.writeBoolean(false); // disableTextFiltering：754には無いため 1.17の既定値 false を補う
+            return writer.bytes();
+        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            return payload;
+        }
+    }
+
+    /**
+     * Client Information（755 → 754）。末尾の disableTextFiltering bool を落とす。
+     * 根拠：ViaVersion の Protocol1_16_4To1_17 の CLIENT_INFORMATION も
+     * 1.17側の text filtering bool を読んで落としている（read(Types.BOOLEAN)）。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateClientInformation755To754(byte[] payload) {
+        if (payload == null) {
+            return payload;
+        }
+        try {
+            Reader reader = new Reader(payload);
+            String locale = reader.readString();
+            int viewDistance = reader.readByte();
+            int chatFlags = reader.readVarInt();
+            boolean chatColors = reader.readBoolean();
+            int skinParts = reader.readUnsignedByte();
+            int mainHand = reader.readVarInt();
+            boolean disableTextFiltering = reader.readBoolean();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Client Information に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString(locale);
+            writer.writeByte(viewDistance);
+            writer.writeVarInt(chatFlags);
+            writer.writeBoolean(chatColors);
+            writer.writeUnsignedByte(skinParts);
+            writer.writeVarInt(mainHand);
+            return writer.bytes();
+        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Synchronize Player Position（754）
+    // ------------------------------------------------------------------
+
+    /**
+     * Synchronize Player Position（754 0x34 → 755 0x38）。
+     * 755 にだけ末尾の dismountVehicle（bool）があるため false を足す。
+     * false の根拠：false は「乗り物から降りない」で、1.16.5には降車の概念が無く、
+     * 乗り続けるのが元の挙動（translatePosition762To761 と同じ選択）。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translatePosition754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            float yaw = reader.readFloat();
+            float pitch = reader.readFloat();
+            byte flags = reader.readByte();
+            int teleportId = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeFloat(yaw);
+            writer.writeFloat(pitch);
+            writer.writeByte(flags);
+            writer.writeVarInt(teleportId);
+            writer.writeBoolean(false); // dismountVehicle（755のみ）
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Synchronize Player Position を変換できなかったため素通しします: "
+                    + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Synchronize Player Position（755 0x38 → 754 0x34）。
+     * 末尾の dismountVehicle を読んで落とす。読めないペイロードは素通しする。
+     */
+    public static byte[] translatePosition755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            float yaw = reader.readFloat();
+            float pitch = reader.readFloat();
+            byte flags = reader.readByte();
+            int teleportId = reader.readVarInt();
+            reader.readBoolean(); // dismountVehicle（755のみ）
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeFloat(yaw);
+            writer.writeFloat(pitch);
+            writer.writeByte(flags);
+            writer.writeVarInt(teleportId);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Synchronize Player Position を変換できなかったため素通しします: "
+                    + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Combat Event（754）⇔ enter／end／death_combat_event（755）
+    // ------------------------------------------------------------------
+
+    /**
+     * Combat Event（754 0x31 → 755）。754は {event varint, duration（event=1 のとき varint）,
+     * playerId（event=2 のとき varint）, entityId（event=1・2 のとき i32）,
+     * message（event=2 のとき string）} の1パケットで、event の値で3種に分かれる。
+     * 755は3パケットに分かれているため、event に応じて振り分けて返す。
+     * 戻り値は {@link MinecraftPacket}（755のパケットID＋ペイロード）。
+     * event が 0〜2 以外の場合と、読めないペイロードの場合は {@code null} を返す
+     * （呼び出し側は落とすこと。素通しはできない。755側の3パケットのどれにもならないため）。
+     */
+    public static MinecraftPacket translateCombatEvent754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int event = reader.readVarInt();
+            return switch (event) {
+                case 0 -> {
+                    requireEnd(reader);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_ENTER_COMBAT_EVENT.idFor(755),
+                            new byte[0]);
+                }
+                case 1 -> {
+                    int duration = reader.readVarInt();
+                    int entityId = reader.readInt();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeVarInt(duration);
+                    writer.writeInt(entityId);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_END_COMBAT_EVENT.idFor(755),
+                            writer.bytes());
+                }
+                case 2 -> {
+                    int playerId = reader.readVarInt();
+                    int entityId = reader.readInt();
+                    String message = reader.readString();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeVarInt(playerId);
+                    writer.writeInt(entityId);
+                    writer.writeString(message);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_DEATH_COMBAT_EVENT.idFor(755),
+                            writer.bytes());
+                }
+                default -> {
+                    LOG.warning("Combat Event の event が範囲外のため落とします: " + event);
+                    yield null;
+                }
+            };
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Combat Event を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Enter Combat Event（755 0x34 → 754 0x31）。ペイロードは空で、754では {event=0} だけになる。
+     * ペイロードに余分なバイトがある場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateEnterCombatEvent755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(0);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Enter Combat Event を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * End Combat Event（755 0x33 → 754 0x31）。{duration varint, entityId i32} に
+     * event=1 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateEndCombatEvent755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int duration = reader.readVarInt();
+            int entityId = reader.readInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(1);
+            writer.writeVarInt(duration);
+            writer.writeInt(entityId);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("End Combat Event を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Death Combat Event（755 0x35 → 754 0x31）。{playerId varint, entityId i32, message string} に
+     * event=2 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateDeathCombatEvent755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int playerId = reader.readVarInt();
+            int entityId = reader.readInt();
+            String message = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(2);
+            writer.writeVarInt(playerId);
+            writer.writeInt(entityId);
+            writer.writeString(message);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Death Combat Event を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Title（754）⇔ set_title_text／set_title_subtitle／set_title_time／
+    // clear_titles／action_bar（755）
+    // ------------------------------------------------------------------
+
+    /**
+     * Title（754 0x4f → 755）。754は {action varint, text（action=0・1・2 のとき string）,
+     * fadeIn／stay／fadeOut（action=3 のとき i32×3）} の1パケットで、action の値で5種に分かれる。
+     * 755は5パケットに分かれているため、action に応じて振り分けて返す。
+     * action=4・5 はどちらも clear_titles（0x10）で、reset が false／true の違い
+     * （ViaVersion の Protocol1_16_4To1_17 の SET_TITLES 分岐と同じ）。
+     * 戻り値は {@link MinecraftPacket}（755のパケットID＋ペイロード）。
+     * action が 0〜5 以外の場合と、読めないペイロードの場合は {@code null} を返す
+     * （呼び出し側は落とすこと）。
+     */
+    public static MinecraftPacket translateTitle754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int action = reader.readVarInt();
+            return switch (action) {
+                case 0 -> {
+                    String text = reader.readString();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeString(text);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_SET_TITLE_TEXT.idFor(755),
+                            writer.bytes());
+                }
+                case 1 -> {
+                    String text = reader.readString();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeString(text);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_SET_TITLE_SUBTITLE.idFor(755),
+                            writer.bytes());
+                }
+                case 2 -> {
+                    String text = reader.readString();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeString(text);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_ACTION_BAR.idFor(755),
+                            writer.bytes());
+                }
+                case 3 -> {
+                    int fadeIn = reader.readInt();
+                    int stay = reader.readInt();
+                    int fadeOut = reader.readInt();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeInt(fadeIn);
+                    writer.writeInt(stay);
+                    writer.writeInt(fadeOut);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_SET_TITLE_TIME.idFor(755),
+                            writer.bytes());
+                }
+                case 4, 5 -> {
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeBoolean(action == 5); // reset
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_CLEAR_TITLES.idFor(755),
+                            writer.bytes());
+                }
+                default -> {
+                    LOG.warning("Title の action が範囲外のため落とします: " + action);
+                    yield null;
+                }
+            };
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Title を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Set Title Text（755 0x59 → 754 0x4f）。{text string} に action=0 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateSetTitleText755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String text = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(0);
+            writer.writeString(text);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Title Text を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Set Title Subtitle（755 0x57 → 754 0x4f）。{text string} に action=1 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateSetTitleSubtitle755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String text = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(1);
+            writer.writeString(text);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Title Subtitle を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Set Title Time（755 0x5a → 754 0x4f）。{fadeIn i32, stay i32, fadeOut i32} に
+     * action=3 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateSetTitleTime755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int fadeIn = reader.readInt();
+            int stay = reader.readInt();
+            int fadeOut = reader.readInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(3);
+            writer.writeInt(fadeIn);
+            writer.writeInt(stay);
+            writer.writeInt(fadeOut);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Title Time を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Clear Titles（755 0x10 → 754 0x4f）。{reset bool} を action=5（reset=true）／
+     * action=4（reset=false）に直して組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateClearTitles755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            boolean reset = reader.readBoolean();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(reset ? 5 : 4);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Clear Titles を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Action Bar（755 0x41 → 754 0x4f）。{text string} に action=2 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateActionBar755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String text = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(2);
+            writer.writeString(text);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Action Bar を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // World Border（754）⇔ initialize／center／lerp_size／size／
+    // warning_delay／warning_reach（755）
+    // ------------------------------------------------------------------
+
+    /**
+     * World Border（754 0x3d → 755）。754は {action varint,
+     * radius（action=0 のとき f64）, x・z（action=2・3 のとき f64）,
+     * old_radius・new_radius（action=1・3 のとき f64）, speed（action=1・3 のとき varlong）,
+     * portalBoundary（action=3 のとき varint）,
+     * warningBlocks（action=3 のとき varint）, warningTime（action=3 のとき varint）,
+     * warningTime（action=4 のとき varint）, warningBlocks（action=5 のとき varint）}
+     * の1パケットで、action の値で6種に分かれる。
+     * 注意：action=3 の warning の順序は warningBlocks→warningTime である。
+     * minecraft-data protocol.json の warning_time→warning_blocks の順序は誤りで、
+     * 実バニラ1.16.5の javap（ClientboundSetBorderPacket qt#write）と生キャプチャ
+     * （portalBoundary の後に 5→15）で確認した。
+     * また radius は直径の値そのもので、755の diameter と同じ値をそのまま写す
+     * （実バニラ1.16.5の既定ボーダーは 60000000.0、実バニラ1.17の既定ボーダーは
+     * 59999968.0。どちらも直径。32の差は1.17の既定値・上限値の変更によるもの）。
+     * 戻り値は {@link MinecraftPacket}（755のパケットID＋ペイロード）。
+     * action が 0〜5 以外の場合と、読めないペイロードの場合は {@code null} を返す
+     * （呼び出し側は落とすこと）。
+     */
+    public static MinecraftPacket translateWorldBorder754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int action = reader.readVarInt();
+            return switch (action) {
+                case 0 -> {
+                    double radius = reader.readDouble();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeDouble(radius); // diameter（値はそのまま）
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_WORLD_BORDER_SIZE.idFor(755),
+                            writer.bytes());
+                }
+                case 1 -> {
+                    double oldRadius = reader.readDouble();
+                    double newRadius = reader.readDouble();
+                    long speed = reader.readVarLong();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeDouble(oldRadius);
+                    writer.writeDouble(newRadius);
+                    writer.writeVarLong(speed);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_WORLD_BORDER_LERP_SIZE.idFor(755),
+                            writer.bytes());
+                }
+                case 2 -> {
+                    double x = reader.readDouble();
+                    double z = reader.readDouble();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeDouble(x);
+                    writer.writeDouble(z);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_WORLD_BORDER_CENTER.idFor(755),
+                            writer.bytes());
+                }
+                case 3 -> {
+                    double x = reader.readDouble();
+                    double z = reader.readDouble();
+                    double oldRadius = reader.readDouble();
+                    double newRadius = reader.readDouble();
+                    long speed = reader.readVarLong();
+                    int portalBoundary = reader.readVarInt();
+                    int warningBlocks = reader.readVarInt();
+                    int warningTime = reader.readVarInt();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeDouble(x);
+                    writer.writeDouble(z);
+                    writer.writeDouble(oldRadius);
+                    writer.writeDouble(newRadius);
+                    writer.writeVarLong(speed);
+                    writer.writeVarInt(portalBoundary);
+                    writer.writeVarInt(warningBlocks);
+                    writer.writeVarInt(warningTime);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_INITIALIZE_WORLD_BORDER.idFor(755),
+                            writer.bytes());
+                }
+                case 4 -> {
+                    int warningTime = reader.readVarInt();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeVarInt(warningTime);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_WORLD_BORDER_WARNING_DELAY.idFor(755),
+                            writer.bytes());
+                }
+                case 5 -> {
+                    int warningBlocks = reader.readVarInt();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeVarInt(warningBlocks);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_WORLD_BORDER_WARNING_REACH.idFor(755),
+                            writer.bytes());
+                }
+                default -> {
+                    LOG.warning("World Border の action が範囲外のため落とします: " + action);
+                    yield null;
+                }
+            };
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Border を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Initialize World Border（755 0x20 → 754 0x3d）。
+     * {x f64, z f64, oldDiameter f64, newDiameter f64, speed varlong,
+     * portalTeleportBoundary varint, warningBlocks varint, warningTime varint} に
+     * action=3 を付けて組み立てる。warning の順序は warningBlocks→warningTime
+     * （755側の順序と同じ。754側もワイヤ上は同じ順序）。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateInitializeWorldBorder755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            double x = reader.readDouble();
+            double z = reader.readDouble();
+            double oldDiameter = reader.readDouble();
+            double newDiameter = reader.readDouble();
+            long speed = reader.readVarLong();
+            int portalBoundary = reader.readVarInt();
+            int warningBlocks = reader.readVarInt();
+            int warningTime = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(3);
+            writer.writeDouble(x);
+            writer.writeDouble(z);
+            writer.writeDouble(oldDiameter);
+            writer.writeDouble(newDiameter);
+            writer.writeVarLong(speed);
+            writer.writeVarInt(portalBoundary);
+            writer.writeVarInt(warningBlocks);
+            writer.writeVarInt(warningTime);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Initialize World Border を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * World Border Center（755 0x42 → 754 0x3d）。{x f64, z f64} に action=2 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateWorldBorderCenter755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            double x = reader.readDouble();
+            double z = reader.readDouble();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(2);
+            writer.writeDouble(x);
+            writer.writeDouble(z);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Border Center を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * World Border Lerp Size（755 0x43 → 754 0x3d）。
+     * {oldDiameter f64, newDiameter f64, speed varlong} に action=1 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateWorldBorderLerpSize755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            double oldDiameter = reader.readDouble();
+            double newDiameter = reader.readDouble();
+            long speed = reader.readVarLong();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(1);
+            writer.writeDouble(oldDiameter);
+            writer.writeDouble(newDiameter);
+            writer.writeVarLong(speed);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Border Lerp Size を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * World Border Size（755 0x44 → 754 0x3d）。{diameter f64} に action=0 を付けて組み立てる。
+     * diameter の値は radius としてそのまま写す（直径の値そのもののため）。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateWorldBorderSize755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            double diameter = reader.readDouble();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(0);
+            writer.writeDouble(diameter);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Border Size を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * World Border Warning Delay（755 0x45 → 754 0x3d）。{warningTime varint} に
+     * action=4 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateWorldBorderWarningDelay755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int warningTime = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(4);
+            writer.writeVarInt(warningTime);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Border Warning Delay を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * World Border Warning Reach（755 0x46 → 754 0x3d）。{warningBlocks varint} に
+     * action=5 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateWorldBorderWarningReach755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int warningBlocks = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(5);
+            writer.writeVarInt(warningBlocks);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Border Warning Reach を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Resource Pack Send（754）
+    // ------------------------------------------------------------------
+
+    /**
+     * Resource Pack Send（754 0x38 → 755 0x3c）。754 は {url, hash} のみで、
+     * 755 は forced bool と promptMessage option が付く（mc-1.16／
+     * mc-1.17-protocol.json で実測）。forced は false、promptMessage は
+     * 無しを補う（ViaVersion の Protocol1_16_4To1_17 の RESOURCE_PACK と
+     * 同じ。ViaVersion は設定値から forced／prompt を入れるが、既定は
+     * forced=false・prompt 無し）。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateResourcePack754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String url = reader.readString();
+            String hash = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(url);
+            writer.writeString(hash);
+            writer.writeBoolean(false); // forced（754には無いため 1.17の既定値 false を補う）
+            writer.writeBoolean(false); // promptMessage 無し
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Resource Pack Send を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Resource Pack Send（755 0x3c → 754 0x38）。forced と promptMessage を
+     * 読んで落とす。読めないペイロードは素通しする。
+     */
+    public static byte[] translateResourcePack755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String url = reader.readString();
+            String hash = reader.readString();
+            reader.readBoolean(); // forced（754には無い）
+            boolean hasPrompt = reader.readBoolean(); // promptMessage の option
+            if (hasPrompt) {
+                reader.readString();
+            }
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(url);
+            writer.writeString(hash);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Resource Pack Send を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Ping／Pong ⇔ Transaction（落とす）
+    // ------------------------------------------------------------------
+
+    /**
+     * Ping（755 0x30 → 754 0x11）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠：1.17の ping {id i32} と1.16.5の transaction {windowId i8, actionNumber i16,
+     * accepted bool} には対応付けが無い。ViaVersion の Protocol1_16_4To1_17.java にも
+     * PING／PONG／CONTAINER_ACK の登録は無く（ローカルの複写を grep で確認）、
+     * i32 の id は i16 の actionNumber に往復できない。ping／pong は遅延測定だけで、
+     * 落としても接続は維持される（Keep Alive 0x1f⇔0x21 は別パケットで影響を受けない）。
+     * 素通しはしない（0x30 のペイロードを 0x11 として送ると、1.16.5クライアントが
+     * windowId／actionNumber として誤読するため）。
+     */
+    public static byte[] translatePing755To754(byte[] payload) {
+        return null;
+    }
+
+    /**
+     * Transaction（754 0x11 → 755 0x30）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠は {@link #translatePing755To754(byte[])} と同じ。
+     * 1.16.5サーバーが送る transaction（ウィンドウクリックの確認応答）は、1.17の ping には
+     * 対応付けできないため落とす。
+     */
+    public static byte[] translateTransaction754ToPing755(byte[] payload) {
+        return null;
+    }
+
+    /**
+     * Pong（755 0x1d → 754 0x07）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠は {@link #translatePing755To754(byte[])} と同じ。
+     * 1.17の pong {id i32} と1.16.5の transaction {windowId i8, actionNumber i16,
+     * accepted bool} には対応付けが無い。
+     */
+    public static byte[] translatePong755To754(byte[] payload) {
+        return null;
+    }
+
+    /**
+     * Transaction（754 0x07 → 755 0x1d）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠は {@link #translatePing755To754(byte[])} と同じ。
+     * 1.16.5クライアントが送る transaction（ウィンドウクリックの確認応答）は、1.17の pong には
+     * 対応付けできないため落とす。
+     */
+    public static byte[] translateTransaction754ToPong755(byte[] payload) {
+        return null;
+    }
+
+    // ------------------------------------------------------------------
+    // Sculk Vibration Signal（755のみ。落とす）
+    // ------------------------------------------------------------------
+
+    /**
+     * Sculk Vibration Signal（755 0x05 → 754）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠：1.16.5にはスカルク振動の信号が無く、754では -1（STAGE-A-754-NOTES.md §8.1の削除1件）。
+     * 素通しはしない（754のクライアントが 0x05 を別パケットとして誤読するため）。
+     */
+    public static byte[] translateSculkVibrationSignal755To754(byte[] payload) {
+        return null;
+    }
+
+    // ------------------------------------------------------------------
+    // 753（1.16.3）⇔ 754（1.16.4／1.16.5）— 恒等写像
+    // ------------------------------------------------------------------
+    //
+    // 恒等写像である根拠（推測なし。すべて Stage A の実測。753ノート §8.1・§11.1・§11.6）：
+    // - パケットID差分 0件：packet-ids-753.json（272件）で変更0・新規0・削除0。
+    //   全272件で id753 == id754（id753>=0 は159件で754と同じ）。
+    //   Join Game 0x24、Respawn 0x39、Client Information 0x05、
+    //   Synchronize Player Position（クライアント行き 0x34）は
+    //   753・754とも同一（PacketIds.java の753列・754列で確認）。
+    // - レジストリ差分 0件：実バニラ1.16.3の registries.json（272,499バイト）と
+    //   blocks-1.16.3-reports.json（3,477,609バイト）は1.16.5版とバイト単位で完全一致。
+    //   ブロック状態17,112・ブロック763・アイテム976・バイオーム79件（id 0〜173）とも同一。
+    //   mc-1.16.3-protocol.json（152,123バイト）も mc-1.16-protocol.json とバイト同一。
+    // - Login／Respawn フィールド同一：公式 server_mappings.txt の
+    //   ClientboundLoginPacket は1.16.3・1.16.5とも同じ15フィールド、
+    //   ClientboundRespawnPacket は同じ8フィールド。
+    //   previousGameMode は u8 で 0xFF=255、ワイヤ上は754の i8 -1 と同じ1バイト。
+    // - 生キャプチャ同一：実バニラ1.16.3の Join Game は30,847バイトで
+    //   実バニラ1.16.5の Join Game（30,847バイト）とバイト数・内容とも同一
+    //   （dimension_type 4件・バイオーム79件、dimension element に min_y／height 無し）。
+    //   parseJoinGame754 がこのキャプチャを30,847バイトちょうど消費してパースできる
+    //   （PlayTranslator753Test.joinGame753LiveCaptureParses で確認）。
+    //
+    // したがって本節の8変換器はすべて恒等写像で、入力ペイロードをそのまま返す。
+    // パースして書き直してはいけない（書き直しはバグの温床になる。754のパーサ／ライタは
+    // 753のバイトも読める・書けることが上記のテストで証明済みだが、変換器自体は
+    // パースしない）。754のパーサ（parseJoinGame754／readSpawnInfo754）は753の
+    // ペイロードの検証・テスト用に流用する。
+    //
+    // 変換器を作らないものと根拠：
+    // - combat_event（753・754とも単一ID 0x31）：754⇔755では3パケット
+    //   （enter／end／death_combat_event 0x34／0x33／0x35）への分割が必要だったが、
+    //   753と754は同じ単一パケット 0x31 を共有するため分割・合成は不要。
+    //   PacketIds の PLAY_ENTER／END／DEATH_COMBAT_EVENT の753列・754列とも 0x31。
+    // - title（753・754とも単一ID 0x4f）：754⇔755では5パケットへの分割が必要だったが、
+    //   753と754は同じ単一パケット 0x4f を共有するため分割・合成は不要。
+    //   PLAY_SET_TITLE_TEXT／SET_TITLE_SUBTITLE／SET_TITLE_TIME／CLEAR_TITLES／
+    //   ACTION_BAR の753列・754列とも 0x4f。
+    // - world_border（753・754とも単一ID 0x3d）：754⇔755では6パケットへの分割が
+    //   必要だったが、753と754は同じ単一パケット 0x3d を共有するため分割・合成は不要。
+    //   PLAY_INITIALIZE_WORLD_BORDER ほか6件の753列・754列とも 0x3d。
+    // - ping／pong ⇔ transaction：754⇔755では ping 0x30／pong 0x1d と
+    //   transaction 0x11／0x07 の対応付けが無く落としていたが、753と754は
+    //   両方とも transaction（クライアント行き 0x11／サーバー行き 0x07）で同一の
+    //   ため付け替え不要。PLAY_PING の753列・754列とも 0x11、
+    //   PLAY_PONG の753列・754列とも 0x07。
+    // - sculk_vibration_signal：753・754とも無し（PacketIds の753列・754列とも -1）。
+    //   755にだけある 0x05 のため、753⇔754間では落とす対象自体が存在しない。
+    // - declare_recipes（0x5a）：754⇔755で変換器不要だったもの。753⇔754でも
+    //   ID（0x5a）・ワイヤとも同一（protocol.json がバイト同一）のため変換器不要。
+    //   同じく754⇔755で変換器不要だったもののうち753⇔754でも同一のもの：
+    //   tags（0x5b。754⇔755では4固定→汎用配列の違いがあったが、753⇔754は同じ
+    //   4固定のため同一）、resource_pack_send（0x38。forced bool・promptMessage は
+    //   755での追加で、753・754とも {url, hash} のみのため同一）、
+    //   その他 Chat・Player Info・Set Held Item・Update Time（0x4e）・Keep Alive
+    //   （0x1f）・Set Slot・Window Items・Set Cooldown・Entity Equipment・Trade List・
+    //   Tile Entity Data・Entity Metadata・Sound Effect・Entity Sound Effect・
+    //   Named Sound Effect・Stop Sound・World Particles・Multi Block Change・
+    //   Block Change・Spawn Entity 系・Open Window・Block Action・Entity Effect・
+    //   Enchant Item など、パケットID差分0件・protocol.json バイト同一のため
+    //   すべて同一で、呼び出し側がIDを付け替えるだけでよい（IDも同じため付け替えすら不要）。
+    //   なお entity_destroy（0x36）・window_click・map_chunk・update_light・
+    //   explosion・entity_update_attributes・map は ChunkTranslator 担当の
+    //   パケットで、753⇔754間も ID・フィールドとも同一のため本節では扱わない。
+    //   entity（クライアント行き 0x2a）は PacketIds の対象外のまま（754と同じ扱い）。
+
+    /**
+     * Join Game（753 → 754）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x24 同一、Login 15フィールド同一、
+     * 生キャプチャ30,847バイト同一）を参照。パースして書き直さない。
+     */
+    public static byte[] translateJoinGame753To754(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Join Game（754 → 753）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateJoinGame753To754(byte[])} と同じ。
+     */
+    public static byte[] translateJoinGame754To753(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Respawn（753 → 754）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x39 同一、Respawn 8フィールド同一）を参照。
+     * パースして書き直さない。
+     */
+    public static byte[] translateRespawn753To754(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Respawn（754 → 753）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateRespawn753To754(byte[])} と同じ。
+     */
+    public static byte[] translateRespawn754To753(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Client Information（753 → 754）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x05 同一、6フィールド同一。disableTextFiltering は
+     * 755での追加で、753・754とも無い）を参照。パースして書き直さない。
+     */
+    public static byte[] translateClientInformation753To754(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Client Information（754 → 753）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateClientInformation753To754(byte[])} と同じ。
+     */
+    public static byte[] translateClientInformation754To753(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Synchronize Player Position（753 → 754）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x34 同一、
+     * フィールド同一。dismountVehicle は755での追加で、753・754とも無い）を参照。
+     * パースして書き直さない。
+     */
+    public static byte[] translatePosition753To754(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Synchronize Player Position（754 → 753）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translatePosition753To754(byte[])} と同じ。
+     */
+    public static byte[] translatePosition754To753(byte[] payload) {
+        return payload;
+    }
+    // ------------------------------------------------------------------
+    // 751（1.16.2）⇔ 753（1.16.3）— 恒等写像
+    // ------------------------------------------------------------------
+    //
+    // 恒等写像である根拠（推測なし。すべて Stage A の実測。751ノート §8.1・§11.1・§11.6）：
+    // - パケットID差分 0件：packet-ids-751.json（272件）で変更0・新規0・削除0。
+    //   全272件で id751 == id753（id751>=0 は159件で753と同じ）。
+    //   Join Game 0x24、Respawn 0x39、Client Information 0x05、
+    //   Synchronize Player Position（クライアント行き 0x34）は
+    //   751・753とも同一（PacketIds.java の751列・753列で確認）。
+    // - レジストリ差分 0件：実バニラ1.16.2の registries.json と
+    //   blocks レポートは1.16.3版とバイト単位で完全一致。
+    //   ブロック状態17,112・ブロック763・アイテム976・バイオーム79件（id 0〜173）とも同一。
+    //   mc-1.16.2-protocol.json（152,123バイト）も mc-1.16.3-protocol.json とバイト同一。
+    // - Login／Respawn フィールド同一：公式 server_mappings.txt の
+    //   ClientboundLoginPacket は1.16.2・1.16.3とも同じ15フィールド、
+    //   ClientboundRespawnPacket は同じ8フィールド。
+    //   previousGameMode は u8 で 0xFF=255、ワイヤ上は753の i8 -1 と同じ1バイト。
+    // - 生キャプチャ同一：実バニラ1.16.2の Join Game は30,847バイトで
+    //   実バニラ1.16.3の Join Game（30,847バイト）とバイト数・内容とも同一
+    //   （dimension_type 4件・バイオーム79件、dimension element に min_y／height 無し）。
+    //   parseJoinGame753 がこのキャプチャを30,847バイトちょうど消費してパースできる
+    //   （PlayTranslator751Test.joinGame751LiveCaptureParses で確認）。
+    //
+    // したがって本節の8変換器はすべて恒等写像で、入力ペイロードをそのまま返す。
+    // パースして書き直してはいけない（書き直しはバグの温床になる。753のパーサ／ライタは
+    // 751のバイトも読める・書けることが上記のテストで証明済みだが、変換器自体は
+    // パースしない）。753のパーサ（parseJoinGame753／readSpawnInfo754）は751の
+    // ペイロードの検証・テスト用に流用する。
+    //
+    // 変換器を作らないものと根拠：
+    // - combat_event（751・753とも単一ID 0x31）：754⇔755では3パケット
+    //   （enter／end／death_combat_event 0x34／0x33／0x35）への分割が必要だったが、
+    //   751と753は同じ単一パケット 0x31 を共有するため分割・合成は不要。
+    //   PacketIds の PLAY_ENTER／END／DEATH_COMBAT_EVENT の751列・753列とも 0x31。
+    // - title（751・753とも単一ID 0x4f）：754⇔755では5パケットへの分割が必要だったが、
+    //   751と753は同じ単一パケット 0x4f を共有するため分割・合成は不要。
+    //   PLAY_SET_TITLE_TEXT／SET_TITLE_SUBTITLE／SET_TITLE_TIME／CLEAR_TITLES／
+    //   ACTION_BAR の751列・753列とも 0x4f。
+    // - world_border（751・753とも単一ID 0x3d）：754⇔755では6パケットへの分割が
+    //   必要だったが、751と753は同じ単一パケット 0x3d を共有するため分割・合成は不要。
+    //   PLAY_INITIALIZE_WORLD_BORDER ほか6件の751列・753列とも 0x3d。
+    // - ping／pong ⇔ transaction：754⇔755では ping 0x30／pong 0x1d と
+    //   transaction 0x11／0x07 の対応付けが無く落としていたが、751と753は
+    //   両方とも transaction（クライアント行き 0x11／サーバー行き 0x07）で同一の
+    //   ため付け替え不要。PLAY_PING の751列・753列とも 0x11、
+    //   PLAY_PONG の751列・753列とも 0x07。
+    // - sculk_vibration_signal：751・753とも無し（PacketIds の751列・753列とも -1）。
+    //   755にだけある 0x05 のため、751⇔753間では落とす対象自体が存在しない。
+    // - declare_recipes（0x5a）：754⇔755で変換器不要だったもの。751⇔753でも
+    //   ID（0x5a）・ワイヤとも同一（protocol.json がバイト同一）のため変換器不要。
+    //   同じく754⇔755で変換器不要だったもののうち751⇔753でも同一のもの：
+    //   tags（0x5b。754⇔755では4固定→汎用配列の違いがあったが、751⇔753は同じ
+    //   4固定のため同一）、resource_pack_send（0x38。forced bool・promptMessage は
+    //   755での追加で、751・753とも {url, hash} のみのため同一）、
+    //   その他 Chat・Player Info・Set Held Item・Update Time（0x4e）・Keep Alive
+    //   （0x1f）・Set Slot・Window Items・Set Cooldown・Entity Equipment・Trade List・
+    //   Tile Entity Data・Entity Metadata・Sound Effect・Entity Sound Effect・
+    //   Named Sound Effect・Stop Sound・World Particles・Multi Block Change・
+    //   Block Change・Spawn Entity 系・Open Window・Block Action・Entity Effect・
+    //   Enchant Item など、パケットID差分0件・protocol.json バイト同一のため
+    //   すべて同一で、呼び出し側がIDを付け替えるだけでよい（IDも同じため付け替えすら不要）。
+    //   なお entity_destroy（0x36）・window_click・map_chunk・update_light・
+    //   explosion・entity_update_attributes・map は ChunkTranslator 担当の
+    //   パケットで、751⇔753間も ID・フィールドとも同一のため本節では扱わない。
+    //   entity（クライアント行き 0x2a）は PacketIds の対象外のまま（753と同じ扱い）。
+
+    /**
+     * Join Game（751 → 753）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x24 同一、Login 15フィールド同一、
+     * 生キャプチャ30,847バイト同一）を参照。パースして書き直さない。
+     */
+    public static byte[] translateJoinGame751To753(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Join Game（753 → 751）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateJoinGame751To753(byte[])} と同じ。
+     */
+    public static byte[] translateJoinGame753To751(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Respawn（751 → 753）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x39 同一、Respawn 8フィールド同一）を参照。
+     * パースして書き直さない。
+     */
+    public static byte[] translateRespawn751To753(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Respawn（753 → 751）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateRespawn751To753(byte[])} と同じ。
+     */
+    public static byte[] translateRespawn753To751(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Client Information（751 → 753）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x05 同一、6フィールド同一。disableTextFiltering は
+     * 755での追加で、751・753とも無い）を参照。パースして書き直さない。
+     */
+    public static byte[] translateClientInformation751To753(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Client Information（753 → 751）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateClientInformation751To753(byte[])} と同じ。
+     */
+    public static byte[] translateClientInformation753To751(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Synchronize Player Position（751 → 753）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x34 同一、
+     * フィールド同一。dismountVehicle は755での追加で、751・753とも無い）を参照。
+     * パースして書き直さない。
+     */
+    public static byte[] translatePosition751To753(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Synchronize Player Position（753 → 751）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translatePosition751To753(byte[])} と同じ。
+     */
+    public static byte[] translatePosition753To751(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // 736（1.16.1）⇔ 751（1.16.2）
+    // ------------------------------------------------------------------
+    //
+    // 実測の根拠（推測なし）：
+    // - mc-1.16.1-protocol.json（pc/1.16.1）と mc-1.16.2-protocol.json（pc/1.16）の
+    //   全パケット・全方向の突き合わせ。toClient のフィールド差分は packet_login・
+    //   packet_respawn・packet_unlock_recipes・packet_declare_recipes・
+    //   packet_map_chunk・packet_multi_block_change の6件だけ（＋ID写像 packet）。
+    //   toServer のフィールド差分は無し（packet のID写像だけ。ただし
+    //   crafting_book_data⇔recipe_book は名前が違うため別途下記）。
+    //   それ以外の play パケットはフィールド完全同一。
+    // - STAGE-A-736-NOTES.md §8（パケットID差分：変更62件・新規0件・削除1件）と §11.6
+    //   （Join Game codec 実測：14フィールド、dimension は文字列、codec は
+    //   {"dimension": [...]} だけ、dimension 4件、バイオーム無し、min_y／height 無し）。
+    // - 実バニラ1.16.1の Join Game 生キャプチャ（1,159バイト。entityId 138。
+    //   consumed 1,159／1,159 で完全一致）と実バニラ1.16.2の Join Game 生キャプチャ
+    //   （30,847バイト。entityId 306。cap751-joingame-1-16-2.bin）の突き合わせ。
+    //   736の codec は 1,039バイトでキー "dimension" のみ。2回目のキャプチャ
+    //   （joingame-1.16.1a.bin。entityId 245）とも codec のバイトは同一。
+    // - 実バニラ1.16.1 jar（run/vanilla/server-1.16.1.jar）の javap 実測
+    //   （server_mappings.txt の Mojang 名→難読化名で特定）：
+    //   ClientboundLoginPacket（ox）#write、ClientboundRespawnPacket（pp）#write、
+    //   ClientboundPlayerPositionPacket（pk）#write、
+    //   ServerboundClientInformationPacket（rf）#write、
+    //   ClientboundPlayerCombatPacket（ph）#write、
+    //   ClientboundSetTitlesPacket（qk）#write、
+    //   ClientboundSetBorderPacket（ps）#write。
+    // - ViaVersion Protocol1_16_1To1_16_2.java（ローカルの複写。recipe_book の
+    //   分割写像と WorldPacketRewriter／TagRewriter の登録だけ。COMBAT／TITLE／
+    //   BORDER／LOGIN／RESPAWN／PING／PONG／CONTAINER_ACK の登録は無い）。
+    //
+    // 736⇔751の違いと扱い（IDは PacketIds.java／packet-ids-736.json 参照）：
+    // - Join Game（0x25⇔0x24）：14フィールド。hardcore は gameMode バイトの bit 3
+    //   （javap ox#write：writeByte(gameMode | (hardcore ? 8 : 0))）。
+    //   dimension は文字列。maxPlayers は u8（javap ox#write：writeByte。
+    //   751は varint）。dimensionCodec は {"dimension": [...]} だけ。
+    //   本節で変換器を作る。
+    // - Respawn（0x3a⇔0x39）：8フィールド同一。dimension だけ文字列⇔NBT
+    //   （javap pp#write：dimension は ResourceLocation＝文字列で読む・書く）。
+    //   本節で変換器を作る。
+    // - Client Information（0x05⇔0x05）：6フィールド同一（javap rf#write で確認。
+    //   locale、viewDistance i8、chatFlags varint、chatColors bool、skinParts u8、
+    //   mainHand varint。disableTextFiltering は755での追加で、736・751とも無い）。
+    //   本節の変換器は恒等写像。
+    // - Synchronize Player Position（0x35⇔0x34）：7フィールド同一（javap pk#write で確認。
+    //   x・y・z f64、yaw・pitch f32、flags i8、teleportId varint。
+    //   dismountVehicle は755での追加で、736・751とも無い）。本節の変換器は恒等写像。
+    // - combat_event（0x32⇔0x31）：フィールド同一。751は分割されていない
+    //   （分割は755での変更。minecraft-data の packet_combat_event は736・751で同一。
+    //   751の PLAY_ENTER／END／DEATH_COMBAT_EVENT のIDはどれも 0x31。
+    //   javap ph#write：event varint、END_COMBAT なら duration varint＋entityId i32、
+    //   ENTITY_DIED なら playerId varint＋entityId i32＋message）。
+    //   本節の変換器は恒等写像（IDだけ呼び出し側が付け替える）。
+    // - title（0x4f⇔0x4f）：IDもフィールドも同一（javap qk#write で確認。
+    //   action varint、0・1・2 なら text、3 なら fadeIn／stay／fadeOut i32×3、
+    //   4・5 なら何も無し）。本節の変換器は恒等写像。
+    // - world_border（0x3d⇔0x3d）：IDもフィールドも同一（javap ps#write で確認。
+    //   INITIALIZE は x, z, oldSize, newSize, speed, portalBoundary,
+    //   warningBlocks, warningTime の順。minecraft-data protocol.json の
+    //   warning_time→warning_blocks の順序は754のときと同じく誤り）。
+    //   本節の変換器は恒等写像。
+    // - ping（0x12）／pong（0x07）⇔ ping（0x11）／pong（0x07）：落とす（本節の null 返し）。
+    //   736側は transaction {windowId i8, actionNumber i16, accepted bool}、
+    //   751側は ping／pong {id i32} で、対応付けが無い。ViaVersion の
+    //   Protocol1_16_1To1_16_2 にも PING／PONG／CONTAINER_ACK の登録は無い。
+    //   Keep Alive（0x20⇔0x1f）は別パケットで影響を受けない。
+    // - displayed_recipe（751のみ 0x1f）：751→736では落とす（本節の null 返し）。
+    //   736には無い（Stage A §8.1の削除1件）。
+    // - entity（736のみ 0x2b）：PacketIds の対象外のまま落とす（下記の判断参照）。
+    //
+    // 決めたこと：
+    // - entity（クライアント行き 0x2b）は PacketIds にエントリを追加せず、対象外のまま落とす。
+    //   根拠：1.17で削除されたパケットで、ViaVersion の1.17 enum には無く
+    //   Protocol1_16_4To1_17 でも未登録（＝落としている）。内容は entityId varint 1個だけの
+    //   「移動なし」通知で、rel_entity_move 系とは別に位置同期には影響しない。
+    //   （754⇔755間の 0x2a と同じ判断。736では 0x2b。）
+    // - ping／pong ⇔ transaction は両方向とも落とす（null）。根拠は上記の通り。
+    // - dimensionCodec の書き換え：736側は dimension の生 element 4件だけ、
+    //   751側は dimension_type 4件＋バイオーム79件。共有する dimension element は
+    //   実バニラ既定値で丸ごと置き換える。736の element は "name"／"shrunk" を持ち、
+    //   751の element は "effects"／"coordinate_scale" を持つ（それ以外の共有フィールドの
+    //   値は同一。logical_height は両方とも overworld 256・nether／end 128）。
+    //   751の dimension element は754（1.16.5）のものとバイト完全同一
+    //   （実バニラ1.16.2のキャプチャ cap751-joingame-1-16-2.bin から4件とも確認。
+    //   751の element に min_y／height は無い。751ノート §11.6 とも一致。
+    //   min_y=0・height=256 は755（1.17）の element の話で、751には無い）。
+    //   バイオーム79件は実バニラ1.16.2の Join Game codec から取ったもの（下記の定数）。
+    //   逆向きは名前で落とす（754の dimensionCodec 書き換えと同じ方針）。
+    // - maxPlayers：736は u8、751は varint。20のような小さい値はワイヤ上同一の1バイト。
+    //   751→736で255を超える値は下位8ビットだけが送られる（実バニラの既定は20）。
+    // - previousGameMode：Join Game では736は u8（255＝なし）を -1 に読み替えて
+    //   JoinGame754 と同じ約束（-1＝なし、0〜3＝id）にする。Respawn では
+    //   SpawnInfo754 と同じく u8 のまま（255＝なし）扱う。
+    //
+    // 変換器を作らなかったもの（フィールド同一のため。IDだけ違うものは呼び出し側が付け替える）：
+    // Chat、Player Info、Set Held Item、Update Time（0x4e⇔0x4e）、Keep Alive（0x20⇔0x1f）、
+    // Set Slot、Window Items、Set Cooldown、Entity Equipment、Trade List、Tile Entity Data、
+    // Entity Metadata、Sound Effect、Entity Sound Effect、Named Sound Effect、Stop Sound、
+    // World Particles、Block Change、Spawn Entity 系、Open Window、Block Action、
+    // Entity Effect、Enchant Item、Tags（0x5b。4固定のまま同一）、
+    // Resource Pack Send（0x39⇔0x38。{url, hash} のまま同一）、Declare Recipes
+    // （0x5a⇔0x5a。成形レシピの width／height の入れ子は minecraft-data の記述の
+    // 違いだけで、ワイヤは同一。754⇔755の javap 確認と同じ。736⇔751 も
+    // ShapedRecipe$Serializer#toNetwork／fromNetwork の javap で確認済み）。
+    // なお Multi Block Change（0x0f⇔0x3b）はフィールドが違うため下記の ChunkTranslator へ
+    // 申し送る。Unlock Recipes（0x36⇔0x35）と Recipe Book（0x1e⇔0x1e）は
+    // フィールド／形式が違うため Stage B フォローアップで変換器を作った（下記参照）。
+    //
+    // ChunkTranslator担当へ申し送るもの：
+    // - entity_destroy（0x37⇔0x36）：フィールド同一（[entityIds varint配列]のまま）。
+    //   IDだけ違うが、ChunkTranslator担当のパケットのため本節では扱わない。
+    // - window_click（0x09⇔0x09）：フィールド同一。IDも同じ。ChunkTranslator担当。
+    // - map_chunk（0x21⇔0x20）：736は ignoreOldData bool 付きで biomes が
+    //   1024件固定の i32配列、751は biomes が varint件数の varint配列。
+    //   ChunkTranslator担当。
+    // - update_light（0x24⇔0x23）：フィールド同一。ChunkTranslator担当。
+    // - explosion（0x1c⇔0x1b）：フィールド同一。ChunkTranslator担当。
+    // - entity_update_attributes（0x58⇔0x58）：フィールド同一。ChunkTranslator担当。
+    // - map（0x26⇔0x25）：フィールド同一。ChunkTranslator担当。
+    // - multi_block_change（0x0f⇔0x3b）：736は {chunkX i32, chunkZ i32,
+    //   records[{horizontalPos u8, y u8, blockId varint}]}、751は
+    //   {chunkCoordinates bitfield, notTrustEdges bool, records[varlong]}。
+    //   ChunkTranslator担当。
+    //
+    // Stage B フォローアップで追加した変換器（本節の末尾。判断待ちは解消した）：
+    // - unlock_recipes（0x36⇔0x35）：736は blastFurnace／smoker の4 bool が無い
+    //   （blastFurnaceOpen／filteringBlastFurnace／smokerBookOpen／filteringSmoker）。
+    //   751→736では4 bool を落とし、736→751では false×4 を補う。
+    //   補完値 false の根拠は ViaVersion の ItemPacketRewriter1_16_2
+    //   （unlock_recipes で blast／smoker 用に false を4個書く）。
+    //   false＝新しい本は閉じた状態・フィルタ無効（1.16.1サーバーには
+    //   blast／smoker の本が無いため、開いた状態を補う根拠は無い）。
+    // - recipe_book（0x1e⇔0x1e）⇔ crafting_book_data：IDは同じだが形式が違う。
+    //   736は {type varint, switch：0→{displayedRecipe string}、
+    //   1→{craftingBookOpen／craftingFilter／smeltingBookOpen／smeltingFilter／
+    //   blastingBookOpen／blastingFilter／smokingBookOpen／smokingFilter の8 bool}}、
+    //   751は {bookId varint, bookOpen bool, filterActive bool}。
+    //   ViaVersion の Protocol1_16_1To1_16_2 は751の recipe_book（0x1e）を
+    //   type=1 の crafting_book_data に、displayed_recipe（0x1f）を type=0 の
+    //   crafting_book_data に写す登録がある。この節ではその写像をそのまま採用した。
+    //   751→736 は可逆（displayed_recipe は落とさず type=0 に変換する。
+    //   旧版の translateDisplayedRecipe751To736 は落としていたが、実測により
+    //   復元可能と判明したため変換に変更した）。
+    //   736→751 は非可逆（crafting_book_data type=1 は8 bool で4冊分だが、
+    //   751の recipe_book は1冊分しか持てない。開いている本を優先順で1冊選ぶ。
+    //   どれも開いていなければ bookId 0・open=false・filterActive=craftingFilter）。
+    //   素通しはしないこと（751の {bookId, bookOpen, filterActive} を736の
+    //   {type, switch} として読むと誤読するため）。
+
+    /** dimension_type の名前（736・751とも同じ4件・同じ順序。実バニラ両キャプチャで確認）。 */
+    private static final String[] DIMENSION_TYPE_736_NAMES = {
+            "minecraft:overworld", "minecraft:overworld_caves", "minecraft:the_nether", "minecraft:the_end",
+    };
+
+    /** 751 の dimension_type の名前は736と同じ。 */
+    private static final String[] DIMENSION_TYPE_751_NAMES = DIMENSION_TYPE_736_NAMES;
+
+    /** DIMENSION_TYPE_736_ELEMENT_HEX：実バニラ1.16.1の Join Game codec から取った element（anonymous NBT の16進）。"name"／"shrunk" を持ち、"effects"／"coordinate_scale"／min_y／height は無い。 */
+    private static final String[] DIMENSION_TYPE_736_ELEMENT_HEX = {
+"0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000008000a" +
+            "696e66696e696275726e001e6d696e6563726166743a696e66696e696275726e5f6f766572776f726c640100147265737061" +
+            "776e5f616e63686f725f776f726b730001000c6861735f736b796c69676874010100096265645f776f726b73010100096861" +
+            "735f7261696473010800046e616d6500136d696e6563726166743a6f766572776f726c6403000e6c6f676963616c5f686569" +
+            "67687400000100010006736872756e6b00010009756c7472617761726d0001000b6861735f6365696c696e670000",
+"0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000008000a" +
+            "696e66696e696275726e001e6d696e6563726166743a696e66696e696275726e5f6f766572776f726c640100147265737061" +
+            "776e5f616e63686f725f776f726b730001000c6861735f736b796c69676874010100096265645f776f726b73010100096861" +
+            "735f7261696473010800046e616d6500196d696e6563726166743a6f766572776f726c645f636176657303000e6c6f676963" +
+            "616c5f68656967687400000100010006736872756e6b00010009756c7472617761726d0001000b6861735f6365696c696e67" +
+            "0100",
+"0a01000b7069676c696e5f73616665010100076e61747572616c0005000d616d6269656e745f6c696768743dcccccd08000a" +
+            "696e66696e696275726e001b6d696e6563726166743a696e66696e696275726e5f6e65746865720100147265737061776e5f" +
+            "616e63686f725f776f726b730101000c6861735f736b796c69676874000100096265645f776f726b730004000a6669786564" +
+            "5f74696d6500000000000046500100096861735f7261696473000800046e616d6500146d696e6563726166743a7468655f6e" +
+            "657468657203000e6c6f676963616c5f68656967687400000080010006736872756e6b01010009756c7472617761726d0101" +
+            "000b6861735f6365696c696e670100",
+"0a01000b7069676c696e5f73616665000100076e61747572616c0005000d616d6269656e745f6c696768740000000008000a" +
+            "696e66696e696275726e00186d696e6563726166743a696e66696e696275726e5f656e640100147265737061776e5f616e63" +
+            "686f725f776f726b730001000c6861735f736b796c69676874000100096265645f776f726b730004000a66697865645f7469" +
+            "6d6500000000000017700100096861735f7261696473010800046e616d6500116d696e6563726166743a7468655f656e6403" +
+            "000e6c6f676963616c5f68656967687400000100010006736872756e6b00010009756c7472617761726d0001000b6861735f" +
+            "6365696c696e670000"
+    };
+
+    /** 実バニラ1.16.1の dimension element 4件（名前→element）。 */
+    private static final Map<String, Tag.CompoundTag> DIMENSION_TYPE_736_ELEMENTS =
+            elementMap(DIMENSION_TYPE_736_NAMES, DIMENSION_TYPE_736_ELEMENT_HEX);
+
+    /**
+     * 実バニラ1.16.2の dimension_type element 4件（名前→element）。
+     * 754（1.16.5）のものとバイト完全同一（実バニラ1.16.2の Join Game 生キャプチャ
+     * cap751-joingame-1-16-2.bin から4件とも確認）。min_y／height は無い。
+     */
+    private static final Map<String, Tag.CompoundTag> DIMENSION_TYPE_751_ELEMENTS =
+            DIMENSION_TYPE_754_ELEMENTS;
+
+    /**
+     * BIOME_751_REGISTRY_HEX：実バニラ1.16.2の Join Game codec から取った
+     * minecraft:worldgen/biome レジストリ全体（anonymous NBT の16進。79件。
+     * id は 0〜50・127・129〜134・140・149・151・155〜158・160〜173）。
+     * 736の codec にはバイオームレジストリが無いため、736→751でこれを補う。
+     */
+    private static final String BIOME_751_REGISTRY_HEX =
+"0a0800047479706500186d696e6563726166743a776f726c6467656e2f62696f6d6509000576616c75650a0000004f080004" +
+            "6e616d65000f6d696e6563726166743a6f6365616e0300026964000000000a0007656c656d656e7408000d70726563697069" +
+            "746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4ff03000f77617465725f666f67" +
+            "5f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f" +
+            "645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400" +
+            "166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e740000000800" +
+            "000500056465707468bf80000005000b74656d70657261747572653f0000000500057363616c653dcccccd050008646f776e" +
+            "66616c6c3f00000008000863617465676f727900056f6365616e00000800046e616d6500106d696e6563726166743a706c61" +
+            "696e730300026964000000010a0007656c656d656e7408000d70726563697069746174696f6e00047261696e0a0007656666" +
+            "65637473030009736b795f636f6c6f720078a7ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f63" +
+            "6f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c" +
+            "6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e74" +
+            "2e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683e00000005000b7465" +
+            "6d70657261747572653f4ccccd0500057363616c653d4ccccd050008646f776e66616c6c3ecccccd08000863617465676f72" +
+            "790006706c61696e7300000800046e616d6500106d696e6563726166743a6465736572740300026964000000020a0007656c" +
+            "656d656e7408000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f7200" +
+            "6eb1ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+            "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000" +
+            "000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f736561" +
+            "7263685f657874656e7400000008000005000564657074683e00000005000b74656d70657261747572654000000005000573" +
+            "63616c653d4ccccd050008646f776e66616c6c0000000008000863617465676f7279000664657365727400000800046e616d" +
+            "6500136d696e6563726166743a6d6f756e7461696e730300026964000000030a0007656c656d656e7408000d707265636970" +
+            "69746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da2ff03000f77617465725f666f" +
+            "675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f" +
+            "6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e64" +
+            "00166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008" +
+            "000005000564657074683f80000005000b74656d70657261747572653e4ccccd0500057363616c653f000000050008646f77" +
+            "6e66616c6c3e99999a08000863617465676f7279000d65787472656d655f68696c6c7300000800046e616d6500106d696e65" +
+            "63726166743a666f726573740300026964000000040a0007656c656d656e7408000d70726563697069746174696f6e000472" +
+            "61696e0a000765666665637473030009736b795f636f6c6f720079a6ff03000f77617465725f666f675f636f6c6f72000505" +
+            "33030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e640300" +
+            "0a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166" +
+            "743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e740000000800000500056465707468" +
+            "3dcccccd05000b74656d70657261747572653f3333330500057363616c653e4ccccd050008646f776e66616c6c3f4ccccd08" +
+            "000863617465676f72790006666f7265737400000800046e616d65000f6d696e6563726166743a7461696761030002696400" +
+            "0000050a0007656c656d656e7408000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b" +
+            "795f636f6c6f72007da3ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03" +
+            "000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c617900001770060006" +
+            "6f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e6361766503001362" +
+            "6c6f636b5f7365617263685f657874656e7400000008000005000564657074683e4ccccd05000b74656d7065726174757265" +
+            "3e8000000500057363616c653e4ccccd050008646f776e66616c6c3f4ccccd08000863617465676f72790005746169676100" +
+            "000800046e616d65000f6d696e6563726166743a7377616d700300026964000000060a0007656c656d656e7408000d707265" +
+            "63697069746174696f6e00047261696e0a00076566666563747308001467726173735f636f6c6f725f6d6f64696669657200" +
+            "057377616d70030009736b795f636f6c6f720078a7ff03000d666f6c696167655f636f6c6f72006a703903000f7761746572" +
+            "5f666f675f636f6c6f7200232317030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f7200617b640a00" +
+            "0a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f" +
+            "756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400" +
+            "00000800000500056465707468be4ccccd05000b74656d70657261747572653f4ccccd0500057363616c653dcccccd050008" +
+            "646f776e66616c6c3f66666608000863617465676f727900057377616d7000000800046e616d65000f6d696e656372616674" +
+            "3a72697665720300026964000000070a0007656c656d656e7408000d70726563697069746174696f6e00047261696e0a0007" +
+            "65666665637473030009736b795f636f6c6f72007ba4ff03000f77617465725f666f675f636f6c6f7200050533030009666f" +
+            "675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f" +
+            "64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269" +
+            "656e742e63617665030013626c6f636b5f7365617263685f657874656e740000000800000500056465707468bf0000000500" +
+            "0b74656d70657261747572653f0000000500057363616c6500000000050008646f776e66616c6c3f00000008000863617465" +
+            "676f72790005726976657200000800046e616d6500176d696e6563726166743a6e65746865725f7761737465730300026964" +
+            "000000080a0007656c656d656e7408000d70726563697069746174696f6e00046e6f6e650a0007656666656374730a00056d" +
+            "757369630100157265706c6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f" +
+            "756e6400246d696e6563726166743a6d757369632e6e65746865722e6e65746865725f7761737465730300096d696e5f6465" +
+            "6c617900002ee000030009736b795f636f6c6f72006eb1ff08000d616d6269656e745f736f756e6400246d696e6563726166" +
+            "743a616d6269656e742e6e65746865725f7761737465732e6c6f6f700a000f6164646974696f6e735f736f756e6408000573" +
+            "6f756e6400296d696e6563726166743a616d6269656e742e6e65746865725f7761737465732e6164646974696f6e7306000b" +
+            "7469636b5f6368616e63653f86bb98c7e282410003000f77617465725f666f675f636f6c6f7200050533030009666f675f63" +
+            "6f6c6f720033080803000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c" +
+            "6179000017700600066f66667365744000000000000000080005736f756e6400246d696e6563726166743a616d6269656e74" +
+            "2e6e65746865725f7761737465732e6d6f6f64030013626c6f636b5f7365617263685f657874656e74000000080000050005" +
+            "64657074683dcccccd05000b74656d7065726174757265400000000500057363616c653e4ccccd050008646f776e66616c6c" +
+            "0000000008000863617465676f727900066e657468657200000800046e616d6500116d696e6563726166743a7468655f656e" +
+            "640300026964000000090a0007656c656d656e7408000d70726563697069746174696f6e00046e6f6e650a00076566666563" +
+            "7473030009736b795f636f6c6f720000000003000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c" +
+            "6f7200a080a003000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179" +
+            "000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63" +
+            "617665030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d70" +
+            "657261747572653f0000000500057363616c653e4ccccd050008646f776e66616c6c3f00000008000863617465676f727900" +
+            "077468655f656e6400000800046e616d6500166d696e6563726166743a66726f7a656e5f6f6365616e03000269640000000a" +
+            "0a0007656c656d656e7408000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f63" +
+            "6f6c6f72007fa1ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77" +
+            "617465725f636f6c6f72003938c90a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666" +
+            "7365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f63" +
+            "6b5f7365617263685f657874656e740000000800000500056465707468bf80000005000b74656d7065726174757265000000" +
+            "000500057363616c653dcccccd050008646f776e66616c6c3f00000008000863617465676f727900056f6365616e08001474" +
+            "656d70657261747572655f6d6f646966696572000666726f7a656e00000800046e616d6500166d696e6563726166743a6672" +
+            "6f7a656e5f726976657203000269640000000b0a0007656c656d656e7408000d70726563697069746174696f6e0004736e6f" +
+            "770a000765666665637473030009736b795f636f6c6f72007fa1ff03000f77617465725f666f675f636f6c6f720005053303" +
+            "0009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003938c90a000a6d6f6f645f736f756e6403000a74" +
+            "69636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a" +
+            "616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e740000000800000500056465707468bf00" +
+            "000005000b74656d7065726174757265000000000500057363616c6500000000050008646f776e66616c6c3f000000080008" +
+            "63617465676f72790005726976657200000800046e616d6500166d696e6563726166743a736e6f77795f74756e6472610300" +
+            "0269640000000c0a0007656c656d656e7408000d70726563697069746174696f6e0004736e6f770a00076566666563747303" +
+            "0009736b795f636f6c6f72007fa1ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200" +
+            "c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017" +
+            "700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665" +
+            "030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683e00000005000b74656d70657261" +
+            "74757265000000000500057363616c653d4ccccd050008646f776e66616c6c3f00000008000863617465676f727900036963" +
+            "7900000800046e616d6500196d696e6563726166743a736e6f77795f6d6f756e7461696e7303000269640000000d0a000765" +
+            "6c656d656e7408000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f72" +
+            "007fa1ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b7761746572" +
+            "5f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673657440" +
+            "00000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365" +
+            "617263685f657874656e7400000008000005000564657074683ee6666605000b74656d706572617475726500000000050005" +
+            "7363616c653e99999a050008646f776e66616c6c3f00000008000863617465676f7279000369637900000800046e616d6500" +
+            "196d696e6563726166743a6d757368726f6f6d5f6669656c647303000269640000000e0a0007656c656d656e7408000d7072" +
+            "6563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8ff03000f77617465" +
+            "725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a" +
+            "000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000000000000008000573" +
+            "6f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e74" +
+            "00000008000005000564657074683e4ccccd05000b74656d70657261747572653f6666660500057363616c653e99999a0500" +
+            "08646f776e66616c6c3f80000008000863617465676f727900086d757368726f6f6d00000800046e616d65001e6d696e6563" +
+            "726166743a6d757368726f6f6d5f6669656c645f73686f726503000269640000000f0a0007656c656d656e7408000d707265" +
+            "63697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8ff03000f7761746572" +
+            "5f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a00" +
+            "0a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f" +
+            "756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400" +
+            "000008000005000564657074680000000005000b74656d70657261747572653f6666660500057363616c653ccccccd050008" +
+            "646f776e66616c6c3f80000008000863617465676f727900086d757368726f6f6d00000800046e616d65000f6d696e656372" +
+            "6166743a62656163680300026964000000100a0007656c656d656e7408000d70726563697069746174696f6e00047261696e" +
+            "0a000765666665637473030009736b795f636f6c6f720078a7ff03000f77617465725f666f675f636f6c6f72000505330300" +
+            "09666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469" +
+            "636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a61" +
+            "6d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e740000000800000500056465707468000000" +
+            "0005000b74656d70657261747572653f4ccccd0500057363616c653ccccccd050008646f776e66616c6c3ecccccd08000863" +
+            "617465676f72790005626561636800000800046e616d6500166d696e6563726166743a6465736572745f68696c6c73030002" +
+            "6964000000110a0007656c656d656e7408000d70726563697069746174696f6e00046e6f6e650a0007656666656374730300" +
+            "09736b795f636f6c6f72006eb1ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0" +
+            "d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c617900001770" +
+            "0600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e6361766503" +
+            "0013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683ee6666605000b74656d7065726174" +
+            "757265400000000500057363616c653e99999a050008646f776e66616c6c0000000008000863617465676f72790006646573" +
+            "65727400000800046e616d6500166d696e6563726166743a776f6f6465645f68696c6c730300026964000000120a0007656c" +
+            "656d656e7408000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f7200" +
+            "79a6ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+            "636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000" +
+            "000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f736561" +
+            "7263685f657874656e7400000008000005000564657074683ee6666605000b74656d70657261747572653f33333305000573" +
+            "63616c653e99999a050008646f776e66616c6c3f4ccccd08000863617465676f72790006666f7265737400000800046e616d" +
+            "6500156d696e6563726166743a74616967615f68696c6c730300026964000000130a0007656c656d656e7408000d70726563" +
+            "697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da3ff03000f77617465725f" +
+            "666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a" +
+            "6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f75" +
+            "6e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e740000" +
+            "0008000005000564657074683ee6666605000b74656d70657261747572653e8000000500057363616c653e99999a05000864" +
+            "6f776e66616c6c3f4ccccd08000863617465676f72790005746169676100000800046e616d6500176d696e6563726166743a" +
+            "6d6f756e7461696e5f656467650300026964000000140a0007656c656d656e7408000d70726563697069746174696f6e0004" +
+            "7261696e0a000765666665637473030009736b795f636f6c6f72007da2ff03000f77617465725f666f675f636f6c6f720005" +
+            "0533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403" +
+            "000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e65637261" +
+            "66743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074" +
+            "683f4ccccd05000b74656d70657261747572653e4ccccd0500057363616c653e99999a050008646f776e66616c6c3e99999a" +
+            "08000863617465676f7279000d65787472656d655f68696c6c7300000800046e616d6500106d696e6563726166743a6a756e" +
+            "676c650300026964000000150a0007656c656d656e7408000d70726563697069746174696f6e00047261696e0a0007656666" +
+            "65637473030009736b795f636f6c6f720077a8ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f63" +
+            "6f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c" +
+            "6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e74" +
+            "2e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b7465" +
+            "6d70657261747572653f7333330500057363616c653e4ccccd050008646f776e66616c6c3f66666608000863617465676f72" +
+            "7900066a756e676c6500000800046e616d6500166d696e6563726166743a6a756e676c655f68696c6c730300026964000000" +
+            "160a0007656c656d656e7408000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f" +
+            "636f6c6f720077a8ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b" +
+            "77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66" +
+            "667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f" +
+            "636b5f7365617263685f657874656e7400000008000005000564657074683ee6666605000b74656d70657261747572653f73" +
+            "33330500057363616c653e99999a050008646f776e66616c6c3f66666608000863617465676f727900066a756e676c650000" +
+            "0800046e616d6500156d696e6563726166743a6a756e676c655f656467650300026964000000170a0007656c656d656e7408" +
+            "000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8ff03000f" +
+            "77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f7200" +
+            "3f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000" +
+            "080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f6578" +
+            "74656e7400000008000005000564657074683dcccccd05000b74656d70657261747572653f7333330500057363616c653e4c" +
+            "cccd050008646f776e66616c6c3f4ccccd08000863617465676f727900066a756e676c6500000800046e616d6500146d696e" +
+            "6563726166743a646565705f6f6365616e0300026964000000180a0007656c656d656e7408000d7072656369706974617469" +
+            "6f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4ff03000f77617465725f666f675f636f6c" +
+            "6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f" +
+            "756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e" +
+            "6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e74000000080000050005" +
+            "6465707468bfe6666605000b74656d70657261747572653f0000000500057363616c653dcccccd050008646f776e66616c6c" +
+            "3f00000008000863617465676f727900056f6365616e00000800046e616d6500156d696e6563726166743a73746f6e655f73" +
+            "686f72650300026964000000190a0007656c656d656e7408000d70726563697069746174696f6e00047261696e0a00076566" +
+            "6665637473030009736b795f636f6c6f72007da2ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f" +
+            "636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f6465" +
+            "6c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e" +
+            "742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74" +
+            "656d70657261747572653e4ccccd0500057363616c653f4ccccd050008646f776e66616c6c3e99999a08000863617465676f" +
+            "727900046e6f6e6500000800046e616d6500156d696e6563726166743a736e6f77795f626561636803000269640000001a0a" +
+            "0007656c656d656e7408000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f" +
+            "6c6f72007fa1ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b7761" +
+            "7465725f636f6c6f72003d57d60a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673" +
+            "65744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b" +
+            "5f7365617263685f657874656e7400000008000005000564657074680000000005000b74656d70657261747572653d4ccccd" +
+            "0500057363616c653ccccccd050008646f776e66616c6c3e99999a08000863617465676f7279000562656163680000080004" +
+            "6e616d6500166d696e6563726166743a62697263685f666f7265737403000269640000001b0a0007656c656d656e7408000d" +
+            "70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007aa5ff03000f7761" +
+            "7465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76" +
+            "e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673657440000000000000000800" +
+            "05736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f65787465" +
+            "6e7400000008000005000564657074683dcccccd05000b74656d70657261747572653f19999a0500057363616c653e4ccccd" +
+            "050008646f776e66616c6c3f19999a08000863617465676f72790006666f7265737400000800046e616d65001c6d696e6563" +
+            "726166743a62697263685f666f726573745f68696c6c7303000269640000001c0a0007656c656d656e7408000d7072656369" +
+            "7069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007aa5ff03000f77617465725f66" +
+            "6f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d" +
+            "6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e" +
+            "6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e74000000" +
+            "08000005000564657074683ee6666605000b74656d70657261747572653f19999a0500057363616c653e99999a050008646f" +
+            "776e66616c6c3f19999a08000863617465676f72790006666f7265737400000800046e616d6500156d696e6563726166743a" +
+            "6461726b5f666f7265737403000269640000001d0a0007656c656d656e7408000d70726563697069746174696f6e00047261" +
+            "696e0a00076566666563747308001467726173735f636f6c6f725f6d6f646966696572000b6461726b5f666f726573740300" +
+            "09736b795f636f6c6f720079a6ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0" +
+            "d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c617900001770" +
+            "0600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e6361766503" +
+            "0013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d7065726174" +
+            "7572653f3333330500057363616c653e4ccccd050008646f776e66616c6c3f4ccccd08000863617465676f72790006666f72" +
+            "65737400000800046e616d6500156d696e6563726166743a736e6f77795f746169676103000269640000001e0a0007656c65" +
+            "6d656e7408000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f720083" +
+            "9eff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f63" +
+            "6f6c6f72003d57d60a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000" +
+            "0000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f73656172" +
+            "63685f657874656e7400000008000005000564657074683e4ccccd05000b74656d7065726174757265bf0000000500057363" +
+            "616c653e4ccccd050008646f776e66616c6c3ecccccd08000863617465676f72790005746169676100000800046e616d6500" +
+            "1b6d696e6563726166743a736e6f77795f74616967615f68696c6c7303000269640000001f0a0007656c656d656e7408000d" +
+            "70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f7200839eff03000f7761" +
+            "7465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003d57" +
+            "d60a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673657440000000000000000800" +
+            "05736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f65787465" +
+            "6e7400000008000005000564657074683ee6666605000b74656d7065726174757265bf0000000500057363616c653e99999a" +
+            "050008646f776e66616c6c3ecccccd08000863617465676f72790005746169676100000800046e616d65001a6d696e656372" +
+            "6166743a6769616e745f747265655f74616967610300026964000000200a0007656c656d656e7408000d7072656369706974" +
+            "6174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ca3ff03000f77617465725f666f675f" +
+            "636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f64" +
+            "5f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e640016" +
+            "6d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e74000000080000" +
+            "05000564657074683e4ccccd05000b74656d70657261747572653e99999a0500057363616c653e4ccccd050008646f776e66" +
+            "616c6c3f4ccccd08000863617465676f72790005746169676100000800046e616d6500206d696e6563726166743a6769616e" +
+            "745f747265655f74616967615f68696c6c730300026964000000210a0007656c656d656e7408000d70726563697069746174" +
+            "696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ca3ff03000f77617465725f666f675f636f" +
+            "6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f73" +
+            "6f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d69" +
+            "6e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e740000000800000500" +
+            "0564657074683ee6666605000b74656d70657261747572653e99999a0500057363616c653e99999a050008646f776e66616c" +
+            "6c3f4ccccd08000863617465676f72790005746169676100000800046e616d65001a6d696e6563726166743a776f6f646564" +
+            "5f6d6f756e7461696e730300026964000000220a0007656c656d656e7408000d70726563697069746174696f6e0004726169" +
+            "6e0a000765666665637473030009736b795f636f6c6f72007da2ff03000f77617465725f666f675f636f6c6f720005053303" +
+            "0009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a74" +
+            "69636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a" +
+            "616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683f80" +
+            "000005000b74656d70657261747572653e4ccccd0500057363616c653f000000050008646f776e66616c6c3e99999a080008" +
+            "63617465676f7279000d65787472656d655f68696c6c7300000800046e616d6500116d696e6563726166743a736176616e6e" +
+            "610300026964000000230a0007656c656d656e7408000d70726563697069746174696f6e00046e6f6e650a00076566666563" +
+            "7473030009736b795f636f6c6f720075aaff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c" +
+            "6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179" +
+            "000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63" +
+            "617665030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683e00000005000b74656d70" +
+            "657261747572653f99999a0500057363616c653d4ccccd050008646f776e66616c6c0000000008000863617465676f727900" +
+            "07736176616e6e6100000800046e616d6500196d696e6563726166743a736176616e6e615f706c6174656175030002696400" +
+            "0000240a0007656c656d656e7408000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b" +
+            "795f636f6c6f720076a8ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03" +
+            "000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c617900001770060006" +
+            "6f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e6361766503001362" +
+            "6c6f636b5f7365617263685f657874656e7400000008000005000564657074683fc0000005000b74656d7065726174757265" +
+            "3f8000000500057363616c653ccccccd050008646f776e66616c6c0000000008000863617465676f72790007736176616e6e" +
+            "6100000800046e616d6500126d696e6563726166743a6261646c616e64730300026964000000250a0007656c656d656e7408" +
+            "000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1ff03000b" +
+            "67726173735f636f6c6f720090814d03000d666f6c696167655f636f6c6f72009e814d03000f77617465725f666f675f636f" +
+            "6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f73" +
+            "6f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d69" +
+            "6e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e740000000800000500" +
+            "0564657074683dcccccd05000b74656d7065726174757265400000000500057363616c653e4ccccd050008646f776e66616c" +
+            "6c0000000008000863617465676f727900046d65736100000800046e616d6500216d696e6563726166743a776f6f6465645f" +
+            "6261646c616e64735f706c61746561750300026964000000260a0007656c656d656e7408000d70726563697069746174696f" +
+            "6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1ff03000b67726173735f636f6c6f72009081" +
+            "4d03000d666f6c696167655f636f6c6f72009e814d03000f77617465725f666f675f636f6c6f7200050533030009666f675f" +
+            "636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f6465" +
+            "6c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e" +
+            "742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683fc0000005000b74" +
+            "656d7065726174757265400000000500057363616c653ccccccd050008646f776e66616c6c0000000008000863617465676f" +
+            "727900046d65736100000800046e616d65001a6d696e6563726166743a6261646c616e64735f706c61746561750300026964" +
+            "000000270a0007656c656d656e7408000d70726563697069746174696f6e00046e6f6e650a00076566666563747303000973" +
+            "6b795f636f6c6f72006eb1ff03000b67726173735f636f6c6f720090814d03000d666f6c696167655f636f6c6f72009e814d" +
+            "03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c" +
+            "6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000" +
+            "000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f736561726368" +
+            "5f657874656e7400000008000005000564657074683fc0000005000b74656d7065726174757265400000000500057363616c" +
+            "653ccccccd050008646f776e66616c6c0000000008000863617465676f727900046d65736100000800046e616d65001b6d69" +
+            "6e6563726166743a736d616c6c5f656e645f69736c616e64730300026964000000280a0007656c656d656e7408000d707265" +
+            "63697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f720000000003000f7761746572" +
+            "5f666f675f636f6c6f7200050533030009666f675f636f6c6f7200a080a003000b77617465725f636f6c6f72003f76e40a00" +
+            "0a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f" +
+            "756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400" +
+            "000008000005000564657074683dcccccd05000b74656d70657261747572653f0000000500057363616c653e4ccccd050008" +
+            "646f776e66616c6c3f00000008000863617465676f727900077468655f656e6400000800046e616d6500166d696e65637261" +
+            "66743a656e645f6d69646c616e64730300026964000000290a0007656c656d656e7408000d70726563697069746174696f6e" +
+            "00046e6f6e650a000765666665637473030009736b795f636f6c6f720000000003000f77617465725f666f675f636f6c6f72" +
+            "00050533030009666f675f636f6c6f7200a080a003000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e" +
+            "6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563" +
+            "726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e740000000800000500056465" +
+            "7074683dcccccd05000b74656d70657261747572653f0000000500057363616c653e4ccccd050008646f776e66616c6c3f00" +
+            "000008000863617465676f727900077468655f656e6400000800046e616d6500176d696e6563726166743a656e645f686967" +
+            "686c616e647303000269640000002a0a0007656c656d656e7408000d70726563697069746174696f6e00046e6f6e650a0007" +
+            "65666665637473030009736b795f636f6c6f720000000003000f77617465725f666f675f636f6c6f7200050533030009666f" +
+            "675f636f6c6f7200a080a003000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f" +
+            "64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269" +
+            "656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683dcccccd0500" +
+            "0b74656d70657261747572653f0000000500057363616c653e4ccccd050008646f776e66616c6c3f00000008000863617465" +
+            "676f727900077468655f656e6400000800046e616d6500156d696e6563726166743a656e645f62617272656e730300026964" +
+            "0000002b0a0007656c656d656e7408000d70726563697069746174696f6e00046e6f6e650a00076566666563747303000973" +
+            "6b795f636f6c6f720000000003000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200a080a0" +
+            "03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600" +
+            "066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013" +
+            "626c6f636b5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d70657261747572" +
+            "653f0000000500057363616c653e4ccccd050008646f776e66616c6c3f00000008000863617465676f727900077468655f65" +
+            "6e6400000800046e616d6500146d696e6563726166743a7761726d5f6f6365616e03000269640000002c0a0007656c656d65" +
+            "6e7408000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4ff" +
+            "03000f77617465725f666f675f636f6c6f7200041f33030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c" +
+            "6f720043d5ee0a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000" +
+            "000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f736561726368" +
+            "5f657874656e740000000800000500056465707468bf80000005000b74656d70657261747572653f0000000500057363616c" +
+            "653dcccccd050008646f776e66616c6c3f00000008000863617465676f727900056f6365616e00000800046e616d6500186d" +
+            "696e6563726166743a6c756b657761726d5f6f6365616e03000269640000002d0a0007656c656d656e7408000d7072656369" +
+            "7069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4ff03000f77617465725f66" +
+            "6f675f636f6c6f7200041633030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f720045adf20a000a6d" +
+            "6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e" +
+            "6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e74000000" +
+            "0800000500056465707468bf80000005000b74656d70657261747572653f0000000500057363616c653dcccccd050008646f" +
+            "776e66616c6c3f00000008000863617465676f727900056f6365616e00000800046e616d6500146d696e6563726166743a63" +
+            "6f6c645f6f6365616e03000269640000002e0a0007656c656d656e7408000d70726563697069746174696f6e00047261696e" +
+            "0a000765666665637473030009736b795f636f6c6f72007ba4ff03000f77617465725f666f675f636f6c6f72000505330300" +
+            "09666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003d57d60a000a6d6f6f645f736f756e6403000a7469" +
+            "636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a61" +
+            "6d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e740000000800000500056465707468bf8000" +
+            "0005000b74656d70657261747572653f0000000500057363616c653dcccccd050008646f776e66616c6c3f00000008000863" +
+            "617465676f727900056f6365616e00000800046e616d6500196d696e6563726166743a646565705f7761726d5f6f6365616e" +
+            "03000269640000002f0a0007656c656d656e7408000d70726563697069746174696f6e00047261696e0a0007656666656374" +
+            "73030009736b795f636f6c6f72007ba4ff03000f77617465725f666f675f636f6c6f7200041f33030009666f675f636f6c6f" +
+            "7200c0d8ff03000b77617465725f636f6c6f720043d5ee0a000a6d6f6f645f736f756e6403000a7469636b5f64656c617900" +
+            "0017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e6361" +
+            "7665030013626c6f636b5f7365617263685f657874656e740000000800000500056465707468bfe6666605000b74656d7065" +
+            "7261747572653f0000000500057363616c653dcccccd050008646f776e66616c6c3f00000008000863617465676f72790005" +
+            "6f6365616e00000800046e616d65001d6d696e6563726166743a646565705f6c756b657761726d5f6f6365616e0300026964" +
+            "000000300a0007656c656d656e7408000d70726563697069746174696f6e00047261696e0a00076566666563747303000973" +
+            "6b795f636f6c6f72007ba4ff03000f77617465725f666f675f636f6c6f7200041633030009666f675f636f6c6f7200c0d8ff" +
+            "03000b77617465725f636f6c6f720045adf20a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600" +
+            "066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013" +
+            "626c6f636b5f7365617263685f657874656e740000000800000500056465707468bfe6666605000b74656d70657261747572" +
+            "653f0000000500057363616c653dcccccd050008646f776e66616c6c3f00000008000863617465676f727900056f6365616e" +
+            "00000800046e616d6500196d696e6563726166743a646565705f636f6c645f6f6365616e0300026964000000310a0007656c" +
+            "656d656e7408000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f7200" +
+            "7ba4ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f" +
+            "636f6c6f72003d57d60a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000" +
+            "000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f736561" +
+            "7263685f657874656e740000000800000500056465707468bfe6666605000b74656d70657261747572653f00000005000573" +
+            "63616c653dcccccd050008646f776e66616c6c3f00000008000863617465676f727900056f6365616e00000800046e616d65" +
+            "001b6d696e6563726166743a646565705f66726f7a656e5f6f6365616e0300026964000000320a0007656c656d656e740800" +
+            "0d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4ff03000f77" +
+            "617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f720039" +
+            "38c90a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000000000000008" +
+            "0005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874" +
+            "656e740000000800000500056465707468bfe6666605000b74656d70657261747572653f0000000500057363616c653dcccc" +
+            "cd050008646f776e66616c6c3f00000008000863617465676f727900056f6365616e08001474656d70657261747572655f6d" +
+            "6f646966696572000666726f7a656e00000800046e616d6500126d696e6563726166743a7468655f766f6964030002696400" +
+            "00007f0a0007656c656d656e7408000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b" +
+            "795f636f6c6f72007ba4ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03" +
+            "000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c617900001770060006" +
+            "6f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e6361766503001362" +
+            "6c6f636b5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d7065726174757265" +
+            "3f0000000500057363616c653e4ccccd050008646f776e66616c6c3f00000008000863617465676f727900046e6f6e650000" +
+            "0800046e616d65001a6d696e6563726166743a73756e666c6f7765725f706c61696e730300026964000000810a0007656c65" +
+            "6d656e7408000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720078" +
+            "a7ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f63" +
+            "6f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000" +
+            "0000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f73656172" +
+            "63685f657874656e7400000008000005000564657074683e00000005000b74656d70657261747572653f4ccccd0500057363" +
+            "616c653d4ccccd050008646f776e66616c6c3ecccccd08000863617465676f72790006706c61696e7300000800046e616d65" +
+            "00166d696e6563726166743a6465736572745f6c616b65730300026964000000820a0007656c656d656e7408000d70726563" +
+            "697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1ff03000f77617465725f" +
+            "666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a" +
+            "6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f75" +
+            "6e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e740000" +
+            "0008000005000564657074683e66666605000b74656d7065726174757265400000000500057363616c653e80000005000864" +
+            "6f776e66616c6c0000000008000863617465676f7279000664657365727400000800046e616d65001c6d696e656372616674" +
+            "3a67726176656c6c795f6d6f756e7461696e730300026964000000830a0007656c656d656e7408000d707265636970697461" +
+            "74696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da2ff03000f77617465725f666f675f63" +
+            "6f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f" +
+            "736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d" +
+            "696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005" +
+            "000564657074683f80000005000b74656d70657261747572653e4ccccd0500057363616c653f000000050008646f776e6661" +
+            "6c6c3e99999a08000863617465676f7279000d65787472656d655f68696c6c7300000800046e616d6500176d696e65637261" +
+            "66743a666c6f7765725f666f726573740300026964000000840a0007656c656d656e7408000d70726563697069746174696f" +
+            "6e00047261696e0a000765666665637473030009736b795f636f6c6f720079a6ff03000f77617465725f666f675f636f6c6f" +
+            "7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f75" +
+            "6e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e65" +
+            "63726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000564" +
+            "657074683dcccccd05000b74656d70657261747572653f3333330500057363616c653ecccccd050008646f776e66616c6c3f" +
+            "4ccccd08000863617465676f72790006666f7265737400000800046e616d6500196d696e6563726166743a74616967615f6d" +
+            "6f756e7461696e730300026964000000850a0007656c656d656e7408000d70726563697069746174696f6e00047261696e0a" +
+            "000765666665637473030009736b795f636f6c6f72007da3ff03000f77617465725f666f675f636f6c6f7200050533030009" +
+            "666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a746963" +
+            "6b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d" +
+            "6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683e99999a" +
+            "05000b74656d70657261747572653e8000000500057363616c653ecccccd050008646f776e66616c6c3f4ccccd0800086361" +
+            "7465676f72790005746169676100000800046e616d6500156d696e6563726166743a7377616d705f68696c6c730300026964" +
+            "000000860a0007656c656d656e7408000d70726563697069746174696f6e00047261696e0a00076566666563747308001467" +
+            "726173735f636f6c6f725f6d6f64696669657200057377616d70030009736b795f636f6c6f720078a7ff03000d666f6c6961" +
+            "67655f636f6c6f72006a703903000f77617465725f666f675f636f6c6f7200232317030009666f675f636f6c6f7200c0d8ff" +
+            "03000b77617465725f636f6c6f7200617b640a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600" +
+            "066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013" +
+            "626c6f636b5f7365617263685f657874656e740000000800000500056465707468bdcccccd05000b74656d70657261747572" +
+            "653f4ccccd0500057363616c653e99999a050008646f776e66616c6c3f66666608000863617465676f727900057377616d70" +
+            "00000800046e616d6500146d696e6563726166743a6963655f7370696b657303000269640000008c0a0007656c656d656e74" +
+            "08000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f72007fa1ff0300" +
+            "0f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72" +
+            "003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673657440000000000000" +
+            "00080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f65" +
+            "7874656e7400000008000005000564657074683ed9999a05000b74656d7065726174757265000000000500057363616c653e" +
+            "e66667050008646f776e66616c6c3f00000008000863617465676f7279000369637900000800046e616d6500196d696e6563" +
+            "726166743a6d6f6469666965645f6a756e676c650300026964000000950a0007656c656d656e7408000d7072656369706974" +
+            "6174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8ff03000f77617465725f666f675f" +
+            "636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f64" +
+            "5f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e640016" +
+            "6d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e74000000080000" +
+            "05000564657074683e4ccccd05000b74656d70657261747572653f7333330500057363616c653ecccccd050008646f776e66" +
+            "616c6c3f66666608000863617465676f727900066a756e676c6500000800046e616d65001e6d696e6563726166743a6d6f64" +
+            "69666965645f6a756e676c655f656467650300026964000000970a0007656c656d656e7408000d7072656369706974617469" +
+            "6f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8ff03000f77617465725f666f675f636f6c" +
+            "6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f" +
+            "756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e" +
+            "6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e74000000080000050005" +
+            "64657074683e4ccccd05000b74656d70657261747572653f7333330500057363616c653ecccccd050008646f776e66616c6c" +
+            "3f4ccccd08000863617465676f727900066a756e676c6500000800046e616d65001b6d696e6563726166743a74616c6c5f62" +
+            "697263685f666f7265737403000269640000009b0a0007656c656d656e7408000d70726563697069746174696f6e00047261" +
+            "696e0a000765666665637473030009736b795f636f6c6f72007aa5ff03000f77617465725f666f675f636f6c6f7200050533" +
+            "030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a" +
+            "7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e656372616674" +
+            "3a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683e" +
+            "4ccccd05000b74656d70657261747572653f19999a0500057363616c653ecccccd050008646f776e66616c6c3f19999a0800" +
+            "0863617465676f72790006666f7265737400000800046e616d65001a6d696e6563726166743a74616c6c5f62697263685f68" +
+            "696c6c7303000269640000009c0a0007656c656d656e7408000d70726563697069746174696f6e00047261696e0a00076566" +
+            "6665637473030009736b795f636f6c6f72007aa5ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f" +
+            "636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f6465" +
+            "6c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e" +
+            "742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683f0ccccd05000b74" +
+            "656d70657261747572653f19999a0500057363616c653f000000050008646f776e66616c6c3f19999a08000863617465676f" +
+            "72790006666f7265737400000800046e616d65001b6d696e6563726166743a6461726b5f666f726573745f68696c6c730300" +
+            "0269640000009d0a0007656c656d656e7408000d70726563697069746174696f6e00047261696e0a00076566666563747308" +
+            "001467726173735f636f6c6f725f6d6f646966696572000b6461726b5f666f72657374030009736b795f636f6c6f720079a6" +
+            "ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f" +
+            "6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673657440000000" +
+            "00000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263" +
+            "685f657874656e7400000008000005000564657074683e4ccccd05000b74656d70657261747572653f333333050005736361" +
+            "6c653ecccccd050008646f776e66616c6c3f4ccccd08000863617465676f72790006666f7265737400000800046e616d6500" +
+            "1f6d696e6563726166743a736e6f77795f74616967615f6d6f756e7461696e7303000269640000009e0a0007656c656d656e" +
+            "7408000d70726563697069746174696f6e0004736e6f770a000765666665637473030009736b795f636f6c6f7200839eff03" +
+            "000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f" +
+            "72003d57d60a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000000000" +
+            "0000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f" +
+            "657874656e7400000008000005000564657074683e99999a05000b74656d7065726174757265bf0000000500057363616c65" +
+            "3ecccccd050008646f776e66616c6c3ecccccd08000863617465676f72790005746169676100000800046e616d65001c6d69" +
+            "6e6563726166743a6769616e745f7370727563655f74616967610300026964000000a00a0007656c656d656e7408000d7072" +
+            "6563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da3ff03000f77617465" +
+            "725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a" +
+            "000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000000000000008000573" +
+            "6f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e74" +
+            "00000008000005000564657074683e4ccccd05000b74656d70657261747572653e8000000500057363616c653e4ccccd0500" +
+            "08646f776e66616c6c3f4ccccd08000863617465676f72790005746169676100000800046e616d6500226d696e6563726166" +
+            "743a6769616e745f7370727563655f74616967615f68696c6c730300026964000000a10a0007656c656d656e7408000d7072" +
+            "6563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da3ff03000f77617465" +
+            "725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a" +
+            "000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000000000000008000573" +
+            "6f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e74" +
+            "00000008000005000564657074683e4ccccd05000b74656d70657261747572653e8000000500057363616c653e4ccccd0500" +
+            "08646f776e66616c6c3f4ccccd08000863617465676f72790005746169676100000800046e616d6500256d696e6563726166" +
+            "743a6d6f6469666965645f67726176656c6c795f6d6f756e7461696e730300026964000000a20a0007656c656d656e740800" +
+            "0d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007da2ff03000f77" +
+            "617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f" +
+            "76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000000000000008" +
+            "0005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874" +
+            "656e7400000008000005000564657074683f80000005000b74656d70657261747572653e4ccccd0500057363616c653f0000" +
+            "00050008646f776e66616c6c3e99999a08000863617465676f7279000d65787472656d655f68696c6c7300000800046e616d" +
+            "65001b6d696e6563726166743a7368617474657265645f736176616e6e610300026964000000a30a0007656c656d656e7408" +
+            "000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f720076a9ff03000f" +
+            "77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f7200" +
+            "3f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000" +
+            "080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f6578" +
+            "74656e7400000008000005000564657074683eb9999a05000b74656d70657261747572653f8ccccd0500057363616c653f9c" +
+            "cccd050008646f776e66616c6c0000000008000863617465676f72790007736176616e6e6100000800046e616d6500236d69" +
+            "6e6563726166743a7368617474657265645f736176616e6e615f706c61746561750300026964000000a40a0007656c656d65" +
+            "6e7408000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f720076a8ff" +
+            "03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c" +
+            "6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000" +
+            "000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f736561726368" +
+            "5f657874656e7400000008000005000564657074683f86666605000b74656d70657261747572653f8000000500057363616c" +
+            "653f9b3334050008646f776e66616c6c0000000008000863617465676f72790007736176616e6e6100000800046e616d6500" +
+            "196d696e6563726166743a65726f6465645f6261646c616e64730300026964000000a50a0007656c656d656e7408000d7072" +
+            "6563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1ff03000b67726173" +
+            "735f636f6c6f720090814d03000d666f6c696167655f636f6c6f72009e814d03000f77617465725f666f675f636f6c6f7200" +
+            "050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e64" +
+            "03000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e656372" +
+            "6166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e74000000080000050005646570" +
+            "74683dcccccd05000b74656d7065726174757265400000000500057363616c653e4ccccd050008646f776e66616c6c000000" +
+            "0008000863617465676f727900046d65736100000800046e616d65002a6d696e6563726166743a6d6f6469666965645f776f" +
+            "6f6465645f6261646c616e64735f706c61746561750300026964000000a60a0007656c656d656e7408000d70726563697069" +
+            "746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72006eb1ff03000b67726173735f636f6c" +
+            "6f720090814d03000d666f6c696167655f636f6c6f72009e814d03000f77617465725f666f675f636f6c6f72000505330300" +
+            "09666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469" +
+            "636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a61" +
+            "6d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683ee666" +
+            "6605000b74656d7065726174757265400000000500057363616c653e99999a050008646f776e66616c6c0000000008000863" +
+            "617465676f727900046d65736100000800046e616d6500236d696e6563726166743a6d6f6469666965645f6261646c616e64" +
+            "735f706c61746561750300026964000000a70a0007656c656d656e7408000d70726563697069746174696f6e00046e6f6e65" +
+            "0a000765666665637473030009736b795f636f6c6f72006eb1ff03000b67726173735f636f6c6f720090814d03000d666f6c" +
+            "696167655f636f6c6f72009e814d03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0" +
+            "d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c617900001770" +
+            "0600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e6361766503" +
+            "0013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683ee6666605000b74656d7065726174" +
+            "757265400000000500057363616c653e99999a050008646f776e66616c6c0000000008000863617465676f727900046d6573" +
+            "6100000800046e616d6500176d696e6563726166743a62616d626f6f5f6a756e676c650300026964000000a80a0007656c65" +
+            "6d656e7408000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077" +
+            "a8ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f63" +
+            "6f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f6666736574400000" +
+            "0000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f73656172" +
+            "63685f657874656e7400000008000005000564657074683dcccccd05000b74656d70657261747572653f7333330500057363" +
+            "616c653e4ccccd050008646f776e66616c6c3f66666608000863617465676f727900066a756e676c6500000800046e616d65" +
+            "001d6d696e6563726166743a62616d626f6f5f6a756e676c655f68696c6c730300026964000000a90a0007656c656d656e74" +
+            "08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720077a8ff0300" +
+            "0f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72" +
+            "003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673657440000000000000" +
+            "00080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f65" +
+            "7874656e7400000008000005000564657074683ee6666605000b74656d70657261747572653f7333330500057363616c653e" +
+            "99999a050008646f776e66616c6c3f66666608000863617465676f727900066a756e676c6500000800046e616d65001a6d69" +
+            "6e6563726166743a736f756c5f73616e645f76616c6c65790300026964000000aa0a0007656c656d656e7408000d70726563" +
+            "697069746174696f6e00046e6f6e650a0007656666656374730a00056d757369630100157265706c6163655f63757272656e" +
+            "745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400276d696e6563726166743a6d757369632e" +
+            "6e65746865722e736f756c5f73616e645f76616c6c65790300096d696e5f64656c617900002ee000030009736b795f636f6c" +
+            "6f72006eb1ff08000d616d6269656e745f736f756e6400276d696e6563726166743a616d6269656e742e736f756c5f73616e" +
+            "645f76616c6c65792e6c6f6f700a000f6164646974696f6e735f736f756e64080005736f756e64002c6d696e656372616674" +
+            "3a616d6269656e742e736f756c5f73616e645f76616c6c65792e6164646974696f6e7306000b7469636b5f6368616e63653f" +
+            "86bb98c7e28241000a00087061727469636c6505000b70726f626162696c6974793bcccccd0a00076f7074696f6e73080004" +
+            "74797065000d6d696e6563726166743a617368000003000f77617465725f666f675f636f6c6f7200050533030009666f675f" +
+            "636f6c6f72001b474503000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f6465" +
+            "6c6179000017700600066f66667365744000000000000000080005736f756e6400276d696e6563726166743a616d6269656e" +
+            "742e736f756c5f73616e645f76616c6c65792e6d6f6f64030013626c6f636b5f7365617263685f657874656e740000000800" +
+            "0005000564657074683dcccccd05000b74656d7065726174757265400000000500057363616c653e4ccccd050008646f776e" +
+            "66616c6c0000000008000863617465676f727900066e657468657200000800046e616d6500186d696e6563726166743a6372" +
+            "696d736f6e5f666f726573740300026964000000ab0a0007656c656d656e7408000d70726563697069746174696f6e00046e" +
+            "6f6e650a0007656666656374730a00056d757369630100157265706c6163655f63757272656e745f6d75736963000300096d" +
+            "61785f64656c617900005dc0080005736f756e6400256d696e6563726166743a6d757369632e6e65746865722e6372696d73" +
+            "6f6e5f666f726573740300096d696e5f64656c617900002ee000030009736b795f636f6c6f72006eb1ff08000d616d626965" +
+            "6e745f736f756e6400256d696e6563726166743a616d6269656e742e6372696d736f6e5f666f726573742e6c6f6f700a000f" +
+            "6164646974696f6e735f736f756e64080005736f756e64002a6d696e6563726166743a616d6269656e742e6372696d736f6e" +
+            "5f666f726573742e6164646974696f6e7306000b7469636b5f6368616e63653f86bb98c7e28241000a00087061727469636c" +
+            "6505000b70726f626162696c6974793ccccccd0a00076f7074696f6e730800047479706500176d696e6563726166743a6372" +
+            "696d736f6e5f73706f7265000003000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f72003303" +
+            "0303000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c61790000177006" +
+            "00066f66667365744000000000000000080005736f756e6400256d696e6563726166743a616d6269656e742e6372696d736f" +
+            "6e5f666f726573742e6d6f6f64030013626c6f636b5f7365617263685f657874656e7400000008000005000564657074683d" +
+            "cccccd05000b74656d7065726174757265400000000500057363616c653e4ccccd050008646f776e66616c6c000000000800" +
+            "0863617465676f727900066e657468657200000800046e616d6500176d696e6563726166743a7761727065645f666f726573" +
+            "740300026964000000ac0a0007656c656d656e7408000d70726563697069746174696f6e00046e6f6e650a00076566666563" +
+            "74730a00056d757369630100157265706c6163655f63757272656e745f6d75736963000300096d61785f64656c617900005d" +
+            "c0080005736f756e6400246d696e6563726166743a6d757369632e6e65746865722e7761727065645f666f72657374030009" +
+            "6d696e5f64656c617900002ee000030009736b795f636f6c6f72006eb1ff08000d616d6269656e745f736f756e6400246d69" +
+            "6e6563726166743a616d6269656e742e7761727065645f666f726573742e6c6f6f700a000f6164646974696f6e735f736f75" +
+            "6e64080005736f756e6400296d696e6563726166743a616d6269656e742e7761727065645f666f726573742e616464697469" +
+            "6f6e7306000b7469636b5f6368616e63653f86bb98c7e28241000a00087061727469636c6505000b70726f626162696c6974" +
+            "793c69f6a90a00076f7074696f6e730800047479706500166d696e6563726166743a7761727065645f73706f726500000300" +
+            "0f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f72001a051a03000b77617465725f636f6c6f72" +
+            "003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f666673657440000000000000" +
+            "00080005736f756e6400246d696e6563726166743a616d6269656e742e7761727065645f666f726573742e6d6f6f64030013" +
+            "626c6f636b5f7365617263685f657874656e7400000008000005000564657074683dcccccd05000b74656d70657261747572" +
+            "65400000000500057363616c653e4ccccd050008646f776e66616c6c0000000008000863617465676f727900066e65746865" +
+            "7200000800046e616d6500176d696e6563726166743a626173616c745f64656c7461730300026964000000ad0a0007656c65" +
+            "6d656e7408000d70726563697069746174696f6e00046e6f6e650a0007656666656374730a00056d75736963010015726570" +
+            "6c6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400246d696e6563" +
+            "726166743a6d757369632e6e65746865722e626173616c745f64656c7461730300096d696e5f64656c617900002ee0000300" +
+            "09736b795f636f6c6f72006eb1ff08000d616d6269656e745f736f756e6400246d696e6563726166743a616d6269656e742e" +
+            "626173616c745f64656c7461732e6c6f6f700a000f6164646974696f6e735f736f756e64080005736f756e6400296d696e65" +
+            "63726166743a616d6269656e742e626173616c745f64656c7461732e6164646974696f6e7306000b7469636b5f6368616e63" +
+            "653f86bb98c7e28241000a00087061727469636c6505000b70726f626162696c6974793df1daeb0a00076f7074696f6e7308" +
+            "00047479706500136d696e6563726166743a77686974655f617368000003000f77617465725f666f675f636f6c6f7200423e" +
+            "42030009666f675f636f6c6f7200685f7003000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e640300" +
+            "0a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400246d696e6563726166" +
+            "743a616d6269656e742e626173616c745f64656c7461732e6d6f6f64030013626c6f636b5f7365617263685f657874656e74" +
+            "00000008000005000564657074683dcccccd05000b74656d7065726174757265400000000500057363616c653e4ccccd0500" +
+            "08646f776e66616c6c0000000008000863617465676f727900066e6574686572000000";
+
+    /** 実バニラ1.16.2のバイオームレジストリ（{type, value}）。736→751でそのまま使う。 */
+    private static final Tag.CompoundTag BIOME_751_REGISTRY = parseElementHex(BIOME_751_REGISTRY_HEX);
+
+    /**
+     * 751の dimension（NBTの値）に対応する dimension_type の名前を返す。
+     * dimensionName754 と同じ手順で、既定の element は751のものを使う。
+     * codec が null の場合（Respawn）は codec での検索を飛ばす。
+     */
+    private static String dimensionName751(Tag dimension, Tag.CompoundTag codec) {
+        if (codec != null) {
+            String fromCodec = findDimensionName(codec, dimension);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        for (Map.Entry<String, Tag.CompoundTag> e : DIMENSION_TYPE_751_ELEMENTS.entrySet()) {
+            if (e.getValue().equals(dimension)) {
+                return e.getKey();
+            }
+        }
+        // 推定：effects と has_ceiling の組み合わせで4種を区別する（dimensionName754 と同じ）。
+        if (dimension instanceof Tag.CompoundTag compound) {
+            String effects = compound.getString("effects").orElse("");
+            boolean hasCeiling = compound.get("has_ceiling")
+                    .filter(t -> t instanceof Tag.ByteTag)
+                    .map(t -> ((Tag.ByteTag) t).value() != 0)
+                    .orElse(false);
+            if (effects.equals("minecraft:the_nether")) {
+                return "minecraft:the_nether";
+            }
+            if (effects.equals("minecraft:the_end")) {
+                return "minecraft:the_end";
+            }
+            if (effects.equals("minecraft:overworld")) {
+                return hasCeiling ? "minecraft:overworld_caves" : "minecraft:overworld";
+            }
+        }
+        LOG.warning("dimension の名前が分からなかったため minecraft:overworld にします。");
+        return "minecraft:overworld";
+    }
+
+    /**
+     * 751の dimension_type の名前に対応する751の element を返す。
+     * 既定の751 element を使う。名前が既定に無く、codec に element があればそれを使い、
+     * それも無ければ overworld の element にする。
+     */
+    private static Tag dimensionValue751(String name, Tag.CompoundTag codec) {
+        Tag.CompoundTag element = DIMENSION_TYPE_751_ELEMENTS.get(name);
+        if (element != null) {
+            return element;
+        }
+        if (codec != null) {
+            Tag fromCodec = findDimensionElement(codec, name);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        LOG.warning("dimension " + name + " の751 element が無いため minecraft:overworld にします。");
+        return DIMENSION_TYPE_751_ELEMENTS.get("minecraft:overworld");
+    }
+
+    /** 751の dimension_type の名前に対応する751の element を返す（codec が無い場合。Respawn 用）。 */
+    private static Tag dimensionValue751(String name) {
+        return dimensionValue751(name, null);
+    }
+
+    /**
+     * 736の dimension_type の名前に対応する736の element を返す。
+     * 既定の736 element を使う。名前が既定に無ければ overworld の element にする。
+     */
+    private static Tag dimensionValue736(String name) {
+        Tag.CompoundTag element = DIMENSION_TYPE_736_ELEMENTS.get(name);
+        if (element != null) {
+            return element;
+        }
+        LOG.warning("dimension " + name + " の736 element が無いため minecraft:overworld にします。");
+        return DIMENSION_TYPE_736_ELEMENTS.get("minecraft:overworld");
+    }
+
+    /**
+     * 736の dimensionCodec を751形式にする。736の {"dimension": [生 element]} を
+     * minecraft:dimension_type のレジストリ（{name, id, element}。element は751既定値に
+     * 置き換え）に直し、バイオームレジストリ79件を実バニラ1.16.2のもので補う。
+     * codec のキーの並びは751の実バニラ通り（dimension_type、worldgen/biome）。
+     * "dimension" が無い・空の場合は4件とも既定値で作る。未知のレジストリがあれば
+     * そのまま引き継ぐ（ただし "dimension" は置き換えるため引き継がない）。
+     */
+    public static Tag.CompoundTag translateDimensionCodec736To751(Tag.CompoundTag codec736) {
+        if (codec736 == null) {
+            return null;
+        }
+        Map<String, Tag> codec = new LinkedHashMap<>();
+        List<Tag> dimensionList = codec736.getList("dimension")
+                .map(Tag.ListTag::value).orElse(List.of());
+        List<Tag> entries = new ArrayList<>(4);
+        if (dimensionList.isEmpty()) {
+            for (int i = 0; i < DIMENSION_TYPE_736_NAMES.length; i++) {
+                entries.add(biomeEntry(DIMENSION_TYPE_736_NAMES[i], i,
+                        dimensionValue751(DIMENSION_TYPE_736_NAMES[i])));
+            }
+        } else {
+            for (int i = 0; i < dimensionList.size(); i++) {
+                Tag raw = dimensionList.get(i);
+                String name = DIMENSION_TYPE_736_NAMES[i < DIMENSION_TYPE_736_NAMES.length ? i : 0];
+                if (raw instanceof Tag.CompoundTag element) {
+                    name = element.getString("name").orElse(name);
+                }
+                entries.add(biomeEntry(name, i, dimensionValue751(name)));
+            }
+        }
+        Map<String, Tag> dimensionRegistry = new LinkedHashMap<>();
+        dimensionRegistry.put("type", new Tag.StringTag("minecraft:dimension_type"));
+        dimensionRegistry.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+        codec.put("minecraft:dimension_type", new Tag.CompoundTag(dimensionRegistry));
+        codec.put("minecraft:worldgen/biome", BIOME_751_REGISTRY);
+        codec736.value().forEach((k, v) -> {
+            if (!k.equals("dimension")
+                    && !k.equals("minecraft:dimension_type")
+                    && !k.equals("minecraft:worldgen/biome")) {
+                codec.put(k, v);
+            }
+        });
+        return new Tag.CompoundTag(codec);
+    }
+
+    /**
+     * 751の dimensionCodec を736形式にする。dimension_type のレジストリを
+     * {"dimension": [生 element]} に直す（element は736既定値に置き換え）。
+     * バイオームレジストリは落とす（736には無いため）。
+     * dimension_type レジストリが無い場合は4件とも既定値で作る。
+     * 未知のレジストリがあればそのまま引き継ぐ（ただし dimension_type と
+     * worldgen/biome は置き換えるため引き継がない）。
+     */
+    public static Tag.CompoundTag translateDimensionCodec751To736(Tag.CompoundTag codec751) {
+        if (codec751 == null) {
+            return null;
+        }
+        Map<String, Tag> codec = new LinkedHashMap<>();
+        List<Tag> entries = codec751.getCompound("minecraft:dimension_type")
+                .flatMap(r -> r.getList("value"))
+                .map(Tag.ListTag::value).orElse(List.of());
+        List<Tag> dimensionList = new ArrayList<>(4);
+        if (entries.isEmpty()) {
+            for (String name : DIMENSION_TYPE_736_NAMES) {
+                dimensionList.add(dimensionValue736(name));
+            }
+        } else {
+            for (int i = 0; i < entries.size(); i++) {
+                Tag entry = entries.get(i);
+                String name = DIMENSION_TYPE_736_NAMES[i < DIMENSION_TYPE_736_NAMES.length ? i : 0];
+                if (entry instanceof Tag.CompoundTag compound) {
+                    name = compound.getString("name").orElse(name);
+                }
+                dimensionList.add(dimensionValue736(name));
+            }
+        }
+        codec.put("dimension", new Tag.ListTag(Nbt.COMPOUND, dimensionList));
+        codec751.value().forEach((k, v) -> {
+            if (!k.equals("minecraft:dimension_type")
+                    && !k.equals("minecraft:worldgen/biome")
+                    && !k.equals("dimension")) {
+                codec.put(k, v);
+            }
+        });
+        return new Tag.CompoundTag(codec);
+    }
+
+    // ------------------------------------------------------------------
+    // Join Game（736）
+    // ------------------------------------------------------------------
+
+    /** 736の Join Game の中身。14フィールド。hardcore は gameMode バイトの bit 3 から分けたもの（751の JoinGame754 と同じく hardcore＋gameMode で持つ）。dimension は文字列。previousGameMode は -1＝なし（u8 の 255 を読み替えたもの）。maxPlayers は u8。 */
+    public record JoinGame736(int entityId, boolean hardcore, int gameMode, int previousGameMode,
+            List<String> worldNames, Tag.CompoundTag dimensionCodec, String dimension,
+            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
+            boolean reducedDebug, boolean enableRespawnScreen,
+            boolean isDebug, boolean isFlat) {
+    }
+
+    /**
+     * 736の Join Game を読む。順番は entityId, gameMode（u8。bit 3 が hardcore）,
+     * previousGameMode（u8。255＝なし→-1）, worldNames,
+     * dimensionCodec（名前付き NBT。{"dimension": [...]} だけ）,
+     * dimension（文字列）, worldName, hashedSeed, maxPlayers（u8）, viewDistance,
+     * reducedDebug, enableRespawnScreen, isDebug, isFlat である
+     * （minecraft-data mc-1.16.1-protocol.json の packet_login と、実バニラ1.16.1 jar の
+     * ClientboundLoginPacket#write（javap ox#write。gameMode バイトに hardcore の bit、
+     * maxPlayers は writeByte）と、実バニラ1.16.1キャプチャ（1,159バイト。
+     * 消費量 1,159／1,159 で完全一致）で確認）。
+     */
+    public static JoinGame736 parseJoinGame736(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        int gameModeByte = reader.readUnsignedByte();
+        boolean hardcore = (gameModeByte & 8) != 0;
+        int gameMode = gameModeByte & ~8;
+        int previousGameMode = reader.readUnsignedByte();
+        if (previousGameMode == 255) {
+            previousGameMode = -1;
+        }
+        checkPreviousGameMode757(previousGameMode);
+        List<String> worldNames = PacketIO.readStringList(reader);
+        Tag dimensionCodec = reader.readNamedNbt().tag();
+        if (!(dimensionCodec instanceof Tag.CompoundTag codec)) {
+            throw new IllegalArgumentException("Join Game の dimensionCodec がコンパウンドではありません。");
+        }
+        String dimension = reader.readString();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int maxPlayers = reader.readUnsignedByte();
+        int viewDistance = reader.readVarInt();
+        boolean reducedDebug = reader.readBoolean();
+        boolean enableRespawnScreen = reader.readBoolean();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        requireEnd(reader);
+        return new JoinGame736(entityId, hardcore, gameMode, previousGameMode, worldNames,
+                codec, dimension, worldName, hashedSeed, maxPlayers, viewDistance,
+                reducedDebug, enableRespawnScreen, isDebug, isFlat);
+    }
+
+    /** 736の Join Game を書く。gameMode バイトに hardcore の bit 3 を OR する。maxPlayers は u8 で書く。 */
+    public static byte[] writeJoinGame736(JoinGame736 join) {
+        Writer writer = new Writer();
+        writer.writeInt(join.entityId());
+        writer.writeByte(join.gameMode() | (join.hardcore() ? 8 : 0));
+        writer.writeByte(join.previousGameMode());
+        PacketIO.writeStringList(writer, join.worldNames());
+        writer.writeNamedNbt("", join.dimensionCodec());
+        writer.writeString(join.dimension());
+        writer.writeString(join.worldName());
+        writer.writeLong(join.hashedSeed());
+        writer.writeUnsignedByte(join.maxPlayers());
+        writer.writeVarInt(join.viewDistance());
+        writer.writeBoolean(join.reducedDebug());
+        writer.writeBoolean(join.enableRespawnScreen());
+        writer.writeBoolean(join.isDebug());
+        writer.writeBoolean(join.isFlat());
+        return writer.bytes();
+    }
+
+    /**
+     * Join Game（736 → 751）。hardcore を gameMode バイトから分けて bool にし、
+     * dimension は文字列から751の element（NBT）に直し、dimensionCodec は751形式に直す
+     * （dimension_type 4件＋バイオーム79件を補う）。maxPlayers は u8 から varint に直す。
+     * 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
+     */
+    public static byte[] translateJoinGame736To751(byte[] payload) {
+        try {
+            JoinGame736 join = parseJoinGame736(payload);
+            return writeJoinGame754(new JoinGame754(join.entityId(), join.hardcore(),
+                    join.gameMode(), join.previousGameMode(), join.worldNames(),
+                    translateDimensionCodec736To751(join.dimensionCodec()),
+                    dimensionValue751(join.dimension()),
+                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
+                    join.reducedDebug(), join.enableRespawnScreen(),
+                    join.isDebug(), join.isFlat()));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Join Game（751 → 736）。hardcore を gameMode バイトの bit 3 に畳み、
+     * dimension は NBT の値から codec 内の名前を引き、dimensionCodec は736形式に直す
+     * （バイオームレジストリを落とし、dimension_type を {"dimension": [...]} に直す）。
+     * maxPlayers は varint から u8 に直す（255を超える値は下位8ビットだけになる。
+     * 実バニラの既定は20）。読めないペイロードは素通しする。
+     */
+    public static byte[] translateJoinGame751To736(byte[] payload) {
+        try {
+            JoinGame754 join = parseJoinGame751(payload);
+            String dimensionName = dimensionName751(join.dimension(), join.dimensionCodec());
+            return writeJoinGame736(new JoinGame736(join.entityId(), join.hardcore(),
+                    join.gameMode(), join.previousGameMode(), join.worldNames(),
+                    translateDimensionCodec751To736(join.dimensionCodec()),
+                    dimensionName,
+                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
+                    join.reducedDebug(), join.enableRespawnScreen(),
+                    join.isDebug(), join.isFlat()));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Respawn（736）
+    // ------------------------------------------------------------------
+
+    /** 736の Respawn（SpawnInfo）の中身。751と同一の8フィールド。dimension は文字列（751は NBT）。previousGameMode は u8（255＝なし。Join Game の -1 とは違う。SpawnInfo754 と同じ約束）。copyMetadata は末尾。 */
+    public record SpawnInfo736(String dimension, String worldName, long hashedSeed, int gameMode,
+            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata) {
+    }
+
+    /**
+     * 736の SpawnInfo を読む。順番は dimension（文字列）, worldName, hashedSeed,
+     * gameMode（u8）, previousGameMode（u8）, isDebug, isFlat, copyMetadata である
+     * （minecraft-data mc-1.16.1-protocol.json の packet_respawn と、実バニラ1.16.1 jar の
+     * ClientboundRespawnPacket#write（javap pp#write。dimension は ResourceLocation＝文字列）で確認）。
+     */
+    public static SpawnInfo736 readSpawnInfo736(Reader reader) {
+        String dimension = reader.readString();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readUnsignedByte();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        boolean copyMetadata = reader.readBoolean();
+        return new SpawnInfo736(dimension, worldName, hashedSeed, gameMode,
+                previousGameMode, isDebug, isFlat, copyMetadata);
+    }
+
+    /** 736の SpawnInfo を書く。751と同一のフィールド順。dimension は文字列で書く。 */
+    public static void writeSpawnInfo736(Writer writer, SpawnInfo736 info) {
+        writer.writeString(info.dimension());
+        writer.writeString(info.worldName());
+        writer.writeLong(info.hashedSeed());
+        writer.writeByte(info.gameMode());
+        writer.writeByte(info.previousGameMode());
+        writer.writeBoolean(info.isDebug());
+        writer.writeBoolean(info.isFlat());
+        writer.writeBoolean(info.copyMetadata());
+    }
+
+    /**
+     * Respawn（736 → 751）。フィールドは同一のため、dimension だけ文字列から
+     * 751の element（NBT）に直す。copyMetadata はそのまま写す。
+     * previousGameMode は u8 のまま写す。読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo736 info = readSpawnInfo736(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo754(writer, new SpawnInfo754(
+                    dimensionValue751(info.dimension()),
+                    info.worldName(), info.hashedSeed(), info.gameMode(),
+                    info.previousGameMode(), info.isDebug(), info.isFlat(),
+                    info.copyMetadata()));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Respawn（751 → 736）。フィールドは同一のため、dimension だけ NBT の値から
+     * 名前を引いて文字列に直す。copyMetadata はそのまま写す。
+     * previousGameMode は u8 のまま写す。読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo754 info = readSpawnInfo754(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo736(writer, new SpawnInfo736(
+                    dimensionName751(info.dimension(), null),
+                    info.worldName(), info.hashedSeed(), info.gameMode(),
+                    info.previousGameMode(), info.isDebug(), info.isFlat(),
+                    info.copyMetadata()));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Client Information（Settings、736）
+    // ------------------------------------------------------------------
+
+    /**
+     * Client Information（736 → 751）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x05 同一、6フィールド同一。minecraft-data の
+     * packet_settings は736・751で同一で、実バニラ1.16.1 jar の
+     * ServerboundClientInformationPacket#write（javap rf#write）でも
+     * locale・viewDistance i8・chatFlags varint・chatColors bool・skinParts u8・
+     * mainHand varint の6フィールドを確認。disableTextFiltering は755での追加で、
+     * 736・751とも無い）。パースして書き直さない。
+     */
+    public static byte[] translateClientInformation736To751(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Client Information（751 → 736）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateClientInformation736To751(byte[])} と同じ。
+     */
+    public static byte[] translateClientInformation751To736(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // Synchronize Player Position（736）
+    // ------------------------------------------------------------------
+
+    /**
+     * Synchronize Player Position（736 0x35 → 751 0x34）。恒等写像：入力ペイロードを
+     * そのまま返す（IDだけ呼び出し側が付け替える）。
+     * 根拠は本節の冒頭（minecraft-data の packet_position は736・751で同一で、
+     * 実バニラ1.16.1 jar の ClientboundPlayerPositionPacket#write（javap pk#write）でも
+     * x・y・z f64、yaw・pitch f32、flags i8、teleportId varint の7フィールドを確認。
+     * dismountVehicle は755での追加で、736・751とも無い）。パースして書き直さない。
+     */
+    public static byte[] translatePosition736To751(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Synchronize Player Position（751 0x34 → 736 0x35）。恒等写像：入力ペイロードを
+     * そのまま返す。根拠は {@link #translatePosition736To751(byte[])} と同じ。
+     */
+    public static byte[] translatePosition751To736(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // Combat Event（736）⇔ combat_event（751。分割されていない）
+    // ------------------------------------------------------------------
+
+    /**
+     * Combat Event（736 0x32 → 751 0x31）。恒等写像：入力ペイロードをそのまま返す
+     * （IDだけ呼び出し側が付け替える）。751は分割されていないため振り分けは不要。
+     * 根拠は本節の冒頭（minecraft-data の packet_combat_event は736・751で同一。
+     * 実バニラ1.16.1 jar の ClientboundPlayerCombatPacket#write（javap ph#write）でも
+     * event varint、END_COMBAT なら duration varint＋entityId i32、ENTITY_DIED なら
+     * playerId varint＋entityId i32＋message の構成を確認。分割は755での変更で、
+     * 751の PLAY_ENTER／END／DEATH_COMBAT_EVENT のIDはどれも 0x31）。
+     * パースして書き直さない。
+     */
+    public static byte[] translateCombatEvent736To751(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Combat Event（751 0x31 → 736 0x32）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateCombatEvent736To751(byte[])} と同じ。
+     */
+    public static byte[] translateCombatEvent751To736(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // Title（736）⇔ title（751。分割されていない）
+    // ------------------------------------------------------------------
+
+    /**
+     * Title（736 0x4f → 751 0x4f）。恒等写像：入力ペイロードをそのまま返す。
+     * 751は分割されていないため振り分けは不要。IDも同じ 0x4f。
+     * 根拠は本節の冒頭（minecraft-data の packet_title は736・751で同一。
+     * 実バニラ1.16.1 jar の ClientboundSetTitlesPacket#write（javap qk#write）でも
+     * action varint、0・1・2 なら text、3 なら fadeIn／stay／fadeOut i32×3 の構成を確認。
+     * 分割は755での変更で、751の PLAY_SET_TITLE_TEXT ほか5件のIDはどれも 0x4f）。
+     * パースして書き直さない。
+     */
+    public static byte[] translateTitle736To751(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Title（751 0x4f → 736 0x4f）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateTitle736To751(byte[])} と同じ。
+     */
+    public static byte[] translateTitle751To736(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // World Border（736）⇔ world_border（751。分割されていない）
+    // ------------------------------------------------------------------
+
+    /**
+     * World Border（736 0x3d → 751 0x3d）。恒等写像：入力ペイロードをそのまま返す。
+     * 751は分割されていないため振り分けは不要。IDも同じ 0x3d。
+     * 根拠は本節の冒頭（minecraft-data の packet_world_border は736・751で同一。
+     * 実バニラ1.16.1 jar の ClientboundSetBorderPacket#write（javap ps#write）でも
+     * INITIALIZE は x, z, oldSize, newSize, speed, portalBoundary, warningBlocks,
+     * warningTime の順を確認。分割は755での変更で、751の
+     * PLAY_INITIALIZE_WORLD_BORDER ほか6件のIDはどれも 0x3d）。
+     * パースして書き直さない。
+     */
+    public static byte[] translateWorldBorder736To751(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * World Border（751 0x3d → 736 0x3d）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateWorldBorder736To751(byte[])} と同じ。
+     */
+    public static byte[] translateWorldBorder751To736(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // Ping／Pong ⇔ Transaction（落とす）
+    // ------------------------------------------------------------------
+
+    /**
+     * Ping（751 0x11 → 736 0x12）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠：751の ping {id i32} と736の transaction {windowId i8, actionNumber i16,
+     * accepted bool} には対応付けが無い。ViaVersion の Protocol1_16_1To1_16_2.java にも
+     * PING／PONG／CONTAINER_ACK の登録は無い。ping／pong は遅延測定だけで、
+     * 落としても接続は維持される（Keep Alive 0x1f⇔0x20 は別パケットで影響を受けない）。
+     * 素通しはしない（0x11 のペイロードを 0x12 として送ると、1.16.1クライアントが
+     * windowId／actionNumber として誤読するため）。
+     */
+    public static byte[] translatePing751To736(byte[] payload) {
+        return null;
+    }
+
+    /**
+     * Transaction（736 0x12 → 751 0x11）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠は {@link #translatePing751To736(byte[])} と同じ。
+     * 1.16.1サーバーが送る transaction（ウィンドウクリックの確認応答）は、751の ping には
+     * 対応付けできないため落とす。
+     */
+    public static byte[] translateTransaction736ToPing751(byte[] payload) {
+        return null;
+    }
+
+    /**
+     * Pong（751 0x07 → 736 0x07）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠は {@link #translatePing751To736(byte[])} と同じ。
+     * 751の pong {id i32} と736の transaction {windowId i8, actionNumber i16,
+     * accepted bool} には対応付けが無い。
+     */
+    public static byte[] translatePong751To736(byte[] payload) {
+        return null;
+    }
+
+    /**
+     * Transaction（736 0x07 → 751 0x07）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠は {@link #translatePing751To736(byte[])} と同じ。
+     * 1.16.1クライアントが送る transaction（ウィンドウクリックの確認応答）は、751の pong には
+     * 対応付けできないため落とす。
+     */
+    public static byte[] translateTransaction736ToPong751(byte[] payload) {
+        return null;
+    }
+
+    // ------------------------------------------------------------------
+    // Displayed Recipe（751のみ。落とす）
+    // ------------------------------------------------------------------
+
+    /**
+     * Displayed Recipe（751 0x1f → 736）。736の crafting_book_data
+     * type=0（{type=0, displayedRecipe}）に変換する。落とさない。
+     * 根拠：ViaVersion の Protocol1_16_1To1_16_2 は displayed_recipe を
+     * type=0 の crafting_book_data に写す登録がある。旧版は落としていたが、
+     * 751→736 はこの変換で復元できる（Stage B フォローアップで実測により判明）。
+     */
+    public static byte[] translateDisplayedRecipe751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String recipeId = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(0); // type=SHOWN
+            writer.writeString(recipeId);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Displayed Recipe を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Unlock Recipes / Recipe Book（736 <=> 751。Stage B フォローアップ）
+    // Unlock Recipes：736 は [action varint][craftingBookOpen bool]
+    // [filteringCraftable bool][smeltingBookOpen bool][filteringSmeltable bool]
+    // [recipes1 varint[文字列]][recipes2 varint[文字列]（action==0 のときだけ）]、
+    // 751 は smelting pair の後に [blastFurnaceOpen bool][filteringBlastFurnace bool]
+    // [smokerBookOpen bool][filteringSmoker bool] を追加したもの。
+    // （mc-1.16.1／mc-1.16.2-protocol.json で実測。実バニラ jar の javap でも確認：
+    // 1.16.1 の ClientboundRecipePacket（pl）は action enum（varint ordinal、
+    // INIT=0／ADD=1／REMOVE=2）の後に4 bool・recipes1・recipes2（action==INIT
+    // のときだけ）を読み書きする。1.16.2 の同パケット（ql）は設定を
+    // RecipeBookSettings（ads）として読む。ads の read は RecipeBookType enum
+    // （CRAFTING→FURNACE→BLAST_FURNACE→SMOKER の宣言順）ごとに open／filter の
+    // 2 bool を読むため、751の8 bool の順序は crafting pair、smelting pair、
+    // blast pair、smoker pair で、736の4 bool は先頭2組と同一順序。）
+    // Recipe Book：736 は crafting_book_data {type varint, switch：
+    // 0→{displayedRecipe string}、1→{8 bool}}、751 は recipe_book
+    // {bookId varint, bookOpen bool, filterActive bool} と displayed_recipe
+    // {recipeId string} に分割。ViaVersion の Protocol1_16_1To1_16_2 の
+    // 写像をそのまま採用する（下記の translateRecipeBook751To736 参照）。
+    // 変換失敗時は従来通り素通し（ペイロード unchanged）を返す。ただし
+    // translateRecipeBook736To751／translateDisplayedRecipe736To751 は
+    // 「type が違うため変換できない」ことを null で返す（ProxySession が
+    // type を読んで振り分ける。null のときは落とす）。
+    // ------------------------------------------------------------------
+
+    /** Unlock Recipes の action（INIT=0／ADD=1／REMOVE=2）。recipes2 は INIT のときだけ。 */
+    private static final int UNLOCK_RECIPES_ACTION_INIT = 0;
+
+    /**
+     * Unlock Recipes（736 → 751）。smelting pair の後に false×4
+     * （blastFurnaceOpen、filteringBlastFurnace、smokerBookOpen、filteringSmoker）を挿入する。
+     * 補完値 false の根拠は ViaVersion の ItemPacketRewriter1_16_2
+     * （unlock_recipes で blast／smoker 用に false を4個書く）。
+     * false＝新しい本は閉じた状態・フィルタ無効（1.16.1サーバーには blast／smoker
+     * の本が無いため、開いた状態を補う根拠は無い）。
+     */
+    public static byte[] translateUnlockRecipes736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int action = reader.readVarInt();
+            boolean craftingBookOpen = reader.readBoolean();
+            boolean filteringCraftable = reader.readBoolean();
+            boolean smeltingBookOpen = reader.readBoolean();
+            boolean filteringSmeltable = reader.readBoolean();
+            List<String> recipes1 = PacketIO.readStringList(reader);
+            List<String> recipes2 = List.of();
+            if (action == UNLOCK_RECIPES_ACTION_INIT) {
+                recipes2 = PacketIO.readStringList(reader);
+            }
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(action);
+            writer.writeBoolean(craftingBookOpen);
+            writer.writeBoolean(filteringCraftable);
+            writer.writeBoolean(smeltingBookOpen);
+            writer.writeBoolean(filteringSmeltable);
+            writer.writeBoolean(false); // blastFurnaceOpen（補完。ViaVersion と同じ）
+            writer.writeBoolean(false); // filteringBlastFurnace（補完）
+            writer.writeBoolean(false); // smokerBookOpen（補完）
+            writer.writeBoolean(false); // filteringSmoker（補完）
+            PacketIO.writeStringList(writer, recipes1);
+            if (action == UNLOCK_RECIPES_ACTION_INIT) {
+                PacketIO.writeStringList(writer, recipes2);
+            }
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Unlock Recipes を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Unlock Recipes（751 → 736）。blast／smoker の4 bool を落とす。 */
+    public static byte[] translateUnlockRecipes751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int action = reader.readVarInt();
+            boolean craftingBookOpen = reader.readBoolean();
+            boolean filteringCraftable = reader.readBoolean();
+            boolean smeltingBookOpen = reader.readBoolean();
+            boolean filteringSmeltable = reader.readBoolean();
+            reader.readBoolean(); // blastFurnaceOpen（落とす）
+            reader.readBoolean(); // filteringBlastFurnace（落とす）
+            reader.readBoolean(); // smokerBookOpen（落とす）
+            reader.readBoolean(); // filteringSmoker（落とす）
+            List<String> recipes1 = PacketIO.readStringList(reader);
+            List<String> recipes2 = List.of();
+            if (action == UNLOCK_RECIPES_ACTION_INIT) {
+                recipes2 = PacketIO.readStringList(reader);
+            }
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(action);
+            writer.writeBoolean(craftingBookOpen);
+            writer.writeBoolean(filteringCraftable);
+            writer.writeBoolean(smeltingBookOpen);
+            writer.writeBoolean(filteringSmeltable);
+            PacketIO.writeStringList(writer, recipes1);
+            if (action == UNLOCK_RECIPES_ACTION_INIT) {
+                PacketIO.writeStringList(writer, recipes2);
+            }
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Unlock Recipes を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Recipe Book（751 → 736）。751の recipe_book {bookId, bookOpen, filterActive}
+     * を736の crafting_book_data type=1（8 bool）に変換する。
+     * ViaVersion の Protocol1_16_1To1_16_2 の写像そのまま：
+     * craftingBookOpen＝(bookId==0 && open)、craftingFilter＝filter、
+     * smeltingBookOpen＝(bookId==1 && open)、smeltingFilter＝filter、
+     * blastingBookOpen＝(bookId==2 && open)、blastingFilter＝filter、
+     * smokingBookOpen＝(bookId==3 && open)、smokingFilter＝filter。
+     * bookId が 0〜3 の範囲外の場合も filterActive は4冊全てのフィルタに入る
+     * （open だけが全て false になる。フィルタは bookId に依存しない）。
+     * （751の recipe_book は1冊分しか持たないため、736の4冊のうち対応する1冊だけ
+     * が開き、残りは閉じた状態になる。）
+     */
+    public static byte[] translateRecipeBook751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int bookId = reader.readVarInt();
+            boolean open = reader.readBoolean();
+            boolean filter = reader.readBoolean();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(1); // type=SETTINGS
+            writer.writeBoolean(bookId == 0 && open); // craftingBookOpen
+            writer.writeBoolean(filter); // craftingFilter
+            writer.writeBoolean(bookId == 1 && open); // smeltingBookOpen
+            writer.writeBoolean(filter); // smeltingFilter
+            writer.writeBoolean(bookId == 2 && open); // blastingBookOpen
+            writer.writeBoolean(filter); // blastingFilter
+            writer.writeBoolean(bookId == 3 && open); // smokingBookOpen
+            writer.writeBoolean(filter); // smokingFilter
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Recipe Book を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Recipe Book（736 → 751。type=1 用）。736の crafting_book_data type=1
+     * （8 bool）を751の recipe_book {bookId, bookOpen, filterActive} に変換する。
+     * 736は4冊分の開閉とフィルタを持つが、751は1冊分しか持てないため非可逆。
+     * 開いている本を優先順（crafting→smelting→blasting→smoking）で1冊選ぶ。
+     * どれも開いていなければ bookId 0・open=false・filterActive=craftingFilter。
+     * type が 1 でない場合は {@code null} を返す（呼び出し側は type=0 なら
+     * {@link #translateDisplayedRecipe736To751(byte[])} を使うこと）。
+     * （ViaVersion の逆方向も同様に非可逆。ステートレスな変換器では1冊分しか残せない。）
+     */
+    public static byte[] translateRecipeBook736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int type = reader.readVarInt();
+            if (type != 1) {
+                return null;
+            }
+            boolean craftingBookOpen = reader.readBoolean();
+            boolean craftingFilter = reader.readBoolean();
+            boolean smeltingBookOpen = reader.readBoolean();
+            boolean smeltingFilter = reader.readBoolean();
+            boolean blastingBookOpen = reader.readBoolean();
+            boolean blastingFilter = reader.readBoolean();
+            boolean smokingBookOpen = reader.readBoolean();
+            boolean smokingFilter = reader.readBoolean();
+            requireEnd(reader);
+            int bookId;
+            boolean open;
+            boolean filter;
+            if (craftingBookOpen) {
+                bookId = 0;
+                open = true;
+                filter = craftingFilter;
+            } else if (smeltingBookOpen) {
+                bookId = 1;
+                open = true;
+                filter = smeltingFilter;
+            } else if (blastingBookOpen) {
+                bookId = 2;
+                open = true;
+                filter = blastingFilter;
+            } else if (smokingBookOpen) {
+                bookId = 3;
+                open = true;
+                filter = smokingFilter;
+            } else {
+                bookId = 0;
+                open = false;
+                filter = craftingFilter;
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(bookId);
+            writer.writeBoolean(open);
+            writer.writeBoolean(filter);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Recipe Book を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Displayed Recipe（736 → 751。type=0 用）。736の crafting_book_data
+     * type=0（{type=0, displayedRecipe}）を751の displayed_recipe
+     * {recipeId string} に変換する。type が 0 でない場合は {@code null} を返す
+     * （呼び出し側は type=1 なら {@link #translateRecipeBook736To751(byte[])} を使うこと）。
+     */
+    public static byte[] translateDisplayedRecipe736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int type = reader.readVarInt();
+            if (type != 0) {
+                return null;
+            }
+            String recipeId = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(recipeId);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Displayed Recipe を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+
+    // ------------------------------------------------------------------
+    // 735（1.16）⇔ 736（1.16.1）
+    // ------------------------------------------------------------------
+    //
+    // 実測の根拠（推測なし）：
+    // - packet-ids-735.json（272件。実バニラjarの ConnectionProtocol 登録順＋Mojang
+    //   mappingsで実測）：736↔735のパケットID差分は変更0件・新規0件・削除0件。
+    //   STAGE-A-735-NOTES.md §8参照。ViaVersion照合157件・Wiki照合149件とも不一致0件。
+    // - Join Game codec：STAGE-A-735-NOTES.md §11.6。実バニラ1.16の生キャプチャ
+    //   （.tmp-735/packet/joingame-1.16.bin。1,159バイト・entityId 352・消費量
+    //   1,159／1,159で完全一致）は1.16.1のものと同一の14フィールド（isHardcore無し、
+    //   dimensionは文字列、dimensionCodecは {"dimension": [...]} だけ・1,039バイト、
+    //   dimension 4件、バイオーム無し、min_y／height無し）。
+    // - 実バニラ1.16 jar（run/vanilla/server-1.16.jar。sha1
+    //   a0d03225615ba897619220e256a266cb33a44b6b）と実バニラ1.16.1 jar
+    //   （~/workspace/detergentmc-736/run/vanilla/server-1.16.1.jar。sha1
+    //   a412fd69db1f81db3f511c1463fd304675244077）の全21,480クラスを sha1 比較した
+    //   ところ、異なるのは o.class（net.minecraft.DetectedVersion。バージョン文字列
+    //   "1.16"／"1.16.1"、world 2566／2567、protocol 735／736のみ）1件だけで、
+    //   パケット関連を含む他の全クラスはバイト同一。よって全playパケットの
+    //   ワイヤ形式は同一である。個別にも javap -p -c で確認済み：
+    //   ClientboundLoginPacket（ox）・ClientboundRespawnPacket（pp）・
+    //   ClientboundRecipePacket（pl）・ServerboundClientInformationPacket（rf）・
+    //   ClientboundPlayerPositionPacket（pk）・ClientboundPlayerCombatPacket（ph）・
+    //   ClientboundSetTitlesPacket（qk）・ClientboundSetBorderPacket（ps）・
+    //   ClientboundContainerAckPacket（oe）・ServerboundContainerAckPacket（rh）・
+    //   ServerboundRecipeBookUpdatePacket（sb）・ClientboundUpdateRecipesPacket（qv）は
+    //   両jarでバイト同一。server_mappings.txt も両版で同一
+    //   （sha1 11120c39da4df293c4bd020896391fb9ddd6c2ba。piston-metaの値と一致）。
+    //   jar-packets-1.16.json と jar-packets-1.16.1.json も全状態・全方向で同一。
+    //
+    // 735⇔736の違いと扱い（IDは PacketIds.java／packet-ids-735.json 参照）：
+    // - Join Game（0x25⇔0x25）：codec同一。14フィールド。hardcore は gameMode バイトの
+    //   bit 3、dimension は文字列、maxPlayers は u8、dimensionCodec は
+    //   {"dimension": [...]} だけ。JoinGame736 の record・parse・write をそのまま使う
+    //   （JoinGame735 は作らない）。本節の変換器は parse＋write の往復（恒等写像）。
+    // - Respawn（0x3a⇔0x3a）：8フィールド同一。順序は dimension（文字列。
+    //   javap pp#b：dimensionType・dimension とも ResourceKey を mg.a(uh)＝文字列で
+    //   書く）／worldName／hashedSeed／gameMode u8／previousGameMode u8／isDebug／
+    //   isFlat／copyMetadata。Stage A §13.3の未確認事項はこれで解決。
+    //   SpawnInfo736 の record・read・write をそのまま使う（SpawnInfo735 は作らない）。
+    //   本節の変換器は read＋write の往復（恒等写像）。
+    // - Client Information（0x05⇔0x05）：6フィールド同一（javap rf が両jarで同一。
+    //   locale・viewDistance i8・chatFlags varint・chatColors bool・skinParts u8・
+    //   mainHand varint。disableTextFiltering は755での追加で、735・736とも無い）。
+    //   本節の変換器は恒等写像。
+    // - Synchronize Player Position（0x35⇔0x35）：7フィールド同一（javap pk が両jarで同一。
+    //   x・y・z f64、yaw・pitch f32、flags i8、teleportId varint。
+    //   dismountVehicle は755での追加で、735・736とも無い）。本節の変換器は恒等写像。
+    // - combat_event（0x32⇔0x32）：フィールド同一。736と同じく分割されていない
+    //   （分割は755での変更。751でも単一パケットであることは736 §14.3の訂正1で確定済み）。
+    //   本節の変換器は恒等写像（IDも同じため付け替えも不要）。
+    // - title（0x4f⇔0x4f）：IDもフィールドも同一（javap qk が両jarで同一）。
+    //   本節の変換器は恒等写像。
+    // - world_border（0x3d⇔0x3d）：IDもフィールドも同一（javap ps が両jarで同一）。
+    //   本節の変換器は恒等写像。
+    // - ping（0x12⇔0x12）／pong（0x07⇔0x07）：恒等写像。両版とも transaction 形式
+    //   （ClientboundContainerAckPacket oe／ServerboundContainerAckPacket rh。
+    //   {windowId i8, actionNumber i16, accepted bool}。javap が両jarで同一で、
+    //   ConnectionProtocol の登録順でも両版とも clientbound 0x12・serverbound 0x07）。
+    //   736⇔751で落としていたのは751側が {id i32} の ping／pong だったためで、
+    //   735⇔736では両側が同じ形式のため落とさない。Keep Alive（0x20⇔0x20）は別パケット。
+    // - displayed_recipe（両版とも -1）：変換器は作らない。735にも736にも無い
+    //   （packet-ids-735.json で id735＝id736＝-1。751で追加されたため736では
+    //   「削除」1件だったが、735は736と同じく -1）。crafting_book_data（0x1e）は
+    //   両版ともあり、形式も同一（javap sb が両jarで同一）のため変換器は不要。
+    // - entity（735では0x2b）：PacketIds の対象外のまま落とす（下記の判断参照）。
+    //
+    // 決めたこと：
+    // - entity（クライアント行き 0x2b）は PacketIds にエントリを追加せず、対象外のまま落とす。
+    //   根拠：1.17で削除されたパケットで、ViaVersion の1.17 enum には無く
+    //   Protocol1_16_4To1_17 でも未登録（＝落としている）。内容は entityId varint 1個だけの
+    //   「移動なし」通知で、rel_entity_move 系とは別に位置同期には影響しない。
+    //   （736の 0x2b と同じ判断。Stage A §8.2参照。）
+    // - ping／pong は両方向とも恒等写像（落とさない）。根拠は上記の通り。
+    // - Join Game／Respawn は codec が同一のため parse＋write の往復で恒等写像になる。
+    //   735専用の record・parse・write は作らず、736のものをそのまま使う。
+    //
+    // 変換器を作らなかったもの（ID同一で、形式も同一のため。IDも同じものは呼び出し側の付け替えも不要）：
+    // Chat、Player Info、Set Held Item、Update Time（0x4e⇔0x4e）、Keep Alive（0x20⇔0x20）、
+    // Set Slot、Window Items、Set Cooldown、Entity Equipment、Trade List、Tile Entity Data、
+    // Entity Metadata、Sound Effect、Entity Sound Effect、Named Sound Effect、Stop Sound、
+    // World Particles、Block Change、Spawn Entity 系、Open Window、Block Action、
+    // Entity Effect、Enchant Item、Tags、Resource Pack Send、Declare Recipes
+    // （ClientboundUpdateRecipesPacket qv の javap が両jarで同一。736⇔751の
+    // ShapedRecipe$Serializer の確認と同じくワイヤ同一）、Unlock Recipes
+    // （0x36⇔0x36。ClientboundRecipePacket pl の javap が両jarで同一。blast／smoker の
+    // 4 bool が無いのは735・736とも同じで、736⇔751の違いは751側の追加によるもの）、
+    // Recipe Book（crafting_book_data。サーバー行き 0x1e⇔0x1e。
+    // ServerboundRecipeBookUpdatePacket sb の javap が両jarで同一）。
+    // 根拠は冒頭の全クラス sha1 比較（異なるのは DetectedVersion 1件だけ）による。
+    //
+    // ChunkTranslator担当へ申し送るもの：
+    // - entity_destroy（0x37⇔0x37）：ID同一。ChunkTranslator担当のパケットのため本節では扱わない。
+    // - window_click（0x09⇔0x09）：ID同一。ChunkTranslator担当。
+    // - map_chunk（0x21⇔0x21）：ID同一。ChunkTranslator担当。
+    // - update_light（0x24⇔0x24）：ID同一。ChunkTranslator担当。
+    // - explosion（0x1c⇔0x1c）：ID同一。ChunkTranslator担当。
+    // - entity_update_attributes（0x58⇔0x58）：ID同一。ChunkTranslator担当。
+    // - map（0x26⇔0x26）：ID同一。ChunkTranslator担当。
+    // - multi_block_change（0x0f⇔0x0f）：ID同一。ChunkTranslator担当。
+    // （上記8件の形式の実測は ChunkTranslator担当。冒頭の全クラス比較により
+    // 735と736でワイヤ形式が違う可能性は DetectedVersion 以外に無いことが分かっている。）
+
+    // ------------------------------------------------------------------
+    // Join Game（735⇔736。codec同一）
+    // ------------------------------------------------------------------
+
+    /**
+     * Join Game（735 → 736）。codec が同一のため、736の parse＋write の往復で
+     * 恒等写像になる。hardcore は gameMode バイトの bit 3、dimension は文字列、
+     * maxPlayers は u8、dimensionCodec は {"dimension": [...]} だけ。
+     * 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
+     */
+    public static byte[] translateJoinGame735To736(byte[] payload) {
+        try {
+            return writeJoinGame736(parseJoinGame736(payload));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Join Game（736 → 735）。codec が同一のため、736の parse＋write の往復で
+     * 恒等写像になる。根拠は {@link #translateJoinGame735To736(byte[])} と同じ。
+     */
+    public static byte[] translateJoinGame736To735(byte[] payload) {
+        try {
+            return writeJoinGame736(parseJoinGame736(payload));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Respawn（735⇔736。8フィールド同一）
+    // ------------------------------------------------------------------
+
+    /**
+     * Respawn（735 → 736）。8フィールド同一のため、736の read＋write の往復で
+     * 恒等写像になる。dimension は文字列（javap pp#b で両jarとも ResourceKey を
+     * 文字列で書くことを確認）。読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn735To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo736 info = readSpawnInfo736(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo736(writer, info);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Respawn（736 → 735）。8フィールド同一のため、736の read＋write の往復で
+     * 恒等写像になる。根拠は {@link #translateRespawn735To736(byte[])} と同じ。
+     */
+    public static byte[] translateRespawn736To735(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo736 info = readSpawnInfo736(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo736(writer, info);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // Client Information（Settings、735⇔736）
+    // ------------------------------------------------------------------
+
+    /**
+     * Client Information（735 → 736）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x05 同一、6フィールド同一。javap rf が両jarで同一。
+     * disableTextFiltering は755での追加で、735・736とも無い）。パースして書き直さない。
+     */
+    public static byte[] translateClientInformation735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Client Information（736 → 735）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateClientInformation735To736(byte[])} と同じ。
+     */
+    public static byte[] translateClientInformation736To735(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // Synchronize Player Position（735⇔736）
+    // ------------------------------------------------------------------
+
+    /**
+     * Synchronize Player Position（735 0x35 → 736 0x35）。恒等写像：入力ペイロードを
+     * そのまま返す（IDも同じため付け替えも不要）。
+     * 根拠は本節の冒頭（javap pk が両jarで同一。x・y・z f64、yaw・pitch f32、
+     * flags i8、teleportId varint の7フィールド。dismountVehicle は755での追加で、
+     * 735・736とも無い）。
+     * パースして書き直さない。
+     */
+    public static byte[] translatePosition735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Synchronize Player Position（736 0x35 → 735 0x35）。恒等写像：入力ペイロードを
+     * そのまま返す。根拠は {@link #translatePosition735To736(byte[])} と同じ。
+     */
+    public static byte[] translatePosition736To735(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // Combat Event（735⇔736。分割されていない）
+    // ------------------------------------------------------------------
+
+    /**
+     * Combat Event（735 0x32 → 736 0x32）。恒等写像：入力ペイロードをそのまま返す
+     * （IDも同じため付け替えも不要）。分割されていないため振り分けは不要。
+     * 根拠は本節の冒頭（javap ph が両jarで同一。event varint、END_COMBAT なら
+     * duration varint＋entityId i32、ENTITY_DIED なら playerId varint＋entityId i32＋
+     * message。分割は755での変更）。
+     * パースして書き直さない。
+     */
+    public static byte[] translateCombatEvent735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Combat Event（736 0x32 → 735 0x32）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateCombatEvent735To736(byte[])} と同じ。
+     */
+    public static byte[] translateCombatEvent736To735(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // Title（735⇔736。分割されていない）
+    // ------------------------------------------------------------------
+
+    /**
+     * Title（735 0x4f → 736 0x4f）。恒等写像：入力ペイロードをそのまま返す。
+     * 分割されていないため振り分けは不要。IDも同じ 0x4f。
+     * 根拠は本節の冒頭（javap qk が両jarで同一。action varint、0・1・2 なら text、
+     * 3 なら fadeIn／stay／fadeOut i32×3。分割は755での変更）。
+     * パースして書き直さない。
+     */
+    public static byte[] translateTitle735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Title（736 0x4f → 735 0x4f）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateTitle735To736(byte[])} と同じ。
+     */
+    public static byte[] translateTitle736To735(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // World Border（735⇔736。分割されていない）
+    // ------------------------------------------------------------------
+
+    /**
+     * World Border（735 0x3d → 736 0x3d）。恒等写像：入力ペイロードをそのまま返す。
+     * 分割されていないため振り分けは不要。IDも同じ 0x3d。
+     * 根拠は本節の冒頭（javap ps が両jarで同一。INITIALIZE は x, z, oldSize, newSize,
+     * speed, portalBoundary, warningBlocks, warningTime の順。分割は755での変更）。
+     * パースして書き直さない。
+     */
+    public static byte[] translateWorldBorder735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * World Border（736 0x3d → 735 0x3d）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateWorldBorder735To736(byte[])} と同じ。
+     */
+    public static byte[] translateWorldBorder736To735(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // Ping／Pong（735⇔736。両版とも transaction 形式）
+    // ------------------------------------------------------------------
+
+    /**
+     * Ping（735 0x12 → 736 0x12）。恒等写像：入力ペイロードをそのまま返す。
+     * 両版とも transaction 形式（ClientboundContainerAckPacket。
+     * {windowId i8, actionNumber i16, accepted bool}。javap oe が両jarで同一）。
+     * 736⇔751で落としていたのは751側が {id i32} の ping だったためで、
+     * 735⇔736では両側が同じ形式のため落とさない。
+     */
+    public static byte[] translatePing735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Ping（736 0x12 → 735 0x12）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translatePing735To736(byte[])} と同じ。
+     */
+    public static byte[] translatePing736To735(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Pong（735 0x07 → 736 0x07）。恒等写像：入力ペイロードをそのまま返す。
+     * 両版とも transaction 形式（ServerboundContainerAckPacket。
+     * {windowId i8, actionNumber i16, accepted bool}。javap rh が両jarで同一）。
+     * 736⇔751で落としていたのは751側が {id i32} の pong だったためで、
+     * 735⇔736では両側が同じ形式のため落とさない。
+     */
+    public static byte[] translatePong735To736(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Pong（736 0x07 → 735 0x07）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translatePong735To736(byte[])} と同じ。
+     */
+    public static byte[] translatePong736To735(byte[] payload) {
         return payload;
     }
 
