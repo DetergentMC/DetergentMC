@@ -206,6 +206,90 @@ class ProxyIntegrationTest {
         return null;
     }
 
+    /** 本物のバニラ1.17のjarを探す。無ければ内部755の統合テストはスキップする。 */
+    private static Path findRealVanilla117Jar() {
+        for (String candidate : List.of(
+                "run/vanilla/server-1.17.jar",
+                "../run/vanilla/server-1.17.jar",
+                "../../run/vanilla/server-1.17.jar")) {
+            Path path = Path.of(candidate).toAbsolutePath().normalize();
+            if (Files.isRegularFile(path)) {
+                return path;
+            }
+        }
+        return null;
+    }
+
+    /** 本物のバニラ1.16.5のjarを探す。無ければ内部754の統合テストはスキップする。 */
+    private static Path findRealVanilla1165Jar() {
+        for (String candidate : List.of(
+                "run/vanilla/server-1.16.5.jar",
+                "../run/vanilla/server-1.16.5.jar",
+                "../../run/vanilla/server-1.16.5.jar")) {
+            Path path = Path.of(candidate).toAbsolutePath().normalize();
+            if (Files.isRegularFile(path)) {
+                return path;
+            }
+        }
+        return null;
+    }
+
+    /** 本物のバニラ1.16.3のjarを探す。無ければ内部753の統合テストはスキップする。 */
+    private static Path findRealVanilla1163Jar() {
+        for (String candidate : List.of(
+                "run/vanilla/server-1.16.3.jar",
+                "../run/vanilla/server-1.16.3.jar",
+                "../../run/vanilla/server-1.16.3.jar")) {
+            Path path = Path.of(candidate).toAbsolutePath().normalize();
+            if (Files.isRegularFile(path)) {
+                return path;
+            }
+        }
+        return null;
+    }
+
+    /** 本物のバニラ1.16.2のjarを探す。無ければ内部751の統合テストはスキップする。 */
+    private static Path findRealVanilla1162Jar() {
+        for (String candidate : List.of(
+                "run/vanilla/server-1.16.2.jar",
+                "../run/vanilla/server-1.16.2.jar",
+                "../../run/vanilla/server-1.16.2.jar")) {
+            Path path = Path.of(candidate).toAbsolutePath().normalize();
+            if (Files.isRegularFile(path)) {
+                return path;
+            }
+        }
+        return null;
+    }
+
+    /** 本物のバニラ1.16.1のjarを探す。無ければ内部736の統合テストはスキップする。 */
+    private static Path findRealVanilla1161Jar() {
+        for (String candidate : List.of(
+                "run/vanilla/server-1.16.1.jar",
+                "../run/vanilla/server-1.16.1.jar",
+                "../../run/vanilla/server-1.16.1.jar")) {
+            Path path = Path.of(candidate).toAbsolutePath().normalize();
+            if (Files.isRegularFile(path)) {
+                return path;
+            }
+        }
+        return null;
+    }
+
+    /** 本物のバニラ1.16のjarを探す。無ければ内部735の統合テストはスキップする。 */
+    private static Path findRealVanilla116Jar() {
+        for (String candidate : List.of(
+                "run/vanilla/server-1.16.jar",
+                "../run/vanilla/server-1.16.jar",
+                "../../run/vanilla/server-1.16.jar")) {
+            Path path = Path.of(candidate).toAbsolutePath().normalize();
+            if (Files.isRegularFile(path)) {
+                return path;
+            }
+        }
+        return null;
+    }
+
     /** 本物のバニラ1.20.4のjarを探す（findRealVanillaJar の別名）。 */
     private static Path findRealVanilla1204Jar() {
         return findRealVanillaJar();
@@ -844,6 +928,526 @@ class ProxyIntegrationTest {
         }
     }
 
+    /** 生ソケットの755クライアント。設定フェーズが無い（1.20.2／764で追加）。 */
+    private static final class Fake755Client implements AutoCloseable {
+        private final Socket socket;
+        private final InputStream in;
+        private final OutputStream out;
+        private final BlockingQueue<MinecraftPacket> received = new LinkedBlockingQueue<>();
+        private volatile boolean closed;
+
+        Fake755Client(int port) throws IOException {
+            socket = new Socket("127.0.0.1", port);
+            socket.setSoTimeout(30_000);
+            in = socket.getInputStream();
+            out = socket.getOutputStream();
+            Thread reader = new Thread(this::readLoop, "fake-755-client-reader");
+            reader.setDaemon(true);
+            reader.start();
+        }
+
+        private void readLoop() {
+            try {
+                while (true) {
+                    MinecraftPacket packet = readPacket();
+                    // 実機クライアントと同じく Keep Alive（0x21）に応答する。
+                    // 応答しないとバニラが30秒でタイムアウト切断する。
+                    if (packet.id() == 0x21) {
+                        Writer response = new Writer();
+                        response.writeLong(new PacketIO.Reader(packet.payload()).readLong());
+                        sendPacket(new MinecraftPacket(0x0f, response.bytes()));
+                    }
+                    received.add(packet);
+                }
+            } catch (IOException e) {
+                closed = true;
+            }
+        }
+
+        private MinecraftPacket readPacket() throws IOException {
+            int length = readVarInt(in);
+            byte[] frame = readExact(in, length);
+            byte[] lengthBytes = VarInt.encode(length);
+            byte[] all = new byte[lengthBytes.length + frame.length];
+            System.arraycopy(lengthBytes, 0, all, 0, lengthBytes.length);
+            System.arraycopy(frame, 0, all, lengthBytes.length, frame.length);
+            return MinecraftPacket.decodeOne(all, 0).packet();
+        }
+
+        void sendPacket(MinecraftPacket packet) throws IOException {
+            out.write(packet.encode());
+            out.flush();
+        }
+
+        /** 指定IDのパケットが届くまで待つ（他のパケットは捨てる）。 */
+        MinecraftPacket waitForId(int id, long timeoutMillis) throws InterruptedException {
+            long deadline = System.currentTimeMillis() + timeoutMillis;
+            while (true) {
+                long remaining = deadline - System.currentTimeMillis();
+                if (remaining <= 0) {
+                    return null;
+                }
+                MinecraftPacket packet = received.poll(remaining, TimeUnit.MILLISECONDS);
+                if (packet == null) {
+                    return null;
+                }
+                if (packet.id() == id) {
+                    return packet;
+                }
+            }
+        }
+
+        boolean isClosed() {
+            return closed || socket.isClosed();
+        }
+
+        @Override
+        public void close() throws IOException {
+            socket.close();
+        }
+    }
+
+    /**
+     * 生ソケットの754クライアント。設定フェーズが無い（1.20.2／764で追加）。
+     * パケットIDは PacketIds.java と packet-ids-754.json で確認済み：
+     * Join Game 0x24／Spawn Position 0x42／Chunk Data 0x20／
+     * Keep Alive（clientbound）0x1f→応答（serverbound）0x10／
+     * Chat（serverbound）0x03／Client Information 0x05（6フィールド）／
+     * Set Player Position 0x12／Login Success 0x02。
+     * 注意：Keep Alive応答 0x10・Set Player Position 0x12 は755の
+     * 0x0f／0x11とは違う。任務文の 0x0f／0x11 は755の値で、754では誤り。
+     */
+    private static final class Fake754Client implements AutoCloseable {
+        private final Socket socket;
+        private final InputStream in;
+        private final OutputStream out;
+        private final BlockingQueue<MinecraftPacket> received = new LinkedBlockingQueue<>();
+        private volatile boolean closed;
+
+        Fake754Client(int port) throws IOException {
+            socket = new Socket("127.0.0.1", port);
+            socket.setSoTimeout(30_000);
+            in = socket.getInputStream();
+            out = socket.getOutputStream();
+            Thread reader = new Thread(this::readLoop, "fake-754-client-reader");
+            reader.setDaemon(true);
+            reader.start();
+        }
+
+        private void readLoop() {
+            try {
+                while (true) {
+                    MinecraftPacket packet = readPacket();
+                    // 実機クライアントと同じく Keep Alive（0x1f）に応答する。
+                    // 応答しないとバニラが30秒でタイムアウト切断する。
+                    if (packet.id() == 0x1f) {
+                        Writer response = new Writer();
+                        response.writeLong(new PacketIO.Reader(packet.payload()).readLong());
+                        sendPacket(new MinecraftPacket(0x10, response.bytes()));
+                    }
+                    received.add(packet);
+                }
+            } catch (IOException e) {
+                closed = true;
+            }
+        }
+
+        private MinecraftPacket readPacket() throws IOException {
+            int length = readVarInt(in);
+            byte[] frame = readExact(in, length);
+            byte[] lengthBytes = VarInt.encode(length);
+            byte[] all = new byte[lengthBytes.length + frame.length];
+            System.arraycopy(lengthBytes, 0, all, 0, lengthBytes.length);
+            System.arraycopy(frame, 0, all, lengthBytes.length, frame.length);
+            return MinecraftPacket.decodeOne(all, 0).packet();
+        }
+
+        void sendPacket(MinecraftPacket packet) throws IOException {
+            out.write(packet.encode());
+            out.flush();
+        }
+
+        /** 指定IDのパケットが届くまで待つ（他のパケットは捨てる）。 */
+        MinecraftPacket waitForId(int id, long timeoutMillis) throws InterruptedException {
+            long deadline = System.currentTimeMillis() + timeoutMillis;
+            while (true) {
+                long remaining = deadline - System.currentTimeMillis();
+                if (remaining <= 0) {
+                    return null;
+                }
+                MinecraftPacket packet = received.poll(remaining, TimeUnit.MILLISECONDS);
+                if (packet == null) {
+                    return null;
+                }
+                if (packet.id() == id) {
+                    return packet;
+                }
+            }
+        }
+
+        boolean isClosed() {
+            return closed || socket.isClosed();
+        }
+
+        @Override
+        public void close() throws IOException {
+            socket.close();
+        }
+    }
+
+    /**
+     * 生ソケットの751クライアント。設定フェーズが無い（1.20.2／764で追加）。
+     * パケットIDは PacketIds.java と packet-ids-751.json で確認済み：
+     * Join Game 0x24／Spawn Position 0x42／Chunk Data 0x20／
+     * Keep Alive（clientbound）0x1f→応答（serverbound）0x10／
+     * Chat（serverbound）0x03／Client Information 0x05（6フィールド）／
+     * Set Player Position 0x12／Login Success 0x02／プレイ切断 0x19。
+     * 751は753と全272件でIDが同一のため、Fake753Client と同じ値になる
+     * （Stage Aで実測。PacketIds.java の751列で主要10パケットを再確認済み）。
+     */
+    private static final class Fake751Client implements AutoCloseable {
+        private final Socket socket;
+        private final InputStream in;
+        private final OutputStream out;
+        private final BlockingQueue<MinecraftPacket> received = new LinkedBlockingQueue<>();
+        private volatile boolean closed;
+
+        Fake751Client(int port) throws IOException {
+            socket = new Socket("127.0.0.1", port);
+            socket.setSoTimeout(30_000);
+            in = socket.getInputStream();
+            out = socket.getOutputStream();
+            Thread reader = new Thread(this::readLoop, "fake-751-client-reader");
+            reader.setDaemon(true);
+            reader.start();
+        }
+
+        private void readLoop() {
+            try {
+                while (true) {
+                    MinecraftPacket packet = readPacket();
+                    // 実機クライアントと同じく Keep Alive（0x1f）に応答する。
+                    // 応答しないとバニラが30秒でタイムアウト切断する。
+                    if (packet.id() == 0x1f) {
+                        Writer response = new Writer();
+                        response.writeLong(new PacketIO.Reader(packet.payload()).readLong());
+                        sendPacket(new MinecraftPacket(0x10, response.bytes()));
+                    }
+                    received.add(packet);
+                }
+            } catch (IOException e) {
+                closed = true;
+            }
+        }
+
+        private MinecraftPacket readPacket() throws IOException {
+            int length = readVarInt(in);
+            byte[] frame = readExact(in, length);
+            byte[] lengthBytes = VarInt.encode(length);
+            byte[] all = new byte[lengthBytes.length + frame.length];
+            System.arraycopy(lengthBytes, 0, all, 0, lengthBytes.length);
+            System.arraycopy(frame, 0, all, lengthBytes.length, frame.length);
+            return MinecraftPacket.decodeOne(all, 0).packet();
+        }
+
+        void sendPacket(MinecraftPacket packet) throws IOException {
+            out.write(packet.encode());
+            out.flush();
+        }
+
+        /** 指定IDのパケットが届くまで待つ（他のパケットは捨てる）。 */
+        MinecraftPacket waitForId(int id, long timeoutMillis) throws InterruptedException {
+            long deadline = System.currentTimeMillis() + timeoutMillis;
+            while (true) {
+                long remaining = deadline - System.currentTimeMillis();
+                if (remaining <= 0) {
+                    return null;
+                }
+                MinecraftPacket packet = received.poll(remaining, TimeUnit.MILLISECONDS);
+                if (packet == null) {
+                    return null;
+                }
+                if (packet.id() == id) {
+                    return packet;
+                }
+            }
+        }
+
+        boolean isClosed() {
+            return closed || socket.isClosed();
+        }
+
+        @Override
+        public void close() throws IOException {
+            socket.close();
+        }
+    }
+
+    /**
+     * 生ソケットの736クライアント。設定フェーズが無い（1.20.2／764で追加）。
+     * パケットIDは PacketIds.java と packet-ids-736.json で確認済み：
+     * Join Game 0x25／Spawn Position 0x42／Chunk Data 0x21／
+     * Keep Alive（clientbound）0x20→応答（serverbound）0x10／
+     * Chat（serverbound）0x03／Client Information 0x05（6フィールド）／
+     * Set Player Position 0x12／Login Success 0x02／プレイ切断 0x1a。
+     * 751とは Join Game 0x24→0x25・Chunk Data 0x20→0x21・
+     * Keep Alive 0x1f→0x20・プレイ切断 0x19→0x1a が違う
+     * （Stage Aで実測。PacketIds.java の736列で主要10パケットを再確認済み）。
+     */
+    private static final class Fake736Client implements AutoCloseable {
+        private final Socket socket;
+        private final InputStream in;
+        private final OutputStream out;
+        private final BlockingQueue<MinecraftPacket> received = new LinkedBlockingQueue<>();
+        private volatile boolean closed;
+
+        Fake736Client(int port) throws IOException {
+            socket = new Socket("127.0.0.1", port);
+            socket.setSoTimeout(30_000);
+            in = socket.getInputStream();
+            out = socket.getOutputStream();
+            Thread reader = new Thread(this::readLoop, "fake-736-client-reader");
+            reader.setDaemon(true);
+            reader.start();
+        }
+
+        private void readLoop() {
+            try {
+                while (true) {
+                    MinecraftPacket packet = readPacket();
+                    // 実機クライアントと同じく Keep Alive（0x20）に応答する。
+                    // 応答しないとバニラが30秒でタイムアウト切断する。
+                    if (packet.id() == 0x20) {
+                        Writer response = new Writer();
+                        response.writeLong(new PacketIO.Reader(packet.payload()).readLong());
+                        sendPacket(new MinecraftPacket(0x10, response.bytes()));
+                    }
+                    received.add(packet);
+                }
+            } catch (IOException e) {
+                closed = true;
+            }
+        }
+
+        private MinecraftPacket readPacket() throws IOException {
+            int length = readVarInt(in);
+            byte[] frame = readExact(in, length);
+            byte[] lengthBytes = VarInt.encode(length);
+            byte[] all = new byte[lengthBytes.length + frame.length];
+            System.arraycopy(lengthBytes, 0, all, 0, lengthBytes.length);
+            System.arraycopy(frame, 0, all, lengthBytes.length, frame.length);
+            return MinecraftPacket.decodeOne(all, 0).packet();
+        }
+
+        void sendPacket(MinecraftPacket packet) throws IOException {
+            out.write(packet.encode());
+            out.flush();
+        }
+
+        /** 指定IDのパケットが届くまで待つ（他のパケットは捨てる）。 */
+        MinecraftPacket waitForId(int id, long timeoutMillis) throws InterruptedException {
+            long deadline = System.currentTimeMillis() + timeoutMillis;
+            while (true) {
+                long remaining = deadline - System.currentTimeMillis();
+                if (remaining <= 0) {
+                    return null;
+                }
+                MinecraftPacket packet = received.poll(remaining, TimeUnit.MILLISECONDS);
+                if (packet == null) {
+                    return null;
+                }
+                if (packet.id() == id) {
+                    return packet;
+                }
+            }
+        }
+
+        boolean isClosed() {
+            return closed || socket.isClosed();
+        }
+
+        @Override
+        public void close() throws IOException {
+            socket.close();
+        }
+    }
+
+    /**
+     * 生ソケットの735クライアント。設定フェーズが無い（1.20.2／764で追加）。
+     * パケットIDは PacketIds.java と packet-ids-735.json で確認済み：
+     * Join Game 0x25／Spawn Position 0x42／Chunk Data 0x21／
+     * Keep Alive（clientbound）0x20→応答（serverbound）0x10／
+     * Chat（serverbound）0x03／Client Information 0x05（6フィールド）／
+     * Set Player Position 0x12／Login Success 0x02／プレイ切断 0x1a。
+     * 751とは Join Game 0x24→0x25・Chunk Data 0x20→0x21・
+     * Keep Alive 0x1f→0x20・プレイ切断 0x19→0x1a が違う
+     * （Stage Aで実測。PacketIds.java の735列で主要10パケットを再確認済み）。
+     */
+    private static final class Fake735Client implements AutoCloseable {
+        private final Socket socket;
+        private final InputStream in;
+        private final OutputStream out;
+        private final BlockingQueue<MinecraftPacket> received = new LinkedBlockingQueue<>();
+        private volatile boolean closed;
+
+        Fake735Client(int port) throws IOException {
+            socket = new Socket("127.0.0.1", port);
+            socket.setSoTimeout(30_000);
+            in = socket.getInputStream();
+            out = socket.getOutputStream();
+            Thread reader = new Thread(this::readLoop, "fake-735-client-reader");
+            reader.setDaemon(true);
+            reader.start();
+        }
+
+        private void readLoop() {
+            try {
+                while (true) {
+                    MinecraftPacket packet = readPacket();
+                    // 実機クライアントと同じく Keep Alive（0x20）に応答する。
+                    // 応答しないとバニラが30秒でタイムアウト切断する。
+                    if (packet.id() == 0x20) {
+                        Writer response = new Writer();
+                        response.writeLong(new PacketIO.Reader(packet.payload()).readLong());
+                        sendPacket(new MinecraftPacket(0x10, response.bytes()));
+                    }
+                    received.add(packet);
+                }
+            } catch (IOException e) {
+                closed = true;
+            }
+        }
+
+        private MinecraftPacket readPacket() throws IOException {
+            int length = readVarInt(in);
+            byte[] frame = readExact(in, length);
+            byte[] lengthBytes = VarInt.encode(length);
+            byte[] all = new byte[lengthBytes.length + frame.length];
+            System.arraycopy(lengthBytes, 0, all, 0, lengthBytes.length);
+            System.arraycopy(frame, 0, all, lengthBytes.length, frame.length);
+            return MinecraftPacket.decodeOne(all, 0).packet();
+        }
+
+        void sendPacket(MinecraftPacket packet) throws IOException {
+            out.write(packet.encode());
+            out.flush();
+        }
+
+        /** 指定IDのパケットが届くまで待つ（他のパケットは捨てる）。 */
+        MinecraftPacket waitForId(int id, long timeoutMillis) throws InterruptedException {
+            long deadline = System.currentTimeMillis() + timeoutMillis;
+            while (true) {
+                long remaining = deadline - System.currentTimeMillis();
+                if (remaining <= 0) {
+                    return null;
+                }
+                MinecraftPacket packet = received.poll(remaining, TimeUnit.MILLISECONDS);
+                if (packet == null) {
+                    return null;
+                }
+                if (packet.id() == id) {
+                    return packet;
+                }
+            }
+        }
+
+        boolean isClosed() {
+            return closed || socket.isClosed();
+        }
+
+        @Override
+        public void close() throws IOException {
+            socket.close();
+        }
+    }
+
+    /**
+     * 生ソケットの753クライアント。設定フェーズが無い（1.20.2／764で追加）。
+     * パケットIDは PacketIds.java と packet-ids-753.json で確認済み：
+     * Join Game 0x24／Spawn Position 0x42／Chunk Data 0x20／
+     * Keep Alive（clientbound）0x1f→応答（serverbound）0x10／
+     * Chat（serverbound）0x03／Client Information 0x05（6フィールド）／
+     * Set Player Position 0x12／Login Success 0x02／プレイ切断 0x19。
+     * 753は754と全272件でIDが同一のため、Fake754Client と同じ値になる。
+     */
+    private static final class Fake753Client implements AutoCloseable {
+        private final Socket socket;
+        private final InputStream in;
+        private final OutputStream out;
+        private final BlockingQueue<MinecraftPacket> received = new LinkedBlockingQueue<>();
+        private volatile boolean closed;
+
+        Fake753Client(int port) throws IOException {
+            socket = new Socket("127.0.0.1", port);
+            socket.setSoTimeout(30_000);
+            in = socket.getInputStream();
+            out = socket.getOutputStream();
+            Thread reader = new Thread(this::readLoop, "fake-753-client-reader");
+            reader.setDaemon(true);
+            reader.start();
+        }
+
+        private void readLoop() {
+            try {
+                while (true) {
+                    MinecraftPacket packet = readPacket();
+                    // 実機クライアントと同じく Keep Alive（0x1f）に応答する。
+                    // 応答しないとバニラが30秒でタイムアウト切断する。
+                    if (packet.id() == 0x1f) {
+                        Writer response = new Writer();
+                        response.writeLong(new PacketIO.Reader(packet.payload()).readLong());
+                        sendPacket(new MinecraftPacket(0x10, response.bytes()));
+                    }
+                    received.add(packet);
+                }
+            } catch (IOException e) {
+                closed = true;
+            }
+        }
+
+        private MinecraftPacket readPacket() throws IOException {
+            int length = readVarInt(in);
+            byte[] frame = readExact(in, length);
+            byte[] lengthBytes = VarInt.encode(length);
+            byte[] all = new byte[lengthBytes.length + frame.length];
+            System.arraycopy(lengthBytes, 0, all, 0, lengthBytes.length);
+            System.arraycopy(frame, 0, all, lengthBytes.length, frame.length);
+            return MinecraftPacket.decodeOne(all, 0).packet();
+        }
+
+        void sendPacket(MinecraftPacket packet) throws IOException {
+            out.write(packet.encode());
+            out.flush();
+        }
+
+        /** 指定IDのパケットが届くまで待つ（他のパケットは捨てる）。 */
+        MinecraftPacket waitForId(int id, long timeoutMillis) throws InterruptedException {
+            long deadline = System.currentTimeMillis() + timeoutMillis;
+            while (true) {
+                long remaining = deadline - System.currentTimeMillis();
+                if (remaining <= 0) {
+                    return null;
+                }
+                MinecraftPacket packet = received.poll(remaining, TimeUnit.MILLISECONDS);
+                if (packet == null) {
+                    return null;
+                }
+                if (packet.id() == id) {
+                    return packet;
+                }
+            }
+        }
+
+        boolean isClosed() {
+            return closed || socket.isClosed();
+        }
+
+        @Override
+        public void close() throws IOException {
+            socket.close();
+        }
+    }
+
     /** 生ソケットの759クライアント。760と同じく設定フェーズが無い。。761と同じく設定フェーズが無い。 */
     private static final class Fake759Client implements AutoCloseable {
         private final Socket socket;
@@ -1266,6 +1870,235 @@ class ProxyIntegrationTest {
 
     /** 1.17.1の Set Player Position（0x11）。757と同じ形式。 */
     private static byte[] move756() {
+        return move759();
+    }
+
+    /** 1.17の Login Start（0x00）。{username} のみ（署名オプションは1.19から）。 */
+    private static byte[] loginStart755(String name) {
+        Writer writer = new Writer();
+        writer.writeString(name);
+        return writer.bytes();
+    }
+
+    /**
+     * 1.17の Client Information（0x05）。7フィールド。
+     * mc-1.17-protocol.json の packet_settings で確認：
+     * locale／viewDistance／chatFlags／chatColors／skinParts／mainHand／
+     * disableTextFiltering。756と同じ7フィールドで、757の8フィールド目
+     * （allowServerListings）は無い。
+     */
+    private static byte[] clientInformation755() {
+        Writer writer = new Writer();
+        writer.writeString("ja_JP");
+        writer.writeByte(8); // 描画距離
+        writer.writeVarInt(0); // チャットモード：全て表示
+        writer.writeBoolean(true); // チャットカラー
+        writer.writeUnsignedByte(0x7F); // 表示するスキンパーツ
+        writer.writeVarInt(1); // メインハンド：右
+        writer.writeBoolean(false); // テキストフィルタリング無効
+        return writer.bytes();
+    }
+
+    /** 1.17の Chat（0x03）。署名なしでメッセージ文字列のみ。 */
+    private static byte[] chatMessage755(String message) {
+        Writer writer = new Writer();
+        writer.writeString(message);
+        return writer.bytes();
+    }
+
+    /** 1.17の Set Player Position（0x11）。756と同じ形式。 */
+    private static byte[] move755() {
+        return move759();
+    }
+
+    /** 1.16.5の Login Start（0x00）。{username} のみ（署名オプションは1.19から）。 */
+    private static byte[] loginStart754(String name) {
+        Writer writer = new Writer();
+        writer.writeString(name);
+        return writer.bytes();
+    }
+
+    /**
+     * 1.16.5の Client Information（0x05）。6フィールド。
+     * locale／viewDistance／chatFlags／chatColors／skinParts／mainHand。
+     * 755の7フィールド目（disableTextFiltering）は1.17で追加されたもので
+     * 754には無い。ViaVersionの Protocol1_16_4To1_17 が CLIENT_INFORMATION を
+     * 書き換えること（754ノート §14.4）とも一致する。
+     * ID 0x05・6フィールドは PacketIds.java（PLAY_CLIENT_INFORMATION の
+     * 754列 0x05）と packet-ids-754.json（id754: 5）で確認済み。
+     */
+    private static byte[] clientInformation754() {
+        Writer writer = new Writer();
+        writer.writeString("ja_JP");
+        writer.writeByte(8); // 描画距離
+        writer.writeVarInt(0); // チャットモード：全て表示
+        writer.writeBoolean(true); // チャットカラー
+        writer.writeUnsignedByte(0x7F); // 表示するスキンパーツ
+        writer.writeVarInt(1); // メインハンド：右
+        return writer.bytes();
+    }
+
+    /** 1.16.5の Chat（0x03）。署名なしでメッセージ文字列のみ。 */
+    private static byte[] chatMessage754(String message) {
+        Writer writer = new Writer();
+        writer.writeString(message);
+        return writer.bytes();
+    }
+
+    /** 1.16.5の Set Player Position（0x12）。755の0x11とは番号が違う。 */
+    private static byte[] move754() {
+        return move759();
+    }
+
+    /** 1.16.3の Login Start（0x00）。{username} のみ（署名オプションは1.19から）。 */
+    private static byte[] loginStart753(String name) {
+        Writer writer = new Writer();
+        writer.writeString(name);
+        return writer.bytes();
+    }
+
+    /**
+     * 1.16.3の Client Information（0x05）。6フィールド。
+     * locale／viewDistance／chatFlags／chatColors／skinParts／mainHand。
+     * 755の7フィールド目（disableTextFiltering）は1.17で追加されたもので
+     * 753には無い。754の6フィールドと同一。
+     * ID 0x05・6フィールドは PacketIds.java（PLAY_CLIENT_INFORMATION の
+     * 753列 0x05）と packet-ids-753.json（id753: 5）で確認済み。
+     */
+    private static byte[] clientInformation753() {
+        Writer writer = new Writer();
+        writer.writeString("ja_JP");
+        writer.writeByte(8); // 描画距離
+        writer.writeVarInt(0); // チャットモード：全て表示
+        writer.writeBoolean(true); // チャットカラー
+        writer.writeUnsignedByte(0x7F); // 表示するスキンパーツ
+        writer.writeVarInt(1); // メインハンド：右
+        return writer.bytes();
+    }
+
+    /** 1.16.3の Chat（0x03）。署名なしでメッセージ文字列のみ。 */
+    private static byte[] chatMessage753(String message) {
+        Writer writer = new Writer();
+        writer.writeString(message);
+        return writer.bytes();
+    }
+
+    /** 1.16.3の Set Player Position（0x12）。755の0x11とは番号が違う。 */
+    private static byte[] move753() {
+        return move759();
+    }
+
+    /** 1.16.2の Login Start（0x00）。{username} のみ（署名オプションは1.19から）。 */
+    private static byte[] loginStart751(String name) {
+        Writer writer = new Writer();
+        writer.writeString(name);
+        return writer.bytes();
+    }
+
+    /**
+     * 1.16.2の Client Information（0x05）。6フィールド。
+     * locale／viewDistance／chatFlags／chatColors／skinParts／mainHand。
+     * 755の7フィールド目（disableTextFiltering）は1.17で追加されたもので
+     * 751には無い。753の6フィールドと同一。
+     * ID 0x05・6フィールドは PacketIds.java（PLAY_CLIENT_INFORMATION の
+     * 751列 0x05）と packet-ids-751.json（id751: 5）で確認済み。
+     */
+    private static byte[] clientInformation751() {
+        Writer writer = new Writer();
+        writer.writeString("ja_JP");
+        writer.writeByte(8); // 描画距離
+        writer.writeVarInt(0); // チャットモード：全て表示
+        writer.writeBoolean(true); // チャットカラー
+        writer.writeUnsignedByte(0x7F); // 表示するスキンパーツ
+        writer.writeVarInt(1); // メインハンド：右
+        return writer.bytes();
+    }
+
+    /** 1.16.2の Chat（0x03）。署名なしでメッセージ文字列のみ。 */
+    private static byte[] chatMessage751(String message) {
+        Writer writer = new Writer();
+        writer.writeString(message);
+        return writer.bytes();
+    }
+
+    /** 1.16.2の Set Player Position（0x12）。755の0x11とは番号が違う。 */
+    private static byte[] move751() {
+        return move759();
+    }
+
+    /** 1.16.1の Login Start（0x00）。{username} のみ（署名オプションは1.19から）。 */
+    private static byte[] loginStart736(String name) {
+        Writer writer = new Writer();
+        writer.writeString(name);
+        return writer.bytes();
+    }
+
+    /**
+     * 1.16.1の Client Information（0x05）。6フィールド。
+     * locale／viewDistance／chatFlags／chatColors／skinParts／mainHand。
+     * 755の7フィールド目（disableTextFiltering）は1.17で追加されたもので
+     * 736には無い。751・753の6フィールドと同一。
+     * ID 0x05・6フィールドは PacketIds.java（PLAY_CLIENT_INFORMATION の
+     * 736列 0x05）と packet-ids-736.json（id736: 5）で確認済み。
+     */
+    private static byte[] clientInformation736() {
+        Writer writer = new Writer();
+        writer.writeString("ja_JP");
+        writer.writeByte(8); // 描画距離
+        writer.writeVarInt(0); // チャットモード：全て表示
+        writer.writeBoolean(true); // チャットカラー
+        writer.writeUnsignedByte(0x7F); // 表示するスキンパーツ
+        writer.writeVarInt(1); // メインハンド：右
+        return writer.bytes();
+    }
+
+    /** 1.16.1の Chat（0x03）。署名なしでメッセージ文字列のみ。 */
+    private static byte[] chatMessage736(String message) {
+        Writer writer = new Writer();
+        writer.writeString(message);
+        return writer.bytes();
+    }
+
+    /** 1.16.1の Set Player Position（0x12）。755の0x11とは番号が違う。 */
+    private static byte[] move736() {
+        return move759();
+    }
+
+    /** 1.16の Login Start（0x00）。{username} のみ（署名オプションは1.19から）。 */
+    private static byte[] loginStart735(String name) {
+        Writer writer = new Writer();
+        writer.writeString(name);
+        return writer.bytes();
+    }
+
+    /**
+     * 1.16の Client Information（0x05）。6フィールド。
+     * locale／viewDistance／chatFlags／chatColors／skinParts／mainHand。
+     * 755の7フィールド目（disableTextFiltering）は1.17で追加されたもので
+     * 735には無い。751・753の6フィールドと同一。
+     * ID 0x05・6フィールドは PacketIds.java（PLAY_CLIENT_INFORMATION の
+     * 735列 0x05）と packet-ids-735.json（id735: 5）で確認済み。
+     */
+    private static byte[] clientInformation735() {
+        Writer writer = new Writer();
+        writer.writeString("ja_JP");
+        writer.writeByte(8); // 描画距離
+        writer.writeVarInt(0); // チャットモード：全て表示
+        writer.writeBoolean(true); // チャットカラー
+        writer.writeUnsignedByte(0x7F); // 表示するスキンパーツ
+        writer.writeVarInt(1); // メインハンド：右
+        return writer.bytes();
+    }
+
+    /** 1.16の Chat（0x03）。署名なしでメッセージ文字列のみ。 */
+    private static byte[] chatMessage735(String message) {
+        Writer writer = new Writer();
+        writer.writeString(message);
+        return writer.bytes();
+    }
+
+    /** 1.16の Set Player Position（0x12）。755の0x11とは番号が違う。 */
+    private static byte[] move735() {
         return move759();
     }
 
@@ -11272,6 +12105,1986 @@ class ProxyIntegrationTest {
                     client.sendPacket(new MinecraftPacket(0x03,
                             chatMessage757("hello from 1.18 to 1.17.1")));
                     client.sendPacket(new MinecraftPacket(0x11, move757()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Ren の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽755クライアントがプロキシ経由で本物のバニラ1.17（内部755）に
+     * 参加する。755→755 の素通しで動くこと。
+     */
+    @Test
+    void fake755ClientJoinsRealVanilla117ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla117Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.17.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.17.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.17.jar"), "1.17")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.17", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Steve")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Steve")
+                        && chat.message().equals("hello from 1.17")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 755);
+                assertEquals(755, proxy.internalProtocol());
+                proxy.start();
+                try (Fake755Client client = new Fake755Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(755, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart755("Steve")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x26, 30_000);
+                    assertTrue(joinGame != null, "Join Game（755形式 0x26）が届きませんでした。");
+                    assertTrue(contains(joinGame.payload(), "minecraft:dimension_type"),
+                            "Join Game の codec に dimension_type が含まれていること");
+                    assertTrue(contains(joinGame.payload(), "minecraft:worldgen/biome"),
+                            "Join Game の codec に biome が含まれていること");
+
+                    // 設定パケットは Join Game 受信後に送ること。Login Success
+                    // 直後に送ると1.18サーバーが切断する（757 Stage E §15.2の実測）。
+                    // 1.17でも同じ順序にする。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation755()));
+
+                    MinecraftPacket spawn = client.waitForId(0x4b, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（755形式 0x4b）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage755("hello from 1.17")));
+                    client.sendPacket(new MinecraftPacket(0x11, move755()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Steve の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽755クライアントがプロキシ経由で本物のバニラ1.17.1（内部756）に
+     * 参加する。755→756 の直接変換で動くこと。
+     */
+    @Test
+    void fake755ClientJoinsRealVanilla1171ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla1171Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.17.1.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.17.1.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.17.1.jar"), "1.17.1")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.17.1", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Yuki")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Yuki")
+                        && chat.message().equals("hello from 1.17 to 1.17.1")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 756);
+                assertEquals(756, proxy.internalProtocol());
+                proxy.start();
+                try (Fake755Client client = new Fake755Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(755, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart755("Yuki")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x26, 30_000);
+                    assertTrue(joinGame != null, "Join Game（755形式 0x26）が届きませんでした。");
+                    assertTrue(contains(joinGame.payload(), "minecraft:dimension_type"),
+                            "Join Game の codec に dimension_type が含まれていること");
+                    assertTrue(contains(joinGame.payload(), "minecraft:worldgen/biome"),
+                            "Join Game の codec に biome が含まれていること");
+
+                    // 設定パケットは Join Game 受信後に送ること。Login Success
+                    // 直後に送ると1.18サーバーが切断する（757 Stage E §15.2の実測）。
+                    // 1.17でも同じ順序にする。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation755()));
+
+                    MinecraftPacket spawn = client.waitForId(0x4b, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（755形式 0x4b）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage755("hello from 1.17 to 1.17.1")));
+                    client.sendPacket(new MinecraftPacket(0x11, move755()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Yuki の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽755クライアントがプロキシ経由で本物のバニラ1.18（内部757）に
+     * 参加する。755→756→757 の連鎖変換で動くこと。
+     */
+    @Test
+    void fake755ClientJoinsRealVanilla118ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla118Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.18.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.18.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.18.jar"), "1.18")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.18", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Hana")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Hana")
+                        && chat.message().equals("hello from 1.17 to 1.18")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 757);
+                assertEquals(757, proxy.internalProtocol());
+                proxy.start();
+                try (Fake755Client client = new Fake755Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(755, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart755("Hana")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x26, 30_000);
+                    assertTrue(joinGame != null, "Join Game（755形式 0x26）が届きませんでした。");
+                    assertTrue(contains(joinGame.payload(), "minecraft:dimension_type"),
+                            "Join Game の codec に dimension_type が含まれていること");
+                    assertTrue(contains(joinGame.payload(), "minecraft:worldgen/biome"),
+                            "Join Game の codec に biome が含まれていること");
+
+                    // 設定パケットは Join Game 受信後に送ること。Login Success
+                    // 直後に送ると1.18サーバーが切断する（757 Stage E §15.2の実測）。
+                    // 1.17でも同じ順序にする。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation755()));
+
+                    MinecraftPacket spawn = client.waitForId(0x4b, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（755形式 0x4b）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage755("hello from 1.17 to 1.18")));
+                    client.sendPacket(new MinecraftPacket(0x11, move755()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Hana の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽756クライアントがプロキシ経由で本物のバニラ1.17（内部755）に
+     * 参加する。756→755 の逆向き変換で動くこと。
+     */
+    @Test
+    void fake756ClientJoinsRealVanilla117ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla117Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.17.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.17.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.17.jar"), "1.17")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.17", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Ren")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Ren")
+                        && chat.message().equals("hello from 1.17.1 to 1.17")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 755);
+                assertEquals(755, proxy.internalProtocol());
+                proxy.start();
+                try (Fake756Client client = new Fake756Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(756, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart756("Ren")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x26, 30_000);
+                    assertTrue(joinGame != null, "Join Game（756形式 0x26）が届きませんでした。");
+                    assertTrue(contains(joinGame.payload(), "minecraft:dimension_type"),
+                            "Join Game の codec に dimension_type が含まれていること");
+                    assertTrue(contains(joinGame.payload(), "minecraft:worldgen/biome"),
+                            "Join Game の codec に biome が含まれていること");
+
+                    // 設定パケットは Join Game 受信後に送ること。Login Success
+                    // 直後に送ると1.18サーバーが切断する（757 Stage E §15.2の実測）。
+                    // 1.17でも同じ順序にする。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation756()));
+
+                    MinecraftPacket spawn = client.waitForId(0x4b, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（756形式 0x4b）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage756("hello from 1.17.1 to 1.17")));
+                    client.sendPacket(new MinecraftPacket(0x11, move756()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Ren の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽754クライアントがプロキシ経由で本物のバニラ1.16.5（内部754）に
+     * 参加する。754→754 の素通しで動くこと。
+     * 754の Join Game（0x24）には codec が無いため dimension_type／biome の
+     * アサーションは無い。Client Information は Join Game 受信後に送ること。
+     * Login Success 直後に送ると1.16.5サーバーが DecoderException で切断する
+     * （754ノート §14.4の生キャプチャの罠。757 §15.2・755 §16.2と同じ）。
+     */
+    @Test
+    void fake754ClientJoinsRealVanilla1165ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla1165Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.16.5.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.16.5.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.16.5.jar"), "1.16.5")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.16.5", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Steve")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Steve")
+                        && chat.message().equals("hello from 1.16.5")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 754);
+                assertEquals(754, proxy.internalProtocol());
+                proxy.start();
+                try (Fake754Client client = new Fake754Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(754, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart754("Steve")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x24, 30_000);
+                    assertTrue(joinGame != null, "Join Game（754形式 0x24）が届きませんでした。");
+
+                    // 設定パケットは Join Game 受信後に送ること。Login Success
+                    // 直後に送ると1.16.5サーバーが切断する（754ノート §14.4の実測）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation754()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（754形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage754("hello from 1.16.5")));
+                    client.sendPacket(new MinecraftPacket(0x12, move754()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Steve の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽754クライアントがプロキシ経由で本物のバニラ1.17（内部755）に
+     * 参加する。754→755 の直接変換で動くこと。クライアント側は754形式
+     * （Join Game 0x24・Spawn 0x42）で受け取る。
+     */
+    @Test
+    void fake754ClientJoinsRealVanilla117ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla117Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.17.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.17.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.17.jar"), "1.17")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.17", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Yuki")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Yuki")
+                        && chat.message().equals("hello from 1.16.5 to 1.17")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 755);
+                assertEquals(755, proxy.internalProtocol());
+                proxy.start();
+                try (Fake754Client client = new Fake754Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(754, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart754("Yuki")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x24, 30_000);
+                    assertTrue(joinGame != null, "Join Game（754形式 0x24）が届きませんでした。");
+
+                    // 設定パケットは Join Game 受信後に送ること（754ノート §14.4の罠）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation754()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（754形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage754("hello from 1.16.5 to 1.17")));
+                    client.sendPacket(new MinecraftPacket(0x12, move754()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Yuki の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽754クライアントがプロキシ経由で本物のバニラ1.18（内部757）に
+     * 参加する。754→755→757 の連鎖変換で動くこと。クライアント側は754形式
+     * （Join Game 0x24・Spawn 0x42）で受け取る。
+     */
+    @Test
+    void fake754ClientJoinsRealVanilla118ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla118Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.18.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.18.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.18.jar"), "1.18")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.18", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Hana")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Hana")
+                        && chat.message().equals("hello from 1.16.5 to 1.18")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 757);
+                assertEquals(757, proxy.internalProtocol());
+                proxy.start();
+                try (Fake754Client client = new Fake754Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(754, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart754("Hana")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x24, 30_000);
+                    assertTrue(joinGame != null, "Join Game（754形式 0x24）が届きませんでした。");
+
+                    // 設定パケットは Join Game 受信後に送ること（754ノート §14.4の罠）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation754()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（754形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage754("hello from 1.16.5 to 1.18")));
+                    client.sendPacket(new MinecraftPacket(0x12, move754()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Hana の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽755クライアントがプロキシ経由で本物のバニラ1.16.5（内部754）に
+     * 参加する。755→754 の逆向き変換で動くこと。クライアント側は755形式
+     * （Join Game 0x26・Spawn 0x4b、codec 付き）で受け取る。
+     */
+    @Test
+    void fake755ClientJoinsRealVanilla1165ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla1165Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.16.5.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.16.5.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.16.5.jar"), "1.16.5")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.16.5", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Ren")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Ren")
+                        && chat.message().equals("hello from 1.17 to 1.16.5")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 754);
+                assertEquals(754, proxy.internalProtocol());
+                proxy.start();
+                try (Fake755Client client = new Fake755Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(755, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart755("Ren")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x26, 30_000);
+                    assertTrue(joinGame != null, "Join Game（755形式 0x26）が届きませんでした。");
+                    assertTrue(contains(joinGame.payload(), "minecraft:dimension_type"),
+                            "Join Game の codec に dimension_type が含まれていること");
+                    assertTrue(contains(joinGame.payload(), "minecraft:worldgen/biome"),
+                            "Join Game の codec に biome が含まれていること");
+
+                    // 設定パケットは Join Game 受信後に送ること。Login Success
+                    // 直後に送ると1.18サーバーが切断する（757 Stage E §15.2の実測）。
+                    // 1.16.5でも同じ順序にする。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation755()));
+
+                    MinecraftPacket spawn = client.waitForId(0x4b, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（755形式 0x4b）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage755("hello from 1.17 to 1.16.5")));
+                    client.sendPacket(new MinecraftPacket(0x11, move755()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Ren の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽753クライアントがプロキシ経由で本物のバニラ1.16.3（内部753）に
+     * 参加する。753→753 の素通しで動くこと。
+     * 753の Join Game（0x24）には dimension_type／biome の
+     * アサーションは無い（754の(a)セルと同じ）。Client Information は
+     * Join Game 受信後に送ること。Login Success 直後に送ると1.16.5サーバーが
+     * DecoderException で切断する（754ノート §14.4の生キャプチャの罠。
+     * 757 §15.2・755 §16.2と同じ）。1.16.3でも同じ順序にする。
+     */
+    @Test
+    void fake753ClientJoinsRealVanilla1163ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla1163Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.16.3.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.16.3.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.16.3.jar"), "1.16.3")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.16.3", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Steve")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Steve")
+                        && chat.message().equals("hello from 1.16.3")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 753);
+                assertEquals(753, proxy.internalProtocol());
+                proxy.start();
+                try (Fake753Client client = new Fake753Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(753, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart753("Steve")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x24, 30_000);
+                    assertTrue(joinGame != null, "Join Game（753形式 0x24）が届きませんでした。");
+
+                    // 設定パケットは Join Game 受信後に送ること。Login Success
+                    // 直後に送ると1.16.3サーバーが切断する（754ノート §14.4の実測）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation753()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（753形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage753("hello from 1.16.3")));
+                    client.sendPacket(new MinecraftPacket(0x12, move753()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Steve の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽753クライアントがプロキシ経由で本物のバニラ1.17（内部755）に
+     * 参加する。753→754→755 の連鎖変換で動くこと。クライアント側は753形式
+     * （Join Game 0x24・Spawn 0x42）で受け取る。
+     */
+    @Test
+    void fake753ClientJoinsRealVanilla117ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla117Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.17.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.17.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.17.jar"), "1.17")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.17", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Yuki")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Yuki")
+                        && chat.message().equals("hello from 1.16.3 to 1.17")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 755);
+                assertEquals(755, proxy.internalProtocol());
+                proxy.start();
+                try (Fake753Client client = new Fake753Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(753, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart753("Yuki")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x24, 30_000);
+                    assertTrue(joinGame != null, "Join Game（753形式 0x24）が届きませんでした。");
+
+                    // 設定パケットは Join Game 受信後に送ること（754ノート §14.4の罠）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation753()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（753形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage753("hello from 1.16.3 to 1.17")));
+                    client.sendPacket(new MinecraftPacket(0x12, move753()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Yuki の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽753クライアントがプロキシ経由で本物のバニラ1.18（内部757）に
+     * 参加する。753→754→755→757 の連鎖変換で動くこと。クライアント側は753形式
+     * （Join Game 0x24・Spawn 0x42）で受け取る。
+     */
+    @Test
+    void fake753ClientJoinsRealVanilla118ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla118Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.18.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.18.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.18.jar"), "1.18")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.18", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Hana")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Hana")
+                        && chat.message().equals("hello from 1.16.3 to 1.18")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 757);
+                assertEquals(757, proxy.internalProtocol());
+                proxy.start();
+                try (Fake753Client client = new Fake753Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(753, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart753("Hana")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x24, 30_000);
+                    assertTrue(joinGame != null, "Join Game（753形式 0x24）が届きませんでした。");
+
+                    // 設定パケットは Join Game 受信後に送ること（754ノート §14.4の罠）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation753()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（753形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage753("hello from 1.16.3 to 1.18")));
+                    client.sendPacket(new MinecraftPacket(0x12, move753()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Hana の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽754クライアントがプロキシ経由で本物のバニラ1.16.3（内部753）に
+     * 参加する。754→753 の逆向き変換で動くこと。クライアント側は754形式
+     * （Join Game 0x24・Spawn 0x42）で受け取る。753⇔754は同一形式のため、
+     * Join Game の dimensionCodec（minecraft:dimension_type／
+     * minecraft:worldgen/biome。実バニラ1.16.3の生キャプチャで確認済み。
+     * 753ノート §11.6）がそのまま届くことをアサーションする。
+     */
+    @Test
+    void fake754ClientJoinsRealVanilla1163ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla1163Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.16.3.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.16.3.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.16.3.jar"), "1.16.3")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.16.3", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Ren")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Ren")
+                        && chat.message().equals("hello from 1.16.5 to 1.16.3")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 753);
+                assertEquals(753, proxy.internalProtocol());
+                proxy.start();
+                try (Fake754Client client = new Fake754Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(754, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart754("Ren")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x24, 30_000);
+                    assertTrue(joinGame != null, "Join Game（754形式 0x24）が届きませんでした。");
+                    assertTrue(contains(joinGame.payload(), "minecraft:dimension_type"),
+                            "Join Game の codec に dimension_type が含まれていること");
+                    assertTrue(contains(joinGame.payload(), "minecraft:worldgen/biome"),
+                            "Join Game の codec に biome が含まれていること");
+
+                    // 設定パケットは Join Game 受信後に送ること。Login Success
+                    // 直後に送ると1.16.3サーバーが切断する（754ノート §14.4の実測）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation754()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（754形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage754("hello from 1.16.5 to 1.16.3")));
+                    client.sendPacket(new MinecraftPacket(0x12, move754()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Ren の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽751クライアントがプロキシ経由で本物のバニラ1.16.2（内部751）に
+     * 参加する。751→751 の素通しで動くこと。クライアント側は751形式
+     * （Join Game 0x24・Spawn 0x42）で受け取る。
+     */
+    @Test
+    void fake751ClientJoinsRealVanilla1162ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla1162Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.16.2.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.16.2.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.16.2.jar"), "1.16.2")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.16.2", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Steve")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Steve")
+                        && chat.message().equals("hello from 1.16.2")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 751);
+                assertEquals(751, proxy.internalProtocol());
+                proxy.start();
+                try (Fake751Client client = new Fake751Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(751, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart751("Steve")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x24, 30_000);
+                    assertTrue(joinGame != null, "Join Game（751形式 0x24）が届きませんでした。");
+
+                    // 設定パケットは Join Game 受信後に送ること。Login Success
+                    // 直後に送ると1.16.2サーバーが切断する（754ノート §14.4の実測）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation751()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（751形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage751("hello from 1.16.2")));
+                    client.sendPacket(new MinecraftPacket(0x12, move751()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Steve の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽751クライアントがプロキシ経由で本物のバニラ1.17（内部755）に
+     * 参加する。751→753→754→755 の連鎖変換で動くこと。クライアント側は751形式
+     * （Join Game 0x24・Spawn 0x42）で受け取る。
+     */
+    @Test
+    void fake751ClientJoinsRealVanilla117ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla117Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.17.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.17.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.17.jar"), "1.17")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.17", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Yuki")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Yuki")
+                        && chat.message().equals("hello from 1.16.2 to 1.17")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 755);
+                assertEquals(755, proxy.internalProtocol());
+                proxy.start();
+                try (Fake751Client client = new Fake751Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(751, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart751("Yuki")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x24, 30_000);
+                    assertTrue(joinGame != null, "Join Game（751形式 0x24）が届きませんでした。");
+
+                    // 設定パケットは Join Game 受信後に送ること（754ノート §14.4の罠）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation751()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（751形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage751("hello from 1.16.2 to 1.17")));
+                    client.sendPacket(new MinecraftPacket(0x12, move751()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Yuki の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽751クライアントがプロキシ経由で本物のバニラ1.18（内部757）に
+     * 参加する。751→753→754→755→757 の連鎖変換で動くこと。クライアント側は751形式
+     * （Join Game 0x24・Spawn 0x42）で受け取る。
+     */
+    @Test
+    void fake751ClientJoinsRealVanilla118ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla118Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.18.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.18.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.18.jar"), "1.18")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.18", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Hana")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Hana")
+                        && chat.message().equals("hello from 1.16.2 to 1.18")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 757);
+                assertEquals(757, proxy.internalProtocol());
+                proxy.start();
+                try (Fake751Client client = new Fake751Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(751, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart751("Hana")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x24, 30_000);
+                    assertTrue(joinGame != null, "Join Game（751形式 0x24）が届きませんでした。");
+
+                    // 設定パケットは Join Game 受信後に送ること（754ノート §14.4の罠）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation751()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（751形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage751("hello from 1.16.2 to 1.18")));
+                    client.sendPacket(new MinecraftPacket(0x12, move751()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Hana の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽753クライアントがプロキシ経由で本物のバニラ1.16.2（内部751）に
+     * 参加する。753→751 の逆向き変換で動くこと。クライアント側は753形式
+     * （Join Game 0x24・Spawn 0x42）で受け取る。751⇔753は同一形式のため、
+     * Join Game の dimensionCodec（minecraft:dimension_type／
+     * minecraft:worldgen/biome。実バニラ1.16.2の生キャプチャで確認済み。
+     * 751ノート §11.6。Join Game 30,847バイトで1.16.3と内容同一）が
+     * そのまま届くことをアサーションする。
+     */
+    @Test
+    void fake753ClientJoinsRealVanilla1162ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla1162Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.16.2.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.16.2.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.16.2.jar"), "1.16.2")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.16.2", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Ren")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Ren")
+                        && chat.message().equals("hello from 1.16.3 to 1.16.2")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 751);
+                assertEquals(751, proxy.internalProtocol());
+                proxy.start();
+                try (Fake753Client client = new Fake753Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(753, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart753("Ren")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x24, 30_000);
+                    assertTrue(joinGame != null, "Join Game（753形式 0x24）が届きませんでした。");
+                    assertTrue(contains(joinGame.payload(), "minecraft:dimension_type"),
+                            "Join Game の codec に dimension_type が含まれていること");
+                    assertTrue(contains(joinGame.payload(), "minecraft:worldgen/biome"),
+                            "Join Game の codec に biome が含まれていること");
+
+                    // 設定パケットは Join Game 受信後に送ること。Login Success
+                    // 直後に送ると1.16.2サーバーが切断する（754ノート §14.4の実測）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation753()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（753形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage753("hello from 1.16.3 to 1.16.2")));
+                    client.sendPacket(new MinecraftPacket(0x12, move753()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Ren の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽736クライアントがプロキシ経由で本物のバニラ1.16.1（内部736）に
+     * 参加する。736→736 の素通しで動くこと。クライアント側は736形式
+     * （Join Game 0x25・Spawn 0x42）で受け取る。
+     */
+    @Test
+    void fake736ClientJoinsRealVanilla1161ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla1161Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.16.1.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.16.1.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.16.1.jar"), "1.16.1")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.16.1", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Steve")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Steve")
+                        && chat.message().equals("hello from 1.16.1")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 736);
+                assertEquals(736, proxy.internalProtocol());
+                proxy.start();
+                try (Fake736Client client = new Fake736Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(736, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart736("Steve")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x25, 30_000);
+                    assertTrue(joinGame != null, "Join Game（736形式 0x25）が届きませんでした。");
+
+                    // 設定パケットは Join Game 受信後に送ること。Login Success
+                    // 直後に送ると1.16.2サーバーが切断する（754ノート §14.4の実測）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation736()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（736形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage736("hello from 1.16.1")));
+                    client.sendPacket(new MinecraftPacket(0x12, move736()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Steve の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽736クライアントがプロキシ経由で本物のバニラ1.17（内部755）に
+     * 参加する。736→751→753→754→755 の連鎖変換で動くこと。クライアント側は736形式
+     * （Join Game 0x25・Spawn 0x42）で受け取る。
+     */
+    @Test
+    void fake736ClientJoinsRealVanilla117ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla117Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.17.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.17.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.17.jar"), "1.17")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.17", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Yuki")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Yuki")
+                        && chat.message().equals("hello from 1.16.1 to 1.17")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 755);
+                assertEquals(755, proxy.internalProtocol());
+                proxy.start();
+                try (Fake736Client client = new Fake736Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(736, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart736("Yuki")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x25, 30_000);
+                    assertTrue(joinGame != null, "Join Game（736形式 0x25）が届きませんでした。");
+
+                    // 設定パケットは Join Game 受信後に送ること（754ノート §14.4の罠）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation736()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（736形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage736("hello from 1.16.1 to 1.17")));
+                    client.sendPacket(new MinecraftPacket(0x12, move736()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Yuki の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽736クライアントがプロキシ経由で本物のバニラ1.18（内部757）に
+     * 参加する。736→751→753→754→755→757 の連鎖変換で動くこと。クライアント側は736形式
+     * （Join Game 0x25・Spawn 0x42）で受け取る。
+     */
+    @Test
+    void fake736ClientJoinsRealVanilla118ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla118Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.18.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.18.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.18.jar"), "1.18")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.18", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Hana")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Hana")
+                        && chat.message().equals("hello from 1.16.1 to 1.18")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 757);
+                assertEquals(757, proxy.internalProtocol());
+                proxy.start();
+                try (Fake736Client client = new Fake736Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(736, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart736("Hana")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x25, 30_000);
+                    assertTrue(joinGame != null, "Join Game（736形式 0x25）が届きませんでした。");
+
+                    // 設定パケットは Join Game 受信後に送ること（754ノート §14.4の罠）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation736()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（736形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage736("hello from 1.16.1 to 1.18")));
+                    client.sendPacket(new MinecraftPacket(0x12, move736()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Hana の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽751クライアントがプロキシ経由で本物のバニラ1.16.1（内部736）に
+     * 参加する。751→736 の逆向き変換で動くこと。クライアント側は751形式
+     * （Join Game 0x24・Spawn 0x42）で受け取る。736→751の Join Game 変換
+     * （PlayTranslator.translateJoinGame736To751）は codec に
+     * minecraft:dimension_type／minecraft:worldgen/biome を入れて751形式に直す
+     * （translateDimensionCodec736To751 をコードで確認済み）ため、
+     * 751の(d)セルと同じく codec に両レジストリを含むことをアサーションする。
+     */
+    @Test
+    void fake751ClientJoinsRealVanilla1161ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla1161Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.16.1.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.16.1.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.16.1.jar"), "1.16.1")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.16.1", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Ren")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Ren")
+                        && chat.message().equals("hello from 1.16.2 to 1.16.1")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 736);
+                assertEquals(736, proxy.internalProtocol());
+                proxy.start();
+                try (Fake751Client client = new Fake751Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(751, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart751("Ren")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x24, 30_000);
+                    assertTrue(joinGame != null, "Join Game（751形式 0x24）が届きませんでした。");
+                    assertTrue(contains(joinGame.payload(), "minecraft:dimension_type"),
+                            "Join Game の codec に dimension_type が含まれていること");
+                    assertTrue(contains(joinGame.payload(), "minecraft:worldgen/biome"),
+                            "Join Game の codec に biome が含まれていること");
+
+                    // 設定パケットは Join Game 受信後に送ること。Login Success
+                    // 直後に送ると1.16.2サーバーが切断する（754ノート §14.4の実測）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation751()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（751形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage751("hello from 1.16.2 to 1.16.1")));
+                    client.sendPacket(new MinecraftPacket(0x12, move751()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Ren の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽735クライアントがプロキシ経由で本物のバニラ1.16（内部735）に
+     * 参加する。735→735 の素通しで動くこと。クライアント側は735形式
+     * （Join Game 0x25・Spawn 0x42）で受け取る。
+     */
+    @Test
+    void fake735ClientJoinsRealVanilla116ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla116Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.16.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.16.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.16.jar"), "1.16")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.16", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Steve")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Steve")
+                        && chat.message().equals("hello from 1.16")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 735);
+                assertEquals(735, proxy.internalProtocol());
+                proxy.start();
+                try (Fake735Client client = new Fake735Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(735, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart735("Steve")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x25, 30_000);
+                    assertTrue(joinGame != null, "Join Game（735形式 0x25）が届きませんでした。");
+
+                    // 設定パケットは Join Game 受信後に送ること。Login Success
+                    // 直後に送ると1.16.2サーバーが切断する（754ノート §14.4の実測）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation735()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（735形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage735("hello from 1.16")));
+                    client.sendPacket(new MinecraftPacket(0x12, move735()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Steve の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽735クライアントがプロキシ経由で本物のバニラ1.16.1（内部736）に
+     * 参加する。735→736 の素通しで動くこと（735⇔736はパケットID・レジストリとも同一）。クライアント側は735形式
+     * （Join Game 0x25・Spawn 0x42）で受け取る。
+     */
+    @Test
+    void fake735ClientJoinsRealVanilla1161ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla1161Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.16.1.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.16.1.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.16.1.jar"), "1.16.1")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.16.1", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Yuki")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Yuki")
+                        && chat.message().equals("hello from 1.16 to 1.16.1")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 736);
+                assertEquals(736, proxy.internalProtocol());
+                proxy.start();
+                try (Fake735Client client = new Fake735Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(735, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart735("Yuki")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x25, 30_000);
+                    assertTrue(joinGame != null, "Join Game（735形式 0x25）が届きませんでした。");
+
+                    // 設定パケットは Join Game 受信後に送ること（754ノート §14.4の罠）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation735()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（735形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage735("hello from 1.16 to 1.16.1")));
+                    client.sendPacket(new MinecraftPacket(0x12, move735()));
+
+                    assertTrue(joined.await(30, TimeUnit.SECONDS),
+                            "バニラログに Yuki の参加が現れませんでした。");
+                    assertTrue(chatSeen.await(30, TimeUnit.SECONDS),
+                            "バニラログにチャットが現れませんでした。");
+                    assertTrue(!client.isClosed(), "参加後に接続が切れていないこと");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽735クライアントはプロキシ経由で本物のバニラ1.18（内部757）に
+     * 参加できない。Join Game が届かないことを期待する。
+     * 根拠（コードで確認済み。736 §16.2の方向の非対称と同じ）：
+     * 757サーバーの Join Game は {@code handleServerJoinGame757}
+     * （ProxySession.java:14861）に旧クライアント分岐が無く、759以上向けの
+     * 経路（757→759変換→{@code handleServerPlayFrom759}）へ落ちる。
+     * そこで {@code handleServerJoinGame763} のガード（同:8446）が
+     * {@code is735()} を含む旧クライアントを落とす
+     * （{@code logUntranslatedOnce}＋{@code Outcome.drop()}）。
+     * そのため Join Game（735形式 0x25）はクライアントに届かない。
+     * Login Success（0x02）は全バージョン同IDで届く
+     * （{@code handleServerLogin} の 0x02 case）。
+     * なお736ツリーの同名テスト {@code fake736ClientJoinsRealVanilla118ThroughProxy}
+     * （およびこのファイルの既存の同テスト）も同じ前提で Join Game 到達を
+     * 期待しており、同じ理由で失敗する見込み。記録のみでここでは直さない。
+     */
+    @Test
+    void fake735ClientCannotJoinRealVanilla118ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla118Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.18.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.18.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.18.jar"), "1.18")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.18", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 757);
+                assertEquals(757, proxy.internalProtocol());
+                proxy.start();
+                try (Fake735Client client = new Fake735Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(735, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart735("Hana")));
+
+                    // ログインは通る（Login Success 0x02 は全バージョン同ID）。
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    // Join Game は届かない（757サーバー側で落とされる）。
+                    // 30秒待っても届かないことをもって参加できないことを確かめる。
+                    // プロキシは黙って落とすため、切断パケットの有無は問わない。
+                    MinecraftPacket joinGame = client.waitForId(0x25, 30_000);
+                    assertTrue(joinGame == null,
+                            "Join Game（735形式 0x25）が届いてしまった。参加できないはず。");
+                } finally {
+                    proxy.stop();
+                }
+            } finally {
+                host.stop();
+            }
+        }
+    }
+
+    /**
+     * 偽736クライアントがプロキシ経由で本物のバニラ1.16（内部735）に
+     * 参加する。736→735 の逆向き変換で動くこと。クライアント側は736形式
+     * （Join Game 0x25・Spawn 0x42）で受け取る。735⇔736の Join Game 変換
+     * （PlayTranslator.translateJoinGame735To736）は恒等写像で codec は
+     * {"dimension": [...]} のみのまま（translateDimensionCodec735To736 を
+     * コードで確認済み）ため、codec に dimension_type／biome レジストリを
+     * 含まないことをアサーションする。
+     */
+    @Test
+    void fake736ClientJoinsRealVanilla116ThroughProxy() throws Exception {
+        Path realJar = findRealVanilla116Jar();
+        assumeTrue(realJar != null,
+                "本物のバニラjar（run/vanilla/server-1.16.jar）が無いためスキップします。");
+
+        Path vanillaDir = tempDir.resolve("vanilla");
+        Files.createDirectories(vanillaDir);
+        Files.copy(realJar, vanillaDir.resolve("server-1.16.jar"));
+
+        int vanillaPort = freePort();
+        int proxyPort = freePort();
+        CountDownLatch joined = new CountDownLatch(1);
+        CountDownLatch chatSeen = new CountDownLatch(1);
+
+        try (FakeMojang mojang = new FakeMojang(
+                vanillaDir.resolve("server-1.16.jar"), "1.16")) {
+            VanillaServerHost host = new VanillaServerHost(vanillaDir, "1.16", vanillaPort,
+                    false, 10, "DetergentMC test", null, 512,
+                    new VanillaDownloader(mojang.manifestUrl()));
+            host.addListener(event -> {
+                if (event instanceof VanillaLogEvent.PlayerJoined joinedEvent
+                        && joinedEvent.name().equals("Ren")) {
+                    joined.countDown();
+                }
+                if (event instanceof VanillaLogEvent.ChatMessage chat
+                        && chat.name().equals("Ren")
+                        && chat.message().equals("hello from 1.16.1 to 1.16")) {
+                    chatSeen.countDown();
+                }
+            });
+            host.start();
+            try {
+                assertTrue(host.waitForReady(180_000), "バニラが180秒以内に起動しませんでした。");
+                ClientProxy proxy = new ClientProxy(proxyPort, "127.0.0.1", vanillaPort, false,
+                        null, null, null, ProxyAuthConfig.defaults(),
+                        null, null, null, null, null, null, 735);
+                assertEquals(735, proxy.internalProtocol());
+                proxy.start();
+                try (Fake736Client client = new Fake736Client(proxyPort)) {
+                    client.sendPacket(new MinecraftPacket(0x00,
+                            handshakePayload(736, 2, proxyPort)));
+                    client.sendPacket(new MinecraftPacket(0x00, loginStart736("Ren")));
+
+                    MinecraftPacket loginSuccess = client.waitForId(0x02, 30_000);
+                    assertTrue(loginSuccess != null, "Login Success（0x02）が届きませんでした。");
+
+                    MinecraftPacket joinGame = client.waitForId(0x25, 30_000);
+                    assertTrue(joinGame != null, "Join Game（736形式 0x25）が届きませんでした。");
+                    assertTrue(!contains(joinGame.payload(), "minecraft:dimension_type"),
+                            "Join Game の codec に dimension_type が含まれていないこと");
+                    assertTrue(!contains(joinGame.payload(), "minecraft:worldgen/biome"),
+                            "Join Game の codec に biome が含まれていないこと");
+
+                    // 設定パケットは Join Game 受信後に送ること。Login Success
+                    // 直後に送ると1.16.2サーバーが切断する（754ノート §14.4の実測）。
+                    client.sendPacket(new MinecraftPacket(0x05, clientInformation736()));
+
+                    MinecraftPacket spawn = client.waitForId(0x42, 30_000);
+                    assertTrue(spawn != null, "Spawn Position（736形式 0x42）が届きませんでした。");
+
+                    // チャットと移動を送る。
+                    client.sendPacket(new MinecraftPacket(0x03,
+                            chatMessage736("hello from 1.16.1 to 1.16")));
+                    client.sendPacket(new MinecraftPacket(0x12, move736()));
 
                     assertTrue(joined.await(30, TimeUnit.SECONDS),
                             "バニラログに Ren の参加が現れませんでした。");
