@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Supported versions — DetergentMC</title>
-  <meta name="description" content="DetergentMC supported version list. 35 protocols supported, from 1.14.1 to 26.3. 1.14 is in final verification.">
+  <meta name="description" content="DetergentMC supported version list. 50 protocols supported, from 1.8 to 26.3. The 1.7 series is implemented and in final verification.">
   <meta property="og:title" content="Supported versions — DetergentMC">
-  <meta property="og:description" content="DetergentMC supported version list. 35 protocols supported, from 1.14.1 to 26.3. 1.14 is in final verification.">
+  <meta property="og:description" content="DetergentMC supported version list. 50 protocols supported, from 1.8 to 26.3. The 1.7 series is implemented and in final verification.">
   <meta property="og:type" content="website">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
@@ -32,9 +32,9 @@
 
     <section class="page-head">
       <h1>Supported versions</h1>
-      <p class="lead">From 1.14.1 to 26.3, <strong>35 protocols</strong> are supported. Client × server is 35 × 35 = <strong>1,225 combinations</strong>. 1.14 (477) is in final verification. The final goal is to support every version from 1.0 to the latest.</p>
+      <p class="lead">From 1.8 to 26.3, <strong>50 protocols</strong> are supported. Client × server is 50 × 50 = <strong>2,500 combinations</strong>. The 1.7 series (1.7.2–1.7.10, protocols 4 and 5) is implemented and in final verification. The final goal is to support every version from 1.0 to the latest.</p>
       <p class="legend"><span class="badge done">Supported</span> Verified at the protocol level <span class="badge wip">In progress</span> Under development <span class="badge plan">Planned</span> Not started</p>
-      <p class="note">"Supported" means protocol-level verification (tests with a fake client and a genuine vanilla server) has passed. No combination has been checked with a real game client yet. Of the 1,225 combinations, only some have been confirmed in integration tests (6 cells including 1.18.2, and a few cells for each of 1.14.x and 1.15.x). The rest are checked with unit tests.</p>
+      <p class="note">"Supported" means protocol-level verification (tests with a fake client and a genuine vanilla server) has passed. No combination has been checked with a real game client yet. Of the 2,500 combinations, only some have been confirmed in integration tests (each version's final verification runs new combinations plus the full regression set; the 1.8 series verification passed 71 cells). The rest are checked with unit tests.</p>
     </section>
 
     <section class="section">
@@ -43,7 +43,23 @@
         <table class="versions">
           <thead><tr><th>Version</th><th>Protocol</th><th>Status</th><th>Java</th><th>Resource pack format</th><th>Notes</th></tr></thead>
           <tbody>
-            <tr><td>1.14</td><td>477</td><td><span class="badge wip">In progress</span></td><td>8</td><td>4</td><td>In final verification</td></tr>
+            <tr><td>1.7.2 / 1.7.3 / 1.7.4 / 1.7.5</td><td>4</td><td><span class="badge wip">In progress</span></td><td>8</td><td>1</td><td>Implemented; awaiting final verification</td></tr>
+            <tr><td>1.7.6 / 1.7.7 / 1.7.8 / 1.7.9 / 1.7.10</td><td>5</td><td><span class="badge wip">In progress</span></td><td>8</td><td>1</td><td>Implemented; awaiting final verification</td></tr>
+            <tr><td>1.8 – 1.8.9</td><td>47</td><td><span class="badge done">Supported</span></td><td>8</td><td>1</td><td>All ten 1.8 releases share one protocol. Chunk and metadata formats differ from the 1.9 series</td></tr>
+            <tr><td>1.9</td><td>107</td><td><span class="badge done">Supported</span></td><td>8</td><td>2</td><td>The Join Game format differs slightly from 1.9.1 and later</td></tr>
+            <tr><td>1.9.1</td><td>108</td><td><span class="badge done">Supported</span></td><td>8</td><td>2</td><td>Wire format identical to 1.9.2</td></tr>
+            <tr><td>1.9.2</td><td>109</td><td><span class="badge done">Supported</span></td><td>8</td><td>2</td><td></td></tr>
+            <tr><td>1.9.3 / 1.9.4</td><td>110</td><td><span class="badge done">Supported</span></td><td>8</td><td>2</td><td></td></tr>
+            <tr><td>1.10 / 1.10.1 / 1.10.2</td><td>210</td><td><span class="badge done">Supported</span></td><td>8</td><td>2</td><td>All 1.10 releases share one protocol</td></tr>
+            <tr><td>1.11</td><td>315</td><td><span class="badge done">Supported</span></td><td>8</td><td>3</td><td></td></tr>
+            <tr><td>1.11.1 / 1.11.2</td><td>316</td><td><span class="badge done">Supported</span></td><td>8</td><td>3</td><td>Both releases share one protocol</td></tr>
+            <tr><td>1.12</td><td>335</td><td><span class="badge done">Supported</span></td><td>8</td><td>3</td><td>A pre-Flattening generation; blocks are numeric IDs plus metadata</td></tr>
+            <tr><td>1.12.1</td><td>338</td><td><span class="badge done">Supported</span></td><td>8</td><td>3</td><td>Differs from 1.12.2 only in the Keep Alive format</td></tr>
+            <tr><td>1.12.2</td><td>340</td><td><span class="badge done">Supported</span></td><td>8</td><td>3</td><td></td></tr>
+            <tr><td>1.13</td><td>393</td><td><span class="badge done">Supported</span></td><td>8</td><td>4</td><td>The generation where the Flattening was introduced</td></tr>
+            <tr><td>1.13.1</td><td>401</td><td><span class="badge done">Supported</span></td><td>8</td><td>4</td><td>Differs from 1.13.2 only in the slot format</td></tr>
+            <tr><td>1.13.2</td><td>404</td><td><span class="badge done">Supported</span></td><td>8</td><td>4</td><td></td></tr>
+            <tr><td>1.14</td><td>477</td><td><span class="badge done">Supported</span></td><td>8</td><td>4</td><td>Wire format identical to 1.14.1</td></tr>
             <tr><td>1.14.1</td><td>480</td><td><span class="badge done">Supported</span></td><td>8</td><td>4</td><td>Wire format identical to 1.14.2</td></tr>
             <tr><td>1.14.2</td><td>485</td><td><span class="badge done">Supported</span></td><td>8</td><td>4</td><td></td></tr>
             <tr><td>1.14.3</td><td>490</td><td><span class="badge done">Supported</span></td><td>8</td><td>4</td><td></td></tr>
@@ -82,7 +98,7 @@
           </tbody>
         </table>
       </div>
-      <p class="note">759 and 760 both have resource pack format 9, but the files are separate. The Java requirement is for running the internal server. On the client side, the requirement is the same as vanilla for each version.</p>
+      <p class="note">759 and 760 both have resource pack format 9, but the files are separate. The Java requirement is for running the internal server. On the client side, the requirement is the same as vanilla for each version. The 1.7 series has no dedicated resource pack packet, so packs are delivered via a plugin message (MC|RPack).</p>
     </section>
 
     <section class="section">
@@ -92,6 +108,7 @@
       <p class="note">△ is a cell where some combinations within the group can join and others cannot. 1.17.x servers × 1.16.x clients can join only in the case of a 1.17 server (755), and cannot join a 1.17.1 server (756). 1.17.x servers × 1.17.x clients can join except for the combination of a 1.17 client → 1.17.1 server.</p>
       <p class="note">The ✕ marks in 26.x are confirmed cases of older clients being unable to join a 26.1 (775) server. Combinations of 26.3 (777) / 26.2 (776) servers with older clients are unconfirmed. The ✓ marks in 26.x and the 1.18.x cells are also unconfirmed for the 26.2 (776) / 1.18.2 (758) combinations.</p>
       <p class="note">Some combinations may drop packets (with restrictions). For the detailed support status of each protocol, see the compatibility matrix in <a href="https://github.com/DetergentMC/DetergentMC/blob/main/docs/VERSIONS.md">docs/VERSIONS.md</a> in the repository. No combination has been checked with a real game client yet.</p>
+      <p class="note">This image was made for the range from the 1.16 series to the 26 series; 1.15.x and earlier are not included yet. See the table above for the latest support status.</p>
       <figure class="matrix-figure">
         <img src="matrix.svg" alt="Compatibility matrix (server version × player version)" />
         <figcaption>Image version: <a href="matrix.svg">SVG</a> ／ <a href="matrix.png">PNG</a> (the matrix image is available in Japanese only)</figcaption>
@@ -113,7 +130,7 @@
         <table class="versions">
           <thead><tr><th>Version</th><th>Status</th><th>Notes</th></tr></thead>
           <tbody>
-            <tr><td>1.13.x and earlier (1.0–1.13.x)</td><td><span class="badge plan">Planned</span></td><td>Work is descending one version at a time from 578, complete down to 480 (1.14.1). The goal is 335 (1.12)</td></tr>
+            <tr><td>1.6.x and earlier (1.0–1.6.x)</td><td><span class="badge plan">Planned</span></td><td>The descent from 578, one version at a time, has reached 1.7.2 (protocol 4). 1.6.4 and earlier use a different framing generation, so they will be handled as a separate front end</td></tr>
             <tr><td>April Fools versions (2.0, 15w14a, 20w14∞, 24w14potato, 25w14craftmine, etc.)</td><td><span class="badge plan">Planned</span></td><td>Because both the protocol and the contents differ from normal releases, each needs its own dedicated support</td></tr>
           </tbody>
         </table>

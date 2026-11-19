@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>対応バージョン — DetergentMC</title>
-  <meta name="description" content="DetergentMC の対応バージョン一覧。1.14.1 から 26.3 まで 35 プロトコルに対応済み。1.14 は最終検証中。">
+  <meta name="description" content="DetergentMC の対応バージョン一覧。1.8 から 26.3 まで 50 プロトコルに対応済み。1.7 系は実装完了・最終検証中。">
   <meta property="og:title" content="対応バージョン — DetergentMC">
-  <meta property="og:description" content="DetergentMC の対応バージョン一覧。1.14.1 から 26.3 まで 35 プロトコルに対応済み。1.14 は最終検証中。">
+  <meta property="og:description" content="DetergentMC の対応バージョン一覧。1.8 から 26.3 まで 50 プロトコルに対応済み。1.7 系は実装完了・最終検証中。">
   <meta property="og:type" content="website">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="style.css">
@@ -32,9 +32,9 @@
 
     <section class="page-head">
       <h1>対応バージョン</h1>
-      <p class="lead">1.14.1 から 26.3 まで、<strong>35 プロトコル</strong>に対応済みです。クライアント × サーバーは 35 × 35 = <strong>1,225 通り</strong>です。1.14（477）は最終検証中です。最終目標は 1.0 から最新までの全バージョン対応です。</p>
+      <p class="lead">1.8 から 26.3 まで、<strong>50 プロトコル</strong>に対応済みです。クライアント × サーバーは 50 × 50 = <strong>2,500 通り</strong>です。1.7 系（1.7.2〜1.7.10、プロトコル 4・5）は実装が完了し、最終検証を進めています。最終目標は 1.0 から最新までの全バージョン対応です。</p>
       <p class="legend"><span class="badge done">対応済</span> プロトコルレベルで検証済み <span class="badge wip">作業中</span> 実装中 <span class="badge plan">予定</span> 未着手</p>
-      <p class="note">「対応済」はプロトコルレベルの検証（偽クライアントと本物のバニラサーバーによるテスト）が通っている状態です。本物のゲームクライアントでの確認は、まだどの組み合わせも行っていません。1,225 通りのうち、統合テストで確認済みなのは一部です（1.18.2 を含む組み合わせは 6 セル、1.14.x・1.15.x は各バージョン数セルずつ）。残りは単体テストで確認しています。</p>
+      <p class="note">「対応済」はプロトコルレベルの検証（偽クライアントと本物のバニラサーバーによるテスト）が通っている状態です。本物のゲームクライアントでの確認は、まだどの組み合わせも行っていません。2,500 通りのうち、統合テストで確認済みなのは一部です（版ごとの最終検証で、新規の組み合わせと全回帰セルを確認しています。1.8 系の最終検証では 71 セルが合格しました）。残りは単体テストで確認しています。</p>
     </section>
 
     <section class="section">
@@ -43,7 +43,23 @@
         <table class="versions">
           <thead><tr><th>バージョン</th><th>プロトコル</th><th>状態</th><th>Java</th><th>リソースパック形式</th><th>備考</th></tr></thead>
           <tbody>
-            <tr><td>1.14</td><td>477</td><td><span class="badge wip">作業中</span></td><td>8</td><td>4</td><td>最終検証中</td></tr>
+            <tr><td>1.7.2 / 1.7.3 / 1.7.4 / 1.7.5</td><td>4</td><td><span class="badge wip">作業中</span></td><td>8</td><td>1</td><td>実装完了・最終検証待ち</td></tr>
+            <tr><td>1.7.6 / 1.7.7 / 1.7.8 / 1.7.9 / 1.7.10</td><td>5</td><td><span class="badge wip">作業中</span></td><td>8</td><td>1</td><td>実装完了・最終検証待ち</td></tr>
+            <tr><td>1.8 〜 1.8.9</td><td>47</td><td><span class="badge done">対応済</span></td><td>8</td><td>1</td><td>1.8 系の全 10 版が同じプロトコルを共有。1.9 系とはチャンク・メタデータの形式が異なる</td></tr>
+            <tr><td>1.9</td><td>107</td><td><span class="badge done">対応済</span></td><td>8</td><td>2</td><td>1.9.1 以降とは Join Game の形式が一部異なる</td></tr>
+            <tr><td>1.9.1</td><td>108</td><td><span class="badge done">対応済</span></td><td>8</td><td>2</td><td>1.9.2 とワイヤ形式が同一</td></tr>
+            <tr><td>1.9.2</td><td>109</td><td><span class="badge done">対応済</span></td><td>8</td><td>2</td><td></td></tr>
+            <tr><td>1.9.3 / 1.9.4</td><td>110</td><td><span class="badge done">対応済</span></td><td>8</td><td>2</td><td></td></tr>
+            <tr><td>1.10 / 1.10.1 / 1.10.2</td><td>210</td><td><span class="badge done">対応済</span></td><td>8</td><td>2</td><td>1.10 系の全版が同じプロトコルを共有</td></tr>
+            <tr><td>1.11</td><td>315</td><td><span class="badge done">対応済</span></td><td>8</td><td>3</td><td></td></tr>
+            <tr><td>1.11.1 / 1.11.2</td><td>316</td><td><span class="badge done">対応済</span></td><td>8</td><td>3</td><td>両版が同じプロトコルを共有</td></tr>
+            <tr><td>1.12</td><td>335</td><td><span class="badge done">対応済</span></td><td>8</td><td>3</td><td>Flattening 以前の世代。ブロックは数値 ID＋メタデータ</td></tr>
+            <tr><td>1.12.1</td><td>338</td><td><span class="badge done">対応済</span></td><td>8</td><td>3</td><td>1.12.2 とは Keep Alive の形式だけが異なる</td></tr>
+            <tr><td>1.12.2</td><td>340</td><td><span class="badge done">対応済</span></td><td>8</td><td>3</td><td></td></tr>
+            <tr><td>1.13</td><td>393</td><td><span class="badge done">対応済</span></td><td>8</td><td>4</td><td>Flattening が導入された世代</td></tr>
+            <tr><td>1.13.1</td><td>401</td><td><span class="badge done">対応済</span></td><td>8</td><td>4</td><td>1.13.2 とはスロットの形式だけが異なる</td></tr>
+            <tr><td>1.13.2</td><td>404</td><td><span class="badge done">対応済</span></td><td>8</td><td>4</td><td></td></tr>
+            <tr><td>1.14</td><td>477</td><td><span class="badge done">対応済</span></td><td>8</td><td>4</td><td>1.14.1 とワイヤ形式が同一</td></tr>
             <tr><td>1.14.1</td><td>480</td><td><span class="badge done">対応済</span></td><td>8</td><td>4</td><td>1.14.2 とワイヤ形式が同一</td></tr>
             <tr><td>1.14.2</td><td>485</td><td><span class="badge done">対応済</span></td><td>8</td><td>4</td><td></td></tr>
             <tr><td>1.14.3</td><td>490</td><td><span class="badge done">対応済</span></td><td>8</td><td>4</td><td></td></tr>
@@ -82,7 +98,7 @@
           </tbody>
         </table>
       </div>
-      <p class="note">759 と 760 はリソースパック形式がどちらも 9 ですが、ファイルは別です。Java の要件は内部サーバーを動かすときのものです。クライアント側は各バージョンのバニラと同じ要件です。</p>
+      <p class="note">759 と 760 はリソースパック形式がどちらも 9 ですが、ファイルは別です。Java の要件は内部サーバーを動かすときのものです。クライアント側は各バージョンのバニラと同じ要件です。1.7 系はリソースパック専用のパケットが無い世代のため、プラグインメッセージ（MC|RPack）で配送します。</p>
     </section>
 
     <section class="section">
@@ -92,6 +108,7 @@
       <p class="note">△は、グループ内の組み合わせによって参加できるものとできないものが混ざっているセルです。1.17.xサーバー×1.16.xクライアントは1.17サーバー（755）の場合のみ参加でき、1.17.1サーバー（756）には参加できません。1.17.xサーバー×1.17.xクライアントは、1.17クライアント→1.17.1サーバーの組み合わせを除いて参加できます。</p>
       <p class="note">26.xの✕は、26.1（775）サーバーで古いクライアントが参加できないことを確認したものです。26.3（777）・26.2（776）サーバーと古いクライアントの組み合わせは未確認です。26.xの✓と1.18.xのセルも、26.2（776）・1.18.2（758）の組み合わせは未確認です。</p>
       <p class="note">一部の組み合わせではパケットを落とすことがあります（制限付き）。プロトコルごとの詳しい対応状況は、リポジトリの <a href="https://github.com/DetergentMC/DetergentMC/blob/main/docs/VERSIONS.md">docs/VERSIONS.md</a> の対応マトリクスをご覧ください。本物のゲームクライアントでの確認は、まだどの組み合わせも行っていません。</p>
+      <p class="note">この画像は 1.16 系〜26 系の範囲で作られていて、1.15 系以前はまだ含まれていません。最新の対応状況は上の表をご覧ください。</p>
       <figure class="matrix-figure">
         <img src="matrix.svg" alt="対応マトリクス表（サーバーのバージョン×プレイヤーが接続できるバージョン）" />
         <figcaption>画像版：<a href="matrix.svg">SVG</a> ／ <a href="matrix.png">PNG</a></figcaption>
@@ -113,7 +130,7 @@
         <table class="versions">
           <thead><tr><th>バージョン</th><th>状態</th><th>備考</th></tr></thead>
           <tbody>
-            <tr><td>1.13.x 以前（1.0〜1.13.x）</td><td><span class="badge plan">予定</span></td><td>578 から下へ 1 つずつ遡る作業を進めていて、480（1.14.1）まで完了。目標は 335（1.12）</td></tr>
+            <tr><td>1.6.x 以前（1.0〜1.6.x）</td><td><span class="badge plan">予定</span></td><td>578 から下へ 1 つずつ遡る作業は 1.7.2（プロトコル 4）まで到達。1.6.4 以前はフレーミングの世代そのものが異なるため、別フロントエンドとして対応する</td></tr>
             <tr><td>エイプリルフール版（2.0、15w14a、20w14∞、24w14potato、25w14craftmine など）</td><td><span class="badge plan">予定</span></td><td>通常のリリースとはプロトコルも内容も異なるため、それぞれ専用の対応が必要です</td></tr>
           </tbody>
         </table>
