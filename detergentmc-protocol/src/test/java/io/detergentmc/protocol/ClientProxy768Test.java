@@ -57,13 +57,13 @@ class ClientProxy768Test {
     }
 
     @Test
-    void internalProtocol776IsStillRejected() throws Exception {
+    void internalProtocol777IsStillRejected() throws Exception {
         try {
             new ClientProxy(freePort(), "127.0.0.1", freePort(), false,
-                    null, null, null, ProxyAuthConfig.defaults(), null, null, null, null, 776);
-            throw new AssertionError("expected IllegalArgumentException for 776");
+                    null, null, null, ProxyAuthConfig.defaults(), null, null, null, null, 777);
+            throw new AssertionError("expected IllegalArgumentException for 777");
         } catch (IllegalArgumentException expected) {
-            assertTrue(expected.getMessage().contains("775"), expected.getMessage());
+            assertTrue(expected.getMessage().contains("776"), expected.getMessage());
         }
     }
 
@@ -76,6 +76,6 @@ class ClientProxy768Test {
         assertNull(proxy.pack768());
         assertThrows(IllegalArgumentException.class, () -> new ClientProxy(
                 freePort(), "127.0.0.1", freePort(), false,
-                null, null, null, ProxyAuthConfig.defaults(), null, null, null, 776));
+                null, null, null, ProxyAuthConfig.defaults(), null, null, null, 777));
     }
 }
