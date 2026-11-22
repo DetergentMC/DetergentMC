@@ -1800,6 +1800,8 @@ public final class ResourcePackBuilder {
      */
     private void writePack(Path file, int packFormat, String mcmetaOverride) throws IOException {
         String mcmeta = mcmetaOverride != null ? mcmetaOverride : switch (packFormat) {
+            case PACK_FORMAT_1_16_5 -> PACK_MCMETA_754;
+            case PACK_FORMAT_1_17_1 -> PACK_MCMETA_756;
             case PACK_FORMAT_1_12_2 -> PACK_MCMETA_340;
             case PACK_FORMAT_1_14_4 -> PACK_MCMETA_498;
             case PACK_FORMAT_1_15_2 -> PACK_MCMETA_578;
