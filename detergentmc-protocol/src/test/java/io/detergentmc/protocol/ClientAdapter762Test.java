@@ -38,9 +38,9 @@ class ClientAdapter762Test {
                 assertTrue(handshake.needsTranslation());
             }
         }
-        // 776より新しい／761より古いは断る。
-        assertFalse(ClientAdapter.decide(776, 762).accepted());
-        assertFalse(ClientAdapter.decide(758, 762).accepted());
+        // 777より新しい／757より古いは断る。
+        assertFalse(ClientAdapter.decide(777, 762).accepted());
+        assertFalse(ClientAdapter.decide(757, 762).accepted());
     }
 
     @Test

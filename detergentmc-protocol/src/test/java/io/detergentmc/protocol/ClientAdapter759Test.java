@@ -38,9 +38,9 @@ class ClientAdapter759Test {
                 assertTrue(handshake.needsTranslation());
             }
         }
-        // 776より新しい／758より古いは断る。
-        assertFalse(ClientAdapter.decide(776, 759).accepted());
-        assertFalse(ClientAdapter.decide(758, 759).accepted());
+        // 777より新しい／757より古いは断る。
+        assertFalse(ClientAdapter.decide(777, 759).accepted());
+        assertFalse(ClientAdapter.decide(757, 759).accepted());
     }
 
     @Test
@@ -61,10 +61,11 @@ class ClientAdapter759Test {
     void supportedClientProtocolsInclude759And760() {
         // Stage B の教訓：OLDEST（759）だけでは760が漏れるため、
         // 760は明示する。両方とも含まれていること。
+        // 758対応で OLDEST は758になり、758も含まれていること。
         List<Integer> supported = ClientAdapter.supportedClientProtocols();
+        assertTrue(supported.contains(758), supported.toString());
         assertTrue(supported.contains(759), supported.toString());
         assertTrue(supported.contains(760), supported.toString());
-        assertFalse(supported.contains(758), supported.toString());
     }
 
     @Test
