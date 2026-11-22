@@ -12,6 +12,9 @@ import io.detergentmc.core.vanilla.VanillaServerHost;
 import io.detergentmc.bedrock.BedrockConfig;
 import io.detergentmc.bedrock.BedrockProtocol;
 import io.detergentmc.bedrock.BedrockServer;
+import io.detergentmc.legacy.LegacyFrontendConfig;
+import io.detergentmc.legacy.LegacyFrontendServer;
+import io.detergentmc.legacy.LegacyProtocol;
 import io.detergentmc.protocol.ClientProxy;
 import io.detergentmc.protocol.ProtocolVersion;
 import io.detergentmc.protocol.ProxyAuthConfig;
@@ -69,8 +72,49 @@ public final class DetergentServer {
     private VanillaServerHost vanillaHost;
     private ClientProxy clientProxy;
     private BedrockServer bedrockServer;
+    private LegacyFrontendServer legacyServer;
     private ResourcePackServer resourcePackServer;
     private ResourcePack resourcePack;
+    /** 47クライアントに送るリソースパック（pack_format 1）。無ければ null。 */
+    private ResourcePack resourcePack47;
+    private ResourcePack resourcePack5;
+    private ResourcePack resourcePack4;
+
+    /** 107クライアントに送るリソースパック（pack_format 2）。無ければ null。 */
+    private ResourcePack resourcePack107;
+    /** 108クライアントに送るリソースパック（pack_format 2）。無ければ null。 */
+    private ResourcePack resourcePack108;
+    /** 109クライアントに送るリソースパック（pack_format 2）。無ければ null。 */
+    private ResourcePack resourcePack109;
+    /** 110クライアントに送るリソースパック（pack_format 2）。無ければ null。 */
+    private ResourcePack resourcePack110;
+    /** 210クライアントに送るリソースパック（pack_format 3）。無ければ null。 */
+    private ResourcePack resourcePack210;
+    /** 315クライアントに送るリソースパック（pack_format 3）。無ければ null。 */
+    private ResourcePack resourcePack315;
+    /** 316クライアントに送るリソースパック（pack_format 3）。無ければ null。 */
+    private ResourcePack resourcePack316;
+    /** 335クライアントに送るリソースパック（pack_format 3）。無ければ null。 */
+    private ResourcePack resourcePack335;
+    /** 338クライアントに送るリソースパック（pack_format 3）。無ければ null。 */
+    private ResourcePack resourcePack338;
+    /** 340クライアントに送るリソースパック（pack_format 3）。無ければ null。 */
+    private ResourcePack resourcePack340;
+    /** 393クライアントに送るリソースパック（pack_format 4）。無ければ null。 */
+    private ResourcePack resourcePack393;
+    /** 578クライアントに送るリソースパック（pack_format 5）。無ければ null。 */
+    private ResourcePack resourcePack401;
+    private ResourcePack resourcePack404;
+    private ResourcePack resourcePack477;
+    private ResourcePack resourcePack480;
+    private ResourcePack resourcePack485;
+    private ResourcePack resourcePack490;
+    private ResourcePack resourcePack498;
+    private ResourcePack resourcePack573;
+    private ResourcePack resourcePack575;
+    private ResourcePack resourcePack578;
+    /** 758クライアントに送るリソースパック（pack_format 8）。無ければ null。 */
+    private ResourcePack resourcePack758;
     /** 735クライアントに送るリソースパック（pack_format 5）。無ければ null。 */
     private ResourcePack resourcePack735;
     /** 736クライアントに送るリソースパック（pack_format 5）。無ければ null。 */
@@ -119,6 +163,8 @@ public final class DetergentServer {
     private ResourcePack resourcePack774;
     /** 775クライアントに送るリソースパック（pack_format 84）。無ければ null。26.1／26.1.1／26.1.2で共用。 */
     private ResourcePack resourcePack775;
+    /** 776クライアントに送るリソースパック（pack_format 88）。無ければ null。26.2にホットフィックスは無い。 */
+    private ResourcePack resourcePack776;
     private GameBridge gameBridge;
     private PlayerRegistry playerRegistry;
 
@@ -133,8 +179,15 @@ public final class DetergentServer {
         this.commands = commands;
         this.server = server;
         this.bubbleLoader = bubbleLoader;
-        this.serverProtocol = ProtocolVersion.serverProtocolFor(
-                config.getString("minecraft-version", "1.20.4"));
+        // Legacy backends (pre-Netty, e.g. 1.6.4) have no Netty protocol
+        // number: the legacy frontend serves them in direct mode and the
+        // Netty proxy is not started, so serverProtocol is 0 ("none").
+        // The legacy number itself (78 for 1.6.4) lives only in the
+        // legacy module and is never used as a Netty protocol here.
+        String minecraftVersion = config.getString("minecraft-version", "1.20.4");
+        this.serverProtocol = LegacyProtocol.isLegacyBackendVersion(minecraftVersion)
+                ? 0
+                : ProtocolVersion.serverProtocolFor(minecraftVersion);
     }
 
     /**
@@ -286,6 +339,19 @@ public final class DetergentServer {
         vanillaHost.addListener(gameBridge);
         LOG.info(() -> translator.translate("vanilla.starting", minecraftVersion));
         vanillaHost.start();
+        // Legacy backends (pre-Netty, e.g. 1.6.4): the Netty proxy cannot
+        // speak to the internal vanilla at all, so it is not started.
+        // The legacy frontend serves the server in direct mode instead
+        // (legacy clients only; modern clients cannot join this backend).
+        // Bedrock is not started either: it translates into the Netty
+        // proxy path, which does not exist for a legacy backend.
+        if (LegacyProtocol.isLegacyBackendVersion(minecraftVersion)) {
+            LOG.info(() -> "内部サーバーはレガシー世代（" + minecraftVersion
+                    + "）のため、Netty プロキシと Bedrock は起動せず、"
+                    + "レガシーフロントエンドのダイレクトモードで提供します。");
+            startLegacyFrontend(legacyConfig(port, internalPort));
+            return;
+        }
         // The proxy is the only public entry point: it listens on the
         // public port and forwards to the vanilla server on the internal
         // (loopback-only) port. If it cannot start, stop vanilla again
@@ -308,6 +374,13 @@ public final class DetergentServer {
         // 起動する。バインドに失敗してもサーバー全体は落とさない（Bedrock は
         // 任意機能のため警告ログだけにして続ける）。
         startBedrock(internalPort);
+        // レガシーフロントエンド（Netty 以前世代のクライアント受け入れ）は
+        // 既定で無効。legacy.enabled: true のときだけ、ブリッジモードで
+        // レガシー用ポートに待ち受ける（旧世代は offline 前提のため、
+        // 有効化は運用者の明示的な判断に委ねる）。
+        if (config.getBoolean("legacy.enabled", false)) {
+            startLegacyFrontend(legacyConfig(port, internalPort));
+        }
     }
 
     /**
@@ -341,6 +414,114 @@ public final class DetergentServer {
      * <p>Package-private for tests.
      */
     ResourcePack hostResourcePack() {
+        if (serverProtocol == ProtocolVersion.V1_7_2 && resourcePack4 != null) {
+            return resourcePack4;
+        }
+        if (serverProtocol == ProtocolVersion.V1_7_2 && resourcePack5 != null) {
+            return resourcePack5;
+        }
+        if (serverProtocol == ProtocolVersion.V1_7_2 && resourcePack47 != null) {
+            return resourcePack47;
+        }
+        if (serverProtocol == ProtocolVersion.V1_7_10 && resourcePack5 != null) {
+            return resourcePack5;
+        }
+        if (serverProtocol == ProtocolVersion.V1_7_10 && resourcePack47 != null) {
+            return resourcePack47;
+        }
+        if (serverProtocol == ProtocolVersion.V1_8 && resourcePack47 != null) {
+            return resourcePack47;
+        }
+        if (serverProtocol == ProtocolVersion.V1_8 && resourcePack107 != null) {
+            return resourcePack107;
+        }
+        if (serverProtocol == ProtocolVersion.V1_9 && resourcePack107 != null) {
+            return resourcePack107;
+        }
+        if (serverProtocol == ProtocolVersion.V1_9 && resourcePack108 != null) {
+            return resourcePack108;
+        }
+        if (serverProtocol == ProtocolVersion.V1_9 && resourcePack109 != null) {
+            return resourcePack109;
+        }
+        if (serverProtocol == ProtocolVersion.V1_9 && resourcePack110 != null) {
+            return resourcePack110;
+        }
+        if (serverProtocol == ProtocolVersion.V1_9_1 && resourcePack108 != null) {
+            return resourcePack108;
+        }
+        if (serverProtocol == ProtocolVersion.V1_9_1 && resourcePack109 != null) {
+            return resourcePack109;
+        }
+        if (serverProtocol == ProtocolVersion.V1_9_1 && resourcePack110 != null) {
+            return resourcePack110;
+        }
+        if (serverProtocol == ProtocolVersion.V1_9_2 && resourcePack109 != null) {
+            return resourcePack109;
+        }
+        if (serverProtocol == ProtocolVersion.V1_9_2 && resourcePack110 != null) {
+            return resourcePack110;
+        }
+        if (serverProtocol == ProtocolVersion.V1_9_4 && resourcePack110 != null) {
+            return resourcePack110;
+        }
+        if (serverProtocol == ProtocolVersion.V1_9_4 && resourcePack210 != null) {
+            return resourcePack210;
+        }
+        if (serverProtocol == ProtocolVersion.V1_10_2 && resourcePack210 != null) {
+            return resourcePack210;
+        }
+        if (serverProtocol == ProtocolVersion.V1_10_2 && resourcePack315 != null) {
+            return resourcePack315;
+        }
+        if (serverProtocol == ProtocolVersion.V1_11_2 && resourcePack316 != null) {
+            return resourcePack316;
+        }
+        if (serverProtocol == ProtocolVersion.V1_12 && resourcePack335 != null) {
+            return resourcePack335;
+        }
+        if (serverProtocol == ProtocolVersion.V1_12_1 && resourcePack338 != null) {
+            return resourcePack338;
+        }
+        if (serverProtocol == ProtocolVersion.V1_12_2 && resourcePack340 != null) {
+            return resourcePack340;
+        }
+        if (serverProtocol == ProtocolVersion.V1_13 && resourcePack393 != null) {
+            return resourcePack393;
+        }
+        if (serverProtocol == ProtocolVersion.V1_13_1 && resourcePack401 != null) {
+            return resourcePack401;
+        }
+        if (serverProtocol == ProtocolVersion.V1_13_2 && resourcePack404 != null) {
+            return resourcePack404;
+        }
+        if (serverProtocol == ProtocolVersion.V1_14 && resourcePack477 != null) {
+            return resourcePack477;
+        }
+        if (serverProtocol == ProtocolVersion.V1_14_1 && resourcePack480 != null) {
+            return resourcePack480;
+        }
+        if (serverProtocol == ProtocolVersion.V1_14_2 && resourcePack485 != null) {
+            return resourcePack485;
+        }
+        if (serverProtocol == ProtocolVersion.V1_14_3 && resourcePack490 != null) {
+            return resourcePack490;
+        }
+        if (serverProtocol == ProtocolVersion.V1_14_4 && resourcePack498 != null) {
+            return resourcePack498;
+        }
+        if (serverProtocol == ProtocolVersion.V1_15 && resourcePack573 != null) {
+            return resourcePack573;
+        }
+        if (serverProtocol == ProtocolVersion.V1_15_1 && resourcePack575 != null) {
+            return resourcePack575;
+        }
+        if (serverProtocol == ProtocolVersion.V1_15_2 && resourcePack578 != null) {
+            return resourcePack578;
+        }
+        if (serverProtocol == ProtocolVersion.V1_18_2 && resourcePack758 != null) {
+            return resourcePack758;
+        }
         if (serverProtocol == ProtocolVersion.V1_16 && resourcePack735 != null) {
             return resourcePack735;
         }
@@ -413,6 +594,9 @@ public final class DetergentServer {
         if (serverProtocol == ProtocolVersion.V26_1 && resourcePack775 != null) {
             return resourcePack775;
         }
+        if (serverProtocol == ProtocolVersion.V26_2 && resourcePack776 != null) {
+            return resourcePack776;
+        }
         return resourcePack;
     }
 
@@ -447,6 +631,9 @@ public final class DetergentServer {
      * unless the internal server is 1.21.11, for the same reason
      * (native 774 clients relay the vanilla pack untouched). The 775 pack is passed
      * unless the internal server is 26.1, for the same reason
+     * (native 775 clients relay the vanilla pack untouched). The 758 pack is passed
+     * unless the internal server is 1.18.2, for the same reason
+     * (native 758 clients relay the vanilla pack untouched).
      * (native 775 clients relay the vanilla pack untouched). The 757 pack is passed
      * unless the internal server is 1.18 / 1.18.1, for the same reason
      * (native 757 clients relay the vanilla pack untouched). The 756 pack is passed
@@ -474,6 +661,8 @@ public final class DetergentServer {
                 (serverProtocol == ProtocolVersion.V1_20_1
                         || serverProtocol == ProtocolVersion.V1_20_2)
                         ? resourcePack : null;
+        ResourcePack packFor758Clients =
+                serverProtocol == ProtocolVersion.V1_18_2 ? null : resourcePack758;
         ResourcePack packFor759Clients =
                 serverProtocol == ProtocolVersion.V1_19 ? null : resourcePack759;
         ResourcePack packFor760Clients =
@@ -502,6 +691,8 @@ public final class DetergentServer {
                 serverProtocol == ProtocolVersion.V1_21_11 ? null : resourcePack774;
         ResourcePack packFor775Clients =
                 serverProtocol == ProtocolVersion.V26_1 ? null : resourcePack775;
+        ResourcePack packFor776Clients =
+                serverProtocol == ProtocolVersion.V26_2 ? null : resourcePack776;
         ResourcePack packFor757Clients =
                 serverProtocol == ProtocolVersion.V1_18 ? null : resourcePack757;
         ResourcePack packFor756Clients =
@@ -518,11 +709,73 @@ public final class DetergentServer {
                 serverProtocol == ProtocolVersion.V1_16_1 ? null : resourcePack736;
         ResourcePack packFor735Clients =
                 serverProtocol == ProtocolVersion.V1_16 ? null : resourcePack735;
-        return new ClientProxy(port, "127.0.0.1", internalPort, onlineMode,
-                packFor759Clients, packFor760Clients, packFor761Clients, packFor762Clients, resourcePack763, resourcePack764, authConfig,
+        ClientProxy proxy = new ClientProxy(port, "127.0.0.1", internalPort, onlineMode,
+                packFor735Clients, packFor736Clients, packFor751Clients, packFor753Clients, packFor754Clients, packFor755Clients, packFor756Clients, packFor757Clients,
+                packFor758Clients, packFor759Clients, packFor760Clients, packFor761Clients, packFor762Clients, resourcePack763, resourcePack764, authConfig,
                 packFor765Clients, packFor766Clients, packFor767Clients,
                 packFor768Clients, packFor769Clients, packFor770Clients, packFor771Clients,
-                packFor772Clients, packFor773Clients, packFor774Clients, packFor775Clients, packFor757Clients, packFor756Clients, packFor755Clients, packFor754Clients, packFor753Clients, packFor751Clients, packFor736Clients, packFor735Clients, serverProtocol);
+                packFor772Clients, packFor773Clients, packFor774Clients, packFor775Clients, packFor776Clients, serverProtocol);
+        // 578 pack is passed unless the internal server is 1.15.2
+        // (native 578 clients relay the vanilla pack untouched).
+        proxy.setPack47(serverProtocol == ProtocolVersion.V1_8
+                ? null : resourcePack47);
+        proxy.setPack5(serverProtocol == ProtocolVersion.V1_7_10
+                ? null : resourcePack5);
+        proxy.setPack4(serverProtocol == ProtocolVersion.V1_7_2
+                ? null : resourcePack4);
+        proxy.setPack107(serverProtocol == ProtocolVersion.V1_9
+                ? null : resourcePack107);
+        proxy.setPack108(serverProtocol == ProtocolVersion.V1_9
+                ? null : resourcePack108);
+        proxy.setPack109(serverProtocol == ProtocolVersion.V1_9
+                ? null : resourcePack109);
+        proxy.setPack110(serverProtocol == ProtocolVersion.V1_9
+                ? null : resourcePack110);
+        proxy.setPack210(serverProtocol == ProtocolVersion.V1_9_4
+                ? null : resourcePack210);
+        proxy.setPack315(serverProtocol == ProtocolVersion.V1_10_2
+                ? null : resourcePack315);
+        proxy.setPack316(serverProtocol == ProtocolVersion.V1_11_2
+                ? null : resourcePack316);
+        proxy.setPack335(serverProtocol == ProtocolVersion.V1_12
+                ? null : resourcePack335);
+        proxy.setPack338(serverProtocol == ProtocolVersion.V1_12_1
+                ? null : resourcePack338);
+        proxy.setPack340(serverProtocol == ProtocolVersion.V1_12_2
+                ? null : resourcePack340);
+        proxy.setPack393(serverProtocol == ProtocolVersion.V1_13
+                ? null : resourcePack393);
+        proxy.setPack401(serverProtocol == ProtocolVersion.V1_13_1
+                ? null : resourcePack401);
+        proxy.setPack404(serverProtocol == ProtocolVersion.V1_13_2
+                ? null : resourcePack404);
+        proxy.setPack477(serverProtocol == ProtocolVersion.V1_14
+                ? null : resourcePack477);
+        proxy.setPack480(serverProtocol == ProtocolVersion.V1_14_1
+                ? null : resourcePack480);
+        proxy.setPack485(serverProtocol == ProtocolVersion.V1_14_2
+                ? null : resourcePack485);
+        proxy.setPack490(serverProtocol == ProtocolVersion.V1_14_3
+                ? null : resourcePack490);
+        proxy.setPack498(serverProtocol == ProtocolVersion.V1_14_4
+                ? null : resourcePack498);
+        proxy.setPack573(serverProtocol == ProtocolVersion.V1_15
+                ? null : resourcePack573);
+        proxy.setPack575(serverProtocol == ProtocolVersion.V1_15_1
+                ? null : resourcePack575);
+        proxy.setPack578(serverProtocol == ProtocolVersion.V1_15_2
+                ? null : resourcePack578);
+        // Surfactant forwarding (batch 4): when forwarding.secret is set,
+        // logins must arrive through Surfactant with a verified forwarding
+        // payload; the forwarded identity (UUID, name, IP, properties)
+        // becomes the identity DetergentMC's layer uses for the player.
+        String forwardingSecret = config.getString("forwarding.secret", "");
+        if (forwardingSecret != null && !forwardingSecret.isBlank()) {
+            proxy.setForwardingSecret(forwardingSecret);
+            LOG.info(() -> "Surfactant forwarding is enabled (forwarding.secret): "
+                    + "only connections verified through Surfactant can log in.");
+        }
+        return proxy;
     }
 
     /**
@@ -597,6 +850,7 @@ public final class DetergentServer {
      * {@code resource-pack.url-773} / {@code resource-pack.sha1-773},
      * {@code resource-pack.url-774} / {@code resource-pack.sha1-774},
      * {@code resource-pack.url-775} / {@code resource-pack.sha1-775},
+     * {@code resource-pack.url-776} / {@code resource-pack.sha1-776},
      * {@code resource-pack.url-756} / {@code resource-pack.sha1-756} and
      * {@code resource-pack.url-755} / {@code resource-pack.sha1-755}
      * when both are valid. The proxy offers the 1.17 pack to 755
@@ -611,7 +865,7 @@ public final class DetergentServer {
      * clients, the 1.21.5 pack to 770 clients, the 1.21.6 pack to 771
      * clients, the 1.21.7／1.21.8 pack to 772 clients, the 1.21.9／1.21.10
      * pack to 773 clients, the 1.21.11 pack to 774 clients, the 26.1 pack
-     * to 775 clients, and the 1.20.4 pack to 765
+     * to 775 clients, the 26.2 pack to 776 clients, and the 1.20.4 pack to 765
      * clients. The pack written into {@code server.properties} is chosen by
      * {@link #hostResourcePack()}: the 755 pack when the vanilla server
      * itself is 1.17, the 756 pack when the vanilla server
@@ -674,10 +928,62 @@ public final class DetergentServer {
                         config.getString("resource-pack.sha1-774", ""),
                         config.getString("resource-pack.url-775", ""),
                         config.getString("resource-pack.sha1-775", ""),
+                        config.getString("resource-pack.url-776", ""),
+                        config.getString("resource-pack.sha1-776", ""),
                         config.getString("resource-pack.url-760", ""),
                         config.getString("resource-pack.sha1-760", ""),
                         config.getString("resource-pack.url-759", ""),
                         config.getString("resource-pack.sha1-759", ""),
+                        config.getString("resource-pack.url-758", ""),
+                        config.getString("resource-pack.sha1-758", ""),
+                        config.getString("resource-pack.url-578", ""),
+                        config.getString("resource-pack.sha1-578", ""),
+                        config.getString("resource-pack.url-575", ""),
+                        config.getString("resource-pack.sha1-575", ""),
+                        config.getString("resource-pack.url-573", ""),
+                        config.getString("resource-pack.sha1-573", ""),
+                        config.getString("resource-pack.url-498", ""),
+                        config.getString("resource-pack.sha1-498", ""),
+                        config.getString("resource-pack.url-490", ""),
+                        config.getString("resource-pack.sha1-490", ""),
+                        config.getString("resource-pack.url-485", ""),
+                        config.getString("resource-pack.sha1-485", ""),
+                        config.getString("resource-pack.url-480", ""),
+                        config.getString("resource-pack.sha1-480", ""),
+                        config.getString("resource-pack.url-477", ""),
+                        config.getString("resource-pack.sha1-477", ""),
+                        config.getString("resource-pack.url-404", ""),
+                        config.getString("resource-pack.sha1-404", ""),
+                        config.getString("resource-pack.url-401", ""),
+                        config.getString("resource-pack.sha1-401", ""),
+                        config.getString("resource-pack.url-393", ""),
+                        config.getString("resource-pack.sha1-393", ""),
+                        config.getString("resource-pack.url-340", ""),
+                        config.getString("resource-pack.sha1-340", ""),
+                        config.getString("resource-pack.url-338", ""),
+                        config.getString("resource-pack.sha1-338", ""),
+                        config.getString("resource-pack.url-335", ""),
+                        config.getString("resource-pack.sha1-335", ""),
+                        config.getString("resource-pack.url-316", ""),
+                        config.getString("resource-pack.sha1-316", ""),
+                        config.getString("resource-pack.url-315", ""),
+                        config.getString("resource-pack.sha1-315", ""),
+                        config.getString("resource-pack.url-210", ""),
+                        config.getString("resource-pack.sha1-210", ""),
+                        config.getString("resource-pack.url-110", ""),
+                        config.getString("resource-pack.sha1-110", ""),
+                        config.getString("resource-pack.url-109", ""),
+                        config.getString("resource-pack.sha1-109", ""),
+                        config.getString("resource-pack.url-108", ""),
+                        config.getString("resource-pack.sha1-108", ""),
+                        config.getString("resource-pack.url-107", ""),
+                        config.getString("resource-pack.sha1-107", ""),
+                        config.getString("resource-pack.url-47", ""),
+                        config.getString("resource-pack.sha1-47", ""),
+                        config.getString("resource-pack.url-5", ""),
+                        config.getString("resource-pack.sha1-5", ""),
+                        config.getString("resource-pack.url-4", ""),
+                        config.getString("resource-pack.sha1-4", ""),
                         config.getString("resource-pack.url-757", ""),
                         config.getString("resource-pack.sha1-757", ""),
                         config.getString("resource-pack.url-756", ""),
@@ -709,6 +1015,31 @@ public final class DetergentServer {
                                 "resource-pack.required-failed", decision.problem()));
                     }
                     resourcePack = null;
+                    resourcePack47 = null;
+                    resourcePack5 = null;
+                    resourcePack4 = null;
+                    resourcePack107 = null;
+                    resourcePack108 = null;
+                    resourcePack109 = null;
+                    resourcePack110 = null;
+                    resourcePack210 = null;
+                    resourcePack315 = null;
+                    resourcePack316 = null;
+                    resourcePack335 = null;
+                    resourcePack338 = null;
+                    resourcePack340 = null;
+                    resourcePack393 = null;
+                    resourcePack401 = null;
+                    resourcePack404 = null;
+                    resourcePack477 = null;
+                    resourcePack480 = null;
+                    resourcePack485 = null;
+                    resourcePack490 = null;
+                    resourcePack498 = null;
+                    resourcePack573 = null;
+                    resourcePack575 = null;
+                    resourcePack578 = null;
+                    resourcePack758 = null;
                     resourcePack735 = null;
                     resourcePack736 = null;
                     resourcePack751 = null;
@@ -733,11 +1064,137 @@ public final class DetergentServer {
                     resourcePack773 = null;
                     resourcePack774 = null;
                     resourcePack775 = null;
+                    resourcePack776 = null;
                     return null;
                 }
                 LOG.info(() -> translator.translate(
                         "resource-pack.external-enabled", decision.pack().url()));
                 resourcePack = decision.pack();
+                resourcePack477 = decision.pack477();
+                if (resourcePack477 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack477.url()));
+                }
+                resourcePack393 = decision.pack393();
+                if (resourcePack393 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack393.url()));
+                }
+                resourcePack47 = decision.pack47();
+                if (resourcePack47 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack47.url()));
+                }
+                resourcePack5 = decision.pack5();
+                if (resourcePack5 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack5.url()));
+                }
+                resourcePack4 = decision.pack4();
+                if (resourcePack4 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack4.url()));
+                }
+                resourcePack107 = decision.pack107();
+                if (resourcePack107 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack107.url()));
+                }
+                resourcePack108 = decision.pack108();
+                if (resourcePack108 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack108.url()));
+                }
+                resourcePack109 = decision.pack109();
+                if (resourcePack109 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack109.url()));
+                }
+                resourcePack110 = decision.pack110();
+                if (resourcePack110 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack110.url()));
+                }
+                resourcePack210 = decision.pack210();
+                if (resourcePack210 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack210.url()));
+                }
+                resourcePack315 = decision.pack315();
+                if (resourcePack315 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack315.url()));
+                }
+                resourcePack316 = decision.pack316();
+                if (resourcePack316 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack316.url()));
+                }
+                resourcePack335 = decision.pack335();
+                if (resourcePack335 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack335.url()));
+                }
+                resourcePack338 = decision.pack338();
+                if (resourcePack338 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack338.url()));
+                }
+                resourcePack340 = decision.pack340();
+                if (resourcePack340 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack340.url()));
+                }
+                resourcePack401 = decision.pack401();
+                if (resourcePack401 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack401.url()));
+                }
+                resourcePack404 = decision.pack404();
+                if (resourcePack404 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack404.url()));
+                }
+                resourcePack480 = decision.pack480();
+                if (resourcePack480 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack480.url()));
+                }
+                resourcePack485 = decision.pack485();
+                if (resourcePack485 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack485.url()));
+                }
+                resourcePack490 = decision.pack490();
+                if (resourcePack490 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack490.url()));
+                }
+                resourcePack498 = decision.pack498();
+                if (resourcePack498 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack498.url()));
+                }
+                resourcePack573 = decision.pack573();
+                if (resourcePack573 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack573.url()));
+                }
+                resourcePack575 = decision.pack575();
+                if (resourcePack575 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack575.url()));
+                }
+                resourcePack578 = decision.pack578();
+                if (resourcePack578 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack578.url()));
+                }
+                resourcePack758 = decision.pack758();
+                if (resourcePack758 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack758.url()));
+                }
                 resourcePack735 = decision.pack735();
                 if (resourcePack735 != null) {
                     LOG.info(() -> translator.translate(
@@ -858,6 +1315,11 @@ public final class DetergentServer {
                     LOG.info(() -> translator.translate(
                             "resource-pack.external-enabled", resourcePack775.url()));
                 }
+                resourcePack776 = decision.pack776();
+                if (resourcePack776 != null) {
+                    LOG.info(() -> translator.translate(
+                            "resource-pack.external-enabled", resourcePack776.url()));
+                }
                 return resourcePack;
             }
             case LOOPBACK -> {
@@ -866,7 +1328,7 @@ public final class DetergentServer {
         }
         int port = config.getInt("resource-pack.port", 25567);
         try {
-            // 1.16用（pack_format 5）と1.16.1用（pack_format 5）と1.16.2用（pack_format 6）と1.16.3用（pack_format 6）と1.16.4／1.16.5用（pack_format 6、1パックで両バージョン共用）と1.20.4用（pack_format 22）と1.17用（pack_format 7）、1.17.1用（pack_format 7）、1.18／1.18.1用（pack_format 8、1パックで両バージョン共用）、
+            // 1.16用（pack_format 5）と1.16.1用（pack_format 5）と1.16.2用（pack_format 6）と1.16.3用（pack_format 6）と1.16.4／1.16.5用（pack_format 6、1パックで両バージョン共用）と1.20.4用（pack_format 22）と1.17用（pack_format 7）、1.17.1用（pack_format 7）、1.18／1.18.1用（pack_format 8、1パックで両バージョン共用）と1.18.2用（pack_format 8）、
             // 1.19用（pack_format 9）、
             // 1.19.1／1.19.2用（pack_format 9）、
             // 1.19.3用（pack_format 12）、1.19.4用（pack_format 13）、
@@ -877,19 +1339,62 @@ public final class DetergentServer {
             // 1.21.4用（pack_format 46）、1.21.5用（pack_format 55）、
             // 1.21.6用（pack_format 63）、1.21.7／1.21.8用（pack_format 64）、
             // 1.21.9／1.21.10用（pack_format 69）、1.21.11用（pack_format 75）、
-            // 26.1用（pack_format 84、26.1／26.1.1／26.1.2で共用）の
-            // 25つを生成し、同じHTTPサーバー（同じ25567番ポート）で配信する。
-            // 765クライアントには前者、735クライアントには1番目、736クライアントには2番目、751クライアントには3番目、753クライアントには4番目、754クライアントには5番目、755クライアントには6番目、756クライアントには7番目、757クライアントには8番目、759クライアントには9番目、
-            // 760クライアントには10番目、
-            // 761クライアントには11番目、762クライアントには12番目、
-            // 763クライアントには13番目、764クライアントには14番目、
-            // 766クライアントには15番目、767クライアントには16番目、
-            // 768クライアントには17番目、769クライアントには18番目、
-            // 770クライアントには19番目、771クライアントには20番目、
-            // 772クライアントには21番目、773クライアントには22番目、
-            // 774クライアントには23番目、775クライアントには24番目をプロキシが出し分ける。
+            // 765用（pack_format 22）を本命として、735〜776と
+            // 降下側（578〜4）の各クライアント用パックを生成し、
+            // 同じHTTPサーバー（同じ25567番ポート）で配信する。
+            // 出し分けは ResourcePackServer.packForProtocol が行う。
             ResourcePackBuilder.BuiltPack built = new ResourcePackBuilder()
                     .build(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built107 = new ResourcePackBuilder()
+                    .build107(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built47 = new ResourcePackBuilder()
+                    .build47(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built5 = new ResourcePackBuilder()
+                    .build5(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built4 = new ResourcePackBuilder()
+                    .build4(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built108 = new ResourcePackBuilder()
+                    .build108(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built109 = new ResourcePackBuilder()
+                    .build109(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built110 = new ResourcePackBuilder()
+                    .build110(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built210 = new ResourcePackBuilder()
+                    .build210(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built315 = new ResourcePackBuilder()
+                    .build315(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built316 = new ResourcePackBuilder()
+                    .build316(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built335 = new ResourcePackBuilder()
+                    .build335(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built338 = new ResourcePackBuilder()
+                    .build338(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built340 = new ResourcePackBuilder()
+                    .build340(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built393 = new ResourcePackBuilder()
+                    .build393(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built401 = new ResourcePackBuilder()
+                    .build401(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built404 = new ResourcePackBuilder()
+                    .build404(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built477 = new ResourcePackBuilder()
+                    .build477(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built480 = new ResourcePackBuilder()
+                    .build480(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built485 = new ResourcePackBuilder()
+                    .build485(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built490 = new ResourcePackBuilder()
+                    .build490(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built498 = new ResourcePackBuilder()
+                    .build498(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built573 = new ResourcePackBuilder()
+                    .build573(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built575 = new ResourcePackBuilder()
+                    .build575(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built578 = new ResourcePackBuilder()
+                    .build578(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built758 = new ResourcePackBuilder()
+                    .build758(workingDir.resolve("data").resolve("resource-pack"));
             ResourcePackBuilder.BuiltPack built735 = new ResourcePackBuilder()
                     .build735(workingDir.resolve("data").resolve("resource-pack"));
             ResourcePackBuilder.BuiltPack built736 = new ResourcePackBuilder()
@@ -938,12 +1443,38 @@ public final class DetergentServer {
                     .build774(workingDir.resolve("data").resolve("resource-pack"));
             ResourcePackBuilder.BuiltPack built775 = new ResourcePackBuilder()
                     .build775(workingDir.resolve("data").resolve("resource-pack"));
+            ResourcePackBuilder.BuiltPack built776 = new ResourcePackBuilder()
+                    .build776(workingDir.resolve("data").resolve("resource-pack"));
             resourcePackServer = new ResourcePackServer(
-                    built, built735, built736, built751, built753, built754, built755, built756, built757, built759, built760, built761, built762, built763, built764, built766, built767, built768, built769,
-                    built770, built771, built772, built773, built774, built775, port, required,
+                    built, built735, built736, built751, built753, built754, built755, built756, built757, built758, built759, built760, built761, built762, built763, built764, built766, built767, built768, built769, built770, built771, built772, built773, built774, built775, built776, built578, built575, built573, built498, built490, built485, built480, built477, built404, built401, built393, built340, built338, built335, built316, built315, built210, built110, built109, built108, built107, built47, built5, built4, port, required,
                     promptKey.isBlank()
                             ? ResourcePackServer.DEFAULT_PROMPT_KEY : promptKey.trim());
             resourcePack = resourcePackServer.start();
+            resourcePack47 = resourcePackServer.pack47();
+            resourcePack5 = resourcePackServer.pack5();
+            resourcePack4 = resourcePackServer.pack4();
+            resourcePack107 = resourcePackServer.pack107();
+            resourcePack108 = resourcePackServer.pack108();
+            resourcePack109 = resourcePackServer.pack109();
+            resourcePack110 = resourcePackServer.pack110();
+            resourcePack210 = resourcePackServer.pack210();
+            resourcePack315 = resourcePackServer.pack315();
+            resourcePack316 = resourcePackServer.pack316();
+            resourcePack335 = resourcePackServer.pack335();
+            resourcePack338 = resourcePackServer.pack338();
+            resourcePack340 = resourcePackServer.pack340();
+            resourcePack393 = resourcePackServer.pack393();
+            resourcePack401 = resourcePackServer.pack401();
+            resourcePack404 = resourcePackServer.pack404();
+            resourcePack477 = resourcePackServer.pack477();
+            resourcePack480 = resourcePackServer.pack480();
+            resourcePack485 = resourcePackServer.pack485();
+            resourcePack490 = resourcePackServer.pack490();
+            resourcePack498 = resourcePackServer.pack498();
+            resourcePack573 = resourcePackServer.pack573();
+            resourcePack575 = resourcePackServer.pack575();
+            resourcePack578 = resourcePackServer.pack578();
+            resourcePack758 = resourcePackServer.pack758();
             resourcePack735 = resourcePackServer.pack735();
             resourcePack736 = resourcePackServer.pack736();
             resourcePack751 = resourcePackServer.pack751();
@@ -968,6 +1499,7 @@ public final class DetergentServer {
             resourcePack773 = resourcePackServer.pack773();
             resourcePack774 = resourcePackServer.pack774();
             resourcePack775 = resourcePackServer.pack775();
+            resourcePack776 = resourcePackServer.pack776();
             LOG.info(() -> translator.translate("resource-pack.enabled", resourcePack.url()));
             return resourcePack;
         } catch (IOException e) {
@@ -996,9 +1528,10 @@ public final class DetergentServer {
     Path generateDatapack() {
         try {
             // The datapack format follows the running vanilla version:
+            // 9 for 1.18.2, 10 for 1.19 / 1.19.1 / 1.19.2 / 1.19.3, 12 for 1.19.4,
             // 15 for 1.20.1, 18 for 1.20.2, 26 for 1.20.4,
             // 41 for 1.20.5 / 1.20.6, 48 for 1.21 / 1.21.1,
-            // 57 for 1.21.2 / 1.21.3, 61 for 1.21.4, 71 for 1.21.5, 80 for 1.21.6, 81 for 1.21.7／1.21.8, 88 for 1.21.9／1.21.10, 94 for 1.21.11, 101 for 26.1 / 26.1.1 / 26.1.2.
+            // 57 for 1.21.2 / 1.21.3, 61 for 1.21.4, 71 for 1.21.5, 80 for 1.21.6, 81 for 1.21.7／1.21.8, 88 for 1.21.9／1.21.10, 94 for 1.21.11, 101 for 26.1 / 26.1.1 / 26.1.2, 107 for 26.2.
             int packFormat = DatapackGenerator.packFormatFor(
                     config.getString("minecraft-version", "1.20.4"));
             Path file = new DatapackGenerator()
@@ -1018,6 +1551,31 @@ public final class DetergentServer {
             resourcePackServer = null;
         }
         resourcePack = null;
+        resourcePack47 = null;
+        resourcePack5 = null;
+        resourcePack4 = null;
+        resourcePack107 = null;
+        resourcePack108 = null;
+        resourcePack109 = null;
+        resourcePack110 = null;
+        resourcePack210 = null;
+        resourcePack315 = null;
+        resourcePack316 = null;
+        resourcePack335 = null;
+        resourcePack338 = null;
+        resourcePack340 = null;
+        resourcePack393 = null;
+        resourcePack401 = null;
+        resourcePack404 = null;
+        resourcePack477 = null;
+        resourcePack480 = null;
+        resourcePack485 = null;
+        resourcePack490 = null;
+        resourcePack498 = null;
+        resourcePack573 = null;
+        resourcePack575 = null;
+        resourcePack578 = null;
+        resourcePack758 = null;
         resourcePack735 = null;
         resourcePack736 = null;
         resourcePack751 = null;
@@ -1042,6 +1600,7 @@ public final class DetergentServer {
         resourcePack773 = null;
         resourcePack774 = null;
         resourcePack775 = null;
+        resourcePack776 = null;
     }
 
     /**
@@ -1088,9 +1647,180 @@ public final class DetergentServer {
         return bedrockServer;
     }
 
+    /**
+     * レガシーフロントエンド（Netty 以前世代）の設定を
+     * {@code detergentmc.yml} から作る。内部サーバー自体がレガシー世代
+     * （1.6.4）の場合はダイレクトモード（フロントエンドが内部バニラへ
+     * レガシークライアントとして直接接続）、それ以外はブリッジモード
+     * （フロントエンドがコアプロキシへプロトコル5の合成クライアント
+     * として接続）。
+     *
+     * <p>Package-private for tests.
+     */
+    LegacyFrontendConfig legacyConfig(int publicPort, int internalPort) {
+        String minecraftVersion = config.getString("minecraft-version", "1.20.4");
+        String motd = config.getString("legacy.motd", "");
+        if (motd.isBlank()) {
+            motd = config.getString("server.motd", "DetergentMC 1.20.4");
+        }
+        int maxPlayers = config.getInt("max-players", 20);
+        int legacyPort = config.getInt("legacy.port", LegacyFrontendConfig.DEFAULT_PORT);
+        if (LegacyProtocol.isLegacyBackendVersion(minecraftVersion)) {
+            return LegacyFrontendConfig.direct(
+                    legacyPort, "127.0.0.1", internalPort, motd, maxPlayers,
+                    minecraftVersion);
+        }
+        return LegacyFrontendConfig.bridge(
+                legacyPort, "127.0.0.1", publicPort, motd, maxPlayers);
+    }
+
+    /**
+     * レガシーフロントエンドを起動する。バインド失敗時は警告ログにして
+     * サーバー全体は落とさない（Bedrock と同じ扱い）。
+     */
+    private void startLegacyFrontend(LegacyFrontendConfig legacy) {
+        try {
+            legacyServer = new LegacyFrontendServer(legacy);
+            legacyServer.start();
+        } catch (IOException e) {
+            LOG.warning("レガシーフロントエンドの起動に失敗しました: " + e.getMessage());
+            legacyServer = null;
+        }
+    }
+
+    /** The legacy (pre-Netty) frontend server, or {@code null} when not running. */
+    public LegacyFrontendServer legacyServer() {
+        return legacyServer;
+    }
+
     /** The resource pack currently offered to clients, or {@code null}. */
     public ResourcePack resourcePack() {
         return resourcePack;
+    }
+
+    /** The 1.8.9 resource pack offered to 47 clients, or {@code null}. */
+    public ResourcePack resourcePack47() {
+        return resourcePack47;
+    }
+
+    /** The 1.7.10 resource pack offered to 5 clients, or {@code null}. */
+    public ResourcePack resourcePack5() {
+        return resourcePack5;
+    }
+
+    /** The 1.7.2 resource pack offered to 4 clients, or {@code null}. */
+    public ResourcePack resourcePack4() {
+        return resourcePack4;
+    }
+
+    /** The 1.9 resource pack offered to 107 clients, or {@code null}. */
+    public ResourcePack resourcePack107() {
+        return resourcePack107;
+    }
+
+    /** The 1.9.1 resource pack offered to 108 clients, or {@code null}. */
+    public ResourcePack resourcePack108() {
+        return resourcePack108;
+    }
+
+    /** The 1.9.2 resource pack offered to 109 clients, or {@code null}. */
+    public ResourcePack resourcePack109() {
+        return resourcePack109;
+    }
+
+    /** The 1.9.4 resource pack offered to 110 clients, or {@code null}. */
+    public ResourcePack resourcePack110() {
+        return resourcePack110;
+    }
+
+    /** The 1.10.2 resource pack offered to 210 clients, or {@code null}. */
+    public ResourcePack resourcePack210() {
+        return resourcePack210;
+    }
+
+    /** The 1.11 resource pack offered to 315 clients, or {@code null}. */
+    public ResourcePack resourcePack315() {
+        return resourcePack315;
+    }
+
+    /** The 1.11.2 resource pack offered to 316 clients, or {@code null}. */
+    public ResourcePack resourcePack316() {
+        return resourcePack316;
+    }
+
+    /** The 1.12 resource pack offered to 335 clients, or {@code null}. */
+    public ResourcePack resourcePack335() {
+        return resourcePack335;
+    }
+
+    /** The 1.12.1 resource pack offered to 338 clients, or {@code null}. */
+    public ResourcePack resourcePack338() {
+        return resourcePack338;
+    }
+
+    /** The 1.12.2 resource pack offered to 340 clients, or {@code null}. */
+    public ResourcePack resourcePack340() {
+        return resourcePack340;
+    }
+
+    /** The 1.13 resource pack offered to 393 clients, or {@code null}. */
+    public ResourcePack resourcePack393() {
+        return resourcePack393;
+    }
+
+    /** The 1.13.1 resource pack offered to 401 clients, or {@code null}. */
+    public ResourcePack resourcePack401() {
+        return resourcePack401;
+    }
+
+    /** The 1.13.2 resource pack offered to 404 clients, or {@code null}. */
+    public ResourcePack resourcePack404() {
+        return resourcePack404;
+    }
+
+    /** The 1.14 resource pack offered to 477 clients, or {@code null}. */
+    public ResourcePack resourcePack477() {
+        return resourcePack477;
+    }
+
+    /** The 1.14.1 resource pack offered to 480 clients, or {@code null}. */
+    public ResourcePack resourcePack480() {
+        return resourcePack480;
+    }
+
+    /** The 1.14.2 resource pack offered to 485 clients, or {@code null}. */
+    public ResourcePack resourcePack485() {
+        return resourcePack485;
+    }
+
+    /** The 1.14.3 resource pack offered to 490 clients, or {@code null}. */
+    public ResourcePack resourcePack490() {
+        return resourcePack490;
+    }
+
+    /** The 1.14.4 resource pack offered to 498 clients, or {@code null}. */
+    public ResourcePack resourcePack498() {
+        return resourcePack498;
+    }
+
+    /** The 1.15 resource pack offered to 573 clients, or {@code null}. */
+    public ResourcePack resourcePack573() {
+        return resourcePack573;
+    }
+
+    /** The 1.15.1 resource pack offered to 575 clients, or {@code null}. */
+    public ResourcePack resourcePack575() {
+        return resourcePack575;
+    }
+
+    /** The 1.15.2 resource pack offered to 578 clients, or {@code null}. */
+    public ResourcePack resourcePack578() {
+        return resourcePack578;
+    }
+
+    /** The 1.18.2 resource pack offered to 758 clients, or {@code null}. */
+    public ResourcePack resourcePack758() {
+        return resourcePack758;
     }
 
     /** The 1.19 resource pack offered to 759 clients, or {@code null}. */
@@ -1218,6 +1948,15 @@ public final class DetergentServer {
                 LOG.warning("Failed to stop the Bedrock server: " + e.getMessage());
             }
             bedrockServer = null;
+        }
+        // Stop the legacy frontend too.
+        if (legacyServer != null) {
+            try {
+                legacyServer.stop();
+            } catch (RuntimeException e) {
+                LOG.warning("Failed to stop the legacy frontend: " + e.getMessage());
+            }
+            legacyServer = null;
         }
         // Stop the vanilla server first, then disable the Bubbles.
         if (vanillaHost != null) {
