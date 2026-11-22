@@ -39,12 +39,12 @@ class ResourcePackMode759Test {
     private static final String VALID_SHA1_763 =
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 
-    /** The full decide() overload: 761–774 pairs, then 760, then 759. */
+    /** The full decide() overload: 761–776 pairs, then 760, then 759. */
     private static ResourcePackMode.Decision decideFull(
             String url760, String sha1760, String url759, String sha1759) {
         return ResourcePackMode.decide(
                 URL, VALID_SHA1, URL_761, VALID_SHA1_761, URL_762, VALID_SHA1_762, URL_763, VALID_SHA1_763,
-                "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+                "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
                 url760, sha1760, url759, sha1759,
                 false, "");
     }
@@ -142,7 +142,7 @@ class ResourcePackMode759Test {
         // sha1-759) keeps working: 759 clients fall back to the 760 pack.
         ResourcePackMode.Decision decision = ResourcePackMode.decide(
                 URL, VALID_SHA1, URL_761, VALID_SHA1_761, URL_762, VALID_SHA1_762, URL_763, VALID_SHA1_763,
-                "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", URL_760, VALID_SHA1_760,
+                "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", URL_760, VALID_SHA1_760,
                 false, "");
         assertEquals(ResourcePackMode.Kind.EXTERNAL, decision.kind());
         assertNull(decision.problem());
