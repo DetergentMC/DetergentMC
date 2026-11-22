@@ -91,6 +91,6 @@ class ClientJoinFlowTest {
     @Test
     void unsupportedProtocolIsRejectedAtConstruction() {
         assertThrows(IllegalArgumentException.class,
-                () -> new ClientJoinFlow(ProtocolVersion.V1_12_2));
+                () -> new ClientJoinFlow(339));
     }
 }
