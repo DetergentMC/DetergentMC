@@ -6,8 +6,8 @@ import io.detergentmc.protocol.PacketIO.Writer;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.HexFormat;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -2824,6 +2824,20 @@ public final class PlayTranslator {
             "minecraft:wither", "minecraft:wither_skull",
     };
 
+    /** 776のダメージ種別の名前（51件。775 の 50 件に sulfur_cube_hot
+        が index 42 に追加。26.2 の datapack で確認）。 */
+    private static final String[] DAMAGE_776_NAMES = {
+            "minecraft:arrow", "minecraft:bad_respawn_point", "minecraft:cactus", "minecraft:campfire", "minecraft:cramming", "minecraft:dragon_breath",
+            "minecraft:drown", "minecraft:dry_out", "minecraft:ender_pearl", "minecraft:explosion", "minecraft:fall", "minecraft:falling_anvil",
+            "minecraft:falling_block", "minecraft:falling_stalactite", "minecraft:fireball", "minecraft:fireworks", "minecraft:fly_into_wall", "minecraft:freeze",
+            "minecraft:generic", "minecraft:generic_kill", "minecraft:hot_floor", "minecraft:in_fire", "minecraft:in_wall", "minecraft:indirect_magic",
+            "minecraft:lava", "minecraft:lightning_bolt", "minecraft:mace_smash", "minecraft:magic", "minecraft:mob_attack", "minecraft:mob_attack_no_aggro",
+            "minecraft:mob_projectile", "minecraft:on_fire", "minecraft:out_of_world", "minecraft:outside_border", "minecraft:player_attack", "minecraft:player_explosion",
+            "minecraft:sonic_boom", "minecraft:spear", "minecraft:spit", "minecraft:stalagmite", "minecraft:starve", "minecraft:sting",
+            "minecraft:sulfur_cube_hot", "minecraft:sweet_berry_bush", "minecraft:thorns", "minecraft:thrown", "minecraft:trident", "minecraft:unattributed_fireball",
+            "minecraft:wind_charge", "minecraft:wither", "minecraft:wither_skull",
+    };
+
     /**
      * レジストリの順序が変わった組み合わせで、送信側の数値 id から
      * 受信側の数値 id への写像を返す。順序が変わらない組み合わせは
@@ -2856,6 +2870,8 @@ public final class PlayTranslator {
                 case 774773 -> RegistryRemapper::mapEnchantment774To773;
                 case 774775 -> RegistryRemapper::mapEnchantment774To775;
                 case 775774 -> RegistryRemapper::mapEnchantment775To774;
+                case 775776 -> RegistryRemapper::mapEnchantment775To776;
+                case 776775 -> RegistryRemapper::mapEnchantment776To775;
                 default -> null;
             };
             case "minecraft:painting_variant" -> switch (from * 1000 + to) {
@@ -2908,6 +2924,8 @@ public final class PlayTranslator {
                 case 774773 -> RegistryRemapper::mapJukeboxSong774To773;
                 case 774775 -> RegistryRemapper::mapJukeboxSong774To775;
                 case 775774 -> RegistryRemapper::mapJukeboxSong775To774;
+                case 775776 -> RegistryRemapper::mapJukeboxSong775To776;
+                case 776775 -> RegistryRemapper::mapJukeboxSong776To775;
                 default -> null;
             };
             case "minecraft:damage_type" -> switch (from * 1000 + to) {
@@ -2925,16 +2943,8 @@ public final class PlayTranslator {
                 case 774773 -> RegistryRemapper::mapDamageType774To773;
                 case 774775 -> RegistryRemapper::mapDamageType774To775;
                 case 775774 -> RegistryRemapper::mapDamageType775To774;
-                default -> null;
-            };
-            case "minecraft:worldgen/biome" -> switch (from * 1000 + to) {
-                case 757759 -> RegistryRemapper::mapBiome757To759;
-                case 759757 -> RegistryRemapper::mapBiome759To757;
-                default -> null;
-            };
-            case "minecraft:dimension_type" -> switch (from * 1000 + to) {
-                case 757759 -> PlayTranslator::mapDimensionType757To759;
-                case 759757 -> PlayTranslator::mapDimensionType759To757;
+                case 775776 -> RegistryRemapper::mapDamageType775To776;
+                case 776775 -> RegistryRemapper::mapDamageType776To775;
                 default -> null;
             };
             default -> null;
@@ -2957,6 +2967,7 @@ public final class PlayTranslator {
                 case 768, 769, 770, 771, 772, 773 -> ENCHANTMENT_768_NAMES;
                 case 774 -> ENCHANTMENT_774_NAMES;
                 case 775 -> ENCHANTMENT_774_NAMES; // 774と同一の43件
+                case 776 -> ENCHANTMENT_774_NAMES; // 775と同一の43件
                 default -> null;
             };
             case "minecraft:painting_variant" -> to == 767 || to == 768 || to == 769 ? PAINTING_767_NAMES : PAINTING_766_NAMES;
@@ -2964,6 +2975,7 @@ public final class PlayTranslator {
             case "minecraft:trim_pattern" -> to == 767 || to == 768 || to == 769 ? TRIM_767_NAMES : TRIM_766_NAMES;
             case "minecraft:jukebox_song" -> switch (to) {
                 case 775 -> RegistryTables773.JUKEBOX_SONG_773_NAMES; // 774と同一の21曲
+                case 776 -> RegistryRemapper.JUKEBOX_SONG_776_NAMES; // 22曲、bounce は index 4
                 case 774 -> RegistryTables773.JUKEBOX_SONG_773_NAMES; // 773と同一の21曲
                 case 773 -> RegistryTables773.JUKEBOX_SONG_773_NAMES;
                 case 772 -> RegistryTables772.JUKEBOX_SONG_772_NAMES;
@@ -2977,17 +2989,8 @@ public final class PlayTranslator {
                 case 768, 769, 770, 771, 772, 773 -> DAMAGE_768_NAMES;
                 case 774 -> DAMAGE_774_NAMES;
                 case 775 -> DAMAGE_774_NAMES; // 774と同一の50件
+                case 776 -> DAMAGE_776_NAMES; // 51件、sulfur_cube_hot は index 42
                 default -> DAMAGE_766_NAMES;
-            };
-            case "minecraft:worldgen/biome" -> switch (to) {
-                case 757 -> BIOME_757_NAMES;
-                case 759 -> BIOME_759_NAMES;
-                default -> null;
-            };
-            case "minecraft:dimension_type" -> switch (to) {
-                case 757 -> DIMENSION_TYPE_757_NAMES;
-                case 759 -> DIMENSION_TYPE_759_NAMES;
-                default -> null;
             };
             default -> null;
         };
@@ -3027,12 +3030,7 @@ public final class PlayTranslator {
             entry.put("name", new Tag.StringTag(targetNames[targetId]));
             entry.put("id", new Tag.IntTag(targetId));
             compound.get("element").ifPresent(t -> entry.put("element", t));
-            // 受信側に無いエントリへのフォールバックで複数の送信側エントリが同じ
-            // 受信側 id になる場合（759→757のバイオームで mangrove_swamp→swamp 等）、
-            // 先に来たもの（真の対応）を残す。他の変換は全て単射のため挙動は変わらない。
-            if (out.get(targetId) == null) {
-                out.set(targetId, new Tag.CompoundTag(entry));
-            }
+            out.set(targetId, new Tag.CompoundTag(entry));
         }
         for (int i = 0; i < out.size(); i++) {
             if (out.get(i) == null) {
@@ -3050,8 +3048,6 @@ public final class PlayTranslator {
      * 受信側の順序に並べ替える。763／764は765として扱う。
      * {@code minecraft:jukebox_song} は766／765には存在しないため、
      * 受信側が766／765の場合はレジストリごと落とす。
-     * {@code minecraft:chat_type} は1.19で追加されたため、
-     * 受信側が757の場合はレジストリごと落とす。
      * 入力のマップは変更しない（新しいマップを返す）。
      */
     public static Map<String, Tag.CompoundTag> reorderRegistries(
@@ -3068,7 +3064,8 @@ public final class PlayTranslator {
                     && toProtocol != ProtocolVersion.V1_21_7
                     && toProtocol != ProtocolVersion.V1_21_9
                     && toProtocol != ProtocolVersion.V1_21_11
-                    && toProtocol != ProtocolVersion.V26_1) {
+                    && toProtocol != ProtocolVersion.V26_1
+                    && toProtocol != ProtocolVersion.V26_2) {
                 continue;
             }
             if (registryId.equals("minecraft:dialog")
@@ -3076,10 +3073,8 @@ public final class PlayTranslator {
                     && toProtocol != ProtocolVersion.V1_21_7
                     && toProtocol != ProtocolVersion.V1_21_9
                     && toProtocol != ProtocolVersion.V1_21_11
-                    && toProtocol != ProtocolVersion.V26_1) {
-                continue;
-            }
-            if (registryId.equals("minecraft:chat_type") && toProtocol == ProtocolVersion.V1_18) {
+                    && toProtocol != ProtocolVersion.V26_1
+                    && toProtocol != ProtocolVersion.V26_2) {
                 continue;
             }
             List<Tag> entries = registry.getValue().getList("value")
@@ -3757,7 +3752,7 @@ public final class PlayTranslator {
     // パケットIDは呼び出し側（ProxySession）が付け替える。
     // ------------------------------------------------------------------
 
-    /** Chat Message（759 0x05 → 760 0x05）。previousMessages・lastRejectedMessage を空で足す。 */
+    /** Chat Message（759 0x04 → 760 0x05）。previousMessages・lastRejectedMessage を空で足す。 */
     public static byte[] translateChatMessage759To760(byte[] payload) {
         try {
             Reader reader = new Reader(payload);
@@ -3807,7 +3802,7 @@ public final class PlayTranslator {
         }
     }
 
-    /** Chat Command（759 0x04 → 760 0x04）。引数署名はそのまま通す。previousMessages・lastRejectedMessage を空で足す。 */
+    /** Chat Command（759 0x03 → 760 0x04）。引数署名はそのまま通す。previousMessages・lastRejectedMessage を空で足す。 */
     public static byte[] translateChatCommand759To760(byte[] payload) {
         try {
             Reader reader = new Reader(payload);
@@ -4174,6 +4169,2022 @@ public final class PlayTranslator {
      */
     public static byte[] translateLoginStart765To759(byte[] payload) {
         return translateLoginStart760To759(translateLoginStart765To760(payload));
+    }
+
+    // ------------------------------------------------------------------
+    // 759 ⇔ 758（1.19 ⇔ 1.18.2）
+    // 758 には設定フェーズが無く、チャット署名も無い。759 の署名付きチャット
+    // （Player Chat／System Chat）は 758 の旧式 chat（0x0f）に変換する。
+    // 758 の旧式 chat（サーバー行き）は 759 の Chat Message／Chat Command
+    // に変換する（"/" で始まればコマンド）。Chat Preview／Should Display
+    // Chat Preview／Server Data は 758 に無いため送らない（呼び出し側で
+    // 落とす）。Join Game／Respawn は dimension が 758 は NBT、759 は
+    // 文字列で、759 にだけ末尾の death option がある。Login Start は
+    // 758 が名前だけ、759 が名前＋署名データ option。Login Success は
+    // 758 が UUID＋名前だけ、759 は末尾に properties 配列がある。
+    // Player Info は 758・759 ともに旧式の action VarInt で、add_player
+    // の crypto option が 759 にだけある。パケットIDは呼び出し側
+    // （ProxySession）が付け替える。
+    // ------------------------------------------------------------------
+
+    /**
+     * Player Chat（759 0x30 → 758 0x0f 旧式 chat）。
+     * unsignedChatContent があればそれを使い、無ければ signedChatContent
+     * （平文）を {"text":...} に包む。position は 0（chat）。
+     * 759 の type は chat_type のレジストリIDだが、Player Chat は常に
+     * chat のため写さない。署名・時刻・salt は落とす。
+     */
+    public static byte[] translatePlayerChat759To758(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String signedChatContent = reader.readString();
+            boolean hasUnsigned = reader.readBoolean();
+            String unsigned = hasUnsigned ? reader.readString() : null;
+            reader.readVarInt(); // type（chat_type。Player Chat は常に chat）
+            UUID sender = reader.readUuid();
+            reader.readString(); // senderName（758 の旧式 chat には無い）
+            if (reader.readBoolean()) {
+                reader.readString(); // senderTeam（758 の旧式 chat には無い）
+            }
+            reader.readLong(); // timestamp（758 の旧式 chat には無い）
+            reader.readLong(); // salt（758 の旧式 chat には無い）
+            reader.readByteArray(); // signature（758 の旧式 chat には無い）
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(unsigned != null ? unsigned
+                    : "{\"text\":" + Nbt.jsonString(signedChatContent) + "}");
+            writer.writeByte(0); // position: chat
+            writer.writeUuid(sender);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Player Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * System Chat（759 0x5f → 758 0x0f 旧式 chat）。
+     * content（JSON 文字列）をそのまま使い、position は type と同一対応
+     * （0=chat、1=system、2=game_info）。sender は nil UUID。
+     */
+    public static byte[] translateSystemChat759To758(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String content = reader.readString();
+            int type = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(content);
+            writer.writeByte(type);
+            writer.writeUuid(new UUID(0L, 0L));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("System Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * 758 の旧式 chat（サーバー行き、0x03）→ 759 の Chat Message（0x04）。
+     * timestamp は現在時刻、salt は 0、signature は空、signedPreview は
+     * false で補う。"/" で始まるメッセージはコマンドのため、
+     * {@link #translateChat758ToChatCommand759(byte[])} を使うこと。
+     */
+    public static byte[] translateChat758ToChatMessage759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(message);
+            writer.writeLong(System.currentTimeMillis());
+            writer.writeLong(0L); // salt
+            writer.writeByteArray(new byte[0]); // signature（空）
+            writer.writeBoolean(false); // signedPreview
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * 758 の旧式 chat（サーバー行き、0x03）→ 759 の Chat Command（0x03）。
+     * 先頭の "/" を除いて command にする。timestamp は現在時刻、salt は
+     * 0、argumentSignatures は空、signedPreview は false で補う。
+     */
+    public static byte[] translateChat758ToChatCommand759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            requireEnd(reader);
+            String command = message.startsWith("/") ? message.substring(1) : message;
+            Writer writer = new Writer();
+            writer.writeString(command);
+            writer.writeLong(System.currentTimeMillis());
+            writer.writeLong(0L); // salt
+            writer.writeVarInt(0); // argumentSignatures（空）
+            writer.writeBoolean(false); // signedPreview
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * 758 の旧式 chat（クライアント行き、0x0f）→ 759 の System Chat（0x5f）。
+     * 758 は {message JSON, position byte, sender UUID}、759 は
+     * {content JSON, type varint}。position と type は同一対応
+     * （0=chat、1=system、2=game_info）のためそのまま写す。sender は
+     * System Chat には無い。Player Chat には署名・時刻・送信者名が要るため
+     * 旧式 chat からは作れず、System Chat にする（JSON は完成済みの
+     * 表示文のため、表示は変わらない）。
+     */
+    public static byte[] translateChatMessage758ToSystemChat759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String content = reader.readString();
+            int position = reader.readByte();
+            reader.readUuid(); // sender（759 の System Chat には無い）
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(content);
+            writer.writeVarInt(position);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * 759 の Chat Message（サーバー行き、0x04）→ 758 の旧式 chat（0x03）。
+     * 先頭のメッセージ文字列だけを使い、timestamp・salt・署名・
+     * signedPreview は落とす（758 には無い）。
+     */
+    public static byte[] translateChatMessage759ToChat758(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            Writer writer = new Writer();
+            writer.writeString(message);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * 759 の Chat Command（サーバー行き、0x03）→ 758 の旧式 chat（0x03）。
+     * command の先頭に \"/\" を付けて旧式 chat にする。timestamp・salt・
+     * 署名類は落とす（758 には無い）。
+     */
+    public static byte[] translateChatCommand759ToChat758(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String command = reader.readString();
+            Writer writer = new Writer();
+            writer.writeString("/" + command);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** 758 の Join Game の1件（dimension は NBT、death は無い）。 */
+    public record JoinGame758(int entityId, boolean hardcore, int gameMode,
+            int previousGameMode, List<String> worldNames, Tag.CompoundTag codec,
+            Tag dimension, String worldName, long hashedSeed, int maxPlayers,
+            int viewDistance, int simulationDistance, boolean reducedDebug,
+            boolean enableRespawnScreen, boolean isDebug, boolean isFlat) {
+    }
+
+    /**
+     * 758 の Join Game（0x26）を読む。759 との違いは dimension が NBT で
+     * あることと、末尾の death が無いこと。portalCooldown も無い
+     * （763 で追加された）。
+     */
+    public static JoinGame758 parseJoinGame758(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        boolean hardcore = reader.readBoolean();
+        int gameMode = reader.readByte();
+        int previousGameMode = reader.readByte();
+        List<String> worldNames = PacketIO.readStringList(reader);
+        Tag.CompoundTag codec = (Tag.CompoundTag) reader.readNamedNbt().tag();
+        Tag dimension = reader.readNamedNbt().tag();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int maxPlayers = reader.readVarInt();
+        int viewDistance = reader.readVarInt();
+        int simulationDistance = reader.readVarInt();
+        boolean reducedDebug = reader.readBoolean();
+        boolean enableRespawnScreen = reader.readBoolean();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException(
+                    "Join Game に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+        }
+        return new JoinGame758(entityId, hardcore, gameMode, previousGameMode,
+                worldNames, codec, dimension, worldName, hashedSeed, maxPlayers,
+                viewDistance, simulationDistance, reducedDebug, enableRespawnScreen,
+                isDebug, isFlat);
+    }
+
+    /**
+     * Join Game（759 0x23 → 758 0x26）。
+     * dimension は worldType 文字列から codec 内の dimension_type の
+     * element NBT へ変換する。見つからなければ overworld の要素へ
+     * フォールバックする。759 にだけある末尾の death は落とす。
+     * codec はそのまま写す（758・759 ともに dimension_type と
+     * worldgen/biome の2レジストリだけ）。
+     */
+    public static byte[] translateJoinGame759To758(byte[] payload) {
+        try {
+            JoinGame763 join = parseJoinGame762(payload);
+            Tag dimension = dimensionElementForName(join.codec(), join.worldType());
+            if (dimension == null) {
+                dimension = dimensionElementForName(join.codec(), "minecraft:overworld");
+            }
+            if (dimension == null) {
+                throw new IllegalArgumentException(
+                        "Join Game の dimension 要素が codec にありません: " + join.worldType());
+            }
+            Writer writer = new Writer();
+            writer.writeInt(join.entityId());
+            writer.writeBoolean(join.hardcore());
+            writer.writeByte(join.gameMode());
+            writer.writeByte(join.previousGameMode());
+            PacketIO.writeStringList(writer, join.worldNames());
+            writer.writeNamedNbt("", join.codec());
+            writer.writeNamedNbt("", dimension);
+            writer.writeString(join.worldName());
+            writer.writeLong(join.hashedSeed());
+            writer.writeVarInt(join.maxPlayers());
+            writer.writeVarInt(join.viewDistance());
+            writer.writeVarInt(join.simulationDistance());
+            writer.writeBoolean(join.reducedDebug());
+            writer.writeBoolean(join.enableRespawnScreen());
+            writer.writeBoolean(join.isDebug());
+            writer.writeBoolean(join.isFlat());
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Join Game（758 0x26 → 759 0x23）。
+     * dimension は codec 内の dimension_type から名前へ変換する。
+     * 見つからなければ "minecraft:overworld" にする。death は absent
+     * （false）を補う。codec はそのまま写す。
+     */
+    public static byte[] translateJoinGame758To759(byte[] payload) {
+        try {
+            JoinGame758 join = parseJoinGame758(payload);
+            String worldType = dimensionNameForElement(join.codec(), join.dimension());
+            if (worldType == null) {
+                worldType = "minecraft:overworld";
+            }
+            Writer writer = new Writer();
+            writer.writeInt(join.entityId());
+            writer.writeBoolean(join.hardcore());
+            writer.writeByte(join.gameMode());
+            writer.writeByte(join.previousGameMode());
+            PacketIO.writeStringList(writer, join.worldNames());
+            writer.writeNamedNbt("", join.codec());
+            writer.writeString(worldType);
+            writer.writeString(join.worldName());
+            writer.writeLong(join.hashedSeed());
+            writer.writeVarInt(join.maxPlayers());
+            writer.writeVarInt(join.viewDistance());
+            writer.writeVarInt(join.simulationDistance());
+            writer.writeBoolean(join.reducedDebug());
+            writer.writeBoolean(join.enableRespawnScreen());
+            writer.writeBoolean(join.isDebug());
+            writer.writeBoolean(join.isFlat());
+            writer.writeBoolean(false); // death: absent
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * codec の dimension_type レジストリから、名前に対応する element
+     * （CompoundTag）を引く。無ければ {@code null}。
+     */
+    static Tag dimensionElementForName(Tag.CompoundTag codec, String name) {
+        if (codec == null) {
+            return null;
+        }
+        return codec.getCompound("minecraft:dimension_type")
+                .flatMap(registry -> registry.getList("value"))
+                .map(Tag.ListTag::value)
+                .orElse(List.of())
+                .stream()
+                .filter(entry -> entry instanceof Tag.CompoundTag compound
+                        && compound.getString("name").orElse("").equals(name))
+                .map(entry -> ((Tag.CompoundTag) entry).get("element").orElse(null))
+                .filter(java.util.Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * codec の dimension_type レジストリから、element に対応する名前を引く。
+     * 無ければ {@code null}。NBT の構造比較（record の equals）で探す。
+     */
+    static String dimensionNameForElement(Tag.CompoundTag codec, Tag element) {
+        if (codec == null || element == null) {
+            return null;
+        }
+        return codec.getCompound("minecraft:dimension_type")
+                .flatMap(registry -> registry.getList("value"))
+                .map(Tag.ListTag::value)
+                .orElse(List.of())
+                .stream()
+                .filter(entry -> entry instanceof Tag.CompoundTag compound
+                        && compound.get("element").map(element::equals).orElse(false))
+                .map(entry -> ((Tag.CompoundTag) entry).getString("name").orElse(null))
+                .filter(java.util.Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Respawn（759 0x3b → 758 0x3d）。
+     * dimension は worldType 文字列から {@code registries} の
+     * dimension_type の element NBT へ変換する。見つからなければ
+     * overworld の要素へフォールバックする。759 にだけある末尾の death
+     * は落とす。
+     */
+    public static byte[] translateRespawn759To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        try {
+            Reader reader = new Reader(payload);
+            String worldType = reader.readString();
+            String worldName = reader.readString();
+            long hashedSeed = reader.readLong();
+            int gameMode = reader.readUnsignedByte();
+            int previousGameMode = reader.readByte();
+            boolean isDebug = reader.readBoolean();
+            boolean isFlat = reader.readBoolean();
+            boolean copyMetadata = reader.readBoolean();
+            if (reader.readBoolean()) { // death（758 には無い）
+                reader.readString();
+                reader.readPositionRaw();
+            }
+            requireEnd(reader);
+            Tag.CompoundTag codec = registries == null ? null
+                    : buildJoinGameCodec(registries);
+            Tag dimension = dimensionElementForName(codec, worldType);
+            if (dimension == null) {
+                dimension = dimensionElementForName(codec, "minecraft:overworld");
+            }
+            if (dimension == null) {
+                throw new IllegalArgumentException(
+                        "Respawn の dimension 要素がレジストリにありません: " + worldType);
+            }
+            Writer writer = new Writer();
+            writer.writeNamedNbt("", dimension);
+            writer.writeString(worldName);
+            writer.writeLong(hashedSeed);
+            writer.writeByte(gameMode);
+            writer.writeByte(previousGameMode);
+            writer.writeBoolean(isDebug);
+            writer.writeBoolean(isFlat);
+            writer.writeBoolean(copyMetadata);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Respawn（758 0x3d → 759 0x3b）。
+     * dimension は {@code registries} の dimension_type から名前へ変換する。
+     * 見つからなければ "minecraft:overworld" にする。death は absent
+     * （false）を補う。
+     */
+    public static byte[] translateRespawn758To759(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        try {
+            Reader reader = new Reader(payload);
+            Tag dimension = reader.readNamedNbt().tag();
+            String worldName = reader.readString();
+            long hashedSeed = reader.readLong();
+            int gameMode = reader.readUnsignedByte();
+            int previousGameMode = reader.readByte();
+            boolean isDebug = reader.readBoolean();
+            boolean isFlat = reader.readBoolean();
+            boolean copyMetadata = reader.readBoolean();
+            requireEnd(reader);
+            Tag.CompoundTag codec = registries == null ? null
+                    : buildJoinGameCodec(registries);
+            String worldType = dimensionNameForElement(codec, dimension);
+            if (worldType == null) {
+                worldType = "minecraft:overworld";
+            }
+            Writer writer = new Writer();
+            writer.writeString(worldType);
+            writer.writeString(worldName);
+            writer.writeLong(hashedSeed);
+            writer.writeByte(gameMode);
+            writer.writeByte(previousGameMode);
+            writer.writeBoolean(isDebug);
+            writer.writeBoolean(isFlat);
+            writer.writeBoolean(copyMetadata);
+            writer.writeBoolean(false); // death: absent
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * 758 の Login Start（名前だけ）を759形式（名前＋署名データ option）に
+     * 変換する。署名データは無し（false）で送る。
+     */
+    public static byte[] translateLoginStart758To759(byte[] payload) {
+        Reader reader = new Reader(payload);
+        String username = reader.readString();
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException(
+                    "Login Start に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+        }
+        Writer writer = new Writer();
+        writer.writeString(username);
+        writer.writeBoolean(false); // 署名データ無し
+        return writer.bytes();
+    }
+
+    /**
+     * 759 の Login Start（名前＋署名データ option）を758形式（名前だけ）に
+     * 変換する。署名データは落とす。
+     */
+    public static byte[] translateLoginStart759To758(byte[] payload) {
+        Reader reader = new Reader(payload);
+        String username = reader.readString();
+        if (reader.readBoolean()) { // 署名データ option（758 には無い）
+            reader.readLong(); // timestamp
+            reader.readByteArray(); // publicKey
+            reader.readByteArray(); // signature
+        }
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException(
+                    "Login Start に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+        }
+        Writer writer = new Writer();
+        writer.writeString(username);
+        return writer.bytes();
+    }
+
+    /**
+     * 758 の Login Start を760形式（名前＋署名データ option＋playerUUID
+     * option）に変換する。758→759へ直してから759→760へ直す。
+     */
+    public static byte[] translateLoginStart758To760(byte[] payload) {
+        return translateLoginStart759To760(translateLoginStart758To759(payload));
+    }
+
+    /**
+     * 760 の Login Start（名前＋署名データ option＋playerUUID option）を
+     * 758形式（名前だけ）に変換する。署名データと playerUUID を落とす。
+     */
+    public static byte[] translateLoginStart760To758(byte[] payload) {
+        Reader reader = new Reader(payload);
+        String username = reader.readString();
+        if (reader.readBoolean()) { // 署名データ option（758 には無い）
+            reader.readLong(); // timestamp
+            reader.readByteArray(); // publicKey
+            reader.readByteArray(); // signature
+        }
+        if (reader.readBoolean()) { // playerUUID option（758 には無い）
+            reader.readUuid();
+        }
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException(
+                    "Login Start に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+        }
+        Writer writer = new Writer();
+        writer.writeString(username);
+        return writer.bytes();
+    }
+
+    /**
+     * 758 の Login Start を763形式（名前＋bool＋UUID）に変換する。
+     * 758→759へ直してから759→763へ直す。
+     */
+    public static byte[] translateLoginStart758To763(byte[] payload) {
+        return translateLoginStart759To763(translateLoginStart758To759(payload));
+    }
+
+    /**
+     * 763 の Login Start（名前＋bool＋UUID）を758形式（名前だけ）に変換する。
+     * bool と UUID を落とす。
+     */
+    public static byte[] translateLoginStart763To758(byte[] payload) {
+        Reader reader = new Reader(payload);
+        String username = reader.readString();
+        reader.readBoolean(); // hasSignature（758 には無い）
+        reader.readUuid(); // UUID（758 には無い）
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException(
+                    "Login Start に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+        }
+        Writer writer = new Writer();
+        writer.writeString(username);
+        return writer.bytes();
+    }
+
+    /**
+     * 758 の Login Start を765形式（名前＋UUID）に変換する。
+     * 758→759へ直してから759→765へ直す。
+     */
+    public static byte[] translateLoginStart758To765(byte[] payload) {
+        return translateLoginStart759To765(translateLoginStart758To759(payload));
+    }
+
+    /**
+     * 765 の Login Start（名前＋UUID）を758形式（名前だけ）に変換する。
+     * UUID を落とす。online-mode の認証済み Login Start を内部758
+     * サーバーへ渡すときに使う。
+     */
+    public static byte[] translateLoginStart765To758(byte[] payload) {
+        Reader reader = new Reader(payload);
+        String username = reader.readString();
+        reader.readUuid(); // UUID（758 には無い）
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException(
+                    "Login Start に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+        }
+        Writer writer = new Writer();
+        writer.writeString(username);
+        return writer.bytes();
+    }
+
+    /**
+     * 765 の Login Success（UUID＋名前＋properties）を758形式
+     * （UUID＋名前だけ）に変換する。properties 配列を落とす。
+     * 759〜764 の Login Success も同じ形式のため、そのまま使える。
+     */
+    public static byte[] translateLoginSuccess765To758(byte[] payload) {
+        Reader reader = new Reader(payload);
+        UUID uuid = reader.readUuid();
+        String name = reader.readString();
+        int properties = reader.readVarInt();
+        for (int i = 0; i < properties; i++) {
+            reader.readString(); // key
+            reader.readString(); // value
+            if (reader.readBoolean()) { // signature
+                reader.readString();
+            }
+        }
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException(
+                    "Login Success に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+        }
+        Writer writer = new Writer();
+        writer.writeUuid(uuid);
+        writer.writeString(name);
+        return writer.bytes();
+    }
+
+    /**
+     * 758 の Login Success（UUID＋名前だけ）を765形式
+     * （UUID＋名前＋properties 0件）に変換する。
+     * 実バニラ 1.18.2 の Login Success には properties フィールド
+     * 自体が無い（22バイト＝UUID＋名前のみ。properties は 759 で追加
+     * された）。実バニラ 1.18.2 への接続で確認した事実。
+     */
+    public static byte[] translateLoginSuccess758To765(byte[] payload) {
+        Reader reader = new Reader(payload);
+        UUID uuid = reader.readUuid();
+        String name = reader.readString();
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException(
+                    "Login Success に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+        }
+        Writer writer = new Writer();
+        writer.writeUuid(uuid);
+        writer.writeString(name);
+        writer.writeVarInt(0); // properties（758 には無い）
+        return writer.bytes();
+    }
+
+    // ------------------------------------------------------------------
+    // 578（1.15.2）対応
+    // ------------------------------------------------------------------
+
+    /** 578 の Join Game の1件（dimension は数値、codec は無い）。 */
+    public record JoinGame578(int entityId, int gameMode, int dimension,
+            long hashedSeed, int maxPlayers, String levelType,
+            int viewDistance, boolean reducedDebug, boolean enableRespawnScreen) {
+    }
+
+    /**
+     * 578 の Join Game（0x26）を読む。758 との違い：gamemode は
+     * hardcore ビット（8）を含む1バイト、dimension は数値（0=overworld、
+     * -1=the_nether、1=the_end）、maxPlayers は u8、codec・worldNames・
+     * simulationDistance・isDebug・isFlat は無い。levelType は生成タイプ
+     * の文字列（"default"／"flat" など）。
+     */
+    public static JoinGame578 parseJoinGame578(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        int gameMode = reader.readUnsignedByte();
+        int dimension = reader.readInt();
+        long hashedSeed = reader.readLong();
+        int maxPlayers = reader.readUnsignedByte();
+        String levelType = reader.readString();
+        int viewDistance = reader.readVarInt();
+        boolean reducedDebug = reader.readBoolean();
+        boolean enableRespawnScreen = reader.readBoolean();
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException(
+                    "Join Game に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+        }
+        return new JoinGame578(entityId, gameMode, dimension, hashedSeed,
+                maxPlayers, levelType, viewDistance, reducedDebug,
+                enableRespawnScreen);
+    }
+
+    /**
+     * バニラ 1.18.2 の既定 codec（dimension_type 4件＋worldgen/biome
+     * 61件）。578 のサーバーは Join Game で codec を送らないため、
+     * 578→758 の Join Game 合成に使う。実バニラ 1.18.2 の Join Game
+     * から採取した名前付き NBT そのもの（リソース codec-758.bin）。
+     */
+    private static Tag.CompoundTag defaultCodec758;
+
+    /** 既定 codec（758）を遅延読み込みする。 */
+    public static Tag.CompoundTag defaultCodec758() {
+        if (defaultCodec758 == null) {
+            try (java.io.InputStream in = PlayTranslator.class.getResourceAsStream(
+                    "/io/detergentmc/protocol/codec-758.bin")) {
+                if (in == null) {
+                    throw new IllegalStateException("codec-758.bin がありません。");
+                }
+                byte[] bytes = in.readAllBytes();
+                defaultCodec758 = (Tag.CompoundTag) new Reader(bytes).readNamedNbt().tag();
+            } catch (java.io.IOException e) {
+                throw new IllegalStateException("codec-758.bin を読めません。", e);
+            }
+        }
+        return defaultCodec758;
+    }
+
+    /** dimension 名 → 578 の dimension 数値。未知の名前は overworld（0）。 */
+    static int dimensionId578ForName(String name) {
+        return switch (name == null ? "" : name) {
+            case "minecraft:the_nether" -> -1;
+            case "minecraft:the_end" -> 1;
+            default -> 0;
+        };
+    }
+
+    /** 578 の dimension 数値 → dimension 名。 */
+    static String dimensionNameForId578(int dimension) {
+        return switch (dimension) {
+            case -1 -> "minecraft:the_nether";
+            case 1 -> "minecraft:the_end";
+            default -> "minecraft:overworld";
+        };
+    }
+
+    /**
+     * Join Game（758 0x26 → 578 0x26）。
+     * dimension は codec 内の dimension_type から名前へ変換し、578 の
+     * 数値にする（カスタム dimension は overworld に倒す）。gamemode は
+     * hardcore をビット3（8）に畳む。maxPlayers は u8 に丸める。
+     * levelType は isFlat なら "flat"、それ以外は "default"。
+     * codec・worldNames は 578 に無いため落とす。
+     */
+    public static byte[] translateJoinGame758To578(byte[] payload) {
+        try {
+            JoinGame758 join = parseJoinGame758(payload);
+            String worldType = dimensionNameForElement(join.codec(), join.dimension());
+            if (worldType == null) {
+                worldType = "minecraft:overworld";
+            }
+            Writer writer = new Writer();
+            writer.writeInt(join.entityId());
+            writer.writeByte(join.gameMode() | (join.hardcore() ? 8 : 0));
+            writer.writeInt(dimensionId578ForName(worldType));
+            writer.writeLong(join.hashedSeed());
+            writer.writeByte(Math.min(join.maxPlayers(), 255));
+            writer.writeString(join.isFlat() ? "flat" : "default");
+            writer.writeVarInt(join.viewDistance());
+            writer.writeBoolean(join.reducedDebug());
+            writer.writeBoolean(join.enableRespawnScreen());
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Join Game（578 0x26 → 758 0x26）。
+     * codec は 578 に無いため、バニラ 1.18.2 の既定 codec
+     * （{@link #defaultCodec758()}）を補う。dimension は数値から
+     * 既定 codec の dimension_type 要素へ変換する。gamemode の
+     * ビット3（8）は hardcore に分ける。worldNames は dimension 名
+     * 1件だけ、simulationDistance は viewDistance と同じにする。
+     */
+    public static byte[] translateJoinGame578To758(byte[] payload) {
+        try {
+            JoinGame578 join = parseJoinGame578(payload);
+            Tag.CompoundTag codec = defaultCodec758();
+            String worldType = dimensionNameForId578(join.dimension());
+            Tag dimension = dimensionElementForName(codec, worldType);
+            if (dimension == null) {
+                throw new IllegalArgumentException(
+                        "Join Game の dimension 要素が既定 codec にありません: " + worldType);
+            }
+            Writer writer = new Writer();
+            writer.writeInt(join.entityId());
+            writer.writeBoolean((join.gameMode() & 8) != 0); // hardcore
+            writer.writeByte(join.gameMode() & 7);
+            writer.writeByte(-1); // previousGameMode（578 には無い）
+            PacketIO.writeStringList(writer, List.of(worldType));
+            writer.writeNamedNbt("", codec);
+            writer.writeNamedNbt("", dimension);
+            writer.writeString(worldType); // worldName
+            writer.writeLong(join.hashedSeed());
+            writer.writeVarInt(join.maxPlayers());
+            writer.writeVarInt(join.viewDistance());
+            writer.writeVarInt(join.viewDistance()); // simulationDistance
+            writer.writeBoolean(join.reducedDebug());
+            writer.writeBoolean(join.enableRespawnScreen());
+            writer.writeBoolean(false); // isDebug
+            writer.writeBoolean("flat".equals(join.levelType())); // isFlat
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Respawn（758 → 578）。758 は dimension 要素 NBT＋worldName＋
+     * previousGameMode＋isDebug＋isFlat＋copyMetadata、578 は dimension
+     * 数値＋hashedSeed＋gamemode＋levelType だけ。dimension 名は
+     * {@code registries} から作る codec で引く（無ければ既定 codec）。
+     */
+    public static byte[] translateRespawn758To578(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        try {
+            Reader reader = new Reader(payload);
+            Tag dimension = reader.readNamedNbt().tag();
+            reader.readString(); // worldName（578 には無い）
+            long hashedSeed = reader.readLong();
+            int gameMode = reader.readUnsignedByte();
+            reader.readByte(); // previousGameMode（578 には無い）
+            boolean isDebug = reader.readBoolean();
+            boolean isFlat = reader.readBoolean();
+            reader.readBoolean(); // copyMetadata（578 には無い）
+            requireEnd(reader);
+            Tag.CompoundTag codec = registries == null ? defaultCodec758()
+                    : buildJoinGameCodec(registries);
+            String worldType = dimensionNameForElement(codec, dimension);
+            if (worldType == null) {
+                worldType = dimensionNameForElement(defaultCodec758(), dimension);
+            }
+            if (worldType == null) {
+                worldType = "minecraft:overworld";
+            }
+            Writer writer = new Writer();
+            writer.writeInt(dimensionId578ForName(worldType));
+            writer.writeLong(hashedSeed);
+            writer.writeByte(gameMode);
+            writer.writeString(isFlat ? "flat" : "default");
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Respawn（578 → 758）。dimension は数値から名前へ変換し、要素は
+     * {@code registries} の codec（無ければ既定 codec）から引く。
+     * worldName は dimension 名、previousGameMode は -1、
+     * copyMetadata は false を補う。
+     */
+    public static byte[] translateRespawn578To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        try {
+            Reader reader = new Reader(payload);
+            int dimension = reader.readInt();
+            long hashedSeed = reader.readLong();
+            int gameMode = reader.readUnsignedByte();
+            String levelType = reader.readString();
+            requireEnd(reader);
+            String worldType = dimensionNameForId578(dimension);
+            Tag.CompoundTag codec = registries == null ? defaultCodec758()
+                    : buildJoinGameCodec(registries);
+            Tag element = dimensionElementForName(codec, worldType);
+            if (element == null) {
+                element = dimensionElementForName(defaultCodec758(), worldType);
+            }
+            if (element == null) {
+                throw new IllegalArgumentException(
+                        "Respawn の dimension 要素が codec にありません: " + worldType);
+            }
+            Writer writer = new Writer();
+            writer.writeNamedNbt("", element);
+            writer.writeString(worldType); // worldName
+            writer.writeLong(hashedSeed);
+            writer.writeByte(gameMode);
+            writer.writeByte(-1); // previousGameMode
+            writer.writeBoolean(false); // isDebug
+            writer.writeBoolean("flat".equals(levelType)); // isFlat
+            writer.writeBoolean(false); // copyMetadata
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * 765形式の Login Success（UUID＋名前＋properties）を578形式
+     * （UUID文字列＋名前）に変換する。properties は落とす。
+     * 758形式も同じ形のため、そのまま使える。
+     */
+    public static byte[] translateLoginSuccess765To578(byte[] payload) {
+        Reader reader = new Reader(payload);
+        UUID uuid = reader.readUuid();
+        String name = reader.readString();
+        int properties = reader.readVarInt();
+        for (int i = 0; i < properties; i++) {
+            reader.readString(); // key
+            reader.readString(); // value
+            if (reader.readBoolean()) { // signature
+                reader.readString();
+            }
+        }
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException(
+                    "Login Success に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+        }
+        Writer writer = new Writer();
+        writer.writeString(uuid.toString());
+        writer.writeString(name);
+        return writer.bytes();
+    }
+
+    /**
+     * 578 の Login Success（UUID文字列＋名前）を765形式
+     * （UUID＋名前＋properties 0件）に変換する。
+     */
+    public static byte[] translateLoginSuccess578To765(byte[] payload) {
+        Reader reader = new Reader(payload);
+        String uuidText = reader.readString();
+        String name = reader.readString();
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException(
+                    "Login Success に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+        }
+        UUID uuid;
+        try {
+            uuid = UUID.fromString(uuidText);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Login Success の UUID が不正です: " + uuidText);
+        }
+        Writer writer = new Writer();
+        writer.writeUuid(uuid);
+        writer.writeString(name);
+        writer.writeVarInt(0); // properties（578 には無い）
+        return writer.bytes();
+    }
+
+    /** UUID を 4（1.7.2〜1.7.5）の文字列形（ダッシュ無し32文字）にする。 */
+    public static String uuidToString4(UUID uuid) {
+        return uuid.toString().replace("-", "");
+    }
+
+    /**
+     * 4（1.7.2〜1.7.5）の UUID 文字列（ダッシュ無し32文字）を
+     * UUID に戻す。ダッシュ付き36文字も受け付ける（防御的）。
+     */
+    public static UUID uuidFromString4(String uuidText) {
+        String text = uuidText;
+        if (text.length() == 32 && text.indexOf('-') < 0) {
+            text = text.substring(0, 8) + "-" + text.substring(8, 12)
+                    + "-" + text.substring(12, 16) + "-"
+                    + text.substring(16, 20) + "-" + text.substring(20);
+        }
+        try {
+            return UUID.fromString(text);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("UUID が不正です: " + uuidText);
+        }
+    }
+
+    /**
+     * 765形式の Login Success を 4（1.7.2〜1.7.5）形式
+     * （UUID文字列＝ダッシュ無し32文字＋名前、properties 無し）に
+     * 変換する。578 形式との違いは UUID 文字列の形だけ。
+     */
+    public static byte[] translateLoginSuccess765To4(byte[] payload) {
+        Reader reader = new Reader(payload);
+        UUID uuid = reader.readUuid();
+        String name = reader.readString();
+        int properties = reader.readVarInt();
+        for (int i = 0; i < properties; i++) {
+            reader.readString(); // key
+            reader.readString(); // value
+            if (reader.readBoolean()) { // signature
+                reader.readString();
+            }
+        }
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException(
+                    "Login Success に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+        }
+        Writer writer = new Writer();
+        writer.writeString(uuidToString4(uuid));
+        writer.writeString(name);
+        return writer.bytes();
+    }
+
+    /**
+     * 4（1.7.2〜1.7.5）の Login Success（UUID文字列＝ダッシュ無し
+     * 32文字＋名前）を765形式（UUID＋名前＋properties 0件）に
+     * 変換する。
+     */
+    public static byte[] translateLoginSuccess4To765(byte[] payload) {
+        Reader reader = new Reader(payload);
+        String uuidText = reader.readString();
+        String name = reader.readString();
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException(
+                    "Login Success に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+        }
+        UUID uuid = uuidFromString4(uuidText);
+        Writer writer = new Writer();
+        writer.writeUuid(uuid);
+        writer.writeString(name);
+        writer.writeVarInt(0); // properties（4 には無い）
+        return writer.bytes();
+    }
+
+    /**
+     * 758 の旧式 chat（クライアント行き）→ 578 の chat。
+     * 578 は {message JSON, position byte} で、758 にある sender UUID
+     * が無いため落とす。
+     */
+    public static byte[] translateChat758To578(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            int position = reader.readByte();
+            reader.readUuid(); // sender（578 には無い）
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(message);
+            writer.writeByte(position);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * 578 の chat（クライアント行き）→ 758 の旧式 chat。
+     * sender は nil UUID を補う。
+     */
+    public static byte[] translateChat578To758(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            int position = reader.readByte();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(message);
+            writer.writeByte(position);
+            writer.writeUuid(new UUID(0L, 0L)); // sender
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // 498（1.14.4）対応
+    // ------------------------------------------------------------------
+
+    /** 498 の Join Game の1件（dimension は数値、codec・hashedSeed は無い）。 */
+    public record JoinGame498(int entityId, int gameMode, int dimension,
+            int maxPlayers, String levelType,
+            int viewDistance, boolean reducedDebug) {
+    }
+
+    /**
+     * 498 の Join Game（0x25）を読む。578 との違い：hashedSeed（i64）と
+     * enableRespawnScreen（bool）が無い。それ以外（gamemode は hardcore
+     * ビットを含む1バイト、dimension は数値、maxPlayers は u8、
+     * levelType は文字列）は 578 と同じ並び。
+     */
+    public static JoinGame498 parseJoinGame498(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        int gameMode = reader.readUnsignedByte();
+        int dimension = reader.readInt();
+        int maxPlayers = reader.readUnsignedByte();
+        String levelType = reader.readString();
+        int viewDistance = reader.readVarInt();
+        boolean reducedDebug = reader.readBoolean();
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException(
+                    "Join Game に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+        }
+        return new JoinGame498(entityId, gameMode, dimension, maxPlayers,
+                levelType, viewDistance, reducedDebug);
+    }
+
+    /**
+     * Join Game（758 0x26 → 498 0x25）。578 版から hashedSeed と
+     * enableRespawnScreen を落とした形。dimension は codec 内の
+     * dimension_type から名前へ変換し、498 の数値にする。
+     */
+    public static byte[] translateJoinGame758To498(byte[] payload) {
+        try {
+            JoinGame758 join = parseJoinGame758(payload);
+            String worldType = dimensionNameForElement(join.codec(), join.dimension());
+            if (worldType == null) {
+                worldType = "minecraft:overworld";
+            }
+            Writer writer = new Writer();
+            writer.writeInt(join.entityId());
+            writer.writeByte(join.gameMode() | (join.hardcore() ? 8 : 0));
+            writer.writeInt(dimensionId578ForName(worldType));
+            writer.writeByte(Math.min(join.maxPlayers(), 255));
+            writer.writeString(join.isFlat() ? "flat" : "default");
+            writer.writeVarInt(join.viewDistance());
+            writer.writeBoolean(join.reducedDebug());
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Join Game（498 0x25 → 758 0x26）。codec は 498 に無いため、バニラ
+     * 1.18.2 の既定 codec（{@link #defaultCodec758()}）を補う。
+     * hashedSeed は 0、enableRespawnScreen は true を補う（498 には
+     * 両方とも無い）。それ以外は 578 版と同じ。
+     */
+    public static byte[] translateJoinGame498To758(byte[] payload) {
+        try {
+            JoinGame498 join = parseJoinGame498(payload);
+            Tag.CompoundTag codec = defaultCodec758();
+            String worldType = dimensionNameForId578(join.dimension());
+            Tag dimension = dimensionElementForName(codec, worldType);
+            if (dimension == null) {
+                throw new IllegalArgumentException(
+                        "Join Game の dimension 要素が既定 codec にありません: " + worldType);
+            }
+            Writer writer = new Writer();
+            writer.writeInt(join.entityId());
+            writer.writeBoolean((join.gameMode() & 8) != 0); // hardcore
+            writer.writeByte(join.gameMode() & 7);
+            writer.writeByte(-1); // previousGameMode（498 には無い）
+            PacketIO.writeStringList(writer, List.of(worldType));
+            writer.writeNamedNbt("", codec);
+            writer.writeNamedNbt("", dimension);
+            writer.writeString(worldType); // worldName
+            writer.writeLong(0L); // hashedSeed（498 には無い）
+            writer.writeVarInt(join.maxPlayers());
+            writer.writeVarInt(join.viewDistance());
+            writer.writeVarInt(join.viewDistance()); // simulationDistance
+            writer.writeBoolean(join.reducedDebug());
+            writer.writeBoolean(true); // enableRespawnScreen（498 には無い）
+            writer.writeBoolean(false); // isDebug
+            writer.writeBoolean("flat".equals(join.levelType())); // isFlat
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Respawn（758 → 498）。578 版から hashedSeed を落とした形
+     * （498 の Respawn は dimension 数値＋gamemode＋levelType だけ）。
+     */
+    public static byte[] translateRespawn758To498(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        try {
+            Reader reader = new Reader(payload);
+            Tag dimension = reader.readNamedNbt().tag();
+            reader.readString(); // worldName（498 には無い）
+            reader.readLong(); // hashedSeed（498 には無い）
+            int gameMode = reader.readUnsignedByte();
+            reader.readByte(); // previousGameMode（498 には無い）
+            boolean isDebug = reader.readBoolean();
+            boolean isFlat = reader.readBoolean();
+            reader.readBoolean(); // copyMetadata（498 には無い）
+            requireEnd(reader);
+            Tag.CompoundTag codec = registries == null ? defaultCodec758()
+                    : buildJoinGameCodec(registries);
+            String worldType = dimensionNameForElement(codec, dimension);
+            if (worldType == null) {
+                worldType = dimensionNameForElement(defaultCodec758(), dimension);
+            }
+            if (worldType == null) {
+                worldType = "minecraft:overworld";
+            }
+            Writer writer = new Writer();
+            writer.writeInt(dimensionId578ForName(worldType));
+            writer.writeByte(gameMode);
+            writer.writeString(isFlat ? "flat" : "default");
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Respawn（498 → 758）。hashedSeed は 0 を補う。それ以外は
+     * 578 版と同じ（dimension は数値から名前へ変換）。
+     */
+    public static byte[] translateRespawn498To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        try {
+            Reader reader = new Reader(payload);
+            int dimension = reader.readInt();
+            int gameMode = reader.readUnsignedByte();
+            String levelType = reader.readString();
+            requireEnd(reader);
+            String worldType = dimensionNameForId578(dimension);
+            Tag.CompoundTag codec = registries == null ? defaultCodec758()
+                    : buildJoinGameCodec(registries);
+            Tag element = dimensionElementForName(codec, worldType);
+            if (element == null) {
+                element = dimensionElementForName(defaultCodec758(), worldType);
+            }
+            if (element == null) {
+                throw new IllegalArgumentException(
+                        "Respawn の dimension 要素が codec にありません: " + worldType);
+            }
+            Writer writer = new Writer();
+            writer.writeNamedNbt("", element);
+            writer.writeString(worldType); // worldName
+            writer.writeLong(0L); // hashedSeed（498 には無い）
+            writer.writeByte(gameMode);
+            writer.writeByte(-1); // previousGameMode
+            writer.writeBoolean(false); // isDebug
+            writer.writeBoolean("flat".equals(levelType)); // isFlat
+            writer.writeBoolean(false); // copyMetadata
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // 404（1.13.2）対応
+    // ------------------------------------------------------------------
+
+    /** 404 の Join Game の1件（dimension は数値、difficulty があり viewDistance は無い）。 */
+    public record JoinGame404(int entityId, int gameMode, int dimension,
+            int difficulty, int maxPlayers, String levelType,
+            boolean reducedDebug) {
+    }
+
+    /**
+     * 404 の Join Game（0x25）を読む。498 との違い：maxPlayers の前に
+     * difficulty（u8）が入り、viewDistance が無い。実バニラ 1.13.2 の
+     * パケットをプローブで実測して確定した並び。
+     */
+    public static JoinGame404 parseJoinGame404(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        int gameMode = reader.readUnsignedByte();
+        int dimension = reader.readInt();
+        int difficulty = reader.readUnsignedByte();
+        int maxPlayers = reader.readUnsignedByte();
+        String levelType = reader.readString();
+        boolean reducedDebug = reader.readBoolean();
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException(
+                    "Join Game に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+        }
+        return new JoinGame404(entityId, gameMode, dimension, difficulty,
+                maxPlayers, levelType, reducedDebug);
+    }
+
+    /**
+     * Join Game（758 0x26 → 404 0x25）。498 版から viewDistance を落とし、
+     * difficulty を足した形。758 には difficulty が無いため 2（normal）を
+     * 補う（実際の難易度は Server Difficulty の変換で追随する）。
+     * dimension は codec 内の dimension_type から名前へ変換し、404 の数値にする。
+     */
+    public static byte[] translateJoinGame758To404(byte[] payload) {
+        try {
+            JoinGame758 join = parseJoinGame758(payload);
+            String worldType = dimensionNameForElement(join.codec(), join.dimension());
+            if (worldType == null) {
+                worldType = "minecraft:overworld";
+            }
+            Writer writer = new Writer();
+            writer.writeInt(join.entityId());
+            writer.writeByte(join.gameMode() | (join.hardcore() ? 8 : 0));
+            writer.writeInt(dimensionId578ForName(worldType));
+            writer.writeByte(2); // difficulty（758 には無いため normal を補う）
+            writer.writeByte(Math.min(join.maxPlayers(), 255));
+            writer.writeString(join.isFlat() ? "flat" : "default");
+            writer.writeBoolean(join.reducedDebug());
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Join Game（404 0x25 → 758 0x26）。codec は 404 に無いため、バニラ
+     * 1.18.2 の既定 codec（{@link #defaultCodec758()}）を補う。
+     * hashedSeed は 0、enableRespawnScreen は true、viewDistance と
+     * simulationDistance は 10（バニラ既定）を補う（404 には無い）。
+     * difficulty は 758 に無いため落とす。
+     */
+    public static byte[] translateJoinGame404To758(byte[] payload) {
+        try {
+            JoinGame404 join = parseJoinGame404(payload);
+            Tag.CompoundTag codec = defaultCodec758();
+            String worldType = dimensionNameForId578(join.dimension());
+            Tag dimension = dimensionElementForName(codec, worldType);
+            if (dimension == null) {
+                throw new IllegalArgumentException(
+                        "Join Game の dimension 要素が既定 codec にありません: " + worldType);
+            }
+            Writer writer = new Writer();
+            writer.writeInt(join.entityId());
+            writer.writeBoolean((join.gameMode() & 8) != 0); // hardcore
+            writer.writeByte(join.gameMode() & 7);
+            writer.writeByte(-1); // previousGameMode（404 には無い）
+            PacketIO.writeStringList(writer, List.of(worldType));
+            writer.writeNamedNbt("", codec);
+            writer.writeNamedNbt("", dimension);
+            writer.writeString(worldType); // worldName
+            writer.writeLong(0L); // hashedSeed（404 には無い）
+            writer.writeVarInt(join.maxPlayers());
+            writer.writeVarInt(10); // viewDistance（404 には無いため既定値）
+            writer.writeVarInt(10); // simulationDistance
+            writer.writeBoolean(join.reducedDebug());
+            writer.writeBoolean(true); // enableRespawnScreen（404 には無い）
+            writer.writeBoolean(false); // isDebug
+            writer.writeBoolean("flat".equals(join.levelType())); // isFlat
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Respawn（758 → 404）。404 の Respawn は dimension 数値＋difficulty＋
+     * gamemode＋levelType。difficulty は 758 に無いため 2（normal）を補う。
+     */
+    public static byte[] translateRespawn758To404(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        try {
+            Reader reader = new Reader(payload);
+            Tag dimension = reader.readNamedNbt().tag();
+            reader.readString(); // worldName（404 には無い）
+            reader.readLong(); // hashedSeed（404 には無い）
+            int gameMode = reader.readUnsignedByte();
+            reader.readByte(); // previousGameMode（404 には無い）
+            boolean isDebug = reader.readBoolean();
+            boolean isFlat = reader.readBoolean();
+            reader.readBoolean(); // copyMetadata（404 には無い）
+            requireEnd(reader);
+            Tag.CompoundTag codec = registries == null ? defaultCodec758()
+                    : buildJoinGameCodec(registries);
+            String worldType = dimensionNameForElement(codec, dimension);
+            if (worldType == null) {
+                worldType = dimensionNameForElement(defaultCodec758(), dimension);
+            }
+            if (worldType == null) {
+                worldType = "minecraft:overworld";
+            }
+            Writer writer = new Writer();
+            writer.writeInt(dimensionId578ForName(worldType));
+            writer.writeByte(2); // difficulty（758 には無いため normal を補う）
+            writer.writeByte(gameMode);
+            writer.writeString(isFlat ? "flat" : "default");
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Respawn（404 → 758）。difficulty は 758 に無いため落とす。
+     * hashedSeed は 0 を補う。それ以外は 498 版と同じ。
+     */
+    public static byte[] translateRespawn404To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        try {
+            Reader reader = new Reader(payload);
+            int dimension = reader.readInt();
+            reader.readUnsignedByte(); // difficulty（758 には無い）
+            int gameMode = reader.readUnsignedByte();
+            String levelType = reader.readString();
+            requireEnd(reader);
+            String worldType = dimensionNameForId578(dimension);
+            Tag.CompoundTag codec = registries == null ? defaultCodec758()
+                    : buildJoinGameCodec(registries);
+            Tag element = dimensionElementForName(codec, worldType);
+            if (element == null) {
+                element = dimensionElementForName(defaultCodec758(), worldType);
+            }
+            if (element == null) {
+                throw new IllegalArgumentException(
+                        "Respawn の dimension 要素が codec にありません: " + worldType);
+            }
+            Writer writer = new Writer();
+            writer.writeNamedNbt("", element);
+            writer.writeString(worldType); // worldName
+            writer.writeLong(0L); // hashedSeed（404 には無い）
+            writer.writeByte(gameMode);
+            writer.writeByte(-1); // previousGameMode
+            writer.writeBoolean(false); // isDebug
+            writer.writeBoolean("flat".equals(levelType)); // isFlat
+            writer.writeBoolean(false); // copyMetadata
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // 393（1.13）対応
+    //
+    // Join Game / Respawn のワイヤ形式は 404 と完全一致する
+    // （protocol.json 平坦化比較で確認。レジストリ番号を含まない
+    // パケットのためサンゴまわりの差分も影響しない）。404 の実装へ
+    // そのまま委譲する。
+    // ------------------------------------------------------------------
+
+    /** 393 の Join Game の1件（形式は 404 と同一。dimension は数値、difficulty があり viewDistance は無い）。 */
+    public record JoinGame393(int entityId, int gameMode, int dimension,
+            int difficulty, int maxPlayers, String levelType,
+            boolean reducedDebug) {
+    }
+
+    /** 393 の Join Game を読む（形式は 404 と同一のため 404 の解析を流用する）。 */
+    public static JoinGame393 parseJoinGame393(byte[] payload) {
+        JoinGame404 join = parseJoinGame404(payload);
+        if (join == null) {
+            return null;
+        }
+        return new JoinGame393(join.entityId(), join.gameMode(), join.dimension(),
+                join.difficulty(), join.maxPlayers(), join.levelType(),
+                join.reducedDebug());
+    }
+
+    /** Join Game（758 → 393）。形式は 404 と同一。 */
+    public static byte[] translateJoinGame758To393(byte[] payload) {
+        return translateJoinGame758To404(payload);
+    }
+
+    /** Join Game（393 → 758）。形式は 404 と同一。 */
+    public static byte[] translateJoinGame393To758(byte[] payload) {
+        return translateJoinGame404To758(payload);
+    }
+
+    /** Respawn（758 → 393）。形式は 404 と同一。 */
+    public static byte[] translateRespawn758To393(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn758To404(payload, registries);
+    }
+
+    /** Respawn（393 → 758）。形式は 404 と同一。 */
+    public static byte[] translateRespawn393To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn404To758(payload, registries);
+    }
+
+    // ------------------------------------------------------------------
+    // 340（1.12.2）対応
+    //
+    // Join Game / Respawn のワイヤ形式は 393 と完全一致する
+    // （実バニラ 1.12.2 の Join Game 採取と protocol.json で確認済み）。
+    // 393 の実装へそのまま委譲する。
+    // ------------------------------------------------------------------
+
+    /** 340 の Join Game の1件（形式は 393 と同一）。 */
+    public record JoinGame340(int entityId, int gameMode, int dimension,
+            int difficulty, int maxPlayers, String levelType,
+            boolean reducedDebug) {
+    }
+
+    /** 340 の Join Game を読む（形式は 393 と同一のため 393 の解析を流用する）。 */
+    public static JoinGame340 parseJoinGame340(byte[] payload) {
+        JoinGame393 join = parseJoinGame393(payload);
+        if (join == null) {
+            return null;
+        }
+        return new JoinGame340(join.entityId(), join.gameMode(), join.dimension(),
+                join.difficulty(), join.maxPlayers(), join.levelType(),
+                join.reducedDebug());
+    }
+
+    /** Join Game（758 → 340）。形式は 393 と同一。 */
+    public static byte[] translateJoinGame758To340(byte[] payload) {
+        return translateJoinGame758To393(payload);
+    }
+
+    /** Join Game（340 → 758）。形式は 393 と同一。 */
+    public static byte[] translateJoinGame340To758(byte[] payload) {
+        return translateJoinGame393To758(payload);
+    }
+
+    /** Respawn（758 → 340）。形式は 393 と同一。 */
+    public static byte[] translateRespawn758To340(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn758To393(payload, registries);
+    }
+
+    /** Respawn（340 → 758）。形式は 393 と同一。 */
+    public static byte[] translateRespawn340To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn393To758(payload, registries);
+    }
+
+    // ------------------------------------------------------------------
+    // 316（1.11.2）対応
+    //
+    // Join Game / Respawn のワイヤ形式は 393 と完全一致する
+    // （実バニラ 1.11.2 の Join Game 採取で 20/20 バイト消費を
+    // 確認済み。docs/PROXY-1.11.2.md）。393 の実装へ委譲する。
+    // ------------------------------------------------------------------
+
+    /** 316 の Join Game の1件（形式は 393 と同一）。 */
+    public record JoinGame316(int entityId, int gameMode, int dimension,
+            int difficulty, int maxPlayers, String levelType,
+            boolean reducedDebug) {
+    }
+
+    /** 316 の Join Game を読む（形式は 393 と同一のため 393 の解析を流用する）。 */
+    public static JoinGame316 parseJoinGame316(byte[] payload) {
+        JoinGame393 join = parseJoinGame393(payload);
+        if (join == null) {
+            return null;
+        }
+        return new JoinGame316(join.entityId(), join.gameMode(), join.dimension(),
+                join.difficulty(), join.maxPlayers(), join.levelType(),
+                join.reducedDebug());
+    }
+
+    /** Join Game（758 → 316）。形式は 393 と同一。 */
+    public static byte[] translateJoinGame758To316(byte[] payload) {
+        return translateJoinGame758To393(payload);
+    }
+
+    /** Join Game（316 → 758）。形式は 393 と同一。 */
+    public static byte[] translateJoinGame316To758(byte[] payload) {
+        return translateJoinGame393To758(payload);
+    }
+
+    /** Respawn（758 → 316）。形式は 393 と同一。 */
+    public static byte[] translateRespawn758To316(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn758To393(payload, registries);
+    }
+
+    /** Respawn（316 → 758）。形式は 393 と同一。 */
+    public static byte[] translateRespawn316To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn393To758(payload, registries);
+    }
+
+    // ------------------------------------------------------------------
+    // 315（1.11）対応
+    //
+    // Join Game / Respawn のワイヤ形式は 316 と同一で、393 とも
+    // 完全一致する（実バニラ 1.11 の Join Game 採取で 17/17
+    // バイト消費を確認済み。docs/PROXY-1.11.md）。393 の実装へ
+    // 委譲する。
+    // ------------------------------------------------------------------
+
+    /** 315 の Join Game の1件（形式は 393 と同一）。 */
+    public record JoinGame315(int entityId, int gameMode, int dimension,
+            int difficulty, int maxPlayers, String levelType,
+            boolean reducedDebug) {
+    }
+
+    /** 315 の Join Game を読む（形式は 393 と同一のため 393 の解析を流用する）。 */
+    public static JoinGame315 parseJoinGame315(byte[] payload) {
+        JoinGame393 join = parseJoinGame393(payload);
+        if (join == null) {
+            return null;
+        }
+        return new JoinGame315(join.entityId(), join.gameMode(), join.dimension(),
+                join.difficulty(), join.maxPlayers(), join.levelType(),
+                join.reducedDebug());
+    }
+
+    /** Join Game（758 → 315）。形式は 393 と同一。 */
+    public static byte[] translateJoinGame758To315(byte[] payload) {
+        return translateJoinGame758To393(payload);
+    }
+
+    /** Join Game（315 → 758）。形式は 393 と同一。 */
+    public static byte[] translateJoinGame315To758(byte[] payload) {
+        return translateJoinGame393To758(payload);
+    }
+
+    /** Respawn（758 → 315）。形式は 393 と同一。 */
+    public static byte[] translateRespawn758To315(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn758To393(payload, registries);
+    }
+
+    /** Respawn（315 → 758）。形式は 393 と同一。 */
+    public static byte[] translateRespawn315To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn393To758(payload, registries);
+    }
+
+    // ------------------------------------------------------------------
+    // 210（1.10.2）対応
+    //
+    // Join Game / Respawn のワイヤ形式は 315 と同一で、393 とも
+    // 完全一致する（実バニラ 1.10.2 の Join Game 採取で 20/20
+    // バイト消費を確認済み。docs/PROXY-1.10.2.md）。393 の実装へ
+    // 委譲する。
+    // ------------------------------------------------------------------
+
+    /** 210 の Join Game の1件（形式は 393 と同一）。 */
+    public record JoinGame210(int entityId, int gameMode, int dimension,
+            int difficulty, int maxPlayers, String levelType,
+            boolean reducedDebug) {
+    }
+
+    /** 210 の Join Game を読む（形式は 393 と同一のため 393 の解析を流用する）。 */
+    public static JoinGame210 parseJoinGame210(byte[] payload) {
+        JoinGame393 join = parseJoinGame393(payload);
+        if (join == null) {
+            return null;
+        }
+        return new JoinGame210(join.entityId(), join.gameMode(), join.dimension(),
+                join.difficulty(), join.maxPlayers(), join.levelType(),
+                join.reducedDebug());
+    }
+
+    /** Join Game（758 → 210）。形式は 393 と同一。 */
+    public static byte[] translateJoinGame758To210(byte[] payload) {
+        return translateJoinGame758To393(payload);
+    }
+
+    /** Join Game（210 → 758）。形式は 393 と同一。 */
+    public static byte[] translateJoinGame210To758(byte[] payload) {
+        return translateJoinGame393To758(payload);
+    }
+
+    /** Respawn（758 → 210）。形式は 393 と同一。 */
+    public static byte[] translateRespawn758To210(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn758To393(payload, registries);
+    }
+
+    /** Respawn（210 → 758）。形式は 393 と同一。 */
+    public static byte[] translateRespawn210To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn393To758(payload, registries);
+    }
+
+    // ------------------------------------------------------------------
+    // 110（1.9.4）対応
+    //
+    // Join Game / Respawn のワイヤ形式は 210 と同一で、393 とも
+    // 完全一致する（実バニラ 1.9.4 の Join Game 採取で 20/20
+    // バイト消費を確認済み。docs/PROXY-1.9.4.md）。393 の実装へ
+    // 委譲する。
+    // ------------------------------------------------------------------
+
+    /** 110 の Join Game の1件（形式は 393 と同一）。 */
+    public record JoinGame110(int entityId, int gameMode, int dimension,
+            int difficulty, int maxPlayers, String levelType,
+            boolean reducedDebug) {
+    }
+
+    /** 110 の Join Game を読む（形式は 393 と同一のため 393 の解析を流用する）。 */
+    public static JoinGame110 parseJoinGame110(byte[] payload) {
+        JoinGame393 join = parseJoinGame393(payload);
+        if (join == null) {
+            return null;
+        }
+        return new JoinGame110(join.entityId(), join.gameMode(), join.dimension(),
+                join.difficulty(), join.maxPlayers(), join.levelType(),
+                join.reducedDebug());
+    }
+
+    /** Join Game（758 → 110）。形式は 393 と同一。 */
+    public static byte[] translateJoinGame758To110(byte[] payload) {
+        return translateJoinGame758To393(payload);
+    }
+
+    /** Join Game（110 → 758）。形式は 393 と同一。 */
+    public static byte[] translateJoinGame110To758(byte[] payload) {
+        return translateJoinGame393To758(payload);
+    }
+
+    /** Respawn（758 → 110）。形式は 393 と同一。 */
+    public static byte[] translateRespawn758To110(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn758To393(payload, registries);
+    }
+
+    /** Respawn（110 → 758）。形式は 393 と同一。 */
+    public static byte[] translateRespawn110To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn393To758(payload, registries);
+    }
+
+    // ------------------------------------------------------------------
+    // 109（1.9.2）対応
+    //
+    // Join Game / Respawn のワイヤ形式は 110 と同一で、393 とも
+    // 完全一致する（実バニラ 1.9.2 の Join Game 採取で dimension
+    // i32 を 20/20 バイト消費を確認済み。docs/PROXY-1.9.2.md）。
+    // 393 の実装へ委譲する。
+    // ------------------------------------------------------------------
+
+    /** 109 の Join Game の1件（形式は 393 と同一）。 */
+    public record JoinGame109(int entityId, int gameMode, int dimension,
+            int difficulty, int maxPlayers, String levelType,
+            boolean reducedDebug) {
+    }
+
+    /** 109 の Join Game を読む（形式は 393 と同一のため 393 の解析を流用する）。 */
+    public static JoinGame109 parseJoinGame109(byte[] payload) {
+        JoinGame393 join = parseJoinGame393(payload);
+        if (join == null) {
+            return null;
+        }
+        return new JoinGame109(join.entityId(), join.gameMode(), join.dimension(),
+                join.difficulty(), join.maxPlayers(), join.levelType(),
+                join.reducedDebug());
+    }
+
+    /** Join Game（758 → 109）。形式は 393 と同一。 */
+    public static byte[] translateJoinGame758To109(byte[] payload) {
+        return translateJoinGame758To393(payload);
+    }
+
+    /** Join Game（109 → 758）。形式は 393 と同一。 */
+    public static byte[] translateJoinGame109To758(byte[] payload) {
+        return translateJoinGame393To758(payload);
+    }
+
+    /** Respawn（758 → 109）。形式は 393 と同一。 */
+    public static byte[] translateRespawn758To109(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn758To393(payload, registries);
+    }
+
+    /** Respawn（109 → 758）。形式は 393 と同一。 */
+    public static byte[] translateRespawn109To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn393To758(payload, registries);
+    }
+
+    // ------------------------------------------------------------------
+    // 108（1.9.1）対応
+    //
+    // Join Game / Respawn のワイヤ形式は 109 と同一で、393 とも
+    // 完全一致する（実バニラ 1.9.1 の Join Game 採取で dimension
+    // i32 を 20/20 バイト消費を確認済み。docs/PROXY-1.9.1.md）。
+    // 109 の実装へ委譲する。
+    // ------------------------------------------------------------------
+
+    /** 108 の Join Game の1件（形式は 393 と同一）。 */
+    public record JoinGame108(int entityId, int gameMode, int dimension,
+            int difficulty, int maxPlayers, String levelType,
+            boolean reducedDebug) {
+    }
+
+    /** 108 の Join Game を読む（形式は 109 と同一のため 109 の解析を流用する）。 */
+    public static JoinGame108 parseJoinGame108(byte[] payload) {
+        JoinGame109 join = parseJoinGame109(payload);
+        if (join == null) {
+            return null;
+        }
+        return new JoinGame108(join.entityId(), join.gameMode(), join.dimension(),
+                join.difficulty(), join.maxPlayers(), join.levelType(),
+                join.reducedDebug());
+    }
+
+    /** Join Game（758 → 108）。形式は 393 と同一。 */
+    public static byte[] translateJoinGame758To108(byte[] payload) {
+        return translateJoinGame758To109(payload);
+    }
+
+    /** Join Game（108 → 758）。形式は 393 と同一。 */
+    public static byte[] translateJoinGame108To758(byte[] payload) {
+        return translateJoinGame109To758(payload);
+    }
+
+    /** Respawn（758 → 108）。形式は 393 と同一。 */
+    public static byte[] translateRespawn758To108(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn758To109(payload, registries);
+    }
+
+    /** Respawn（108 → 758）。形式は 393 と同一。 */
+    public static byte[] translateRespawn108To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn109To758(payload, registries);
+    }
+
+    /**
+     * 107 の Join Game。108 との唯一の形式差分は dimension が
+     * i8（107）⇔ i32（108 以降）であること（Stage A 実測：
+     * 実バニラ 1.9 の生バイト 17 バイトを i8 で読み切れることを確認）。
+     */
+    public record JoinGame107(int entityId, int gameMode, int dimension,
+                              int difficulty, int maxPlayers, String levelType,
+                              boolean reducedDebug) {
+    }
+
+    /** 107 形式の Join Game を読む。dimension は符号付きバイト。 */
+    public static JoinGame107 parseJoinGame107(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        int gameMode = reader.readUnsignedByte();
+        int dimension = reader.readByte();
+        int difficulty = reader.readUnsignedByte();
+        int maxPlayers = reader.readUnsignedByte();
+        String levelType = reader.readString();
+        boolean reducedDebug = reader.readBoolean();
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException("Join Game（107）の末尾に余分なバイトがあります");
+        }
+        return new JoinGame107(entityId, gameMode, dimension, difficulty,
+                maxPlayers, levelType, reducedDebug);
+    }
+
+    /**
+     * 758 形式の Join Game を 107 形式に直す。108 形式（dimension i32）
+     * へ直してから読み直し、dimension だけ符号付きバイトで書き直す。
+     */
+    public static byte[] translateJoinGame758To107(byte[] payload) {
+        byte[] as108 = translateJoinGame758To108(payload);
+        try {
+            JoinGame108 join = parseJoinGame108(as108);
+            Writer writer = new Writer();
+            writer.writeInt(join.entityId());
+            writer.writeByte(join.gameMode());
+            writer.writeByte(join.dimension());
+            writer.writeByte(join.difficulty());
+            writer.writeByte(join.maxPlayers());
+            writer.writeString(join.levelType());
+            writer.writeBoolean(join.reducedDebug());
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game（758→107）の変換に失敗したため、そのまま転送します: "
+                    + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * 107 形式の Join Game を 758 形式に直す。404 形式（dimension i32）
+     * を合成してから 404→758 変換に渡す。
+     */
+    public static byte[] translateJoinGame107To758(byte[] payload) {
+        try {
+            JoinGame107 join = parseJoinGame107(payload);
+            Writer writer = new Writer();
+            writer.writeInt(join.entityId());
+            writer.writeByte(join.gameMode());
+            writer.writeInt(join.dimension());
+            writer.writeByte(join.difficulty());
+            writer.writeByte(join.maxPlayers());
+            writer.writeString(join.levelType());
+            writer.writeBoolean(join.reducedDebug());
+            return translateJoinGame404To758(writer.bytes());
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game（107→758）の変換に失敗したため、そのまま転送します: "
+                    + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * 758 形式の Respawn を 107 形式に直す。Respawn の形式は 107・108 で
+     * 完全同一（dimension は両方とも i32。Stage A の protocol.json
+     * 全面比較で確定）のため 108 の変換へ委譲する。
+     */
+    public static byte[] translateRespawn758To107(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn758To108(payload, registries);
+    }
+
+    /** 107 形式の Respawn を 758 形式に直す（108 の変換へ委譲）。 */
+    public static byte[] translateRespawn107To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn108To758(payload, registries);
+    }
+
+    // ------------------------------------------------------------------
+    // 47（1.8〜1.8.9）対応
+    //
+    // Join Game は 47・107 で完全同一（dimension は両者とも i8。
+    // Stage A で実バニラ 1.8.9 の生バイト 17 バイトを i8 で読み切れる
+    // ことを確認）。Respawn も両者とも dimension i32 で同一形式。
+    // そのため 47 の入口はすべて 107 の変換へ委譲する。
+    // ------------------------------------------------------------------
+
+    /** 47 形式の Join Game を読む（107 と同一形式のため 107 の読み取りへ委譲）。 */
+    public static JoinGame107 parseJoinGame47(byte[] payload) {
+        return parseJoinGame107(payload);
+    }
+
+    /** 758 形式の Join Game を 47 形式に直す（107 の変換へ委譲）。 */
+    public static byte[] translateJoinGame758To47(byte[] payload) {
+        return translateJoinGame758To107(payload);
+    }
+
+    /** 47 形式の Join Game を 758 形式に直す（107 の変換へ委譲）。 */
+    public static byte[] translateJoinGame47To758(byte[] payload) {
+        return translateJoinGame107To758(payload);
+    }
+
+    /** 758 形式の Respawn を 47 形式に直す（107 の変換へ委譲）。 */
+    public static byte[] translateRespawn758To47(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn758To107(payload, registries);
+    }
+
+    /** 47 形式の Respawn を 758 形式に直す（107 の変換へ委譲）。 */
+    public static byte[] translateRespawn47To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn107To758(payload, registries);
+    }
+
+    /**
+     * Player Info（759 0x34 → 758 0x36）。758・759 ともに旧式の
+     * action VarInt（0=add_player、1=update_gamemode、2=update_latency、
+     * 3=update_display_name、4=remove_player）。add_player の crypto
+     * option（timestamp＋publicKey＋signature）は 759 にだけあるため落とす。
+     * それ以外はそのまま写す。
+     */
+    public static byte[] translatePlayerInfo759To758(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            int action = reader.readVarInt();
+            int count = reader.readVarInt();
+            writer.writeVarInt(action);
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                translatePlayerInfoEntry759To758(reader, writer, action);
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Player Info を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Player Info（758 0x36 → 759 0x34）。add_player の crypto option は
+     * absent（false）を補う。それ以外はそのまま写す。
+     */
+    public static byte[] translatePlayerInfo758To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            Writer writer = new Writer();
+            int action = reader.readVarInt();
+            int count = reader.readVarInt();
+            writer.writeVarInt(action);
+            writer.writeVarInt(count);
+            for (int i = 0; i < count; i++) {
+                translatePlayerInfoEntry758To759(reader, writer, action);
+            }
+            requireEnd(reader);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Player Info を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Player Info のエントリ1件（759 → 758）。add_player の crypto を落とす。 */
+    private static void translatePlayerInfoEntry759To758(Reader reader, Writer writer,
+            int action) {
+        writer.writeUuid(reader.readUuid());
+        switch (action) {
+            case 0 -> { // add_player
+                writer.writeString(reader.readString()); // name
+                int properties = reader.readVarInt();
+                writer.writeVarInt(properties);
+                for (int p = 0; p < properties; p++) {
+                    writer.writeString(reader.readString()); // key
+                    writer.writeString(reader.readString()); // value
+                    boolean hasSignature = reader.readBoolean();
+                    writer.writeBoolean(hasSignature);
+                    if (hasSignature) {
+                        writer.writeString(reader.readString());
+                    }
+                }
+                writer.writeVarInt(reader.readVarInt()); // gamemode
+                writer.writeVarInt(reader.readVarInt()); // ping
+                boolean hasDisplayName = reader.readBoolean();
+                writer.writeBoolean(hasDisplayName);
+                if (hasDisplayName) {
+                    writer.writeString(reader.readString());
+                }
+                if (reader.readBoolean()) { // crypto（758 には無い）
+                    reader.readLong(); // timestamp
+                    reader.readByteArray(); // publicKey
+                    reader.readByteArray(); // signature
+                }
+            }
+            case 1 -> writer.writeVarInt(reader.readVarInt()); // gamemode
+            case 2 -> writer.writeVarInt(reader.readVarInt()); // ping
+            case 3 -> { // displayName
+                boolean hasDisplayName = reader.readBoolean();
+                writer.writeBoolean(hasDisplayName);
+                if (hasDisplayName) {
+                    writer.writeString(reader.readString());
+                }
+            }
+            case 4 -> {
+                // remove_player: UUID だけ
+            }
+            default -> throw new IllegalArgumentException(
+                    "Player Info の action が範囲外です: " + action);
+        }
+    }
+
+    /** Player Info のエントリ1件（758 → 759）。add_player の crypto に false を補う。 */
+    private static void translatePlayerInfoEntry758To759(Reader reader, Writer writer,
+            int action) {
+        writer.writeUuid(reader.readUuid());
+        switch (action) {
+            case 0 -> { // add_player
+                writer.writeString(reader.readString()); // name
+                int properties = reader.readVarInt();
+                writer.writeVarInt(properties);
+                for (int p = 0; p < properties; p++) {
+                    writer.writeString(reader.readString()); // key
+                    writer.writeString(reader.readString()); // value
+                    boolean hasSignature = reader.readBoolean();
+                    writer.writeBoolean(hasSignature);
+                    if (hasSignature) {
+                        writer.writeString(reader.readString());
+                    }
+                }
+                writer.writeVarInt(reader.readVarInt()); // gamemode
+                writer.writeVarInt(reader.readVarInt()); // ping
+                boolean hasDisplayName = reader.readBoolean();
+                writer.writeBoolean(hasDisplayName);
+                if (hasDisplayName) {
+                    writer.writeString(reader.readString());
+                }
+                writer.writeBoolean(false); // crypto: absent
+            }
+            case 1 -> writer.writeVarInt(reader.readVarInt()); // gamemode
+            case 2 -> writer.writeVarInt(reader.readVarInt()); // ping
+            case 3 -> { // displayName
+                boolean hasDisplayName = reader.readBoolean();
+                writer.writeBoolean(hasDisplayName);
+                if (hasDisplayName) {
+                    writer.writeString(reader.readString());
+                }
+            }
+            case 4 -> {
+                // remove_player: UUID だけ
+            }
+            default -> throw new IllegalArgumentException(
+                    "Player Info の action が範囲外です: " + action);
+        }
     }
 
     // ------------------------------------------------------------------
@@ -7731,15 +9742,350 @@ public final class PlayTranslator {
     }
 
 
+    // 775 ⇔ 776（26.2）
+    // Join Game／Respawn／Synchronize Player Position／Login Success／
+    // Client Information／Player Info／Set Held Item／Vehicle Move／
+    // Player Chat は775と776で形式が同一のため変換器は要らない（素通し）。
+    // 変わるのは Registry Data（レジストリの順序。26.2での変更は
+    // ジュークボックス（bounce 追加で 4番以降+1、21→22曲）・ダメージ種別
+    // （sulfur_cube_hot 追加で 42番以降+1、50→51件）。エンチャント・
+    // 絵画は同一。minecraft:dialog は771からあるため通す）だけである。
+    // Update Time・Enchant Item・Use Entity は775・776で形式が同一のため
+    // 素通しする（774→775 で変わったものが 775→776 では変わらない）。
+    // なお Registry Data の entity_type・sound・item・particle は775節と同じく
+    // 素通し（順序は付け替えない。Spawn Entity の種別 ID だけ翻訳するため 775 と
+    // 同じずれが残る。制限事項として記録する）。
+    // ------------------------------------------------------------------
 
-    // ================================================================
-    // 757 <=> 759 (1.18 / 1.18.1 <=> 1.19)
-    // ================================================================
+    /** Player Info（775 → 776）。形式は同一のため素通しする。 */
+    public static byte[] translatePlayerInfo775To776(byte[] payload) {
+        return payload;
+    }
+
+    /** Player Info（776 → 775）。形式は同一のため素通しする。 */
+    public static byte[] translatePlayerInfo776To775(byte[] payload) {
+        return payload;
+    }
+
+    /** Set Held Item（775 → 776）。形式は同一のため素通しする（varint のまま）。 */
+    public static byte[] translateSetHeldItem775To776(byte[] payload) {
+        return payload;
+    }
+
+    /** Set Held Item（776 → 775）。形式は同一のため素通しする。 */
+    public static byte[] translateSetHeldItem776To775(byte[] payload) {
+        return payload;
+    }
+
+    /** Vehicle Move（775 → 776）。形式は同一のため素通しする（末尾の onGround 付き）。 */
+    public static byte[] translateVehicleMove775To776(byte[] payload) {
+        return payload;
+    }
+
+    /** Vehicle Move（776 → 775）。形式は同一のため素通しする。 */
+    public static byte[] translateVehicleMove776To775(byte[] payload) {
+        return payload;
+    }
+
+    /** Player Chat（775 → 776）。先頭の globalIndex は770・771・772・773・774・775・776ともあるため素通しする。 */
+    public static byte[] translatePlayerChat775To776(byte[] payload) {
+        return payload;
+    }
+
+    /** Player Chat（776 → 775）。先頭の globalIndex は770・771・772・773・774・775・776ともあるため素通しする。 */
+    public static byte[] translatePlayerChat776To775(byte[] payload) {
+        return payload;
+    }
 
     /**
-     * 757<=>759の変換で使うレジストリの名前列・element の16進（実バニラの Join Game codec から取ったもの。
-     * ライブキャプチャ（/tmp/cap-757-joingame.bin、/tmp/cap-759-joingame.bin）で確認）。
+     * Chat Message／Chat Command Signed（776 → 775）。末尾の checksum
+     * （u8 1バイト）を取り除く。ペイロードが空の場合はそのまま返す。
+     * （注意：現行の ProxySession は checksum を両版ともあるものとして
+     * 素通しするため、このメソッドは未使用。775節の同名メソッドと同じ扱い。）
      */
+    public static byte[] stripChatChecksum776(byte[] payload) {
+        if (payload.length == 0) {
+            return payload;
+        }
+        return new Reader(payload).readBytes(payload.length - 1);
+    }
+
+    /**
+     * Chat Message／Chat Command Signed（775 → 776）。末尾に checksum
+     * （u8 1バイト）を追加する。checksum の式は未確認のため 0x00 を入れる
+     * （実機での確認は未実施。計算式そのものの確認も未実施）。
+     * （注意：現行の ProxySession は checksum を両版ともあるものとして
+     * 素通しするため、このメソッドは未使用。775節の同名メソッドと同じ扱い。）
+     */
+    public static byte[] appendChatChecksum776(byte[] payload) {
+        Writer writer = new Writer();
+        writer.writeBytes(payload);
+        writer.writeByte(0);
+        return writer.bytes();
+    }
+
+    /**
+     * 775の Registry Data を776形式にする。minecraft:dialog は771から
+     * あるためそのまま通す。エンチャント・絵画は775・776で同一のため
+     * 並べ替えは実質そのまま。ジュークボックスは bounce（776=4）の追加で
+     * 4番以降が+1ずれる（22曲）。ダメージ種別は sulfur_cube_hot（776=42）の
+     * 追加で 42番以降が+1ずれる（51件）。entity_type・sound・item・particle は
+     * 素通し（775節と同じ）。それ以外は1レジストリ分のペイロードを返す。
+     */
+    public static byte[] translateRegistryData775To776(byte[] payload) {
+        Map<String, Tag.CompoundTag> reordered = reorderRegistries(
+                parseRegistryData(payload),
+                ProtocolVersion.V26_1, ProtocolVersion.V26_2);
+        List<byte[]> built = buildRegistryData766(reordered);
+        if (built.isEmpty()) {
+            throw new IllegalArgumentException("Registry Data が空です。");
+        }
+        return built.get(0);
+    }
+
+    /**
+     * 776の Registry Data を775形式にする。minecraft:dialog は775にも
+     * あるため通す（reorderRegistries）。エンチャント・絵画は775・776で
+     * 同一のため並べ替えは実質そのまま。ジュークボックスは bounce（776=4）を
+     * 落とし 5番以降を-1する（22曲→21曲）。ダメージ種別は sulfur_cube_hot
+     * （776=42）を落とし 43番以降を-1する（51件→50件）。
+     * entity_type・sound・item・particle は素通し（775節と同じ）。
+     * それ以外は1レジストリ分のペイロードを返す。空になった場合は {@code null} を返す。
+     */
+    public static byte[] translateRegistryData776To775(byte[] payload) {
+        Map<String, Tag.CompoundTag> reordered = reorderRegistries(
+                parseRegistryData(payload),
+                ProtocolVersion.V26_2, ProtocolVersion.V26_1);
+        List<byte[]> built = buildRegistryData766(reordered);
+        return built.isEmpty() ? null : built.get(0);
+    }
+
+    /**
+     * Update Time（775 → 776）。775・776とも {age i64, clockUpdates[
+     * {holder varint, totalTicks varlong, partialTick f32, rate f32}]} のため
+     * 素通しする。774→775 で {age, time, tickDayTime} から再構成したものが、
+     * 775→776 では変わらない。
+     * （26.1／26.2 両 jar で ClientboundSetTimePacket の形式が同一であることを
+     * 確認済み。holder は varint で 0＝直書き、N≥1＝レジストリ id N−1。
+     * 775 の翻訳子の「id varint」モデルは実はこの Holder 符号化だった。）
+     */
+    public static byte[] translateUpdateTime775To776(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Update Time（776 → 775）。775・776とも {age i64, clockUpdates[...]} のため
+     * 素通しする。774→775 の再構成は要らない。
+     * （26.1／26.2 両 jar で ClientboundSetTimePacket の形式が同一であることを確認済み。）
+     */
+    public static byte[] translateUpdateTime776To775(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Enchant Item（775 → 776）。windowId・enchantment とも varint
+     * （775・776とも）のため素通しする。774 では enchantment が i8 だったが、
+     * 775 で varint に戻った。775→776 では変わらない。
+     */
+    public static byte[] translateEnchantItem775To776(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Enchant Item（776 → 775）。windowId・enchantment とも varint
+     * （775・776とも）のため素通しする。
+     */
+    public static byte[] translateEnchantItem776To775(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Use Entity（775 → 776）。775・776とも {target varint, hand varint,
+     * location lpVec3（f32×3）, usingSecondaryAction bool} のため素通しする。
+     * （26.1／26.2 両 jar で ServerboundInteractPacket の形式が同一であることを
+     * 確認済み。775 の「sneaking」は usingSecondaryAction。
+     * mouse==0 の location 補完の仮定は 775→776 では問題にならない。）
+     */
+    public static byte[] translateUseEntity775To776(byte[] payload) {
+        return payload;
+    }
+
+    /**
+     * Use Entity（776 → 775）。775・776とも {target varint, hand varint,
+     * location lpVec3, usingSecondaryAction bool} のため素通しする。
+     * （26.1／26.2 両 jar で ServerboundInteractPacket の形式が同一であることを確認済み。）
+     */
+    public static byte[] translateUseEntity776To775(byte[] payload) {
+        return payload;
+    }
+
+    // ------------------------------------------------------------------
+    // 5（1.7.6〜1.7.10）対応
+    //
+    // Join Game は 47 と末尾1バイトだけ違う（reducedDebugInfo が無い、
+    // 全16バイト＋levelType 文字列）。Respawn は 47 と完全同一のため
+    // ChunkTranslator の 47 関数へ委譲する（ProxySession 側）。
+    // Player Info は名前ベースの旧形式（name＋online＋ping i16）で、
+    // ハイブリッド（758 旧式：action varint＋UUID キー）との付け替えは
+    // セッション側の UUID⇔名前対応表と組み合わせて行う。
+    // ------------------------------------------------------------------
+
+    /** Join Game（5）を JoinGame107 の形で読む（reducedDebug は常に false）。 */
+    public static JoinGame107 parseJoinGame5(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        int gameMode = reader.readUnsignedByte();
+        int dimension = reader.readByte();
+        int difficulty = reader.readUnsignedByte();
+        int maxPlayers = reader.readUnsignedByte();
+        String levelType = reader.readString();
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException("Join Game（5）の末尾に余分なバイトがあります");
+        }
+        return new JoinGame107(entityId, gameMode, dimension, difficulty,
+                maxPlayers, levelType, false);
+    }
+
+    /** Join Game（758 → 5）。47 経由で次元などを落とし、末尾バイトを付けない。 */
+    public static byte[] translateJoinGame758To5(byte[] payload) {
+        try {
+            JoinGame107 join = parseJoinGame47(translateJoinGame758To47(payload));
+            Writer writer = new Writer();
+            writer.writeInt(join.entityId());
+            writer.writeByte(join.gameMode());
+            writer.writeByte(join.dimension());
+            writer.writeByte(join.difficulty());
+            writer.writeByte(join.maxPlayers());
+            writer.writeString(join.levelType());
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game（758→5）の変換に失敗したため、そのまま転送します: "
+                    + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** Join Game（5 → 758）。reducedDebug=false を補って 47 経由で変換する。 */
+    public static byte[] translateJoinGame5To758(byte[] payload) {
+        try {
+            JoinGame107 join = parseJoinGame5(payload);
+            Writer writer = new Writer();
+            writer.writeInt(join.entityId());
+            writer.writeByte(join.gameMode());
+            writer.writeByte(join.dimension());
+            writer.writeByte(join.difficulty());
+            writer.writeByte(join.maxPlayers());
+            writer.writeString(join.levelType());
+            writer.writeBoolean(false); // reducedDebugInfo（5 には無い）
+            return translateJoinGame47To758(writer.bytes());
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game（5→758）の変換に失敗したため、そのまま転送します: "
+                    + e.getMessage());
+            return payload;
+        }
+    }
+
+    /** 旧式 Player Info（758 形式）の1エントリ。 */
+    public record LegacyPlayerInfoEntry(int action, UUID uuid, String name,
+            List<String[]> properties, int gamemode, int ping,
+            String displayNameJson) {
+    }
+
+    /**
+     * 旧式 Player Info（758 形式：action varint＋件数 varint＋エントリ列）
+     * を分解する。action はパケット全体で1つ。
+     */
+    public static List<LegacyPlayerInfoEntry> parsePlayerInfo47(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int action = reader.readVarInt();
+        int count = reader.readVarInt();
+        List<LegacyPlayerInfoEntry> out = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            UUID uuid = reader.readUuid();
+            String name = null;
+            List<String[]> properties = List.of();
+            int gamemode = 0;
+            int ping = 0;
+            String displayName = null;
+            if (action == 0) {
+                name = reader.readString();
+                int propertyCount = reader.readVarInt();
+                List<String[]> props = new ArrayList<>();
+                for (int j = 0; j < propertyCount; j++) {
+                    String propName = reader.readString();
+                    String propValue = reader.readString();
+                    String signature = reader.readBoolean()
+                            ? reader.readString() : null;
+                    props.add(new String[]{propName, propValue, signature});
+                }
+                properties = props;
+                gamemode = reader.readVarInt();
+                ping = reader.readVarInt();
+                if (reader.readBoolean()) {
+                    displayName = reader.readString();
+                }
+            } else if (action == 1) {
+                gamemode = reader.readVarInt();
+            } else if (action == 2) {
+                ping = reader.readVarInt();
+            } else if (action == 3) {
+                if (reader.readBoolean()) {
+                    displayName = reader.readString();
+                }
+            }
+            out.add(new LegacyPlayerInfoEntry(action, uuid, name, properties,
+                    gamemode, ping, displayName));
+        }
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException("Player Info（旧式）の末尾に余分なバイトがあります");
+        }
+        return out;
+    }
+
+    /** 5 の Player Info ペイロード（名前＋online＋ping i16）を作る。 */
+    public static byte[] playerInfo5Payload(String name, boolean online, int ping) {
+        Writer writer = new Writer();
+        writer.writeString(name);
+        writer.writeBoolean(online);
+        writer.writeShort(Math.max(0, Math.min(ping, Short.MAX_VALUE)));
+        return writer.bytes();
+    }
+
+    /**
+     * Player Info（5 ワイヤ：名前ベース）→ 旧式（758 形式）。
+     * UUID はオフライン UUID（"OfflinePlayer:"＋名前）で合成する。
+     * 実バニラ 1.7.10（offline-mode）の報告と一致する。
+     */
+    public static byte[] translatePlayerInfo5To47(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String name = reader.readString();
+            boolean online = reader.readBoolean();
+            int ping = reader.readShort();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException("Player Info（5）の末尾に余分なバイトがあります");
+            }
+            UUID uuid = UUID.nameUUIDFromBytes(
+                    ("OfflinePlayer:" + name).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            Writer writer = new Writer();
+            writer.writeVarInt(online ? 0 : 4); // action: add_player / remove_player
+            writer.writeVarInt(1);
+            writer.writeUuid(uuid);
+            if (online) {
+                writer.writeString(name);
+                writer.writeVarInt(0); // properties
+                writer.writeVarInt(0); // gamemode
+                writer.writeVarInt(ping);
+                writer.writeBoolean(false); // hasDisplayName
+            }
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Player Info（5→旧式）を変換できなかったため素通しします: "
+                    + e.getMessage());
+            return payload;
+        }
+    }
+
     private static final String[] BIOME_757_NAMES = {
             "minecraft:the_void", "minecraft:plains", "minecraft:sunflower_plains", "minecraft:snowy_plains", "minecraft:ice_spikes", "minecraft:desert",
             "minecraft:swamp", "minecraft:forest", "minecraft:flower_forest", "minecraft:birch_forest", "minecraft:dark_forest", "minecraft:old_growth_birch_forest",
@@ -7753,7 +10099,6 @@ public final class PlayTranslator {
             "minecraft:soul_sand_valley", "minecraft:basalt_deltas", "minecraft:the_end", "minecraft:end_highlands", "minecraft:end_midlands", "minecraft:small_end_islands",
             "minecraft:end_barrens",
     };
-
     private static final String[] BIOME_759_NAMES = {
             "minecraft:the_void", "minecraft:plains", "minecraft:sunflower_plains", "minecraft:snowy_plains", "minecraft:ice_spikes", "minecraft:desert",
             "minecraft:swamp", "minecraft:mangrove_swamp", "minecraft:forest", "minecraft:flower_forest", "minecraft:birch_forest", "minecraft:dark_forest",
@@ -7767,7 +10112,6 @@ public final class PlayTranslator {
             "minecraft:warped_forest", "minecraft:crimson_forest", "minecraft:soul_sand_valley", "minecraft:basalt_deltas", "minecraft:the_end", "minecraft:end_highlands",
             "minecraft:end_midlands", "minecraft:small_end_islands", "minecraft:end_barrens",
     };
-
     private static final String[] BIOME_757_CATEGORIES = {
             "none", "plains", "plains", "icy", "icy", "desert",
             "swamp", "forest", "forest", "forest", "forest", "forest",
@@ -7781,21 +10125,16 @@ public final class PlayTranslator {
             "nether", "nether", "the_end", "the_end", "the_end", "the_end",
             "the_end",
     };
-
     private static final String[] DIMENSION_TYPE_757_NAMES = {
             "minecraft:overworld", "minecraft:overworld_caves", "minecraft:the_nether", "minecraft:the_end",
     };
-
     private static final String[] DIMENSION_TYPE_759_NAMES = {
             "minecraft:overworld", "minecraft:the_nether", "minecraft:the_end", "minecraft:overworld_caves",
     };
-
     private static final String[] CHAT_TYPE_759_NAMES = {
             "minecraft:chat", "minecraft:system", "minecraft:game_info", "minecraft:say_command",
             "minecraft:msg_command", "minecraft:team_msg_command", "minecraft:emote_command", "minecraft:tellraw_command",
     };
-
-    /** DIMENSION_TYPE_757_ELEMENT_HEX：実バニラの Join Game codec から取った element（anonymous NBT の16進）。 */
     private static final String[] DIMENSION_TYPE_757_ELEMENT_HEX = {
             // minecraft:overworld（291バイト）。
             "0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000008000a" +
@@ -7828,8 +10167,6 @@ public final class PlayTranslator {
             "0300056d696e5f790000000001000b6861735f6365696c696e6700010009756c7472617761726d0003000668656967687400" +
             "00010000",
     };
-
-    /** DIMENSION_TYPE_759_ELEMENT_HEX：実バニラの Join Game codec から取った element（anonymous NBT の16進）。 */
     private static final String[] DIMENSION_TYPE_759_ELEMENT_HEX = {
             // minecraft:overworld（434バイト）。
             "0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000003001f" +
@@ -7871,8 +10208,6 @@ public final class PlayTranslator {
             "736976650000000003000d6d61785f696e636c75736976650000000700000300056d696e5f79ffffffc0010009756c747261" +
             "7761726d0001000b6861735f6365696c696e67010300066865696768740000018000",
     };
-
-    /** CHAT_TYPE_759_ELEMENT_HEX：実バニラの Join Game codec から取った element（anonymous NBT の16進）。 */
     private static final String[] CHAT_TYPE_759_ELEMENT_HEX = {
             // minecraft:chat（232バイト）。
             "0a0a0004636861740a000a6465636f726174696f6e08000f7472616e736c6174696f6e5f6b6579000e636861742e74797065" +
@@ -7912,2307 +10247,26 @@ public final class PlayTranslator {
             // minecraft:tellraw_command（40バイト）。
             "0a0a000463686174000a00096e6172726174696f6e0800087072696f726974790004636861740000",
     };
-
-    /** dimension_type の id を757順→759順に直す（overworld_caves 1→3）。 */
-    private static int mapDimensionType757To759(int id) {
-        return switch (id) {
-            case 0 -> 0;
-            case 1 -> 3;
-            case 2 -> 1;
-            case 3 -> 2;
-            default -> 0; // 範囲外は overworld
-        };
-    }
-
-    /** dimension_type の id を759順→757順に直す（overworld_caves 3→1）。 */
-    private static int mapDimensionType759To757(int id) {
-        return switch (id) {
-            case 0 -> 0;
-            case 1 -> 2;
-            case 2 -> 3;
-            case 3 -> 1;
-            default -> 0; // 範囲外は overworld
-        };
-    }
-
-    /** 16進の anonymous NBT（1要素分）を CompoundTag に直す。 */
-    private static Tag.CompoundTag parseElementHex(String hex) {
-        Tag tag = Nbt.readAnonymous(HexFormat.of().parseHex(hex), 0).tag();
-        if (!(tag instanceof Tag.CompoundTag compound)) {
-            throw new IllegalArgumentException("element の NBT がコンパウンドではありません。");
-        }
-        return compound;
-    }
-
-    /** 名前列と element の16進列から、名前→element のマップを作る。 */
-    private static Map<String, Tag.CompoundTag> elementMap(String[] names, String[] hexes) {
-        Map<String, Tag.CompoundTag> out = new LinkedHashMap<>();
-        for (int i = 0; i < names.length; i++) {
-            out.put(names[i], parseElementHex(hexes[i]));
-        }
-        return out;
-    }
-
-    /** 実バニラ1.18の dimension_type element 4件（名前→element）。 */
     private static final Map<String, Tag.CompoundTag> DIMENSION_TYPE_757_ELEMENTS =
             elementMap(DIMENSION_TYPE_757_NAMES, DIMENSION_TYPE_757_ELEMENT_HEX);
-
-    /** 実バニラ1.19の dimension_type element 4件（名前→element）。 */
     private static final Map<String, Tag.CompoundTag> DIMENSION_TYPE_759_ELEMENTS =
             elementMap(DIMENSION_TYPE_759_NAMES, DIMENSION_TYPE_759_ELEMENT_HEX);
-
-    /** 実バニラ1.19の chat_type element 8件（名前→element）。 */
     private static final Map<String, Tag.CompoundTag> CHAT_TYPE_759_ELEMENTS =
             elementMap(CHAT_TYPE_759_NAMES, CHAT_TYPE_759_ELEMENT_HEX);
-
-    /** 757に無く759にあるバイオーム2件の element（名前→element。実バニラ1.19の Join Game codec から取ったもの）。 */
     private static final Map<String, Tag.CompoundTag> BIOME_759_NEW_ELEMENTS = Map.of(
             "minecraft:mangrove_swamp", parseElementHex("0a08000d70726563697069746174696f6e00047261696e0a00076566666563747308001467726173735f636f6c6f725f6d6f64696669657200057377616d700a00056d757369630100157265706c6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e64001f6d696e6563726166743a6d757369632e6f766572776f726c642e7377616d700300096d696e5f64656c617900002ee000030009736b795f636f6c6f720078a7ff03000d666f6c696167655f636f6c6f72008db12703000f77617465725f666f675f636f6c6f72004d7a60030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003a7a6a0a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f4ccccd050008646f776e66616c6c3f66666600"),
             "minecraft:deep_dark", parseElementHex("0a08000d70726563697069746174696f6e00047261696e0a0007656666656374730a00056d757369630100157265706c6163655f63757272656e745f6d75736963000300096d61785f64656c617900005dc0080005736f756e6400236d696e6563726166743a6d757369632e6f766572776f726c642e646565705f6461726b0300096d696e5f64656c617900002ee000030009736b795f636f6c6f720078a7ff03000f77617465725f666f675f636f6c6f7200050533030009666f675f636f6c6f7200c0d8ff03000b77617465725f636f6c6f72003f76e40a000a6d6f6f645f736f756e6403000a7469636b5f64656c6179000017700600066f66667365744000000000000000080005736f756e6400166d696e6563726166743a616d6269656e742e63617665030013626c6f636b5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f4ccccd050008646f776e66616c6c3ecccccd00"));
-
-    /** 送信者の無いチャットに使う nil UUID（1.18のバニラもシステムメッセージには Util.NIL_UUID を使う）。 */
     private static final UUID NIL_UUID = new UUID(0L, 0L);
-
-    /** ブロック座標 (x, y, z) を position（i64 packed）に直す。 */
-    private static long packBlockPosition(int x, int y, int z) {
-        return ((long) (x & 0x3FFFFFF) << 38) | ((long) (z & 0x3FFFFFF) << 12) | (y & 0xFFF);
-    }
-
-    /** codec の dimension_type から、element が dimension と一致するエントリの名前を返す。無ければ null。 */
-    private static String findDimensionName(Tag.CompoundTag codec, Tag dimension) {
-        return codec.getCompound("minecraft:dimension_type")
-                .flatMap(r -> r.getList("value"))
-                .map(Tag.ListTag::value)
-                .orElse(List.of()).stream()
-                .filter(e -> e instanceof Tag.CompoundTag)
-                .map(e -> (Tag.CompoundTag) e)
-                .filter(e -> e.get("element").map(el -> el.equals(dimension)).orElse(false))
-                .findFirst()
-                .flatMap(e -> e.getString("name"))
-                .orElse(null);
-    }
-
-    /** codec の dimension_type から、名前のエントリの element を返す。無ければ null。 */
-    private static Tag findDimensionElement(Tag.CompoundTag codec, String name) {
-        return codec.getCompound("minecraft:dimension_type")
-                .flatMap(r -> r.getList("value"))
-                .map(Tag.ListTag::value)
-                .orElse(List.of()).stream()
-                .filter(e -> e instanceof Tag.CompoundTag)
-                .map(e -> (Tag.CompoundTag) e)
-                .filter(e -> e.getString("name").map(name::equals).orElse(false))
-                .findFirst()
-                .flatMap(e -> e.get("element"))
-                .orElse(null);
-    }
-
-    /**
-     * 757の dimension（NBTの値）に対応する dimension_type の名前を返す。
-     * codec 内の element との完全一致で探し、無ければ既定の757 element との一致、
-     * (effects, has_ceiling) での推定の順に試す。どれも当たらなければ overworld。
-     * codec が null の場合（Respawn）は codec での検索を飛ばす。
-     */
-    private static String dimensionName757(Tag dimension, Tag.CompoundTag codec) {
-        if (codec != null) {
-            String fromCodec = findDimensionName(codec, dimension);
-            if (fromCodec != null) {
-                return fromCodec;
-            }
-        }
-        for (Map.Entry<String, Tag.CompoundTag> e : DIMENSION_TYPE_757_ELEMENTS.entrySet()) {
-            if (e.getValue().equals(dimension)) {
-                return e.getKey();
-            }
-        }
-        // 推定：effects と has_ceiling の組み合わせで4種を区別する
-        // （overworld と overworld_caves は has_ceiling だけが違う。ライブキャプチャで確認）。
-        if (dimension instanceof Tag.CompoundTag compound) {
-            String effects = compound.getString("effects").orElse("");
-            boolean hasCeiling = compound.get("has_ceiling")
-                    .filter(t -> t instanceof Tag.ByteTag)
-                    .map(t -> ((Tag.ByteTag) t).value() != 0)
-                    .orElse(false);
-            if (effects.equals("minecraft:the_nether")) {
-                return "minecraft:the_nether";
-            }
-            if (effects.equals("minecraft:the_end")) {
-                return "minecraft:the_end";
-            }
-            if (effects.equals("minecraft:overworld")) {
-                return hasCeiling ? "minecraft:overworld_caves" : "minecraft:overworld";
-            }
-        }
-        LOG.warning("dimension の名前が分からなかったため minecraft:overworld にします。");
-        return "minecraft:overworld";
-    }
-
-    /**
-     * 759の dimension（名前）に対応する757の dimension（NBTの値）を返す。
-     * 既定の757 element を使う。名前が既定に無く、codec に element があればそれを使い、
-     * それも無ければ overworld の element にする。
-     */
-    private static Tag dimensionValue759(String name, Tag.CompoundTag codec) {
-        Tag.CompoundTag element = DIMENSION_TYPE_757_ELEMENTS.get(name);
-        if (element != null) {
-            return element;
-        }
-        if (codec != null) {
-            Tag fromCodec = findDimensionElement(codec, name);
-            if (fromCodec != null) {
-                return fromCodec;
-            }
-        }
-        LOG.warning("dimension " + name + " の757 element が無いため minecraft:overworld にします。");
-        return DIMENSION_TYPE_757_ELEMENTS.get("minecraft:overworld");
-    }
-
-    /** 759の dimension（名前）に対応する757の dimension（NBTの値）を返す（codec が無い場合。Respawn 用）。 */
-    private static Tag dimensionValue759(String name) {
-        return dimensionValue759(name, null);
-    }
-
-    /** codec（名前付き NBT の中身）からレジストリのマップを抜く。 */
-    private static Map<String, Tag.CompoundTag> registriesFromCodec(Tag.CompoundTag codec) {
-        Map<String, Tag.CompoundTag> out = new LinkedHashMap<>();
-        for (Map.Entry<String, Tag> e : codec.value().entrySet()) {
-            if (e.getValue() instanceof Tag.CompoundTag reg) {
-                out.put(e.getKey(), reg);
-            }
-        }
-        return out;
-    }
-
-    /**
-     * dimension_type のエントリ列の element を、受信側バージョンの既定値で置き換える。
-     * 名前が既定に無いもの（カスタムの dimension_type）はそのまま。
-     * 757の element には monster_spawn_block_light_limit／monster_spawn_light_level が無く、
-     * infiniburn も "#" 無しのため、そのまま759クライアントに送ると読めない。
-     * 逆に759の element には757に無いフィールドがあるため、そのまま757に送らない。
-     * 既定値は実バニラの Join Game codec から取ったもの（ライブキャプチャで確認）。
-     */
-    private static List<Tag> substituteDimensionTypeElements(List<Tag> entries, int toProtocol) {
-        Map<String, Tag.CompoundTag> defaults = toProtocol == ProtocolVersion.V1_19
-                ? DIMENSION_TYPE_759_ELEMENTS
-                : toProtocol == ProtocolVersion.V1_17_1
-                        ? DIMENSION_TYPE_756_ELEMENTS
-                        : toProtocol == ProtocolVersion.V1_16_5
-                                ? DIMENSION_TYPE_754_ELEMENTS
-                                : toProtocol == ProtocolVersion.V1_17
-                                        ? DIMENSION_TYPE_755_ELEMENTS : DIMENSION_TYPE_757_ELEMENTS;
-        List<Tag> out = new ArrayList<>(entries.size());
-        for (Tag entry : entries) {
-            if (!(entry instanceof Tag.CompoundTag compound)) {
-                out.add(entry);
-                continue;
-            }
-            String name = compound.getString("name").orElse(null);
-            Tag.CompoundTag replacement = name == null ? null : defaults.get(name);
-            if (replacement == null) {
-                out.add(entry);
-                continue;
-            }
-            Map<String, Tag> rebuilt = new LinkedHashMap<>();
-            compound.value().forEach((k, v) -> {
-                if (!k.equals("element")) {
-                    rebuilt.put(k, v);
-                }
-            });
-            rebuilt.put("element", replacement);
-            out.add(new Tag.CompoundTag(rebuilt));
-        }
-        return out;
-    }
-
-    /** biome のエントリ列の element に category が無ければ757の表から補う（1.18の Biome codec は category を要する。759の element には category が無い）。 */
-    private static List<Tag> addBiomeCategories(List<Tag> entries) {
-        List<Tag> out = new ArrayList<>(entries.size());
-        for (Tag entry : entries) {
-            if (!(entry instanceof Tag.CompoundTag compound)) {
-                out.add(entry);
-                continue;
-            }
-            int id = compound.get("id")
-                    .filter(t -> t instanceof Tag.IntTag)
-                    .map(t -> ((Tag.IntTag) t).value())
-                    .orElse(-1);
-            if (id < 0 || id >= BIOME_757_CATEGORIES.length) {
-                out.add(entry);
-                continue;
-            }
-            Tag element = compound.get("element").orElse(null);
-            if (!(element instanceof Tag.CompoundTag elementCompound)
-                    || elementCompound.get("category").isPresent()) {
-                out.add(entry);
-                continue;
-            }
-            Map<String, Tag> rebuiltElement = new LinkedHashMap<>(elementCompound.value());
-            rebuiltElement.put("category", new Tag.StringTag(BIOME_757_CATEGORIES[id]));
-            Map<String, Tag> rebuilt = new LinkedHashMap<>();
-            compound.value().forEach((k, v) -> {
-                rebuilt.put(k, k.equals("element") ? new Tag.CompoundTag(rebuiltElement) : v);
-            });
-            out.add(new Tag.CompoundTag(rebuilt));
-        }
-        return out;
-    }
-
-    /**
-     * biome のエントリ列のうち element が無いものに、759の既定の element を補う。
-     * 対象は757に無い mangrove_swamp と deep_dark の2件（reorderRegistries が
-     * 名前だけのエントリで埋めたもの）。759のクライアントは biome の element
-     * （色・音など）を要するため、名前だけでは不十分。element は実バニラ1.19の
-     * Join Game codec から取ったもの。
-     */
-    private static List<Tag> fillNewBiomeElements(List<Tag> entries) {
-        List<Tag> out = new ArrayList<>(entries.size());
-        for (Tag entry : entries) {
-            if (!(entry instanceof Tag.CompoundTag compound)) {
-                out.add(entry);
-                continue;
-            }
-            if (compound.get("element").isPresent()) {
-                out.add(entry);
-                continue;
-            }
-            String name = compound.getString("name").orElse(null);
-            Tag.CompoundTag element = name == null ? null : BIOME_759_NEW_ELEMENTS.get(name);
-            if (element == null) {
-                out.add(entry);
-                continue;
-            }
-            Map<String, Tag> rebuilt = new LinkedHashMap<>(compound.value());
-            rebuilt.put("element", element);
-            out.add(new Tag.CompoundTag(rebuilt));
-        }
-        return out;
-    }
-
-    // ------------------------------------------------------------------
-    // 404（1.13.2）対応
-    // ------------------------------------------------------------------
-
-    /** 404 の Join Game の1件（dimension は数値、difficulty があり viewDistance は無い）。 */
-    public record JoinGame404(int entityId, int gameMode, int dimension,
-            int difficulty, int maxPlayers, String levelType,
-            boolean reducedDebug) {
-    }
-
-    /**
-     * 404 の Join Game（0x25）を読む。498 との違い：maxPlayers の前に
-     * difficulty（u8）が入り、viewDistance が無い。実バニラ 1.13.2 の
-     * パケットをプローブで実測して確定した並び。
-     */
-    public static JoinGame404 parseJoinGame404(byte[] payload) {
-        Reader reader = new Reader(payload);
-        int entityId = reader.readInt();
-        int gameMode = reader.readUnsignedByte();
-        int dimension = reader.readInt();
-        int difficulty = reader.readUnsignedByte();
-        int maxPlayers = reader.readUnsignedByte();
-        String levelType = reader.readString();
-        boolean reducedDebug = reader.readBoolean();
-        if (reader.remaining() != 0) {
-            throw new IllegalArgumentException(
-                    "Join Game に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-        }
-        return new JoinGame404(entityId, gameMode, dimension, difficulty,
-                maxPlayers, levelType, reducedDebug);
-    }
-
-    /**
-     * Join Game（758 0x26 → 404 0x25）。498 版から viewDistance を落とし、
-     * difficulty を足した形。758 には difficulty が無いため 2（normal）を
-     * 補う（実際の難易度は Server Difficulty の変換で追随する）。
-     * dimension は codec 内の dimension_type から名前へ変換し、404 の数値にする。
-     */
-    public static byte[] translateJoinGame758To404(byte[] payload) {
-        try {
-            JoinGame758 join = parseJoinGame758(payload);
-            String worldType = dimensionNameForElement(join.codec(), join.dimension());
-            if (worldType == null) {
-                worldType = "minecraft:overworld";
-            }
-            Writer writer = new Writer();
-            writer.writeInt(join.entityId());
-            writer.writeByte(join.gameMode() | (join.hardcore() ? 8 : 0));
-            writer.writeInt(dimensionId578ForName(worldType));
-            writer.writeByte(2); // difficulty（758 には無いため normal を補う）
-            writer.writeByte(Math.min(join.maxPlayers(), 255));
-            writer.writeString(join.isFlat() ? "flat" : "default");
-            writer.writeBoolean(join.reducedDebug());
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Join Game（404 0x25 → 758 0x26）。codec は 404 に無いため、バニラ
-     * 1.18.2 の既定 codec（{@link #defaultCodec758()}）を補う。
-     * hashedSeed は 0、enableRespawnScreen は true、viewDistance と
-     * simulationDistance は 10（バニラ既定）を補う（404 には無い）。
-     * difficulty は 758 に無いため落とす。
-     */
-    public static byte[] translateJoinGame404To758(byte[] payload) {
-        try {
-            JoinGame404 join = parseJoinGame404(payload);
-            Tag.CompoundTag codec = defaultCodec758();
-            String worldType = dimensionNameForId578(join.dimension());
-            Tag dimension = dimensionElementForName(codec, worldType);
-            if (dimension == null) {
-                throw new IllegalArgumentException(
-                        "Join Game の dimension 要素が既定 codec にありません: " + worldType);
-            }
-            Writer writer = new Writer();
-            writer.writeInt(join.entityId());
-            writer.writeBoolean((join.gameMode() & 8) != 0); // hardcore
-            writer.writeByte(join.gameMode() & 7);
-            writer.writeByte(-1); // previousGameMode（404 には無い）
-            PacketIO.writeStringList(writer, List.of(worldType));
-            writer.writeNamedNbt("", codec);
-            writer.writeNamedNbt("", dimension);
-            writer.writeString(worldType); // worldName
-            writer.writeLong(0L); // hashedSeed（404 には無い）
-            writer.writeVarInt(join.maxPlayers());
-            writer.writeVarInt(10); // viewDistance（404 には無いため既定値）
-            writer.writeVarInt(10); // simulationDistance
-            writer.writeBoolean(join.reducedDebug());
-            writer.writeBoolean(true); // enableRespawnScreen（404 には無い）
-            writer.writeBoolean(false); // isDebug
-            writer.writeBoolean("flat".equals(join.levelType())); // isFlat
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Respawn（758 → 404）。404 の Respawn は dimension 数値＋difficulty＋
-     * gamemode＋levelType。difficulty は 758 に無いため 2（normal）を補う。
-     */
-    public static byte[] translateRespawn758To404(byte[] payload,
-            Map<String, Tag.CompoundTag> registries) {
-        try {
-            Reader reader = new Reader(payload);
-            Tag dimension = reader.readNamedNbt().tag();
-            reader.readString(); // worldName（404 には無い）
-            reader.readLong(); // hashedSeed（404 には無い）
-            int gameMode = reader.readUnsignedByte();
-            reader.readByte(); // previousGameMode（404 には無い）
-            boolean isDebug = reader.readBoolean();
-            boolean isFlat = reader.readBoolean();
-            reader.readBoolean(); // copyMetadata（404 には無い）
-            requireEnd(reader);
-            Tag.CompoundTag codec = registries == null ? defaultCodec758()
-                    : buildJoinGameCodec(registries);
-            String worldType = dimensionNameForElement(codec, dimension);
-            if (worldType == null) {
-                worldType = dimensionNameForElement(defaultCodec758(), dimension);
-            }
-            if (worldType == null) {
-                worldType = "minecraft:overworld";
-            }
-            Writer writer = new Writer();
-            writer.writeInt(dimensionId578ForName(worldType));
-            writer.writeByte(2); // difficulty（758 には無いため normal を補う）
-            writer.writeByte(gameMode);
-            writer.writeString(isFlat ? "flat" : "default");
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Respawn（404 → 758）。difficulty は 758 に無いため落とす。
-     * hashedSeed は 0 を補う。それ以外は 498 版と同じ。
-     */
-    public static byte[] translateRespawn404To758(byte[] payload,
-            Map<String, Tag.CompoundTag> registries) {
-        try {
-            Reader reader = new Reader(payload);
-            int dimension = reader.readInt();
-            reader.readUnsignedByte(); // difficulty（758 には無い）
-            int gameMode = reader.readUnsignedByte();
-            String levelType = reader.readString();
-            requireEnd(reader);
-            String worldType = dimensionNameForId578(dimension);
-            Tag.CompoundTag codec = registries == null ? defaultCodec758()
-                    : buildJoinGameCodec(registries);
-            Tag element = dimensionElementForName(codec, worldType);
-            if (element == null) {
-                element = dimensionElementForName(defaultCodec758(), worldType);
-            }
-            if (element == null) {
-                throw new IllegalArgumentException(
-                        "Respawn の dimension 要素が codec にありません: " + worldType);
-            }
-            Writer writer = new Writer();
-            writer.writeNamedNbt("", element);
-            writer.writeString(worldType); // worldName
-            writer.writeLong(0L); // hashedSeed（404 には無い）
-            writer.writeByte(gameMode);
-            writer.writeByte(-1); // previousGameMode
-            writer.writeBoolean(false); // isDebug
-            writer.writeBoolean("flat".equals(levelType)); // isFlat
-            writer.writeBoolean(false); // copyMetadata
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // 393（1.13）対応
-    //
-    // Join Game / Respawn のワイヤ形式は 404 と完全一致する
-    // （protocol.json 平坦化比較で確認。レジストリ番号を含まない
-    // パケットのためサンゴまわりの差分も影響しない）。404 の実装へ
-    // そのまま委譲する。
-    // ------------------------------------------------------------------
-
-    /** 393 の Join Game の1件（形式は 404 と同一。dimension は数値、difficulty があり viewDistance は無い）。 */
-    public record JoinGame393(int entityId, int gameMode, int dimension,
-            int difficulty, int maxPlayers, String levelType,
-            boolean reducedDebug) {
-    }
-
-    /** 393 の Join Game を読む（形式は 404 と同一のため 404 の解析を流用する）。 */
-    public static JoinGame393 parseJoinGame393(byte[] payload) {
-        JoinGame404 join = parseJoinGame404(payload);
-        if (join == null) {
-            return null;
-        }
-        return new JoinGame393(join.entityId(), join.gameMode(), join.dimension(),
-                join.difficulty(), join.maxPlayers(), join.levelType(),
-                join.reducedDebug());
-    }
-
-    /** Join Game（758 → 393）。形式は 404 と同一。 */
-    public static byte[] translateJoinGame758To393(byte[] payload) {
-        return translateJoinGame758To404(payload);
-    }
-
-    /** Join Game（393 → 758）。形式は 404 と同一。 */
-    public static byte[] translateJoinGame393To758(byte[] payload) {
-        return translateJoinGame404To758(payload);
-    }
-
-    /** Respawn（758 → 393）。形式は 404 と同一。 */
-    public static byte[] translateRespawn758To393(byte[] payload,
-            Map<String, Tag.CompoundTag> registries) {
-        return translateRespawn758To404(payload, registries);
-    }
-
-    /** Respawn（393 → 758）。形式は 404 と同一。 */
-    public static byte[] translateRespawn393To758(byte[] payload,
-            Map<String, Tag.CompoundTag> registries) {
-        return translateRespawn404To758(payload, registries);
-    }
-
-    // ------------------------------------------------------------------
-    // 340（1.12.2）対応
-    //
-    // Join Game / Respawn のワイヤ形式は 393 と完全一致する
-    // （実バニラ 1.12.2 の Join Game 採取と protocol.json で確認済み）。
-    // 393 の実装へそのまま委譲する。
-    // ------------------------------------------------------------------
-
-    /** 340 の Join Game の1件（形式は 393 と同一）。 */
-    public record JoinGame340(int entityId, int gameMode, int dimension,
-            int difficulty, int maxPlayers, String levelType,
-            boolean reducedDebug) {
-    }
-
-    /** 340 の Join Game を読む（形式は 393 と同一のため 393 の解析を流用する）。 */
-    public static JoinGame340 parseJoinGame340(byte[] payload) {
-        JoinGame393 join = parseJoinGame393(payload);
-        if (join == null) {
-            return null;
-        }
-        return new JoinGame340(join.entityId(), join.gameMode(), join.dimension(),
-                join.difficulty(), join.maxPlayers(), join.levelType(),
-                join.reducedDebug());
-    }
-
-    /** Join Game（758 → 340）。形式は 393 と同一。 */
-    public static byte[] translateJoinGame758To340(byte[] payload) {
-        return translateJoinGame758To393(payload);
-    }
-
-    /** Join Game（340 → 758）。形式は 393 と同一。 */
-    public static byte[] translateJoinGame340To758(byte[] payload) {
-        return translateJoinGame393To758(payload);
-    }
-
-    /** Respawn（758 → 340）。形式は 393 と同一。 */
-    public static byte[] translateRespawn758To340(byte[] payload,
-            Map<String, Tag.CompoundTag> registries) {
-        return translateRespawn758To393(payload, registries);
-    }
-
-    /** Respawn（340 → 758）。形式は 393 と同一。 */
-    public static byte[] translateRespawn340To758(byte[] payload,
-            Map<String, Tag.CompoundTag> registries) {
-        return translateRespawn393To758(payload, registries);
-    }
-
-    /**
-     * 757の dimensionCodec を759形式にする。dimension_type・biome を並べ替え、
-     * dimension_type の element を759既定値に置き換え、chat_type 8件を既定値で補う。
-     * biome の element はそのまま引き継ぐ（757の element にある category は
-     * 759の codec では未知のフィールドとして無視される）。757に無い
-     * mangrove_swamp・deep_dark の2件には759の既定の element を補う。
-     * codec のキーの並びは759の実バニラ通り（chat_type、dimension_type、worldgen/biome）。
-     */
-    public static Tag.CompoundTag translateDimensionCodec757To759(Tag.CompoundTag codec757) {
-        Map<String, Tag.CompoundTag> reordered = reorderRegistries(
-                registriesFromCodec(codec757), ProtocolVersion.V1_18, ProtocolVersion.V1_19);
-        Map<String, Tag> codec = new LinkedHashMap<>();
-        List<Tag> chatEntries = new ArrayList<>();
-        for (int i = 0; i < CHAT_TYPE_759_NAMES.length; i++) {
-            chatEntries.add(new Tag.CompoundTag(Map.of(
-                    "name", new Tag.StringTag(CHAT_TYPE_759_NAMES[i]),
-                    "id", new Tag.IntTag(i),
-                    "element", CHAT_TYPE_759_ELEMENTS.get(CHAT_TYPE_759_NAMES[i]))));
-        }
-        Map<String, Tag> chatCodec = new LinkedHashMap<>();
-        chatCodec.put("type", new Tag.StringTag("minecraft:chat_type"));
-        chatCodec.put("value", new Tag.ListTag(Nbt.COMPOUND, chatEntries));
-        codec.put("minecraft:chat_type", new Tag.CompoundTag(chatCodec));
-        Tag.CompoundTag dimensionRegistry = reordered.get("minecraft:dimension_type");
-        if (dimensionRegistry != null) {
-            List<Tag> entries = substituteDimensionTypeElements(
-                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
-                    ProtocolVersion.V1_19);
-            Map<String, Tag> rebuilt = new LinkedHashMap<>();
-            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
-            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
-            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
-        }
-        Tag.CompoundTag biomeRegistry = reordered.get("minecraft:worldgen/biome");
-        if (biomeRegistry != null) {
-            List<Tag> entries = fillNewBiomeElements(
-                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
-            Map<String, Tag> rebuilt = new LinkedHashMap<>();
-            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
-            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
-            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
-        }
-        return new Tag.CompoundTag(codec);
-    }
-
-    /**
-     * 759の dimensionCodec を757形式にする。chat_type を落とし、dimension_type・biome を757順に並べ替え、
-     * dimension_type の element を757既定値に置き換える。biome の element に category が無ければ757の表から補う。
-     * codec のキーの並びは757の実バニラ通り（dimension_type、worldgen/biome）。
-     */
-    public static Tag.CompoundTag translateDimensionCodec759To757(Tag.CompoundTag codec759) {
-        Map<String, Tag.CompoundTag> reordered = reorderRegistries(
-                registriesFromCodec(codec759), ProtocolVersion.V1_19, ProtocolVersion.V1_18);
-        Map<String, Tag> codec = new LinkedHashMap<>();
-        Tag.CompoundTag dimensionRegistry = reordered.get("minecraft:dimension_type");
-        if (dimensionRegistry != null) {
-            List<Tag> entries = substituteDimensionTypeElements(
-                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
-                    ProtocolVersion.V1_18);
-            Map<String, Tag> rebuilt = new LinkedHashMap<>();
-            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
-            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
-            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
-        }
-        Tag.CompoundTag biomeRegistry = reordered.get("minecraft:worldgen/biome");
-        if (biomeRegistry != null) {
-            List<Tag> entries = addBiomeCategories(
-                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
-            Map<String, Tag> rebuilt = new LinkedHashMap<>();
-            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
-            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
-            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
-        }
-        return new Tag.CompoundTag(codec);
-    }
-
-    // ------------------------------------------------------------------
-    // Join Game
-    // ------------------------------------------------------------------
-
-    /** 757の Join Game の中身。dimension は DimensionType の値そのもの（NBT）。previousGameMode は i8（-1＝なし）。 */
-    public record JoinGame757(int entityId, boolean hardcore, int gameMode, int previousGameMode,
-            List<String> worldNames, Tag.CompoundTag dimensionCodec, Tag dimension,
-            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
-            int simulationDistance, boolean reducedDebug, boolean enableRespawnScreen,
-            boolean isDebug, boolean isFlat) {
-    }
-
-    /** 759の Join Game の中身。dimension は ResourceKey（文字列）。death は lastDeathLocation。 */
-    public record JoinGame759(int entityId, boolean hardcore, int gameMode, int previousGameMode,
-            List<String> worldNames, Tag.CompoundTag dimensionCodec, String dimension,
-            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
-            int simulationDistance, boolean reducedDebug, boolean enableRespawnScreen,
-            boolean isDebug, boolean isFlat, boolean hasDeath, String deathDimension,
-            long deathLocation) {
-    }
-
-    /** GameType の最大 id（spectator＝3）。previousGameMode の範囲検査に使う。 */
     private static final int MAX_GAME_TYPE_ID_757 = 3;
-
-    /** 757／759の previousGameMode（i8）が GameType の範囲内か。-1＝なし、0〜3＝id。 */
-    private static void checkPreviousGameMode757(int value) {
-        if (value != -1 && (value < 0 || value > MAX_GAME_TYPE_ID_757)) {
-            throw new IllegalArgumentException(
-                    "previousGameMode が GameType の範囲外です: " + value);
-        }
-    }
-
-    /**
-     * 757の Join Game を読む。順番は entityId, hardcore, gameMode, previousGameMode(i8),
-     * worldNames, dimensionCodec（名前付き NBT）, dimension（名前付き NBT）,
-     * worldName, hashedSeed, maxPlayers, viewDistance, simulationDistance,
-     * reducedDebug, enableRespawnScreen, isDebug, isFlat である
-     * （minecraft-data mc-1.18-protocol.json の packet_login とライブキャプチャで確認）。
-     */
-    public static JoinGame757 parseJoinGame757(byte[] payload) {
-        Reader reader = new Reader(payload);
-        int entityId = reader.readInt();
-        boolean hardcore = reader.readBoolean();
-        int gameMode = reader.readUnsignedByte();
-        int previousGameMode = reader.readByte();
-        checkPreviousGameMode757(previousGameMode);
-        List<String> worldNames = PacketIO.readStringList(reader);
-        Tag dimensionCodec = reader.readNamedNbt().tag();
-        if (!(dimensionCodec instanceof Tag.CompoundTag codec)) {
-            throw new IllegalArgumentException("Join Game の dimensionCodec がコンパウンドではありません。");
-        }
-        Tag dimension = reader.readNamedNbt().tag();
-        String worldName = reader.readString();
-        long hashedSeed = reader.readLong();
-        int maxPlayers = reader.readVarInt();
-        int viewDistance = reader.readVarInt();
-        int simulationDistance = reader.readVarInt();
-        boolean reducedDebug = reader.readBoolean();
-        boolean enableRespawnScreen = reader.readBoolean();
-        boolean isDebug = reader.readBoolean();
-        boolean isFlat = reader.readBoolean();
-        requireEnd(reader);
-        return new JoinGame757(entityId, hardcore, gameMode, previousGameMode, worldNames,
-                codec, dimension, worldName, hashedSeed, maxPlayers, viewDistance,
-                simulationDistance, reducedDebug, enableRespawnScreen, isDebug, isFlat);
-    }
-
-    /**
-     * 759の Join Game を読む。757と同じ順番だが、dimension は ResourceKey（文字列）で、
-     * 末尾に death（lastDeathLocation の option）が付く
-     * （minecraft-data mc-1.19-protocol.json の packet_login とライブキャプチャで確認）。
-     */
-    public static JoinGame759 parseJoinGame759(byte[] payload) {
-        Reader reader = new Reader(payload);
-        int entityId = reader.readInt();
-        boolean hardcore = reader.readBoolean();
-        int gameMode = reader.readUnsignedByte();
-        int previousGameMode = reader.readByte();
-        checkPreviousGameMode757(previousGameMode);
-        List<String> worldNames = PacketIO.readStringList(reader);
-        Tag dimensionCodec = reader.readNamedNbt().tag();
-        if (!(dimensionCodec instanceof Tag.CompoundTag codec)) {
-            throw new IllegalArgumentException("Join Game の dimensionCodec がコンパウンドではありません。");
-        }
-        String dimension = reader.readString();
-        String worldName = reader.readString();
-        long hashedSeed = reader.readLong();
-        int maxPlayers = reader.readVarInt();
-        int viewDistance = reader.readVarInt();
-        int simulationDistance = reader.readVarInt();
-        boolean reducedDebug = reader.readBoolean();
-        boolean enableRespawnScreen = reader.readBoolean();
-        boolean isDebug = reader.readBoolean();
-        boolean isFlat = reader.readBoolean();
-        boolean hasDeath = reader.readBoolean();
-        String deathDimension = null;
-        long deathLocation = 0;
-        if (hasDeath) {
-            deathDimension = reader.readString();
-            deathLocation = reader.readPositionRaw();
-        }
-        requireEnd(reader);
-        return new JoinGame759(entityId, hardcore, gameMode, previousGameMode, worldNames,
-                codec, dimension, worldName, hashedSeed, maxPlayers, viewDistance,
-                simulationDistance, reducedDebug, enableRespawnScreen, isDebug, isFlat,
-                hasDeath, deathDimension, deathLocation);
-    }
-
-    /** 757の Join Game を書く。 */
-    public static byte[] writeJoinGame757(JoinGame757 join) {
-        Writer writer = new Writer();
-        writer.writeInt(join.entityId());
-        writer.writeBoolean(join.hardcore());
-        writer.writeByte(join.gameMode());
-        writer.writeByte(join.previousGameMode());
-        PacketIO.writeStringList(writer, join.worldNames());
-        writer.writeNamedNbt("", join.dimensionCodec());
-        writer.writeNamedNbt("", join.dimension());
-        writer.writeString(join.worldName());
-        writer.writeLong(join.hashedSeed());
-        writer.writeVarInt(join.maxPlayers());
-        writer.writeVarInt(join.viewDistance());
-        writer.writeVarInt(join.simulationDistance());
-        writer.writeBoolean(join.reducedDebug());
-        writer.writeBoolean(join.enableRespawnScreen());
-        writer.writeBoolean(join.isDebug());
-        writer.writeBoolean(join.isFlat());
-        return writer.bytes();
-    }
-
-    /** 759の Join Game を書く。 */
-    public static byte[] writeJoinGame759(JoinGame759 join) {
-        Writer writer = new Writer();
-        writer.writeInt(join.entityId());
-        writer.writeBoolean(join.hardcore());
-        writer.writeByte(join.gameMode());
-        writer.writeByte(join.previousGameMode());
-        PacketIO.writeStringList(writer, join.worldNames());
-        writer.writeNamedNbt("", join.dimensionCodec());
-        writer.writeString(join.dimension());
-        writer.writeString(join.worldName());
-        writer.writeLong(join.hashedSeed());
-        writer.writeVarInt(join.maxPlayers());
-        writer.writeVarInt(join.viewDistance());
-        writer.writeVarInt(join.simulationDistance());
-        writer.writeBoolean(join.reducedDebug());
-        writer.writeBoolean(join.enableRespawnScreen());
-        writer.writeBoolean(join.isDebug());
-        writer.writeBoolean(join.isFlat());
-        writer.writeBoolean(join.hasDeath());
-        if (join.hasDeath()) {
-            writer.writeString(join.deathDimension());
-            writer.writePositionRaw(join.deathLocation());
-        }
-        return writer.bytes();
-    }
-
-    /**
-     * Join Game（757 → 759）。dimension は NBT の値から codec 内の名前を引き、
-     * dimensionCodec は759形式に直す（chat_type 8件を補う）。lastDeathLocation は757に無いため absent。
-     * 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
-     */
-    public static byte[] translateJoinGame757To759(byte[] payload) {
-        try {
-            JoinGame757 join = parseJoinGame757(payload);
-            String dimensionName = dimensionName757(join.dimension(), join.dimensionCodec());
-            return writeJoinGame759(new JoinGame759(join.entityId(), join.hardcore(),
-                    join.gameMode(), join.previousGameMode(), join.worldNames(),
-                    translateDimensionCodec757To759(join.dimensionCodec()), dimensionName,
-                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
-                    join.simulationDistance(), join.reducedDebug(), join.enableRespawnScreen(),
-                    join.isDebug(), join.isFlat(), false, null, 0));
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Join Game（759 → 757）。dimension は名前から757の element を引き、
-     * dimensionCodec は757形式に直す（chat_type を落とす）。lastDeathLocation は落とす。
-     * 読めないペイロードは素通しする。
-     */
-    public static byte[] translateJoinGame759To757(byte[] payload) {
-        try {
-            JoinGame759 join = parseJoinGame759(payload);
-            Tag dimension = dimensionValue759(join.dimension(), join.dimensionCodec());
-            return writeJoinGame757(new JoinGame757(join.entityId(), join.hardcore(),
-                    join.gameMode(), join.previousGameMode(), join.worldNames(),
-                    translateDimensionCodec759To757(join.dimensionCodec()), dimension,
-                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
-                    join.simulationDistance(), join.reducedDebug(), join.enableRespawnScreen(),
-                    join.isDebug(), join.isFlat()));
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Respawn
-    // ------------------------------------------------------------------
-
-    /** 757の Respawn（SpawnInfo）の中身。dimension は DimensionType の値そのもの（NBT）。previousGameMode は u8（Join Game の i8 とは違う。protocol.json で確認）。 */
-    public record SpawnInfo757(Tag dimension, String worldName, long hashedSeed, int gameMode,
-            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata) {
-    }
-
-    /** 759の Respawn（SpawnInfo）の中身。dimension は ResourceKey（文字列）。death は lastDeathLocation。 */
-    public record SpawnInfo759(String dimension, String worldName, long hashedSeed, int gameMode,
-            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata,
-            boolean hasDeath, String deathDimension, long deathLocation) {
-    }
-
-    /** 757の SpawnInfo を読む。 */
-    public static SpawnInfo757 readSpawnInfo757(Reader reader) {
-        Tag dimension = reader.readNamedNbt().tag();
-        String worldName = reader.readString();
-        long hashedSeed = reader.readLong();
-        int gameMode = reader.readUnsignedByte();
-        int previousGameMode = reader.readUnsignedByte();
-        boolean isDebug = reader.readBoolean();
-        boolean isFlat = reader.readBoolean();
-        boolean copyMetadata = reader.readBoolean();
-        return new SpawnInfo757(dimension, worldName, hashedSeed, gameMode,
-                previousGameMode, isDebug, isFlat, copyMetadata);
-    }
-
-    /** 759の SpawnInfo を読む。 */
-    public static SpawnInfo759 readSpawnInfo759(Reader reader) {
-        String dimension = reader.readString();
-        String worldName = reader.readString();
-        long hashedSeed = reader.readLong();
-        int gameMode = reader.readUnsignedByte();
-        int previousGameMode = reader.readUnsignedByte();
-        boolean isDebug = reader.readBoolean();
-        boolean isFlat = reader.readBoolean();
-        boolean copyMetadata = reader.readBoolean();
-        boolean hasDeath = reader.readBoolean();
-        String deathDimension = null;
-        long deathLocation = 0;
-        if (hasDeath) {
-            deathDimension = reader.readString();
-            deathLocation = reader.readPositionRaw();
-        }
-        return new SpawnInfo759(dimension, worldName, hashedSeed, gameMode,
-                previousGameMode, isDebug, isFlat, copyMetadata, hasDeath, deathDimension,
-                deathLocation);
-    }
-
-    /** 757の SpawnInfo を書く。 */
-    public static void writeSpawnInfo757(Writer writer, SpawnInfo757 info) {
-        writer.writeNamedNbt("", info.dimension());
-        writer.writeString(info.worldName());
-        writer.writeLong(info.hashedSeed());
-        writer.writeByte(info.gameMode());
-        writer.writeByte(info.previousGameMode());
-        writer.writeBoolean(info.isDebug());
-        writer.writeBoolean(info.isFlat());
-        writer.writeBoolean(info.copyMetadata());
-    }
-
-    /** 759の SpawnInfo を書く。 */
-    public static void writeSpawnInfo759(Writer writer, SpawnInfo759 info) {
-        writer.writeString(info.dimension());
-        writer.writeString(info.worldName());
-        writer.writeLong(info.hashedSeed());
-        writer.writeByte(info.gameMode());
-        writer.writeByte(info.previousGameMode());
-        writer.writeBoolean(info.isDebug());
-        writer.writeBoolean(info.isFlat());
-        writer.writeBoolean(info.copyMetadata());
-        writer.writeBoolean(info.hasDeath());
-        if (info.hasDeath()) {
-            writer.writeString(info.deathDimension());
-            writer.writePositionRaw(info.deathLocation());
-        }
-    }
-
-    /**
-     * Respawn（757 → 759）。dimension は NBT の値から名前を引く（codec が無いため既定の757 element との一致で判定）。
-     * lastDeathLocation は757に無いため absent。copyMetadata はそのまま写す。
-     * previousGameMode は u8 のまま写す（範囲検査はしない。Join Game の i8 と違い、"無し" の符号が protocol.json には無いため）。
-     * 読めないペイロードは素通しする。
-     */
-    public static byte[] translateRespawn757To759(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            SpawnInfo757 info = readSpawnInfo757(reader);
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writeSpawnInfo759(writer, new SpawnInfo759(
-                    dimensionName757(info.dimension(), null),
-                    info.worldName(), info.hashedSeed(), info.gameMode(),
-                    info.previousGameMode(), info.isDebug(), info.isFlat(),
-                    info.copyMetadata(), false, null, 0));
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Respawn（759 → 757）。dimension は名前から757の element を引く。lastDeathLocation は落とす。
-     * copyMetadata はそのまま写す。読めないペイロードは素通しする。
-     */
-    public static byte[] translateRespawn759To757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            SpawnInfo759 info = readSpawnInfo759(reader);
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writeSpawnInfo757(writer, new SpawnInfo757(
-                    dimensionValue759(info.dimension()),
-                    info.worldName(), info.hashedSeed(), info.gameMode(),
-                    info.previousGameMode(), info.isDebug(), info.isFlat(),
-                    info.copyMetadata()));
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // チャット
-    // ------------------------------------------------------------------
-
-    /** 1.18の Chat の position（i8）を1.19の System Chat の type（varint）に直す。0=chat、1=system、2=game_info。範囲外は chat（0）。 */
-    private static int chatPositionToChatType(int position) {
-        if (position < 0 || position > 2) {
-            LOG.warning("Chat の position が範囲外のため chat（0）にします: " + position);
-            return 0;
-        }
-        return position;
-    }
-
-    /** 1.19の System Chat の type（varint）を1.18の Chat の position（i8）に直す。0=chat、1=system、2=game_info。3〜7（say_command 等）は1.18に無いため chat（0）扱いにする。範囲外も chat（0）。 */
-    private static int chatTypeToChatPosition(int type) {
-        if (type < 0 || type > 7) {
-            LOG.warning("System Chat の type が範囲外のため chat（0）にします: " + type);
-            return 0;
-        }
-        return type <= 2 ? type : 0;
-    }
-
-    /**
-     * Chat（757 クライアント行き 0x0F → 759 System Chat 0x5F）。
-     * 757は {message string, position i8, sender UUID}、759は {content string, type varint}。
-     * position は chat_type の id と同じ並び（0=chat、1=system、2=game_info）。
-     * sender は System Chat に無いため落とす。
-     * （注：759の System Chat の type は varint であり、overlay bool ではない。
-     * overlay bool は1.19.1／760で追加されたもので、759には無い。
-     * minecraft-data mc-1.19-protocol.json の packet_system_chat で確認。）
-     */
-    public static byte[] translateChat757ToSystemChat(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String message = reader.readString();
-            int position = reader.readByte();
-            reader.readUuid(); // sender（759 の System Chat には無い）
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeString(message);
-            writer.writeVarInt(chatPositionToChatType(position));
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Chat を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * System Chat（759 0x5F → 757 Chat 0x0F）。sender は無いため nil UUID を補う。
-     * type 3〜7（say_command 等）は1.18に無いため chat（position 0）扱いにする。
-     */
-    public static byte[] translateSystemChat759ToChat(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String content = reader.readString();
-            int type = reader.readVarInt();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeString(content);
-            writer.writeByte(chatTypeToChatPosition(type));
-            writer.writeUuid(NIL_UUID);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("System Chat を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Chat（757 サーバー行き 0x03 → 759 Chat Message 0x04）。"/" で始まるものはコマンドのため null を返す
-     * （translateChat757ToChatCommand を使う。ProxySession は null の場合にそちらを試す）。
-     * 署名は無いため timestamp＝現在時刻、salt＝0、署名は空、signedPreview＝false で埋める
-     * （763の簡略形と同じ方針。署名の検証はしない）。
-     */
-    public static byte[] translateChat757ToChatMessage(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String message = reader.readString();
-            requireEnd(reader);
-            if (message.startsWith("/")) {
-                return null;
-            }
-            Writer writer = new Writer();
-            writer.writeString(message);
-            writer.writeLong(System.currentTimeMillis());
-            writer.writeLong(0L);
-            writer.writeByteArray(new byte[0]);
-            writer.writeBoolean(false);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Chat を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Chat（757 サーバー行き 0x03 → 759 Chat Command 0x03）。"/" で始まらないものはコマンドではないため null を返す
-     * （translateChat757ToChatMessage を使う）。コマンド文字列は "/" を除いたもの。
-     * 引数署名は空、timestamp＝現在時刻、salt＝0、signedPreview＝false で埋める。
-     */
-    public static byte[] translateChat757ToChatCommand(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String message = reader.readString();
-            requireEnd(reader);
-            if (!message.startsWith("/")) {
-                return null;
-            }
-            Writer writer = new Writer();
-            writer.writeString(message.substring(1));
-            writer.writeLong(System.currentTimeMillis());
-            writer.writeLong(0L);
-            writer.writeVarInt(0); // argumentSignatures（空）
-            writer.writeBoolean(false);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Chat を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /** Chat Message（759 サーバー行き 0x04 → 757 Chat 0x03）。署名・タイムスタンプ・salt・signedPreview を落として本文だけ通す。 */
-    public static byte[] translateChatMessage759ToChat(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String message = reader.readString();
-            reader.readLong(); // timestamp
-            reader.readLong(); // salt
-            reader.readByteArray(); // signature
-            reader.readBoolean(); // signedPreview
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeString(message);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Chat Message を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /** Chat Command（759 サーバー行き 0x03 → 757 Chat 0x03）。"/" を付けて戻す。引数署名は落とす。 */
-    public static byte[] translateChatCommand759ToChat(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String command = reader.readString();
-            reader.readLong(); // timestamp
-            reader.readLong(); // salt
-            int argCount = reader.readVarInt();
-            if (argCount < 0) {
-                throw new IllegalArgumentException("Chat Command の引数の件数が負です: " + argCount);
-            }
-            for (int i = 0; i < argCount; i++) {
-                reader.readString();
-                reader.readByteArray();
-            }
-            reader.readBoolean(); // signedPreview
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeString("/" + command);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Chat Command を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Player Chat（759 クライアント行き 0x30 → 757）。署名付きのため757へは変換せず null を返す（落とす）。
-     * 759の Player Chat は署名付きの発言で、757の Chat には署名の送り先が無い。
-     * 本文だけを Chat に直すことも考えられるが、chat_type の装飾（"&lt;名前&gt; 本文" 等）を
-     * プロキシが合成することになり、サーバーの書式とずれるため行わない。
-     * 呼び出し側（ProxySession）は null を受けたらパケットを落とす。
-     */
-    public static byte[] translatePlayerChat759ToChat(byte[] payload) {
-        return null;
-    }
-
-    // ------------------------------------------------------------------
-    // Spawn Entity
-    // ------------------------------------------------------------------
-
-    /** 759の painting のエンティティ種別 id。registries-1.19.json で確認（757は60）。 */
     private static final int PAINTING_ENTITY_759 = 63;
-
-    /** 759の painting のエンティティ種別 id（757側は60）。registries-1.18.json で確認。 */
     private static final int PAINTING_ENTITY_757 = 60;
-
-    /**
-     * 759のエンティティ種別 id のうち、living（LivingEntity）ではないもの39件。
-     * 実バニラ1.19の server.jar のクラス階層で確認（EntityType の静的初期化子から名前→クラスを引き、
-     * LivingEntity（bbf）の子孫かどうかを javap で判定）。painting（63）を含む。
-     */
     private static final int[] NON_LIVING_ENTITY_759_IDS = {
             1, 3, 8, 9, 18, 21, 26, 27, 28, 29, 30, 35, 44, 45, 46, 47, 48, 50, 52, 53, 54, 55,
             56, 57, 58, 59, 63, 72, 79, 84, 86, 87, 93, 94, 95, 96, 97, 109, 117,
     };
-
-    /** 759のエンティティ種別 id が living（LivingEntity）かどうか。範囲外の id は living 扱いしない（汎用パケットへ回す）。 */
-    public static boolean isLivingEntityType759(int type759) {
-        if (type759 < 0 || type759 > 117) {
-            return false;
-        }
-        return java.util.Arrays.binarySearch(NON_LIVING_ENTITY_759_IDS, type759) < 0;
-    }
-
-    /**
-     * Spawn Entity Living（757 0x02 → 759 Spawn Entity 0x00）。
-     * 757は {entityId, uuid, type, x, y, z, yaw, pitch, headPitch, velocity}、
-     * 759は {entityId, uuid, type, x, y, z, pitch, yaw, headPitch, objectData, velocity}。
-     * pitch／yaw の順序を入れ替え、type はエンティティ種別表で付け替え、
-     * objectData は 0 を補う（living には不要。実バニラ1.19の ClientboundAddEntityPacket(Entity) は
-     * this(entity, 0) で、javap で確認）。
-     */
-    public static byte[] translateSpawnEntityLiving757ToSpawnEntity759(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int entityId = reader.readVarInt();
-            UUID uuid = reader.readUuid();
-            int type = reader.readVarInt();
-            double x = reader.readDouble();
-            double y = reader.readDouble();
-            double z = reader.readDouble();
-            int yaw = reader.readByte();
-            int pitch = reader.readByte();
-            int headPitch = reader.readByte();
-            int velX = reader.readShort();
-            int velY = reader.readShort();
-            int velZ = reader.readShort();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(entityId);
-            writer.writeUuid(uuid);
-            writer.writeVarInt(RegistryRemapper.mapEntityType757To759(type));
-            writer.writeDouble(x);
-            writer.writeDouble(y);
-            writer.writeDouble(z);
-            writer.writeByte(pitch);
-            writer.writeByte(yaw);
-            writer.writeByte(headPitch);
-            writer.writeVarInt(0); // objectData（living は 0）
-            writer.writeShort(velX);
-            writer.writeShort(velY);
-            writer.writeShort(velZ);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Spawn Entity Living を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Spawn Entity（757 0x00 → 759 Spawn Entity 0x00）。
-     * 757は {entityId, uuid, type, x, y, z, pitch, yaw, objectData i32, velocity}、
-     * 759は {entityId, uuid, type, x, y, z, pitch, yaw, headPitch, objectData varint, velocity}。
-     * headPitch は 0 を補う（実バニラ1.19の (Entity, int) コンストラクタは yHeadRot=0.0 で、javap で確認）。
-     * objectData は i32→varint に直す。type はエンティティ種別表で付け替える。
-     */
-    public static byte[] translateSpawnEntity757To759(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int entityId = reader.readVarInt();
-            UUID uuid = reader.readUuid();
-            int type = reader.readVarInt();
-            double x = reader.readDouble();
-            double y = reader.readDouble();
-            double z = reader.readDouble();
-            int pitch = reader.readByte();
-            int yaw = reader.readByte();
-            int objectData = reader.readInt();
-            int velX = reader.readShort();
-            int velY = reader.readShort();
-            int velZ = reader.readShort();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(entityId);
-            writer.writeUuid(uuid);
-            writer.writeVarInt(RegistryRemapper.mapEntityType757To759(type));
-            writer.writeDouble(x);
-            writer.writeDouble(y);
-            writer.writeDouble(z);
-            writer.writeByte(pitch);
-            writer.writeByte(yaw);
-            writer.writeByte(0); // headPitch（汎用は 0）
-            writer.writeVarInt(objectData);
-            writer.writeShort(velX);
-            writer.writeShort(velY);
-            writer.writeShort(velZ);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /** 方向の3D data value（DOWN=0、UP=1、NORTH=2、SOUTH=3、WEST=4、EAST=5）を絵画の yaw（i8）に直す。SOUTH=0、WEST=64、NORTH=-128、EAST=-64。上下は絵画に無いため SOUTH（0）扱い。 */
-    private static int paintingDirectionToYaw(int direction) {
-        return switch (direction) {
-            case 4 -> 64; // WEST：90度
-            case 2 -> -128; // NORTH：180度
-            case 5 -> -64; // EAST：270度
-            default -> 0; // SOUTH（3）・上下（0／1）・範囲外
-        };
-    }
-
-    /**
-     * Spawn Entity Painting（757 0x03 → 759 Spawn Entity 0x00）。
-     * 757は {entityId, uuid, motive varint, pos, direction u8}、
-     * 759は {entityId, uuid, type, x, y, z, pitch, yaw, headPitch, objectData, velocity}。
-     * type は painting（757:60→759:63）。x／y／z はブロック座標を double に直す。
-     * pitch=0、yaw は direction から（実バニラ1.19の AbstractPainting.setDirection は
-     * setYRot(get2DDataValue()*90) で、javap で確認）、headPitch=0、
-     * objectData は direction の3D data value（実バニラ1.19の Painting.getAddEntityPacket は
-     * new ClientboundAddEntityPacket(this, direction.get3DDataValue(), blockPos) で、javap で確認）、
-     * velocity は (0, 0, 0)。motive（絵柄）は759の Spawn Entity には無いため落とす
-     * （絵柄は後の Set Entity Data で送られる）。
-     */
-    public static byte[] translateSpawnEntityPainting757ToSpawnEntity759(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int entityId = reader.readVarInt();
-            UUID uuid = reader.readUuid();
-            reader.readVarInt(); // motive（759 には無い）
-            long pos = reader.readPositionRaw();
-            int direction = reader.readUnsignedByte();
-            requireEnd(reader);
-            int x = (int) (pos >> 38);
-            int y = (int) (pos & 0xFFF);
-            int z = (int) ((pos << 26) >> 38); // 26ビットの符号付き（負の座標も正しく復元する）
-            Writer writer = new Writer();
-            writer.writeVarInt(entityId);
-            writer.writeUuid(uuid);
-            writer.writeVarInt(RegistryRemapper.mapEntityType757To759(PAINTING_ENTITY_757));
-            writer.writeDouble(x);
-            writer.writeDouble(y);
-            writer.writeDouble(z);
-            writer.writeByte(0); // pitch（絵画は0）
-            writer.writeByte(paintingDirectionToYaw(direction));
-            writer.writeByte(0); // headPitch
-            writer.writeVarInt(direction); // objectData（3D data value）
-            writer.writeShort(0);
-            writer.writeShort(0);
-            writer.writeShort(0);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Spawn Entity Painting を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Spawn Entity（759 0x00 → 757 Spawn Entity Living 0x02）。type が living の場合のみ変換し、それ以外は null を返す。
-     * pitch／yaw の順序を入れ替え、objectData を落とす。type はエンティティ種別表で付け替える。
-     */
-    public static byte[] translateSpawnEntity759ToLiving(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int entityId = reader.readVarInt();
-            UUID uuid = reader.readUuid();
-            int type = reader.readVarInt();
-            if (!isLivingEntityType759(type)) {
-                return null;
-            }
-            double x = reader.readDouble();
-            double y = reader.readDouble();
-            double z = reader.readDouble();
-            int pitch = reader.readByte();
-            int yaw = reader.readByte();
-            int headPitch = reader.readByte();
-            reader.readVarInt(); // objectData（757 の living には無い）
-            int velX = reader.readShort();
-            int velY = reader.readShort();
-            int velZ = reader.readShort();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(entityId);
-            writer.writeUuid(uuid);
-            writer.writeVarInt(RegistryRemapper.mapEntityType759To757(type));
-            writer.writeDouble(x);
-            writer.writeDouble(y);
-            writer.writeDouble(z);
-            writer.writeByte(yaw);
-            writer.writeByte(pitch);
-            writer.writeByte(headPitch);
-            writer.writeShort(velX);
-            writer.writeShort(velY);
-            writer.writeShort(velZ);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Spawn Entity（759 0x00 → 757 Spawn Entity 0x00）。type が living でも painting でもない場合のみ変換し、
-     * それ以外は null を返す（translateSpawnEntity759ToLiving／translateSpawnEntity759ToPainting を使う）。
-     * headPitch を落とし、objectData は varint→i32 に直す。type はエンティティ種別表で付け替える。
-     */
-    public static byte[] translateSpawnEntity759To757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int entityId = reader.readVarInt();
-            UUID uuid = reader.readUuid();
-            int type = reader.readVarInt();
-            if (type == PAINTING_ENTITY_759 || isLivingEntityType759(type)) {
-                return null;
-            }
-            double x = reader.readDouble();
-            double y = reader.readDouble();
-            double z = reader.readDouble();
-            int pitch = reader.readByte();
-            int yaw = reader.readByte();
-            reader.readByte(); // headPitch（757 の汎用には無い）
-            int objectData = reader.readVarInt();
-            int velX = reader.readShort();
-            int velY = reader.readShort();
-            int velZ = reader.readShort();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(entityId);
-            writer.writeUuid(uuid);
-            writer.writeVarInt(RegistryRemapper.mapEntityType759To757(type));
-            writer.writeDouble(x);
-            writer.writeDouble(y);
-            writer.writeDouble(z);
-            writer.writeByte(pitch);
-            writer.writeByte(yaw);
-            writer.writeInt(objectData);
-            writer.writeShort(velX);
-            writer.writeShort(velY);
-            writer.writeShort(velZ);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Spawn Entity（759 0x00 → 757 Spawn Entity Painting 0x03）。type が painting（63）の場合のみ変換し、それ以外は null を返す。
-     * x／y／z は double からブロック座標に直す。direction は objectData（3D data value）。
-     * motive（絵柄）は Spawn Entity からは分からないため 0（kebab。1.18の既定）にする。
-     * 正しい絵柄は後の Set Entity Data で送られる（別途の変換対象）。
-     */
-    public static byte[] translateSpawnEntity759ToPainting(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int entityId = reader.readVarInt();
-            UUID uuid = reader.readUuid();
-            int type = reader.readVarInt();
-            if (type != PAINTING_ENTITY_759) {
-                return null;
-            }
-            double x = reader.readDouble();
-            double y = reader.readDouble();
-            double z = reader.readDouble();
-            reader.readByte(); // pitch（絵画は0。使わない）
-            reader.readByte(); // yaw（direction から決まるため使わない）
-            reader.readByte(); // headPitch（使わない）
-            int objectData = reader.readVarInt();
-            reader.readShort(); // velocity（使わない）
-            reader.readShort();
-            reader.readShort();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(entityId);
-            writer.writeUuid(uuid);
-            writer.writeVarInt(0); // motive：不明のため kebab（0）
-            writer.writePositionRaw(packBlockPosition(
-                    (int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z)));
-            writer.writeByte(objectData);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Player Info／Set Held Item／Vehicle Move
-    // ------------------------------------------------------------------
-
-    /** Player Info のプロパティ1件（signature は option）。 */
-    private record PlayerInfo757Property(String name, String value, boolean hasSignature, String signature) {
-    }
-
-    /** Player Info 1エントリ分（crypto は759の add_player にだけある）。 */
-    private record PlayerInfo757Entry(UUID uuid, String name, List<PlayerInfo757Property> properties,
-            int gameMode, int ping, boolean hasDisplayName, String displayName,
-            boolean hasCrypto, long cryptoTimestamp, byte[] cryptoPublicKey,
-            byte[] cryptoSignature) {
-    }
-
-    /** Player Info の action が範囲内か（0=add_player、1=update_game_mode、2=update_latency、3=update_display_name、4=remove_player）。 */
-    private static void checkPlayerInfoAction(int action) {
-        if (action < 0 || action > 4) {
-            throw new IllegalArgumentException("Player Info の action が範囲外です: " + action);
-        }
-    }
-
-    /** Player Info 1エントリ分を読む。hasCryptoField が true の場合（759）は add_player の crypto も読む。 */
-    private static PlayerInfo757Entry readPlayerInfo757Entry(Reader reader, int action, boolean hasCryptoField) {
-        UUID uuid = reader.readUuid();
-        String name = null;
-        List<PlayerInfo757Property> properties = List.of();
-        int gameMode = 0;
-        int ping = 0;
-        boolean hasDisplayName = false;
-        String displayName = null;
-        boolean hasCrypto = false;
-        long cryptoTimestamp = 0;
-        byte[] cryptoPublicKey = null;
-        byte[] cryptoSignature = null;
-        switch (action) {
-            case 0 -> {
-                name = reader.readString();
-                int propertyCount = reader.readVarInt();
-                if (propertyCount < 0) {
-                    throw new IllegalArgumentException(
-                            "Player Info のプロパティ件数が負です: " + propertyCount);
-                }
-                List<PlayerInfo757Property> props = new ArrayList<>(propertyCount);
-                for (int i = 0; i < propertyCount; i++) {
-                    String propertyName = reader.readString();
-                    String propertyValue = reader.readString();
-                    boolean hasSignature = reader.readBoolean();
-                    String signature = hasSignature ? reader.readString() : null;
-                    props.add(new PlayerInfo757Property(propertyName, propertyValue, hasSignature, signature));
-                }
-                properties = props;
-                gameMode = reader.readVarInt();
-                ping = reader.readVarInt();
-                hasDisplayName = reader.readBoolean();
-                displayName = hasDisplayName ? reader.readString() : null;
-                if (hasCryptoField) {
-                    hasCrypto = reader.readBoolean();
-                    if (hasCrypto) {
-                        cryptoTimestamp = reader.readLong();
-                        cryptoPublicKey = reader.readByteArray();
-                        cryptoSignature = reader.readByteArray();
-                    }
-                }
-            }
-            case 1 -> gameMode = reader.readVarInt();
-            case 2 -> ping = reader.readVarInt();
-            case 3 -> {
-                hasDisplayName = reader.readBoolean();
-                displayName = hasDisplayName ? reader.readString() : null;
-            }
-            case 4 -> {
-                // remove_player：UUID だけ
-            }
-            default -> throw new IllegalArgumentException("Player Info の action が範囲外です: " + action);
-        }
-        return new PlayerInfo757Entry(uuid, name, properties, gameMode, ping,
-                hasDisplayName, displayName, hasCrypto, cryptoTimestamp, cryptoPublicKey, cryptoSignature);
-    }
-
-    /** Player Info 1エントリ分を書く。writeCrypto が true の場合（759）は add_player の crypto も書く（無ければ absent）。 */
-    private static void writePlayerInfo757Entry(Writer writer, PlayerInfo757Entry entry, int action, boolean writeCrypto) {
-        writer.writeUuid(entry.uuid());
-        switch (action) {
-            case 0 -> {
-                writer.writeString(entry.name());
-                writer.writeVarInt(entry.properties().size());
-                for (PlayerInfo757Property property : entry.properties()) {
-                    writer.writeString(property.name());
-                    writer.writeString(property.value());
-                    writer.writeBoolean(property.hasSignature());
-                    if (property.hasSignature()) {
-                        writer.writeString(property.signature());
-                    }
-                }
-                writer.writeVarInt(entry.gameMode());
-                writer.writeVarInt(entry.ping());
-                writer.writeBoolean(entry.hasDisplayName());
-                if (entry.hasDisplayName()) {
-                    writer.writeString(entry.displayName());
-                }
-                if (writeCrypto) {
-                    writer.writeBoolean(entry.hasCrypto());
-                    if (entry.hasCrypto()) {
-                        writer.writeLong(entry.cryptoTimestamp());
-                        writer.writeByteArray(entry.cryptoPublicKey());
-                        writer.writeByteArray(entry.cryptoSignature());
-                    }
-                }
-            }
-            case 1 -> writer.writeVarInt(entry.gameMode());
-            case 2 -> writer.writeVarInt(entry.ping());
-            case 3 -> {
-                writer.writeBoolean(entry.hasDisplayName());
-                if (entry.hasDisplayName()) {
-                    writer.writeString(entry.displayName());
-                }
-            }
-            case 4 -> {
-                // remove_player：UUID だけ
-            }
-            default -> throw new IllegalArgumentException("Player Info の action が範囲外です: " + action);
-        }
-    }
-
-    /**
-     * Player Info（757 0x36 → 759 0x34）。759は add_player に crypto（公開鍵＋署名の option）が追加されたため、
-     * 757→759では absent を補う。action 1〜4（update_game_mode／update_latency／update_display_name／remove_player）は同一。
-     * （minecraft-data mc-1.18／mc-1.19-protocol.json の packet_player_info で確認。）
-     */
-    public static byte[] translatePlayerInfo757To759(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int action = reader.readVarInt();
-            checkPlayerInfoAction(action);
-            int count = reader.readVarInt();
-            if (count < 0) {
-                throw new IllegalArgumentException("Player Info の件数が負です: " + count);
-            }
-            List<PlayerInfo757Entry> entries = new ArrayList<>(count);
-            for (int i = 0; i < count; i++) {
-                entries.add(readPlayerInfo757Entry(reader, action, false));
-            }
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(action);
-            writer.writeVarInt(count);
-            for (PlayerInfo757Entry entry : entries) {
-                writePlayerInfo757Entry(writer, entry, action, true);
-            }
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Player Info を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Player Info（759 0x34 → 757 0x36）。add_player の crypto を落とす。
-     * それ以外は同一。
-     */
-    public static byte[] translatePlayerInfo759To757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int action = reader.readVarInt();
-            checkPlayerInfoAction(action);
-            int count = reader.readVarInt();
-            if (count < 0) {
-                throw new IllegalArgumentException("Player Info の件数が負です: " + count);
-            }
-            List<PlayerInfo757Entry> entries = new ArrayList<>(count);
-            for (int i = 0; i < count; i++) {
-                entries.add(readPlayerInfo757Entry(reader, action, true));
-            }
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(action);
-            writer.writeVarInt(count);
-            for (PlayerInfo757Entry entry : entries) {
-                writePlayerInfo757Entry(writer, entry, action, false);
-            }
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Player Info を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /** Set Held Item（757 0x48 → 759 0x47）。{slot i8} は同一のため素通しする（IDの付け替えは呼び出し側）。 */
-    public static byte[] translateSetHeldItem757To759(byte[] payload) {
-        return payload;
-    }
-
-    /** Set Held Item（759 0x47 → 757 0x48）。{slot i8} は同一のため素通しする。 */
-    public static byte[] translateSetHeldItem759To757(byte[] payload) {
-        return payload;
-    }
-
-    /** Held Item Change（サーバー行き。757 0x25 → 759 0x27）。{slotId i16} は同一のため素通しする。 */
-    public static byte[] translateHeldItemChange757To759(byte[] payload) {
-        return payload;
-    }
-
-    /** Held Item Change（サーバー行き。759 0x27 → 757 0x25）。{slotId i16} は同一のため素通しする。 */
-    public static byte[] translateHeldItemChange759To757(byte[] payload) {
-        return payload;
-    }
-
-    /** Vehicle Move（757 0x2C → 759 0x29）。{x／y／z f64, yaw／pitch f32} は同一のため素通しする。 */
-    public static byte[] translateVehicleMove757To759(byte[] payload) {
-        return payload;
-    }
-
-    /** Vehicle Move（759 0x29 → 757 0x2C）。同一のため素通しする。 */
-    public static byte[] translateVehicleMove759To757(byte[] payload) {
-        return payload;
-    }
-
-    // ---------------------------------------------------------------
-    // 757 <=> 759：クライアント→サーバー側の小さい変換器（統合ステップで追加）
-    // フィールド構成は minecraft-data protocol.json（mc-1.18／mc-1.19／
-    // mc-1.20／mc-26.1-protocol.json）で実測。Wiki値は使っていない。
-    // 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
-    // ---------------------------------------------------------------
-
-    /**
-     * Block Dig（757 → 759）。757は {status varint, location position, face i8}、
-     * 759は末尾に sequence（varint）が付く。sequence はサーバー側の照合用で、
-     * 757クライアントは送ってこないため 0 を補う。
-     */
-    public static byte[] translateBlockDig757To759(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int status = reader.readVarInt();
-            long location = reader.readPositionRaw();
-            int face = reader.readByte();
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Block Dig に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeVarInt(status);
-            writer.writePositionRaw(location);
-            writer.writeByte(face);
-            writer.writeVarInt(0); // sequence：757には無いため 0 を補う
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Block Dig（763 → 757）。763は759と同じく末尾に sequence（varint）が付くため剥がす。
-     * 763／764／765は同形式のため共用する。
-     */
-    public static byte[] translateBlockDig763To757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int status = reader.readVarInt();
-            long location = reader.readPositionRaw();
-            int face = reader.readByte();
-            reader.readVarInt(); // sequence：757には無いため落とす
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Block Dig に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeVarInt(status);
-            writer.writePositionRaw(location);
-            writer.writeByte(face);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Block Place（757 → 759）。757は {hand varint, location position, direction varint,
-     * cursorX／Y／Z f32, insideBlock bool}、759は末尾に sequence（varint）が付く。
-     * sequence は 0 を補う。
-     */
-    public static byte[] translateBlockPlace757To759(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int hand = reader.readVarInt();
-            long location = reader.readPositionRaw();
-            int direction = reader.readVarInt();
-            float cursorX = reader.readFloat();
-            float cursorY = reader.readFloat();
-            float cursorZ = reader.readFloat();
-            boolean insideBlock = reader.readBoolean();
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Block Place に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeVarInt(hand);
-            writer.writePositionRaw(location);
-            writer.writeVarInt(direction);
-            writer.writeFloat(cursorX);
-            writer.writeFloat(cursorY);
-            writer.writeFloat(cursorZ);
-            writer.writeBoolean(insideBlock);
-            writer.writeVarInt(0); // sequence：757には無いため 0 を補う
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Block Place（763 → 757）。763は759と同じく末尾に sequence（varint）が付くため剥がす。
-     * 763／764／765は同形式のため共用する。
-     */
-    public static byte[] translateBlockPlace763To757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int hand = reader.readVarInt();
-            long location = reader.readPositionRaw();
-            int direction = reader.readVarInt();
-            float cursorX = reader.readFloat();
-            float cursorY = reader.readFloat();
-            float cursorZ = reader.readFloat();
-            boolean insideBlock = reader.readBoolean();
-            reader.readVarInt(); // sequence：757には無いため落とす
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Block Place に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeVarInt(hand);
-            writer.writePositionRaw(location);
-            writer.writeVarInt(direction);
-            writer.writeFloat(cursorX);
-            writer.writeFloat(cursorY);
-            writer.writeFloat(cursorZ);
-            writer.writeBoolean(insideBlock);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Use Item（757 → 759）。757は {hand varint}、759は末尾に sequence（varint）が付く。
-     * sequence は 0 を補う。
-     */
-    public static byte[] translateUseItem757To759(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int hand = reader.readVarInt();
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Use Item に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeVarInt(hand);
-            writer.writeVarInt(0); // sequence：757には無いため 0 を補う
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Use Item（763 → 757）。763は759と同じく末尾に sequence（varint）が付くため剥がす。
-     * 763／764／765は同形式のため共用する。
-     */
-    public static byte[] translateUseItem763To757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int hand = reader.readVarInt();
-            reader.readVarInt(); // sequence：757には無いため落とす
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Use Item に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeVarInt(hand);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Set Beacon Effect（757 → 759）。757は {primary varint, secondary varint}、
-     * 759は {primary option varint, secondary option varint}。757の -1（無し）は
-     * absent（0x00）に直す。-1 が「無し」の慣習であることは実バニラの
-     * ClientboundSetBeaconEffect の仕様からの推論で、protocol.json では決まらない。
-     * 実機での確認は未実施。
-     */
-    public static byte[] translateSetBeaconEffect757To759(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int primary = reader.readVarInt();
-            int secondary = reader.readVarInt();
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Set Beacon Effect に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writeOptionalEffect(writer, primary);
-            writeOptionalEffect(writer, secondary);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /** Set Beacon Effect の option varint 1件分を書く（-1 は absent）。 */
-    private static void writeOptionalEffect(Writer writer, int effect) {
-        if (effect < 0) {
-            writer.writeBoolean(false);
-        } else {
-            writer.writeBoolean(true);
-            writer.writeVarInt(effect);
-        }
-    }
-
-    /**
-     * Set Beacon Effect（763 → 757）。763は759と同じく option varint のため、
-     * absent は -1 に戻す。763／764／765は同形式のため共用する。
-     */
-    public static byte[] translateSetBeaconEffect763To757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int primary = readOptionalEffect(reader);
-            int secondary = readOptionalEffect(reader);
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Set Beacon Effect に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeVarInt(primary);
-            writer.writeVarInt(secondary);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /** Set Beacon Effect の option varint 1件分を読む（absent は -1）。 */
-    private static int readOptionalEffect(Reader reader) {
-        if (!reader.readBoolean()) {
-            return -1;
-        }
-        return reader.readVarInt();
-    }
-
-    /**
-     * Update Structure Block（757 → 759）。seed だけが varlong（757）→ varint（759）で、
-     * それ以外は同一（location position, action varint, mode varint, name string,
-     * offset x／y／z i8, size x／y／z i8, mirror varint, rotation varint, metadata string,
-     * integrity f32, flags u8）。seed は64ビット→32ビットへの切り詰め（実機での確認は未実施）。
-     */
-    public static byte[] translateUpdateStructureBlock757To759(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            long location = reader.readPositionRaw();
-            int action = reader.readVarInt();
-            int mode = reader.readVarInt();
-            String name = reader.readString();
-            int offsetX = reader.readByte();
-            int offsetY = reader.readByte();
-            int offsetZ = reader.readByte();
-            int sizeX = reader.readByte();
-            int sizeY = reader.readByte();
-            int sizeZ = reader.readByte();
-            int mirror = reader.readVarInt();
-            int rotation = reader.readVarInt();
-            String metadata = reader.readString();
-            float integrity = reader.readFloat();
-            long seed = reader.readVarLong();
-            int flags = reader.readUnsignedByte();
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Update Structure Block に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writePositionRaw(location);
-            writer.writeVarInt(action);
-            writer.writeVarInt(mode);
-            writer.writeString(name);
-            writer.writeByte(offsetX);
-            writer.writeByte(offsetY);
-            writer.writeByte(offsetZ);
-            writer.writeByte(sizeX);
-            writer.writeByte(sizeY);
-            writer.writeByte(sizeZ);
-            writer.writeVarInt(mirror);
-            writer.writeVarInt(rotation);
-            writer.writeString(metadata);
-            writer.writeFloat(integrity);
-            writer.writeVarInt((int) seed);
-            writer.writeUnsignedByte(flags);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Update Structure Block（763 → 757）。763は759と同じく seed が varint のため varlong に戻す。
-     * 763／764／765は同形式のため共用する。
-     */
-    public static byte[] translateUpdateStructureBlock763To757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            long location = reader.readPositionRaw();
-            int action = reader.readVarInt();
-            int mode = reader.readVarInt();
-            String name = reader.readString();
-            int offsetX = reader.readByte();
-            int offsetY = reader.readByte();
-            int offsetZ = reader.readByte();
-            int sizeX = reader.readByte();
-            int sizeY = reader.readByte();
-            int sizeZ = reader.readByte();
-            int mirror = reader.readVarInt();
-            int rotation = reader.readVarInt();
-            String metadata = reader.readString();
-            float integrity = reader.readFloat();
-            int seed = reader.readVarInt();
-            int flags = reader.readUnsignedByte();
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Update Structure Block に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writePositionRaw(location);
-            writer.writeVarInt(action);
-            writer.writeVarInt(mode);
-            writer.writeString(name);
-            writer.writeByte(offsetX);
-            writer.writeByte(offsetY);
-            writer.writeByte(offsetZ);
-            writer.writeByte(sizeX);
-            writer.writeByte(sizeY);
-            writer.writeByte(sizeZ);
-            writer.writeVarInt(mirror);
-            writer.writeVarInt(rotation);
-            writer.writeString(metadata);
-            writer.writeFloat(integrity);
-            writer.writeVarLong(seed);
-            writer.writeUnsignedByte(flags);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Login Start（757 → 759）。757は {username string} のみ、759は末尾に
-     * signature の option（{timestamp i64, publicKey buffer, signature buffer}）が付く。
-     * 757クライアントは署名を持たないため absent（0x00）を補う。
-     */
-    public static byte[] translateLoginStart757To759(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String username = reader.readString();
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Login Start に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeString(username);
-            writer.writeBoolean(false); // signature 無し
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Login Start（759 → 757）。759の signature option を落として {username string} だけにする。
-     * 署名付きの場合は署名データを読み飛ばす。
-     */
-    public static byte[] translateLoginStart759To757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String username = reader.readString();
-            if (reader.readBoolean()) { // signature option
-                reader.readLong(); // timestamp
-                reader.readByteArray(); // publicKey
-                reader.readByteArray(); // signature
-            }
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Login Start に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeString(username);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Chat Message（763 → 757）。763は {message string, timestamp i64, salt i64,
-     * signature option（bool＋256バイト）, offset varint, acknowledged 3バイト}。
-     * 署名・タイムスタンプ等を剥がして757の chat {message string} に直す。
-     * 763／764／765は同形式のため共用する（775は末尾に checksum u8 が付くため別メソッド）。
-     */
-    public static byte[] translateChatMessage763To757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String message = reader.readString();
-            reader.readLong(); // timestamp
-            reader.readLong(); // salt
-            if (reader.readBoolean()) { // signature option
-                reader.readBytes(256);
-            }
-            reader.readVarInt(); // offset
-            reader.readBytes(3); // acknowledged
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Chat Message に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeString(message);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Chat Command（763 → 757）。763は {command string, timestamp i64, salt i64,
-     * argumentSignatures（count varint＋{name string, signature 256バイト}）,
-     * messageCount varint, acknowledged 3バイト}。署名等を剥がして757の chat
-     * {"/"＋command} に直す。763／764／765は同形式のため共用する。
-     */
-    public static byte[] translateChatCommand763To757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String command = reader.readString();
-            reader.readLong(); // timestamp
-            reader.readLong(); // salt
-            int count = reader.readVarInt();
-            for (int i = 0; i < count; i++) {
-                reader.readString(); // argumentName
-                reader.readBytes(256); // signature
-            }
-            reader.readVarInt(); // messageCount
-            reader.readBytes(3); // acknowledged
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Chat Command に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeString("/" + command);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Chat Message（775 → 757）。775は763形式の末尾に checksum（u8）が付く。
-     * 署名・タイムスタンプ等を剥がして757の chat {message string} に直す。
-     */
-    public static byte[] translateChatMessage775To757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String message = reader.readString();
-            reader.readLong(); // timestamp
-            reader.readLong(); // salt
-            if (reader.readBoolean()) { // signature option
-                reader.readBytes(256);
-            }
-            reader.readVarInt(); // offset
-            reader.readBytes(3); // acknowledged
-            reader.readByte(); // checksum
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Chat Message に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeString(message);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Chat Command（775 → 757）。775の符号なし Chat Command は {command string} のみ。
-     * 757の chat {"/"＋command} に直す。
-     */
-    public static byte[] translateChatCommand775To757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String command = reader.readString();
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Chat Command に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeString("/" + command);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Chat Command Signed（775 → 757）。775は {command string, timestamp i64, salt i64,
-     * argumentSignatures（count varint＋{name string, signature 256バイト}）,
-     * messageCount varint, acknowledged 3バイト, checksum u8}。署名等を剥がして
-     * 757の chat {"/"＋command} に直す。
-     */
-    public static byte[] translateChatCommandSigned775To757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String command = reader.readString();
-            reader.readLong(); // timestamp
-            reader.readLong(); // salt
-            int count = reader.readVarInt();
-            for (int i = 0; i < count; i++) {
-                reader.readString(); // argumentName
-                reader.readBytes(256); // signature
-            }
-            reader.readVarInt(); // messageCount
-            reader.readBytes(3); // acknowledged
-            reader.readByte(); // checksum
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Chat Command Signed に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeString("/" + command);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Attack（775 → 757 の Use Entity）。775は {entityId varint}、757は
-     * {target varint, mouse varint, sneaking bool}（mouse==1 が attack）。
-     * 775の attack パケットには sneaking が無いため false にする
-     * （translateAttack775ToUseEntity774 と同じ方針）。
-     */
-    public static byte[] translateAttack775ToUseEntity757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int target = reader.readVarInt();
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Attack に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeVarInt(target);
-            writer.writeVarInt(1); // mouse：attack
-            writer.writeBoolean(false); // sneaking：775の attack には無いため false
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Use Entity（775 → 757）。775は {target varint, hand varint, location（f32×3）,
-     * sneaking bool}、757は {target varint, mouse varint, x／y／z f32, hand varint,
-     * sneaking bool}。775 には素の interact（mouse==0）の形が無いため、
-     * 常に mouse==2（interact_at）として変換する
-     * （translateUseEntity775To774 と同じ方針）。
-     */
-    public static byte[] translateUseEntity775To757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int target = reader.readVarInt();
-            int hand = reader.readVarInt();
-            float x = reader.readFloat();
-            float y = reader.readFloat();
-            float z = reader.readFloat();
-            boolean sneaking = reader.readBoolean();
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Use Entity に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeVarInt(target);
-            writer.writeVarInt(2); // mouse：interact_at
-            writer.writeFloat(x);
-            writer.writeFloat(y);
-            writer.writeFloat(z);
-            writer.writeVarInt(hand);
-            writer.writeBoolean(sneaking);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            return payload;
-        }
-    }
-
-
-    // ================================================================
-    // 756 <=> 757 (1.17.1 <=> 1.18 / 1.18.1)
-    // ================================================================
-    //
-    // フィールド差分は minecraft-data protocol.json（mc-1.17.1／mc-1.18）で実測。
-    // play toClient の差分は次の5件だけ（それ以外は全て同一）。
-    //   - packet_login（Join Game）：757は viewDistance の後に simulationDistance（varint）が付く。
-    //   - packet_simulation_distance：757だけにある（0x57。1.18で追加。756には無い）。
-    //   - packet_map_chunk（Chunk Data）：756は {bitMap, heightmaps, biomes, chunkData, blockEntities}、
-    //     757は {heightmaps, chunkData, blockEntities, trustEdges, light masks, skyLight, blockLight}。
-    //     ChunkTranslator の担当のためここでは扱わない。
-    //   - packet_multi_block_change：chunkCoordinates の y が756は unsigned、757は signed。
-    //     ChunkTranslator の担当のためここでは扱わない。
-    //   - packet_tile_entity_data（Block Entity Data）：action が756は u8、757は varint。
-    //     ChunkTranslator の担当のためここでは扱わない。
-    // play toServer の差分は packet_settings（Client Information）1件だけ。
-    // login／handshaking／status は全パケット同一（差分0件）。
-    //
-    // 変換器を作らなかったもの（フィールド同一のため。protocol.json で確認。ID の付け替えだけは
-    // PacketIds の表に任せる）：Chat（両方向）、Player Info、Set Held Item、Vehicle Move、
-    // Block Dig／Block Place／Use Item（sequence は757・756とも無い。759で追加されたもの）、
-    // Set Beacon Effect（両方 {primary varint, secondary varint}。option化は759から）、
-    // Update Structure Block（seed は両方 varlong。varint化は759から）、
-    // Initialize World Border／World Border Lerp Size（speed は両方 varlong。varint化は759から）、
-    // Login Start（両方 {username} のみ。signature は759から）、
-    // Enchant Item（両方 {windowId i8, enchantment i8}）。
-    // Update Time は ID だけが違う（756=0x58、757=0x59。ペイロード同一）。
-    //
-    // dimensionCodec の違い（実バニラの Join Game ライブキャプチャで確認。
-    // 756：31,555バイト、757：23,986バイト。どちらも Python ソケットの偽クライアントで取得。
-    // JVM の TCP ループバックは遮断されるため Java クライアントは使えない）：
-    //   - dimension_type は4件・同一順序（overworld 0、overworld_caves 1、the_nether 2、the_end 3）で
-    //     id の写像は恒等。ただし overworld／overworld_caves の element は違う
-    //     （1.18のワールド高さ変更：logical_height 256→384、min_y 0→-64、height 256→384）ため
-    //     element は受信側の既定値で置き換える（757<=>759と同じ方針）。the_nether／the_end は同一。
-    //   - worldgen/biome は756が81件（id 0〜175の非連番）、757が61件（id 0〜60の連番）。
-    //     共有44件＋改名11件。757にしか無い6件は meadow→plains、grove→snowy_taiga、
-    //     snowy_slopes→snowy_tundra、frozen_peaks→snowy_mountains、jagged_peaks→mountains、
-    //     stony_peaks→mountains（RegistryTables756 の BIOME_756 表通り）。
-    //     756→757では57件を持ち越し、残る4件（meadow／snowy_slopes／jagged_peaks／
-    //     stony_peaks。grove／frozen_peaks は通常持ち越しで埋まる）を実バニラ1.18の element で
-    //     埋めて61件にする。757→756では56件を持ち越し、残る25件を実バニラ1.17.1の element で
-    //     埋めて81件にする。埋め表は両方向とも全件分（61件／81件）持つため、入力の codec が
-    //     欠けていても出力は完全な codec になる。
-    //   - 写像の衝突（複数の元が同じ先になる）は逆写像が指す正規の元を優先する。
-    //     756→757の衝突は20組あり、19組は先勝ちで正規の元が残るが、windswept_forest（757 id 20）
-    //     だけは例外で、wooded_hills（756 id 18）と wooded_mountains（756 id 34）が両方写り、
-    //     逆写像は34を指す。先勝ちだと18の element が残り、往復で wooded_mountains が18の
-    //     element に化けてしまうため、正規の元（34）が来たら上書きする。757→756の衝突4組は
-    //     先勝ちで正規の元が残るが、念のため同じ規則にしている。
-    //   - バイオーム element は756だけに depth・scale がある（1.18で削除）。
-    //     756→757では落とし、757→756では実バニラ1.17.1の値を足す
-    //     （depth は effects の直後、scale は temperature の直後に挿入し、並びも再現する）。
-    //     それ以外の値の違い（savanna の temperature 1.2→2.0、dripstone_caves／lush_caves への
-    //     music 追加等）は element をそのまま引き継ぐ（757<=>759と同じ方針で訂正しない）。
-    //   - Join Game の dimension は両方 NBT の値。Respawn は両方とも
-    //     {dimension NBT, worldName, seed, gameMode u8, previousGameMode u8, isDebug, isFlat,
-    //     copyMetadata bool} で同一。dataToKeep はどちらにも無い。
-    //
-    // 設計上の決定：
-    //   - 756→757の simulationDistance は viewDistance と同じ値にする
-    //     （1.17.1に simulationDistance は無く、実質のシミュレーション距離は描画距離だったため。
-    //     実バニラ1.18サーバーも simulation-distance の既定値は view-distance と同じ10を送る）。
-    //   - 756→757の Client Information の enableServerListing は true で補完する
-    //     （1.18以前のクライアントに一覧表示の拒否手段は無かったため。
-    //     実バニラ1.18クライアントの送信値は未確認）。
-    //   - reorderRegistries には756<=>757の対応を入れていない。756のバイオームは id が非連番で
-    //     176枠の表にすると隙間まで埋めてしまうため、codec の変換はこの節の専用メソッドで行う。
-
     private static final String[] DIMENSION_TYPE_756_NAMES = {
             "minecraft:overworld", "minecraft:overworld_caves", "minecraft:the_nether", "minecraft:the_end",
     };
-
-    /** DIMENSION_TYPE_756_ELEMENT_HEX：実バニラ1.17.1の Join Game codec から取った element（anonymous NBT の16進）。 */
     private static final String[] DIMENSION_TYPE_756_ELEMENT_HEX = {
             // minecraft:overworld（291バイト）。
             "0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000008" +
@@ -10247,15 +10301,8 @@ public final class PlayTranslator {
             "6c653ff00000000000000300056d696e5f790000000001000b6861735f6365696c696e6700010009756c747261776172" +
             "6d000300066865696768740000010000",
     };
-
-    /** 実バニラ1.17.1の dimension_type element 4件（名前→element）。 */
     private static final Map<String, Tag.CompoundTag> DIMENSION_TYPE_756_ELEMENTS =
             elementMap(DIMENSION_TYPE_756_NAMES, DIMENSION_TYPE_756_ELEMENT_HEX);
-
-    /**
-     * 756のバイオーム名（index = 756の id。id 0〜175の非連番のため隙間は null）。
-     * 実バニラ1.17.1の Join Game codec（81件）と biomes-1.17.json の（id, name）から取ったもの。
-     */
     private static final String[] BIOME_756_NAMES = {
             "minecraft:ocean", "minecraft:plains", "minecraft:desert", "minecraft:mountains", "minecraft:forest", "minecraft:taiga", "minecraft:swamp", "minecraft:river",
             "minecraft:nether_wastes", "minecraft:the_end", "minecraft:frozen_ocean", "minecraft:frozen_river", "minecraft:snowy_tundra", "minecraft:snowy_mountains", "minecraft:mushroom_fields", "minecraft:mushroom_field_shore",
@@ -10280,12 +10327,6 @@ public final class PlayTranslator {
             "minecraft:giant_spruce_taiga", "minecraft:giant_spruce_taiga_hills", "minecraft:modified_gravelly_mountains", "minecraft:shattered_savanna", "minecraft:shattered_savanna_plateau", "minecraft:eroded_badlands", "minecraft:modified_wooded_badlands_plateau", "minecraft:modified_badlands_plateau",
             "minecraft:bamboo_jungle", "minecraft:bamboo_jungle_hills", "minecraft:soul_sand_valley", "minecraft:crimson_forest", "minecraft:warped_forest", "minecraft:basalt_deltas", "minecraft:dripstone_caves", "minecraft:lush_caves"
     };
-
-    /**
-     * 757のバイオーム id → その写像先の756バイオームの (depth, scale)。
-     * 実バニラ1.17.1の Join Game codec から取った値。757にしか無い6件も写像先の値が入っている
-     * （meadow→plains 等。先勝ちで落とされるものは使われないが、写像先が空の場合はそのまま使える）。
-     */
     private static final float[][] BIOME_757_DEPTH_SCALE = {
             {0.1f, 0.2f}, // 0 minecraft:the_void -> 756 id 127 minecraft:the_void
             {0.125f, 0.05f}, // 1 minecraft:plains -> 756 id 1 minecraft:plains
@@ -10349,15 +10390,6 @@ public final class PlayTranslator {
             {0.1f, 0.2f}, // 59 minecraft:small_end_islands -> 756 id 40 minecraft:small_end_islands
             {0.1f, 0.2f}, // 60 minecraft:end_barrens -> 756 id 43 minecraft:end_barrens
     };
-
-    /**
-     * 実バニラ1.18のバイオーム element 全61件（名前→element。Join Game codec から取ったもの）。
-     * 756→757で写像で埋まらない757のバイオームを埋めるために使う。通常は4件だけが埋められる
-     * （meadow／snowy_slopes／jagged_peaks／stony_peaks。grove／frozen_peaks は通常
-     * snowy_taiga_mountains／snowy_mountains の持ち越しで埋まる）。入力の756 codec が欠けて
-     * いる場合も、ここから埋めるため出力は常に61件の完全な codec になる。
-     * Map.of は10件までしか受け付けないため Map.ofEntries を使う。
-     */
     private static final Map<String, Tag.CompoundTag> BIOME_757_FILL_ELEMENTS = Map.ofEntries(
             Map.entry("minecraft:the_void", parseElementHex(
                     "0a08000d70726563697069746174696f6e00046e6f6e650a000765666665637473030009736b795f636f6c6f72007ba4" +
@@ -10845,39 +10877,6 @@ public final class PlayTranslator {
                     "5f7365617263685f657874656e7400000008000005000b74656d70657261747572653f000000050008646f776e66616c" +
                     "6c3f00000008000863617465676f727900077468655f656e6400"))
     );
-
-    /**
-     * 実バニラ1.17.1のバイオーム element 全81件（名前→element。Join Game codec から取ったもの）。
-     * 757→756で写像で埋まらない756のバイオームを埋めるために使う。通常は次の25件が埋められる
-     * （757側に写像先が無いもの。snowy_mountains は frozen_peaks の写像先のため含まない）：
-     * 756 id 15 minecraft:mushroom_field_shore
-     * 756 id 17 minecraft:desert_hills
-     * 756 id 18 minecraft:wooded_hills
-     * 756 id 19 minecraft:taiga_hills
-     * 756 id 20 minecraft:mountain_edge
-     * 756 id 22 minecraft:jungle_hills
-     * 756 id 28 minecraft:birch_forest_hills
-     * 756 id 31 minecraft:snowy_taiga_hills
-     * 756 id 33 minecraft:giant_tree_taiga_hills
-     * 756 id 39 minecraft:badlands_plateau
-     * 756 id 47 minecraft:deep_warm_ocean
-     * 756 id 130 minecraft:desert_lakes
-     * 756 id 133 minecraft:taiga_mountains
-     * 756 id 134 minecraft:swamp_hills
-     * 756 id 149 minecraft:modified_jungle
-     * 756 id 151 minecraft:modified_jungle_edge
-     * 756 id 156 minecraft:tall_birch_hills
-     * 756 id 157 minecraft:dark_forest_hills
-     * 756 id 158 minecraft:snowy_taiga_mountains
-     * 756 id 161 minecraft:giant_spruce_taiga_hills
-     * 756 id 162 minecraft:modified_gravelly_mountains
-     * 756 id 164 minecraft:shattered_savanna_plateau
-     * 756 id 166 minecraft:modified_wooded_badlands_plateau
-     * 756 id 167 minecraft:modified_badlands_plateau
-     * 756 id 169 minecraft:bamboo_jungle_hills
-     * 入力の757 codec が欠けている場合も、ここから埋めるため出力は常に81件の完全な codec になる。
-     * Map.of は10件までしか受け付けないため Map.ofEntries を使う。
-     */
     private static final Map<String, Tag.CompoundTag> BIOME_756_FILL_ELEMENTS = Map.ofEntries(
             Map.entry("minecraft:ocean", parseElementHex(
                     "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f72007ba4" +
@@ -11533,906 +11532,10 @@ public final class PlayTranslator {
                     "636f6c6f72003f76e40005000564657074683dcccccd05000b74656d70657261747572653f0000000500057363616c65" +
                     "3e4ccccd050008646f776e66616c6c3f00000008000863617465676f7279000b756e64657267726f756e6400"))
     );
-
-    /**
-     * 756の dimension（NBTの値）に対応する dimension_type の名前を返す。
-     * dimensionName757 と同じ手順で、既定の element は756のものを使う。
-     * （756と757の overworld／overworld_caves の element は logical_height／min_y／height が違うため、
-     * 757の既定値では一致しない。）codec が null の場合（Respawn）は codec での検索を飛ばす。
-     */
-    private static String dimensionName756(Tag dimension, Tag.CompoundTag codec) {
-        if (codec != null) {
-            String fromCodec = findDimensionName(codec, dimension);
-            if (fromCodec != null) {
-                return fromCodec;
-            }
-        }
-        for (Map.Entry<String, Tag.CompoundTag> e : DIMENSION_TYPE_756_ELEMENTS.entrySet()) {
-            if (e.getValue().equals(dimension)) {
-                return e.getKey();
-            }
-        }
-        // 推定：effects と has_ceiling の組み合わせで4種を区別する（dimensionName757 と同じ）。
-        if (dimension instanceof Tag.CompoundTag compound) {
-            String effects = compound.getString("effects").orElse("");
-            boolean hasCeiling = compound.get("has_ceiling")
-                    .filter(t -> t instanceof Tag.ByteTag)
-                    .map(t -> ((Tag.ByteTag) t).value() != 0)
-                    .orElse(false);
-            if (effects.equals("minecraft:the_nether")) {
-                return "minecraft:the_nether";
-            }
-            if (effects.equals("minecraft:the_end")) {
-                return "minecraft:the_end";
-            }
-            if (effects.equals("minecraft:overworld")) {
-                return hasCeiling ? "minecraft:overworld_caves" : "minecraft:overworld";
-            }
-        }
-        LOG.warning("dimension の名前が分からなかったため minecraft:overworld にします。");
-        return "minecraft:overworld";
-    }
-
-    /**
-     * 756の dimension_type の名前に対応する756の element を返す。
-     * 既定の756 element を使う。名前が既定に無く、codec に element があればそれを使い、
-     * それも無ければ overworld の element にする。
-     */
-    private static Tag dimensionValue756(String name, Tag.CompoundTag codec) {
-        Tag.CompoundTag element = DIMENSION_TYPE_756_ELEMENTS.get(name);
-        if (element != null) {
-            return element;
-        }
-        if (codec != null) {
-            Tag fromCodec = findDimensionElement(codec, name);
-            if (fromCodec != null) {
-                return fromCodec;
-            }
-        }
-        LOG.warning("dimension " + name + " の756 element が無いため minecraft:overworld にします。");
-        return DIMENSION_TYPE_756_ELEMENTS.get("minecraft:overworld");
-    }
-
-    /** 756の dimension_type の名前に対応する756の element を返す（codec が無い場合。Respawn 用）。 */
-    private static Tag dimensionValue756(String name) {
-        return dimensionValue756(name, null);
-    }
-
-    /** レジストリのエントリ列の1件から id を抜く。無ければ -1。 */
-    private static int registryEntryId(Tag.CompoundTag compound) {
-        return compound.get("id")
-                .filter(t -> t instanceof Tag.IntTag)
-                .map(t -> ((Tag.IntTag) t).value())
-                .orElse(-1);
-    }
-
-    /** バイオームのレジストリエントリ1件を作る。element が null の場合は element 無し。 */
-    private static Tag.CompoundTag biomeEntry(String name, int id, Tag element) {
-        Map<String, Tag> entry = new LinkedHashMap<>();
-        entry.put("name", new Tag.StringTag(name));
-        entry.put("id", new Tag.IntTag(id));
-        if (element != null) {
-            entry.put("element", element);
-        }
-        return new Tag.CompoundTag(entry);
-    }
-
-    /** バイオーム element から depth・scale を落とす（756→757。1.18の element には無い）。他のフィールドは順番も含めてそのまま。 */
-    private static Tag.CompoundTag stripDepthScale(Tag.CompoundTag element) {
-        Map<String, Tag> rebuilt = new LinkedHashMap<>();
-        element.value().forEach((k, v) -> {
-            if (!k.equals("depth") && !k.equals("scale")) {
-                rebuilt.put(k, v);
-            }
-        });
-        return new Tag.CompoundTag(rebuilt);
-    }
-
-    /**
-     * バイオーム element に depth・scale を足す（757→756。1.17.1の element は depth・scale を要する）。
-     * 実バニラ1.17.1の並び（precipitation, effects, depth, temperature, scale, downfall, category）に合わせ、
-     * depth は effects の直後、scale は temperature の直後に入れる。anchor が無い場合は末尾に足す。
-     */
-    private static Tag.CompoundTag addDepthScale(Tag.CompoundTag element, float depth, float scale) {
-        Map<String, Tag> rebuilt = new LinkedHashMap<>();
-        boolean depthAdded = false;
-        boolean scaleAdded = false;
-        for (Map.Entry<String, Tag> e : element.value().entrySet()) {
-            rebuilt.put(e.getKey(), e.getValue());
-            if (e.getKey().equals("effects")) {
-                rebuilt.put("depth", new Tag.FloatTag(depth));
-                depthAdded = true;
-            } else if (e.getKey().equals("temperature")) {
-                rebuilt.put("scale", new Tag.FloatTag(scale));
-                scaleAdded = true;
-            }
-        }
-        if (!depthAdded) {
-            rebuilt.put("depth", new Tag.FloatTag(depth));
-        }
-        if (!scaleAdded) {
-            rebuilt.put("scale", new Tag.FloatTag(scale));
-        }
-        return new Tag.CompoundTag(rebuilt);
-    }
-
-    /**
-     * 756のバイオームのエントリ列を757順に並べ替える。
-     * RegistryRemapper.mapBiome756To757 で写す。element は depth・scale を落として引き継ぐ。
-     * 同じ757 id になるものが複数ある場合、逆写像（mapBiome757To756）が指す正規の元を優先する
-     * （正規の元が後から来たら上書きする。それ以外は先勝ち）。これが無いと windswept_forest
-     * （757 id 20）で wooded_hills（756 id 18）の element が残り、往復で wooded_mountains
-     * （756 id 34）が wooded_hills の element に化けてしまう（逆写像は34を指す）。
-     * 写像で埋まらない757のバイオームは実バニラ1.18の element（BIOME_757_FILL_ELEMENTS）で
-     * 埋め、61件にする。
-     */
-    private static List<Tag> reorderBiomeEntries756To757(List<Tag> entries) {
-        Tag[] out = new Tag[BIOME_757_NAMES.length];
-        for (Tag entry : entries) {
-            if (!(entry instanceof Tag.CompoundTag compound)) {
-                continue;
-            }
-            int srcId = registryEntryId(compound);
-            if (srcId < 0 || srcId >= BIOME_756_NAMES.length) {
-                continue;
-            }
-            int dstId = RegistryRemapper.mapBiome756To757(srcId);
-            if (dstId < 0 || dstId >= out.length) {
-                continue;
-            }
-            boolean canonical = RegistryRemapper.mapBiome757To756(dstId) == srcId;
-            if (out[dstId] != null && !canonical) {
-                continue;
-            }
-            Tag element = compound.get("element").orElse(null);
-            Tag stripped = element instanceof Tag.CompoundTag elementCompound
-                    ? stripDepthScale(elementCompound) : element;
-            out[dstId] = biomeEntry(BIOME_757_NAMES[dstId], dstId, stripped);
-        }
-        for (int i = 0; i < out.length; i++) {
-            if (out[i] == null) {
-                Tag.CompoundTag element = BIOME_757_FILL_ELEMENTS.get(BIOME_757_NAMES[i]);
-                if (element == null) {
-                    continue; // fill 表に無い（ありえないはず）
-                }
-                out[i] = biomeEntry(BIOME_757_NAMES[i], i, element);
-            }
-        }
-        return List.of(out);
-    }
-
-    /**
-     * 757のバイオームのエントリ列を756順に並べ替える。
-     * RegistryRemapper.mapBiome757To756 で写す。element は写像先の756バイオームの depth・scale を
-     * 足して引き継ぐ。同じ756 id になるものが複数ある場合、逆写像（mapBiome756To757）が指す
-     * 正規の元を優先する（756→757側と同じ規則。こちらの衝突4組は先勝ちでも正規の元が残るが、
-     * 入力の並びに依存しないよう同じ規則にしている）。
-     * 写像で埋まらない756のバイオームは実バニラ1.17.1の element（BIOME_756_FILL_ELEMENTS）で
-     * 埋め、81件にする。返り値は756 id の昇順（実バニラ1.17.1の codec と同じ並び）。
-     */
-    private static List<Tag> reorderBiomeEntries757To756(List<Tag> entries) {
-        Tag[] out = new Tag[BIOME_756_NAMES.length];
-        for (Tag entry : entries) {
-            if (!(entry instanceof Tag.CompoundTag compound)) {
-                continue;
-            }
-            int srcId = registryEntryId(compound);
-            if (srcId < 0 || srcId >= BIOME_757_NAMES.length) {
-                continue;
-            }
-            int dstId = RegistryRemapper.mapBiome757To756(srcId);
-            if (dstId < 0 || dstId >= out.length) {
-                continue;
-            }
-            boolean canonical = RegistryRemapper.mapBiome756To757(dstId) == srcId;
-            if (out[dstId] != null && !canonical) {
-                continue;
-            }
-            String name = BIOME_756_NAMES[dstId];
-            if (name == null) {
-                continue; // 756の隙間 id（表の上ではありえないはずだが安全のため）
-            }
-            float[] depthScale = BIOME_757_DEPTH_SCALE[srcId];
-            Tag element = compound.get("element").orElse(null);
-            Tag withDepthScale = element instanceof Tag.CompoundTag elementCompound
-                    ? addDepthScale(elementCompound, depthScale[0], depthScale[1]) : element;
-            out[dstId] = biomeEntry(name, dstId, withDepthScale);
-        }
-        for (int i = 0; i < out.length; i++) {
-            if (out[i] == null && BIOME_756_NAMES[i] != null) {
-                Tag.CompoundTag element = BIOME_756_FILL_ELEMENTS.get(BIOME_756_NAMES[i]);
-                if (element == null) {
-                    continue; // fill 表に無い（ありえないはず）
-                }
-                out[i] = biomeEntry(BIOME_756_NAMES[i], i, element);
-            }
-        }
-        List<Tag> result = new ArrayList<>();
-        for (Tag tag : out) {
-            if (tag != null) {
-                result.add(tag);
-            }
-        }
-        return result;
-    }
-
-    /**
-     * 756の dimensionCodec を757形式にする。dimension_type の element を757既定値に置き換え、
-     * biome を757順に並べ替える（depth・scale を落とす。757にしか無い6件は実バニラ1.18の element で補う）。
-     * codec のキーの並びは実バニラ通り（dimension_type、worldgen/biome）。
-     */
-    public static Tag.CompoundTag translateDimensionCodec756To757(Tag.CompoundTag codec756) {
-        Map<String, Tag.CompoundTag> registries = registriesFromCodec(codec756);
-        Map<String, Tag> codec = new LinkedHashMap<>();
-        Tag.CompoundTag dimensionRegistry = registries.get("minecraft:dimension_type");
-        if (dimensionRegistry != null) {
-            List<Tag> entries = substituteDimensionTypeElements(
-                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
-                    ProtocolVersion.V1_18);
-            Map<String, Tag> rebuilt = new LinkedHashMap<>();
-            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
-            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
-            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
-        }
-        Tag.CompoundTag biomeRegistry = registries.get("minecraft:worldgen/biome");
-        if (biomeRegistry != null) {
-            List<Tag> entries = reorderBiomeEntries756To757(
-                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
-            Map<String, Tag> rebuilt = new LinkedHashMap<>();
-            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
-            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
-            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
-        }
-        return new Tag.CompoundTag(codec);
-    }
-
-    /**
-     * 757の dimensionCodec を756形式にする。dimension_type の element を756既定値に置き換え、
-     * biome を756順に並べ替える（depth・scale を足す。写像で埋まらない25件は実バニラ1.17.1の element で補う）。
-     * codec のキーの並びは実バニラ通り（dimension_type、worldgen/biome）。
-     */
-    public static Tag.CompoundTag translateDimensionCodec757To756(Tag.CompoundTag codec757) {
-        Map<String, Tag.CompoundTag> registries = registriesFromCodec(codec757);
-        Map<String, Tag> codec = new LinkedHashMap<>();
-        Tag.CompoundTag dimensionRegistry = registries.get("minecraft:dimension_type");
-        if (dimensionRegistry != null) {
-            List<Tag> entries = substituteDimensionTypeElements(
-                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
-                    ProtocolVersion.V1_17_1);
-            Map<String, Tag> rebuilt = new LinkedHashMap<>();
-            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
-            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
-            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
-        }
-        Tag.CompoundTag biomeRegistry = registries.get("minecraft:worldgen/biome");
-        if (biomeRegistry != null) {
-            List<Tag> entries = reorderBiomeEntries757To756(
-                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
-            Map<String, Tag> rebuilt = new LinkedHashMap<>();
-            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
-            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
-            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
-        }
-        return new Tag.CompoundTag(codec);
-    }
-
-    // ------------------------------------------------------------------
-    // Join Game
-    // ------------------------------------------------------------------
-
-    /** 756の Join Game の中身。757と違い simulationDistance が無い。dimension は DimensionType の値そのもの（NBT）。previousGameMode は i8（-1＝なし）。 */
-    public record JoinGame756(int entityId, boolean hardcore, int gameMode, int previousGameMode,
-            List<String> worldNames, Tag.CompoundTag dimensionCodec, Tag dimension,
-            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
-            boolean reducedDebug, boolean enableRespawnScreen,
-            boolean isDebug, boolean isFlat) {
-    }
-
-    /**
-     * 756の Join Game を読む。順番は entityId, hardcore, gameMode, previousGameMode(i8),
-     * worldNames, dimensionCodec（名前付き NBT）, dimension（名前付き NBT）,
-     * worldName, hashedSeed, maxPlayers, viewDistance,
-     * reducedDebug, enableRespawnScreen, isDebug, isFlat である
-     * （minecraft-data mc-1.17.1-protocol.json の packet_login とライブキャプチャで確認）。
-     */
-    public static JoinGame756 parseJoinGame756(byte[] payload) {
-        Reader reader = new Reader(payload);
-        int entityId = reader.readInt();
-        boolean hardcore = reader.readBoolean();
-        int gameMode = reader.readUnsignedByte();
-        int previousGameMode = reader.readByte();
-        checkPreviousGameMode757(previousGameMode);
-        List<String> worldNames = PacketIO.readStringList(reader);
-        Tag dimensionCodec = reader.readNamedNbt().tag();
-        if (!(dimensionCodec instanceof Tag.CompoundTag codec)) {
-            throw new IllegalArgumentException("Join Game の dimensionCodec がコンパウンドではありません。");
-        }
-        Tag dimension = reader.readNamedNbt().tag();
-        String worldName = reader.readString();
-        long hashedSeed = reader.readLong();
-        int maxPlayers = reader.readVarInt();
-        int viewDistance = reader.readVarInt();
-        boolean reducedDebug = reader.readBoolean();
-        boolean enableRespawnScreen = reader.readBoolean();
-        boolean isDebug = reader.readBoolean();
-        boolean isFlat = reader.readBoolean();
-        requireEnd(reader);
-        return new JoinGame756(entityId, hardcore, gameMode, previousGameMode, worldNames,
-                codec, dimension, worldName, hashedSeed, maxPlayers, viewDistance,
-                reducedDebug, enableRespawnScreen, isDebug, isFlat);
-    }
-
-    /** 756の Join Game を書く。 */
-    public static byte[] writeJoinGame756(JoinGame756 join) {
-        Writer writer = new Writer();
-        writer.writeInt(join.entityId());
-        writer.writeBoolean(join.hardcore());
-        writer.writeByte(join.gameMode());
-        writer.writeByte(join.previousGameMode());
-        PacketIO.writeStringList(writer, join.worldNames());
-        writer.writeNamedNbt("", join.dimensionCodec());
-        writer.writeNamedNbt("", join.dimension());
-        writer.writeString(join.worldName());
-        writer.writeLong(join.hashedSeed());
-        writer.writeVarInt(join.maxPlayers());
-        writer.writeVarInt(join.viewDistance());
-        writer.writeBoolean(join.reducedDebug());
-        writer.writeBoolean(join.enableRespawnScreen());
-        writer.writeBoolean(join.isDebug());
-        writer.writeBoolean(join.isFlat());
-        return writer.bytes();
-    }
-
-    /**
-     * Join Game（756 → 757）。dimension は NBT の値から codec 内の名前を引き、757の element に直す。
-     * dimensionCodec は757形式に直す。simulationDistance は viewDistance と同じ値にする
-     * （1.17.1に simulationDistance は無く、実質のシミュレーション距離は描画距離だったため）。
-     * 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
-     */
-    public static byte[] translateJoinGame756To757(byte[] payload) {
-        try {
-            JoinGame756 join = parseJoinGame756(payload);
-            String dimensionName = dimensionName756(join.dimension(), join.dimensionCodec());
-            return writeJoinGame757(new JoinGame757(join.entityId(), join.hardcore(),
-                    join.gameMode(), join.previousGameMode(), join.worldNames(),
-                    translateDimensionCodec756To757(join.dimensionCodec()),
-                    dimensionValue759(dimensionName),
-                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
-                    join.viewDistance(), join.reducedDebug(), join.enableRespawnScreen(),
-                    join.isDebug(), join.isFlat()));
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Join Game（757 → 756）。dimension は名前から756の element を引き、
-     * dimensionCodec は756形式に直す。simulationDistance は落とす。
-     * 読めないペイロードは素通しする。
-     */
-    public static byte[] translateJoinGame757To756(byte[] payload) {
-        try {
-            JoinGame757 join = parseJoinGame757(payload);
-            String dimensionName = dimensionName757(join.dimension(), join.dimensionCodec());
-            return writeJoinGame756(new JoinGame756(join.entityId(), join.hardcore(),
-                    join.gameMode(), join.previousGameMode(), join.worldNames(),
-                    translateDimensionCodec757To756(join.dimensionCodec()),
-                    dimensionValue756(dimensionName),
-                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
-                    join.reducedDebug(), join.enableRespawnScreen(),
-                    join.isDebug(), join.isFlat()));
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Respawn
-    // ------------------------------------------------------------------
-
-    /** 756の Respawn（SpawnInfo）の中身。757と同一の8フィールド。dimension は DimensionType の値そのもの（NBT）。previousGameMode は u8（Join Game の i8 とは違う。protocol.json で確認）。copyMetadata は末尾。dataToKeep は無い。 */
-    public record SpawnInfo756(Tag dimension, String worldName, long hashedSeed, int gameMode,
-            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata) {
-    }
-
-    /** 756の SpawnInfo を読む。 */
-    public static SpawnInfo756 readSpawnInfo756(Reader reader) {
-        Tag dimension = reader.readNamedNbt().tag();
-        String worldName = reader.readString();
-        long hashedSeed = reader.readLong();
-        int gameMode = reader.readUnsignedByte();
-        int previousGameMode = reader.readUnsignedByte();
-        boolean isDebug = reader.readBoolean();
-        boolean isFlat = reader.readBoolean();
-        boolean copyMetadata = reader.readBoolean();
-        return new SpawnInfo756(dimension, worldName, hashedSeed, gameMode,
-                previousGameMode, isDebug, isFlat, copyMetadata);
-    }
-
-    /** 756の SpawnInfo を書く。 */
-    public static void writeSpawnInfo756(Writer writer, SpawnInfo756 info) {
-        writer.writeNamedNbt("", info.dimension());
-        writer.writeString(info.worldName());
-        writer.writeLong(info.hashedSeed());
-        writer.writeByte(info.gameMode());
-        writer.writeByte(info.previousGameMode());
-        writer.writeBoolean(info.isDebug());
-        writer.writeBoolean(info.isFlat());
-        writer.writeBoolean(info.copyMetadata());
-    }
-
-    /**
-     * Respawn（756 → 757）。フィールドは同一のため、dimension の element だけ757既定値に直す
-     * （overworld／overworld_caves の height が違う）。copyMetadata はそのまま写す。
-     * previousGameMode は u8 のまま写す（範囲検査はしない。Join Game の i8 と違い、"無し" の符号が protocol.json には無いため）。
-     * 読めないペイロードは素通しする。
-     */
-    public static byte[] translateRespawn756To757(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            SpawnInfo756 info = readSpawnInfo756(reader);
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writeSpawnInfo757(writer, new SpawnInfo757(
-                    dimensionValue759(dimensionName756(info.dimension(), null)),
-                    info.worldName(), info.hashedSeed(), info.gameMode(),
-                    info.previousGameMode(), info.isDebug(), info.isFlat(),
-                    info.copyMetadata()));
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Respawn（757 → 756）。フィールドは同一のため、dimension の element だけ756既定値に直す。
-     * copyMetadata はそのまま写す。読めないペイロードは素通しする。
-     */
-    public static byte[] translateRespawn757To756(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            SpawnInfo757 info = readSpawnInfo757(reader);
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writeSpawnInfo756(writer, new SpawnInfo756(
-                    dimensionValue756(dimensionName757(info.dimension(), null)),
-                    info.worldName(), info.hashedSeed(), info.gameMode(),
-                    info.previousGameMode(), info.isDebug(), info.isFlat(),
-                    info.copyMetadata()));
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Client Information（Settings）
-    // ------------------------------------------------------------------
-
-    /**
-     * Client Information（756 → 757）。756は {locale, viewDistance i8, chatFlags varint,
-     * chatColors bool, skinParts u8, mainHand varint, disableTextFiltering bool} の7フィールド、
-     * 757は末尾に enableServerListing bool が付いた8フィールド。
-     * disableTextFiltering は反転して enableTextFiltering にする。
-     * enableServerListing は true で補完する（1.18以前のクライアントに一覧表示の拒否手段は無かったため。
-     * 実バニラ1.18クライアントの送信値は未確認）。読めないペイロードは素通しする。
-     */
-    public static byte[] translateClientInformation756To757(byte[] payload) {
-        if (payload == null) {
-            return payload;
-        }
-        try {
-            Reader reader = new Reader(payload);
-            String locale = reader.readString();
-            int viewDistance = reader.readByte();
-            int chatFlags = reader.readVarInt();
-            boolean chatColors = reader.readBoolean();
-            int skinParts = reader.readUnsignedByte();
-            int mainHand = reader.readVarInt();
-            boolean disableTextFiltering = reader.readBoolean();
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Client Information に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeString(locale);
-            writer.writeByte(viewDistance);
-            writer.writeVarInt(chatFlags);
-            writer.writeBoolean(chatColors);
-            writer.writeUnsignedByte(skinParts);
-            writer.writeVarInt(mainHand);
-            writer.writeBoolean(!disableTextFiltering); // enableTextFiltering
-            writer.writeBoolean(true); // enableServerListing：756には無いため true を補う
-            return writer.bytes();
-        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Client Information（757 → 756）。末尾の enableServerListing を落とし、
-     * enableTextFiltering を反転して disableTextFiltering にする。読めないペイロードは素通しする。
-     */
-    public static byte[] translateClientInformation757To756(byte[] payload) {
-        if (payload == null) {
-            return payload;
-        }
-        try {
-            Reader reader = new Reader(payload);
-            String locale = reader.readString();
-            int viewDistance = reader.readByte();
-            int chatFlags = reader.readVarInt();
-            boolean chatColors = reader.readBoolean();
-            int skinParts = reader.readUnsignedByte();
-            int mainHand = reader.readVarInt();
-            boolean enableTextFiltering = reader.readBoolean();
-            boolean enableServerListing = reader.readBoolean();
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Client Information に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeString(locale);
-            writer.writeByte(viewDistance);
-            writer.writeVarInt(chatFlags);
-            writer.writeBoolean(chatColors);
-            writer.writeUnsignedByte(skinParts);
-            writer.writeVarInt(mainHand);
-            writer.writeBoolean(!enableTextFiltering); // disableTextFiltering
-            return writer.bytes();
-        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // 755（1.17）⇔ 756（1.17.1）
-    // ------------------------------------------------------------------
-    //
-    // 素通し節。根拠は実測のみ（推測なし）：
-    // - mc-1.17-protocol.json と mc-1.17.1-protocol.json の全173パケットの突き合わせ
-    //   （.tmp-755/stage-b-play/diff-protocol-755-756.py）。packet_login／packet_respawn／
-    //   packet_settings はフィールド構成まで完全同一。IDも同一（Join Game 0x26、Respawn 0x3d、
-    //   Client Information 0x05、Update Time 0x58）。
-    // - STAGE-A-755-NOTES.md §11.6：実バニラ1.17と1.17.1の Join Game は両方31,555バイトで、
-    //   差分は entityId 1バイト＋hashedSeed 8バイトのみ。dimensionCodec の dimension_type 4件・
-    //   バイオーム81件とも同一順序。レジストリ差分も0件（§11.1）。
-    // - 違いが実測で見つかったのは play の4パケットだけ（Set Slot／Window Items／Window Click／
-    //   Edit Book。いずれも stateId の有無などの窓系フィールド差分で、IDは同一）。これらは
-    //   PlayTranslator の担当外（Set Slot／Window Items／Window Click は ChunkTranslator、
-    //   Edit Book は未対応）で、本節では扱わない。
-    // したがって本節の変換器はすべてペイロード unchanged（素通し）である。読めないペイロードも
-    // 素通しする（このファイルの他の変換器と同じ方針）。
-
-    /**
-     * 755の dimensionCodec を756形式にする。レジストリ差分は0件のため素通し（同一インスタンスを返す）。
-     * 根拠：STAGE-A-755-NOTES.md §11.1（差分0件。dimension_type 4件・バイオーム81件とも同一順序・同一内容）
-     * と protocol.json の packet_login 突き合わせ（dimensionCodec は両方 nbt）。
-     */
-    public static Tag.CompoundTag translateDimensionCodec755To756(Tag.CompoundTag codec755) {
-        return codec755;
-    }
-
-    /**
-     * 756の dimensionCodec を755形式にする。レジストリ差分は0件のため素通し（同一インスタンスを返す）。
-     * 根拠は {@link #translateDimensionCodec755To756(Tag.CompoundTag)} と同じ。
-     */
-    public static Tag.CompoundTag translateDimensionCodec756To755(Tag.CompoundTag codec756) {
-        return codec756;
-    }
-
-    // ------------------------------------------------------------------
-    // Join Game（755）
-    // ------------------------------------------------------------------
-
-    /** 755の Join Game の中身。756と同一の15フィールド。dimension は DimensionType の値そのもの（NBT）。previousGameMode は i8（-1＝なし）。simulationDistance は無い。 */
-    public record JoinGame755(int entityId, boolean hardcore, int gameMode, int previousGameMode,
-            List<String> worldNames, Tag.CompoundTag dimensionCodec, Tag dimension,
-            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
-            boolean reducedDebug, boolean enableRespawnScreen,
-            boolean isDebug, boolean isFlat) {
-    }
-
-    /**
-     * 755の Join Game を読む。順番は entityId, hardcore, gameMode, previousGameMode(i8),
-     * worldNames, dimensionCodec（名前付き NBT）, dimension（名前付き NBT）,
-     * worldName, hashedSeed, maxPlayers, viewDistance,
-     * reducedDebug, enableRespawnScreen, isDebug, isFlat である
-     * （minecraft-data mc-1.17-protocol.json の packet_login と mc-1.17.1-protocol.json の
-     * packet_login が完全同一であること、および STAGE-A-755-NOTES.md §11.6 の実バニラ
-     * 1.17キャプチャ（31,555バイト）で確認）。
-     */
-    public static JoinGame755 parseJoinGame755(byte[] payload) {
-        Reader reader = new Reader(payload);
-        int entityId = reader.readInt();
-        boolean hardcore = reader.readBoolean();
-        int gameMode = reader.readUnsignedByte();
-        int previousGameMode = reader.readByte();
-        checkPreviousGameMode757(previousGameMode);
-        List<String> worldNames = PacketIO.readStringList(reader);
-        Tag dimensionCodec = reader.readNamedNbt().tag();
-        if (!(dimensionCodec instanceof Tag.CompoundTag codec)) {
-            throw new IllegalArgumentException("Join Game の dimensionCodec がコンパウンドではありません。");
-        }
-        Tag dimension = reader.readNamedNbt().tag();
-        String worldName = reader.readString();
-        long hashedSeed = reader.readLong();
-        int maxPlayers = reader.readVarInt();
-        int viewDistance = reader.readVarInt();
-        boolean reducedDebug = reader.readBoolean();
-        boolean enableRespawnScreen = reader.readBoolean();
-        boolean isDebug = reader.readBoolean();
-        boolean isFlat = reader.readBoolean();
-        requireEnd(reader);
-        return new JoinGame755(entityId, hardcore, gameMode, previousGameMode, worldNames,
-                codec, dimension, worldName, hashedSeed, maxPlayers, viewDistance,
-                reducedDebug, enableRespawnScreen, isDebug, isFlat);
-    }
-
-    /** 755の Join Game を書く。756と同一のフィールド順。 */
-    public static byte[] writeJoinGame755(JoinGame755 join) {
-        Writer writer = new Writer();
-        writer.writeInt(join.entityId());
-        writer.writeBoolean(join.hardcore());
-        writer.writeByte(join.gameMode());
-        writer.writeByte(join.previousGameMode());
-        PacketIO.writeStringList(writer, join.worldNames());
-        writer.writeNamedNbt("", join.dimensionCodec());
-        writer.writeNamedNbt("", join.dimension());
-        writer.writeString(join.worldName());
-        writer.writeLong(join.hashedSeed());
-        writer.writeVarInt(join.maxPlayers());
-        writer.writeVarInt(join.viewDistance());
-        writer.writeBoolean(join.reducedDebug());
-        writer.writeBoolean(join.enableRespawnScreen());
-        writer.writeBoolean(join.isDebug());
-        writer.writeBoolean(join.isFlat());
-        return writer.bytes();
-    }
-
-    /**
-     * Join Game（755 → 756）。パケットID（0x26）も codec も同一のため素通し（ペイロード unchanged）。
-     * 根拠：protocol.json の packet_login 完全同一と STAGE-A-755-NOTES.md §11.6 の実測
-     * （両 Join Game は31,555バイトで、差分は entityId 1バイト＋hashedSeed 8バイトのみ）。
-     * 検証のためパースだけ行い、読めないペイロードも素通しする。
-     */
-    public static byte[] translateJoinGame755To756(byte[] payload) {
-        try {
-            parseJoinGame755(payload);
-            return payload;
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Join Game（756 → 755）。パケットID（0x26）も codec も同一のため素通し（ペイロード unchanged）。
-     * 根拠は {@link #translateJoinGame755To756(byte[])} と同じ。読めないペイロードも素通しする。
-     */
-    public static byte[] translateJoinGame756To755(byte[] payload) {
-        try {
-            parseJoinGame756(payload);
-            return payload;
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Respawn（755）
-    // ------------------------------------------------------------------
-
-    /** 755の Respawn（SpawnInfo）の中身。756と同一の8フィールド。dimension は DimensionType の値そのもの（NBT）。previousGameMode は u8（Join Game の i8 とは違う。protocol.json で確認）。copyMetadata は末尾。dataToKeep は無い。 */
-    public record SpawnInfo755(Tag dimension, String worldName, long hashedSeed, int gameMode,
-            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata) {
-    }
-
-    /** 755の SpawnInfo を読む。756と同一のフィールド順。 */
-    public static SpawnInfo755 readSpawnInfo755(Reader reader) {
-        Tag dimension = reader.readNamedNbt().tag();
-        String worldName = reader.readString();
-        long hashedSeed = reader.readLong();
-        int gameMode = reader.readUnsignedByte();
-        int previousGameMode = reader.readUnsignedByte();
-        boolean isDebug = reader.readBoolean();
-        boolean isFlat = reader.readBoolean();
-        boolean copyMetadata = reader.readBoolean();
-        return new SpawnInfo755(dimension, worldName, hashedSeed, gameMode,
-                previousGameMode, isDebug, isFlat, copyMetadata);
-    }
-
-    /** 755の SpawnInfo を書く。756と同一のフィールド順。 */
-    public static void writeSpawnInfo755(Writer writer, SpawnInfo755 info) {
-        writer.writeNamedNbt("", info.dimension());
-        writer.writeString(info.worldName());
-        writer.writeLong(info.hashedSeed());
-        writer.writeByte(info.gameMode());
-        writer.writeByte(info.previousGameMode());
-        writer.writeBoolean(info.isDebug());
-        writer.writeBoolean(info.isFlat());
-        writer.writeBoolean(info.copyMetadata());
-    }
-
-    /**
-     * Respawn（755 → 756）。パケットID（0x3d）もフィールドも同一のため素通し（ペイロード unchanged）。
-     * 根拠：protocol.json の packet_respawn 完全同一（dimension nbt、worldName、hashedSeed i64、
-     * gamemode u8、previousGamemode u8、isDebug、isFlat、copyMetadata）と STAGE-A-755-NOTES.md
-     * §11.6（Respawn も同一）。検証のためパースだけ行い、読めないペイロードも素通しする。
-     */
-    public static byte[] translateRespawn755To756(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            readSpawnInfo755(reader);
-            requireEnd(reader);
-            return payload;
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Respawn（756 → 755）。パケットID（0x3d）もフィールドも同一のため素通し（ペイロード unchanged）。
-     * 根拠は {@link #translateRespawn755To756(byte[])} と同じ。読めないペイロードも素通しする。
-     */
-    public static byte[] translateRespawn756To755(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            readSpawnInfo756(reader);
-            requireEnd(reader);
-            return payload;
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Client Information（Settings、755）
-    // ------------------------------------------------------------------
-
-    /**
-     * Client Information（755 → 756）。フィールド同一のため素通し（ペイロード unchanged）。
-     * 根拠：protocol.json の packet_settings が両バージョンで完全同一（locale string、
-     * viewDistance i8、chatFlags varint、chatColors bool、skinParts u8、mainHand varint、
-     * disableTextFiltering bool の7フィールド。756→757であった enableTextFiltering への
-     * 反転や enableServerListing の補完は、755⇔756間では不要）。
-     * IDも両方0x05。読めないペイロードも素通しする。
-     */
-    public static byte[] translateClientInformation755To756(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Client Information（756 → 755）。フィールド同一のため素通し（ペイロード unchanged）。
-     * 根拠は {@link #translateClientInformation755To756(byte[])} と同じ。IDも両方0x05。
-     */
-    public static byte[] translateClientInformation756To755(byte[] payload) {
-        return payload;
-    }
-
-
-    // ------------------------------------------------------------------
-    // 754（1.16.5／1.16.4）⇔ 755（1.17）
-    // ------------------------------------------------------------------
-    //
-    // 実測の根拠（推測なし）：
-    // - mc-1.16-protocol.json（pc/1.16.2）と mc-1.17-protocol.json の全パケット・全方向の突き合わせ
-    //   （detergentmc-protocol/tools/compare-protocol-754-755.py）。同一フィールド132件、
-    //   IDだけ違う91件、フィールド構成が違う30件（分割の14件を含む実質19パケット）、
-    //   1.16.5にしか無いもの1件（entity 0x2a）、1.17にしか無いもの1件（sculk 0x05）。
-    //   共有 types の差分は particleData のみ（パーティクルIDのずれ。World Particles の中で扱う）。
-    // - STAGE-A-754-NOTES.md §8（パケットID差分：変更120件・新規0件・削除1件）と §11.6
-    //   （Join Game codec 実測：15フィールド同一、dimensionCodec のバイオーム79 vs 81、
-    //   dimension element に min_y／height 無し）。
-    // - 実バニラ1.16.5の Join Game 生キャプチャ（30,847バイト。dimension_type 4件・
-    //   バイオーム79件。id 0〜173）と実バニラ1.17の Join Game 生キャプチャ（31,555バイト。
-    //   dimension_type 4件・バイオーム81件。id 0〜175）の突き合わせ。共有する79バイオームの
-    //   element はバイト完全同一で、755にだけあるのは dripstone_caves（174）・lush_caves（175）。
-    //   dimension element は755が min_y=0・height=256 を持つ以外は共有フィールドの値まで同一。
-    // - ViaVersion Protocol1_16_4To1_17.java（ローカルの複写。SET_TITLES と CLIENT_INFORMATION
-    //   のみ明示登録。PING／PONG／CONTAINER_ACK、PLAYER_COMBAT、SET_BORDER、MOVE_ENTITY の
-    //   登録は無い）。
-    // - ワールドボーダーの action 3（INITIALIZE）の warning 順序と radius の意味は、実バニラ1.16.5の
-    //   生キャプチャ（x=0, z=0, old_radius=new_radius=60000000.0, speed=0,
-    //   portalBoundary=29999984, その後 5→15）と実バニラ1.17の生キャプチャ
-    //   （oldDiameter=newDiameter=59999968.0, portalTeleportBoundary=29999984,
-    //   warningBlocks=5, warningTime=15）と、javap（1.16.5 ClientboundSetBorderPacket qt#write。
-    //   INITIALIZE は x, z, oldSize, newSize, speed, portalBoundary, warningBlocks, warningTime
-    //   の順）で確認。minecraft-data protocol.json の warning_time→warning_blocks の順序は
-    //   action 3 では誤り（正しくは warningBlocks が先）。radius は直径の値そのもので、
-    //   60000000.0 は既定ボーダーの直径（±30000000）。755の 59999968.0 との32の差は
-    //   1.17の既定値・上限値の変更（21w17a）によるもので、単位の違いではない。
-    // - declare_recipes の成形レシピの入れ子（754は height 外・width 内、755は width 外・
-    //   height 内）は minecraft-data の記述の違いだけで、ワイヤは同一。実バニラ両 jar の
-    //   ShapedRecipe$Serializer#toNetwork（javap -c）は width, height, group の後に材料を
-    //   フラットに1件ずつ書く同じ手順のため、変換器は不要。
-    //
-    // フィールド構成が違う19パケットと扱い（IDは PacketIds.java／packet-ids-754.json 参照）：
-    // - Join Game（0x24⇔0x26）：15フィールド同一。dimensionCodec の中身だけ違う（下記）。
-    //   本節で変換器を作る。
-    // - Respawn（0x39⇔0x3d）：8フィールド同一。dimension の element だけ違う。本節で変換器を作る。
-    // - Client Information（0x05⇔0x05）：755が末尾に disableTextFiltering bool を持つ。本節で変換器を作る。
-    // - Synchronize Player Position（0x34⇔0x38）：755が末尾に dismountVehicle bool を持つ。
-    //   本節で変換器を作る（translatePosition761To762 と同じ段取り）。
-    // - combat_event（0x31）⇔ enter／end／death_combat_event（0x34／0x33／0x35）：本節で振り分ける。
-    // - title（0x4f）⇔ set_title_text／set_title_subtitle／set_title_time／clear_titles／
-    //   action_bar（0x59／0x57／0x5a／0x10／0x41）：本節で振り分ける。
-    // - world_border（0x3d）⇔ initialize／center／lerp_size／size／warning_delay／
-    //   warning_reach（0x20／0x42／0x43／0x44／0x45／0x46）：本節で振り分ける。
-    // - ping（0x30）／pong（0x1d）⇔ transaction（0x11／0x07）：落とす（本節の null 返し）。
-    //   ViaVersion にも対応付けが無く、i32 の id は i16 の actionNumber に往復できないため。
-    // - sculk_vibration_signal（755のみ 0x05）：755→754では落とす（本節の null 返し）。
-    // - entity_destroy（0x36⇔0x3a）：754は [entityIds varint配列]、755は [entityId varint] 1体。
-    //   ChunkTranslator担当（755⇔756の Entity Destroy と同じ）。
-    // - window_click（0x09⇔0x08）：754は {action i16, mode i8, item slot}、755は
-    //   {mode i8, changedSlots 配列, cursorItem slot}。ChunkTranslator担当。
-    // - map_chunk（0x20⇔0x22）：754は groundUp＋bitMap varint＋biomes は groundUp のときだけ、
-    //   755は bitMap i64配列＋biomes 常時＋blockEntities 追加。ChunkTranslator担当。
-    // - update_light（0x23⇔0x25）：754はマスクが varint 4個、755は i64配列4個。ChunkTranslator担当。
-    // - explosion（0x1b⇔0x1c）：記録数の countType が i32→varint。ChunkTranslator担当
-    //   （translateExplosion768To769 と同じ段取り）。
-    // - entity_update_attributes（0x58⇔0x63）：properties の件数が i32→varint。
-    //   「key」→「name」は名前だけの違い（値は同じ文字列）。ChunkTranslator担当。
-    // - map（0x25⇔0x27）：755で trackingPosition bool が無くなり、icons が option 化。
-    //   ViaVersion の MAP_ITEM_DATA 参照。担当は ChunkTranslator（地図系）へ申し送り。
-    // - declare_recipes（0x5a⇔0x65）：ワイヤ同一のため変換器不要（上記の javap 確認参照）。
-    // - tags（0x5b⇔0x66）：754は block／item／fluid／entity の4固定、755は {tagType, tags} の
-    //   汎用配列＋game_event 追加。ViaVersion の UPDATE_TAGS 参照。変換器は未実施で、
-    //   担当は親の判断待ち（ChunkTranslator か PlayTranslator か）。
-    // - resource_pack_send（0x38⇔0x3c）：755で forced bool と promptMessage option を追加。
-    //   ViaVersion の RESOURCE_PACK 参照。本節で変換器を作った（forced=false・prompt 無しを補う）。
-    //   ただし汎用中継経路では、プレイ状態のリソースパックは 756→757・757→759 の段に
-    //   case が無く落とされるため、この変換器だけではクライアントに届かない
-    //   （Join Game 時のオファーは ProxySession の resourcePackOfferPacket が別途担う）。
-    //   下流の段に case を足すのは別課題として親の判断待ち。
-    // - entity（754のみ 0x2a）：PacketIds の対象外のまま落とす（下記の判断参照）。
-    //
-    // 決めたこと：
-    // - entity（クライアント行き 0x2a）は PacketIds にエントリを追加せず、対象外のまま落とす。
-    //   根拠：1.17で削除されたパケットで、ViaVersion の1.17 enum には無く
-    //   Protocol1_16_4To1_17 でも未登録（＝落としている）。内容は entityId varint 1個だけの
-    //   「移動なし」通知で、rel_entity_move 系とは別に位置同期には影響しない。
-    // - ping／pong ⇔ transaction は両方向とも落とす（null）。根拠は上記の通り。
-    //   Keep Alive（0x1f⇔0x21）は別パケットで影響を受けない。
-    // - Client Information の754→755の補完値は false。根拠：false はフィルタ有効で、
-    //   1.17のバニラクライアントの既定値（設定で無効化しない限り false を送る）。
-    //   1.16.5のクライアントは設定を持たないため、1.17の既定値を適用する。
-    // - Synchronize Player Position の754→755の補完値は false。根拠：false は「乗り物から
-    //   降りない」で、1.16.5には降車の概念が無く、乗り続けるのが元の挙動。
-    //   （translatePosition762To761 と同じ選択。）
-    // - dimensionCodec のバイオームは RegistryRemapper.mapBiome による id 付け替えではなく
-    //   名前で付け替える。根拠：共有する79バイオームは id が同一（実測）で、755にだけある
-    //   dripstone_caves・lush_caves は mapBiome755To754 では平原（1）に写るが、codec では
-    //   平原と重複するエントリになってしまうため、落とすのが正しい。
-    //   （RegistryTables754 の表での付け替えは、共有バイオームの id 同一性を
-    //   verify-754-tables.py の G（バイオーム順向き176件・反転174件）で確認済み。）
-    //
-    // 変換器を作らなかったもの（フィールド同一のため。IDだけ違う91件は呼び出し側が付け替える）：
-    // Chat、Player Info、Set Held Item、Update Time、Keep Alive、Set Slot、Window Items、
-    // Set Cooldown、Entity Equipment、Trade List、Tile Entity Data、Entity Metadata、
-    // Sound Effect、Entity Sound Effect、Named Sound Effect、Stop Sound、World Particles、
-    // Multi Block Change、Block Change、Spawn Entity 系、Open Window、Block Action、
-    // Entity Effect、Explosion（※上記の通り countType だけ違うため ChunkTranslator で対応）、
-    // Update Attributes（※同上）、Enchant Item、World Border 系（※分割のため本節で対応）。
-    // なお Update Time は ID が 0x4e⇔0x58 と違うだけで、フィールドは同一（755の訂正4件の
-    // 「Update Time は757・759とも0x59」は755⇔756間の話で、754⇔755間は 0x4e⇔0x58）。
-
-    /** dimension_type の名前（754・755とも同じ4件・同じ順序。実バニラ両キャプチャで確認）。 */
     private static final String[] DIMENSION_TYPE_754_NAMES = {
             "minecraft:overworld", "minecraft:overworld_caves", "minecraft:the_nether", "minecraft:the_end",
     };
-
-    /** 755 の dimension_type の名前は754と同じ。 */
     private static final String[] DIMENSION_TYPE_755_NAMES = DIMENSION_TYPE_754_NAMES;
-
-    /** DIMENSION_TYPE_754_ELEMENT_HEX：実バニラ1.16.5の Join Game codec から取った element（anonymous NBT の16進）。min_y／height は無い。 */
     private static final String[] DIMENSION_TYPE_754_ELEMENT_HEX = {
 "0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000008000a" +
             "696e66696e696275726e001e6d696e6563726166743a696e66696e696275726e5f6f766572776f726c640100147265737061" +
@@ -12459,8 +11562,6 @@ public final class PlayTranslator {
             "730103000e6c6f676963616c5f68656967687400000100060010636f6f7264696e6174655f7363616c653ff0000000000000" +
             "010009756c7472617761726d0001000b6861735f6365696c696e670000"
     };
-
-    /** DIMENSION_TYPE_755_ELEMENT_HEX：実バニラ1.17の Join Game codec から取った element（anonymous NBT の16進）。min_y=0・height=256 付き。 */
     private static final String[] DIMENSION_TYPE_755_ELEMENT_HEX = {
 "0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000008000a" +
             "696e66696e696275726e001e6d696e6563726166743a696e66696e696275726e5f6f766572776f726c640100147265737061" +
@@ -12489,16 +11590,10 @@ public final class PlayTranslator {
             "0300056d696e5f790000000001000b6861735f6365696c696e6700010009756c7472617761726d0003000668656967687400" +
             "00010000"
     };
-
-    /** 実バニラ1.16.5の dimension_type element 4件（名前→element）。 */
     private static final Map<String, Tag.CompoundTag> DIMENSION_TYPE_754_ELEMENTS =
             elementMap(DIMENSION_TYPE_754_NAMES, DIMENSION_TYPE_754_ELEMENT_HEX);
-
-    /** 実バニラ1.17の dimension_type element 4件（名前→element）。 */
     private static final Map<String, Tag.CompoundTag> DIMENSION_TYPE_755_ELEMENTS =
             elementMap(DIMENSION_TYPE_755_NAMES, DIMENSION_TYPE_755_ELEMENT_HEX);
-
-    /** 754に無く755にあるバイオーム2件の element（名前→element。実バニラ1.17の Join Game codec から取ったもの）。 */
     private static final Map<String, Tag.CompoundTag> BIOME_755_NEW_ELEMENTS = Map.of(
             "minecraft:dripstone_caves", parseElementHex(
 "0a08000d70726563697069746174696f6e00047261696e0a000765666665637473030009736b795f636f6c6f720078a7ff03" +
@@ -12514,1743 +11609,10 @@ public final class PlayTranslator {
             "72003f76e40005000564657074683dcccccd05000b74656d70657261747572653f0000000500057363616c653e4ccccd0500" +
             "08646f776e66616c6c3f00000008000863617465676f7279000b756e64657267726f756e6400"
             ));
-
-    /**
-     * 754の dimension（NBTの値）に対応する dimension_type の名前を返す。
-     * dimensionName757／dimensionName756 と同じ手順で、既定の element は754のものを使う。
-     * codec が null の場合（Respawn）は codec での検索を飛ばす。
-     */
-    private static String dimensionName754(Tag dimension, Tag.CompoundTag codec) {
-        if (codec != null) {
-            String fromCodec = findDimensionName(codec, dimension);
-            if (fromCodec != null) {
-                return fromCodec;
-            }
-        }
-        for (Map.Entry<String, Tag.CompoundTag> e : DIMENSION_TYPE_754_ELEMENTS.entrySet()) {
-            if (e.getValue().equals(dimension)) {
-                return e.getKey();
-            }
-        }
-        // 推定：effects と has_ceiling の組み合わせで4種を区別する（dimensionName757 と同じ）。
-        if (dimension instanceof Tag.CompoundTag compound) {
-            String effects = compound.getString("effects").orElse("");
-            boolean hasCeiling = compound.get("has_ceiling")
-                    .filter(t -> t instanceof Tag.ByteTag)
-                    .map(t -> ((Tag.ByteTag) t).value() != 0)
-                    .orElse(false);
-            if (effects.equals("minecraft:the_nether")) {
-                return "minecraft:the_nether";
-            }
-            if (effects.equals("minecraft:the_end")) {
-                return "minecraft:the_end";
-            }
-            if (effects.equals("minecraft:overworld")) {
-                return hasCeiling ? "minecraft:overworld_caves" : "minecraft:overworld";
-            }
-        }
-        LOG.warning("dimension の名前が分からなかったため minecraft:overworld にします。");
-        return "minecraft:overworld";
-    }
-
-    /**
-     * 755の dimension（NBTの値）に対応する dimension_type の名前を返す。
-     * dimensionName754 と同じ手順で、既定の element は755のものを使う。
-     * codec が null の場合（Respawn）は codec での検索を飛ばす。
-     */
-    private static String dimensionName755(Tag dimension, Tag.CompoundTag codec) {
-        if (codec != null) {
-            String fromCodec = findDimensionName(codec, dimension);
-            if (fromCodec != null) {
-                return fromCodec;
-            }
-        }
-        for (Map.Entry<String, Tag.CompoundTag> e : DIMENSION_TYPE_755_ELEMENTS.entrySet()) {
-            if (e.getValue().equals(dimension)) {
-                return e.getKey();
-            }
-        }
-        if (dimension instanceof Tag.CompoundTag compound) {
-            String effects = compound.getString("effects").orElse("");
-            boolean hasCeiling = compound.get("has_ceiling")
-                    .filter(t -> t instanceof Tag.ByteTag)
-                    .map(t -> ((Tag.ByteTag) t).value() != 0)
-                    .orElse(false);
-            if (effects.equals("minecraft:the_nether")) {
-                return "minecraft:the_nether";
-            }
-            if (effects.equals("minecraft:the_end")) {
-                return "minecraft:the_end";
-            }
-            if (effects.equals("minecraft:overworld")) {
-                return hasCeiling ? "minecraft:overworld_caves" : "minecraft:overworld";
-            }
-        }
-        LOG.warning("dimension の名前が分からなかったため minecraft:overworld にします。");
-        return "minecraft:overworld";
-    }
-
-    /**
-     * 754の dimension_type の名前に対応する754の element を返す。
-     * 既定の754 element を使う。名前が既定に無く、codec に element があればそれを使い、
-     * それも無ければ overworld の element にする。
-     */
-    private static Tag dimensionValue754(String name, Tag.CompoundTag codec) {
-        Tag.CompoundTag element = DIMENSION_TYPE_754_ELEMENTS.get(name);
-        if (element != null) {
-            return element;
-        }
-        if (codec != null) {
-            Tag fromCodec = findDimensionElement(codec, name);
-            if (fromCodec != null) {
-                return fromCodec;
-            }
-        }
-        LOG.warning("dimension " + name + " の754 element が無いため minecraft:overworld にします。");
-        return DIMENSION_TYPE_754_ELEMENTS.get("minecraft:overworld");
-    }
-
-    /** 754の dimension_type の名前に対応する754の element を返す（codec が無い場合。Respawn 用）。 */
-    private static Tag dimensionValue754(String name) {
-        return dimensionValue754(name, null);
-    }
-
-    /**
-     * 755の dimension_type の名前に対応する755の element を返す。
-     * 既定の755 element を使う。名前が既定に無く、codec に element があればそれを使い、
-     * それも無ければ overworld の element にする。
-     */
-    private static Tag dimensionValue755(String name, Tag.CompoundTag codec) {
-        Tag.CompoundTag element = DIMENSION_TYPE_755_ELEMENTS.get(name);
-        if (element != null) {
-            return element;
-        }
-        if (codec != null) {
-            Tag fromCodec = findDimensionElement(codec, name);
-            if (fromCodec != null) {
-                return fromCodec;
-            }
-        }
-        LOG.warning("dimension " + name + " の755 element が無いため minecraft:overworld にします。");
-        return DIMENSION_TYPE_755_ELEMENTS.get("minecraft:overworld");
-    }
-
-    /** 755の dimension_type の名前に対応する755の element を返す（codec が無い場合。Respawn 用）。 */
-    private static Tag dimensionValue755(String name) {
-        return dimensionValue755(name, null);
-    }
-
-    /**
-     * バイオームのエントリ列を754順から755順にする。共有する79件は id・element とも
-     * そのまま（実測で id 同一）。755にだけある dripstone_caves（174）・lush_caves（175）を
-     * 実バニラ1.17の element で補う。既に両方ある場合はそのまま返す。
-     */
-    private static List<Tag> appendNewBiomes754To755(List<Tag> entries) {
-        boolean hasDripstone = false;
-        boolean hasLush = false;
-        for (Tag entry : entries) {
-            if (entry instanceof Tag.CompoundTag compound) {
-                String name = compound.getString("name").orElse("");
-                if (name.equals("minecraft:dripstone_caves")) {
-                    hasDripstone = true;
-                } else if (name.equals("minecraft:lush_caves")) {
-                    hasLush = true;
-                }
-            }
-        }
-        if (hasDripstone && hasLush) {
-            return entries;
-        }
-        List<Tag> out = new ArrayList<>(entries);
-        if (!hasDripstone) {
-            out.add(biomeEntry("minecraft:dripstone_caves", 174,
-                    BIOME_755_NEW_ELEMENTS.get("minecraft:dripstone_caves")));
-        }
-        if (!hasLush) {
-            out.add(biomeEntry("minecraft:lush_caves", 175,
-                    BIOME_755_NEW_ELEMENTS.get("minecraft:lush_caves")));
-        }
-        return out;
-    }
-
-    /**
-     * バイオームのエントリ列を755順から754順にする。共有する79件は id・element とも
-     * そのまま。755にだけある dripstone_caves・lush_caves は落とす（754には無いため。
-     * 平原への付け替えはしない。平原と重複するエントリになってしまうため）。
-     */
-    private static List<Tag> dropNewBiomes755To754(List<Tag> entries) {
-        List<Tag> out = new ArrayList<>(entries.size());
-        for (Tag entry : entries) {
-            if (entry instanceof Tag.CompoundTag compound) {
-                String name = compound.getString("name").orElse("");
-                if (name.equals("minecraft:dripstone_caves")
-                        || name.equals("minecraft:lush_caves")) {
-                    continue;
-                }
-            }
-            out.add(entry);
-        }
-        return out;
-    }
-
-    /**
-     * 754の dimensionCodec を755形式にする。dimension_type の element を755既定値に
-     * 置き換え（min_y=0・height=256 を足す）、バイオームに dripstone_caves・lush_caves
-     * の2件を補う。共有バイオームの element はそのまま引き継ぐ（実測でバイト同一）。
-     * codec のキーの並びは755の実バニラ通り（dimension_type、worldgen/biome）。
-     * 未知のレジストリがあればそのまま引き継ぐ。
-     */
-    public static Tag.CompoundTag translateDimensionCodec754To755(Tag.CompoundTag codec754) {
-        if (codec754 == null) {
-            return null;
-        }
-        Map<String, Tag> codec = new LinkedHashMap<>();
-        Tag.CompoundTag dimensionRegistry = codec754.getCompound("minecraft:dimension_type")
-                .orElse(null);
-        if (dimensionRegistry != null) {
-            List<Tag> entries = substituteDimensionTypeElements(
-                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
-                    ProtocolVersion.V1_17);
-            Map<String, Tag> rebuilt = new LinkedHashMap<>();
-            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
-            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
-            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
-        }
-        Tag.CompoundTag biomeRegistry = codec754.getCompound("minecraft:worldgen/biome")
-                .orElse(null);
-        if (biomeRegistry != null) {
-            List<Tag> entries = appendNewBiomes754To755(
-                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
-            Map<String, Tag> rebuilt = new LinkedHashMap<>();
-            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
-            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
-            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
-        }
-        codec754.value().forEach((k, v) -> {
-            if (!codec.containsKey(k)) {
-                codec.put(k, v);
-            }
-        });
-        return new Tag.CompoundTag(codec);
-    }
-
-    /**
-     * 755の dimensionCodec を754形式にする。dimension_type の element を754既定値に
-     * 置き換え（min_y・height を除く）、バイオームから dripstone_caves・lush_caves の
-     * 2件を落とす。共有バイオームの element はそのまま引き継ぐ。
-     * codec のキーの並びは754の実バニラ通り（dimension_type、worldgen/biome）。
-     * 未知のレジストリがあればそのまま引き継ぐ。
-     */
-    public static Tag.CompoundTag translateDimensionCodec755To754(Tag.CompoundTag codec755) {
-        if (codec755 == null) {
-            return null;
-        }
-        Map<String, Tag> codec = new LinkedHashMap<>();
-        Tag.CompoundTag dimensionRegistry = codec755.getCompound("minecraft:dimension_type")
-                .orElse(null);
-        if (dimensionRegistry != null) {
-            List<Tag> entries = substituteDimensionTypeElements(
-                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
-                    ProtocolVersion.V1_16_5);
-            Map<String, Tag> rebuilt = new LinkedHashMap<>();
-            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
-            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
-            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
-        }
-        Tag.CompoundTag biomeRegistry = codec755.getCompound("minecraft:worldgen/biome")
-                .orElse(null);
-        if (biomeRegistry != null) {
-            List<Tag> entries = dropNewBiomes755To754(
-                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
-            Map<String, Tag> rebuilt = new LinkedHashMap<>();
-            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
-            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
-            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
-        }
-        codec755.value().forEach((k, v) -> {
-            if (!codec.containsKey(k)) {
-                codec.put(k, v);
-            }
-        });
-        return new Tag.CompoundTag(codec);
-    }
-
-    // ------------------------------------------------------------------
-    // Join Game（754）
-    // ------------------------------------------------------------------
-
-    /** 754の Join Game の中身。755と同一の15フィールド。dimension は DimensionType の値そのもの（NBT）。previousGameMode は i8 として読む（minecraft-data では754は u8・755は i8 と書かれているが、ワイヤ上は同じ1バイトで、255＝「無し」は i8 の -1 と同じ値。755と同じ読み方）。simulationDistance は無い。 */
-    public record JoinGame754(int entityId, boolean hardcore, int gameMode, int previousGameMode,
-            List<String> worldNames, Tag.CompoundTag dimensionCodec, Tag dimension,
-            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
-            boolean reducedDebug, boolean enableRespawnScreen,
-            boolean isDebug, boolean isFlat) {
-    }
-
-    /**
-     * 754の Join Game を読む。順番は entityId, hardcore, gameMode, previousGameMode(i8),
-     * worldNames, dimensionCodec（名前付き NBT）, dimension（名前付き NBT）,
-     * worldName, hashedSeed, maxPlayers, viewDistance,
-     * reducedDebug, enableRespawnScreen, isDebug, isFlat である
-     * （minecraft-data mc-1.16-protocol.json の packet_login と mc-1.17-protocol.json の
-     * packet_login が previousGameMode の型名以外は完全同一であること、および
-     * STAGE-A-754-NOTES.md §11.6 の実バニラ1.16.5キャプチャ（30,847バイト。
-     * 消費量 30,847／30,847 で完全一致）で確認）。
-     */
-    public static JoinGame754 parseJoinGame754(byte[] payload) {
-        Reader reader = new Reader(payload);
-        int entityId = reader.readInt();
-        boolean hardcore = reader.readBoolean();
-        int gameMode = reader.readUnsignedByte();
-        int previousGameMode = reader.readByte();
-        checkPreviousGameMode757(previousGameMode);
-        List<String> worldNames = PacketIO.readStringList(reader);
-        Tag dimensionCodec = reader.readNamedNbt().tag();
-        if (!(dimensionCodec instanceof Tag.CompoundTag codec)) {
-            throw new IllegalArgumentException("Join Game の dimensionCodec がコンパウンドではありません。");
-        }
-        Tag dimension = reader.readNamedNbt().tag();
-        String worldName = reader.readString();
-        long hashedSeed = reader.readLong();
-        int maxPlayers = reader.readVarInt();
-        int viewDistance = reader.readVarInt();
-        boolean reducedDebug = reader.readBoolean();
-        boolean enableRespawnScreen = reader.readBoolean();
-        boolean isDebug = reader.readBoolean();
-        boolean isFlat = reader.readBoolean();
-        requireEnd(reader);
-        return new JoinGame754(entityId, hardcore, gameMode, previousGameMode, worldNames,
-                codec, dimension, worldName, hashedSeed, maxPlayers, viewDistance,
-                reducedDebug, enableRespawnScreen, isDebug, isFlat);
-    }
-
-    /**
-     * 753の Join Game を読む。753 の packet_login は 754 と完全同一
-     * （minecraft-data mc-1.16.3-protocol.json は mc-1.16-protocol.json と
-     * バイト同一（152,123 バイト）。Stage A §11.6 の実バニラ 1.16.3 キャプチャは
-     * 30,847 バイトで 1.16.5 と同一）のため、754 のパーサにそのまま委譲する。
-     * 戻り値は JoinGame754（753 専用のレコードは作らない。フィールドは同一）。
-     */
-    public static JoinGame754 parseJoinGame753(byte[] payload) {
-        return parseJoinGame754(payload);
-    }
-
-    /**
-     * 751の Join Game を読む。751 の packet_login は 753 と完全同一
-     * （minecraft-data mc-1.16.2-protocol.json は mc-1.16.3-protocol.json と
-     * バイト同一（152,123 バイト）。Stage A §11.6 の実バニラ 1.16.2 キャプチャは
-     * 30,847 バイトで 1.16.3 と同一）のため、753 のパーサにそのまま委譲する。
-     * 戻り値は JoinGame754（751 専用のレコードは作らない。フィールドは同一）。
-     */
-    public static JoinGame754 parseJoinGame751(byte[] payload) {
-        return parseJoinGame753(payload);
-    }
-
-
-    /** 754の Join Game を書く。755と同一のフィールド順。 */
-    public static byte[] writeJoinGame754(JoinGame754 join) {
-        Writer writer = new Writer();
-        writer.writeInt(join.entityId());
-        writer.writeBoolean(join.hardcore());
-        writer.writeByte(join.gameMode());
-        writer.writeByte(join.previousGameMode());
-        PacketIO.writeStringList(writer, join.worldNames());
-        writer.writeNamedNbt("", join.dimensionCodec());
-        writer.writeNamedNbt("", join.dimension());
-        writer.writeString(join.worldName());
-        writer.writeLong(join.hashedSeed());
-        writer.writeVarInt(join.maxPlayers());
-        writer.writeVarInt(join.viewDistance());
-        writer.writeBoolean(join.reducedDebug());
-        writer.writeBoolean(join.enableRespawnScreen());
-        writer.writeBoolean(join.isDebug());
-        writer.writeBoolean(join.isFlat());
-        return writer.bytes();
-    }
-
-    /**
-     * Join Game（754 → 755）。dimension は NBT の値から codec 内の名前を引き、755の element に直す。
-     * dimensionCodec は755形式に直す（dimension_type の element に min_y=0・height=256 を足し、
-     * バイオームに dripstone_caves・lush_caves を補う）。
-     * 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
-     */
-    public static byte[] translateJoinGame754To755(byte[] payload) {
-        try {
-            JoinGame754 join = parseJoinGame754(payload);
-            String dimensionName = dimensionName754(join.dimension(), join.dimensionCodec());
-            return writeJoinGame755(new JoinGame755(join.entityId(), join.hardcore(),
-                    join.gameMode(), join.previousGameMode(), join.worldNames(),
-                    translateDimensionCodec754To755(join.dimensionCodec()),
-                    dimensionValue755(dimensionName),
-                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
-                    join.reducedDebug(), join.enableRespawnScreen(),
-                    join.isDebug(), join.isFlat()));
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Join Game（755 → 754）。dimension は NBT の値から codec 内の名前を引き、754の element に直す。
-     * dimensionCodec は754形式に直す（dimension_type の element から min_y・height を除き、
-     * バイオームから dripstone_caves・lush_caves を落とす）。
-     * 読めないペイロードは素通しする。
-     */
-    public static byte[] translateJoinGame755To754(byte[] payload) {
-        try {
-            JoinGame755 join = parseJoinGame755(payload);
-            String dimensionName = dimensionName755(join.dimension(), join.dimensionCodec());
-            return writeJoinGame754(new JoinGame754(join.entityId(), join.hardcore(),
-                    join.gameMode(), join.previousGameMode(), join.worldNames(),
-                    translateDimensionCodec755To754(join.dimensionCodec()),
-                    dimensionValue754(dimensionName),
-                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
-                    join.reducedDebug(), join.enableRespawnScreen(),
-                    join.isDebug(), join.isFlat()));
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Respawn（754）
-    // ------------------------------------------------------------------
-
-    /** 754の Respawn（SpawnInfo）の中身。755と同一の8フィールド。dimension は DimensionType の値そのもの（NBT）。previousGameMode は u8（Join Game の i8 とは違う。protocol.json で確認）。copyMetadata は末尾。dataToKeep は無い。 */
-    public record SpawnInfo754(Tag dimension, String worldName, long hashedSeed, int gameMode,
-            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata) {
-    }
-
-    /** 754の SpawnInfo を読む。755と同一のフィールド順。 */
-    public static SpawnInfo754 readSpawnInfo754(Reader reader) {
-        Tag dimension = reader.readNamedNbt().tag();
-        String worldName = reader.readString();
-        long hashedSeed = reader.readLong();
-        int gameMode = reader.readUnsignedByte();
-        int previousGameMode = reader.readUnsignedByte();
-        boolean isDebug = reader.readBoolean();
-        boolean isFlat = reader.readBoolean();
-        boolean copyMetadata = reader.readBoolean();
-        return new SpawnInfo754(dimension, worldName, hashedSeed, gameMode,
-                previousGameMode, isDebug, isFlat, copyMetadata);
-    }
-
-    /** 754の SpawnInfo を書く。755と同一のフィールド順。 */
-    public static void writeSpawnInfo754(Writer writer, SpawnInfo754 info) {
-        writer.writeNamedNbt("", info.dimension());
-        writer.writeString(info.worldName());
-        writer.writeLong(info.hashedSeed());
-        writer.writeByte(info.gameMode());
-        writer.writeByte(info.previousGameMode());
-        writer.writeBoolean(info.isDebug());
-        writer.writeBoolean(info.isFlat());
-        writer.writeBoolean(info.copyMetadata());
-    }
-
-    /**
-     * Respawn（754 → 755）。フィールドは同一のため、dimension の element だけ755既定値に直す
-     * （min_y=0・height=256 を足す）。copyMetadata はそのまま写す。
-     * previousGameMode は u8 のまま写す（範囲検査はしない。Join Game の i8 と違い、"無し" の符号が protocol.json には無いため）。
-     * 読めないペイロードは素通しする。
-     */
-    public static byte[] translateRespawn754To755(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            SpawnInfo754 info = readSpawnInfo754(reader);
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writeSpawnInfo755(writer, new SpawnInfo755(
-                    dimensionValue755(dimensionName754(info.dimension(), null)),
-                    info.worldName(), info.hashedSeed(), info.gameMode(),
-                    info.previousGameMode(), info.isDebug(), info.isFlat(),
-                    info.copyMetadata()));
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Respawn（755 → 754）。フィールドは同一のため、dimension の element だけ754既定値に直す
-     * （min_y・height を除く）。copyMetadata はそのまま写す。読めないペイロードは素通しする。
-     */
-    public static byte[] translateRespawn755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            SpawnInfo755 info = readSpawnInfo755(reader);
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writeSpawnInfo754(writer, new SpawnInfo754(
-                    dimensionValue754(dimensionName755(info.dimension(), null)),
-                    info.worldName(), info.hashedSeed(), info.gameMode(),
-                    info.previousGameMode(), info.isDebug(), info.isFlat(),
-                    info.copyMetadata()));
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Client Information（Settings、754）
-    // ------------------------------------------------------------------
-
-    /**
-     * Client Information（754 → 755）。754は {locale, viewDistance i8, chatFlags varint,
-     * chatColors bool, skinParts u8, mainHand varint} の6フィールドで、755は末尾に
-     * disableTextFiltering bool が付いた7フィールド。末尾に false を足す。
-     * false の根拠：false はフィルタ有効で、1.17のバニラクライアントの既定値
-     * （設定で無効化しない限り false を送る）。1.16.5のクライアントはこの設定を持たないため、
-     * 1.17の既定値を適用する。ViaVersion の Protocol1_16_4To1_17 は
-     * CLIENT_INFORMATION で1.17側の text filtering bool を読んで落とす（755→754方向）だけで、
-     * 逆向きの補完値は ViaVersion には無いため、この既定値の選択は DetergentMC の判断である。
-     * 読めないペイロードは素通しする。
-     */
-    public static byte[] translateClientInformation754To755(byte[] payload) {
-        if (payload == null) {
-            return payload;
-        }
-        try {
-            Reader reader = new Reader(payload);
-            String locale = reader.readString();
-            int viewDistance = reader.readByte();
-            int chatFlags = reader.readVarInt();
-            boolean chatColors = reader.readBoolean();
-            int skinParts = reader.readUnsignedByte();
-            int mainHand = reader.readVarInt();
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Client Information に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeString(locale);
-            writer.writeByte(viewDistance);
-            writer.writeVarInt(chatFlags);
-            writer.writeBoolean(chatColors);
-            writer.writeUnsignedByte(skinParts);
-            writer.writeVarInt(mainHand);
-            writer.writeBoolean(false); // disableTextFiltering：754には無いため 1.17の既定値 false を補う
-            return writer.bytes();
-        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
-            return payload;
-        }
-    }
-
-    /**
-     * Client Information（755 → 754）。末尾の disableTextFiltering bool を落とす。
-     * 根拠：ViaVersion の Protocol1_16_4To1_17 の CLIENT_INFORMATION も
-     * 1.17側の text filtering bool を読んで落としている（read(Types.BOOLEAN)）。
-     * 読めないペイロードは素通しする。
-     */
-    public static byte[] translateClientInformation755To754(byte[] payload) {
-        if (payload == null) {
-            return payload;
-        }
-        try {
-            Reader reader = new Reader(payload);
-            String locale = reader.readString();
-            int viewDistance = reader.readByte();
-            int chatFlags = reader.readVarInt();
-            boolean chatColors = reader.readBoolean();
-            int skinParts = reader.readUnsignedByte();
-            int mainHand = reader.readVarInt();
-            boolean disableTextFiltering = reader.readBoolean();
-            if (reader.remaining() != 0) {
-                throw new IllegalArgumentException(
-                        "Client Information に余分なバイトがあります（残り=" + reader.remaining() + "）。");
-            }
-            Writer writer = new Writer();
-            writer.writeString(locale);
-            writer.writeByte(viewDistance);
-            writer.writeVarInt(chatFlags);
-            writer.writeBoolean(chatColors);
-            writer.writeUnsignedByte(skinParts);
-            writer.writeVarInt(mainHand);
-            return writer.bytes();
-        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Synchronize Player Position（754）
-    // ------------------------------------------------------------------
-
-    /**
-     * Synchronize Player Position（754 0x34 → 755 0x38）。
-     * 755 にだけ末尾の dismountVehicle（bool）があるため false を足す。
-     * false の根拠：false は「乗り物から降りない」で、1.16.5には降車の概念が無く、
-     * 乗り続けるのが元の挙動（translatePosition762To761 と同じ選択）。
-     * 読めないペイロードは素通しする。
-     */
-    public static byte[] translatePosition754To755(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            double x = reader.readDouble();
-            double y = reader.readDouble();
-            double z = reader.readDouble();
-            float yaw = reader.readFloat();
-            float pitch = reader.readFloat();
-            byte flags = reader.readByte();
-            int teleportId = reader.readVarInt();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeDouble(x);
-            writer.writeDouble(y);
-            writer.writeDouble(z);
-            writer.writeFloat(yaw);
-            writer.writeFloat(pitch);
-            writer.writeByte(flags);
-            writer.writeVarInt(teleportId);
-            writer.writeBoolean(false); // dismountVehicle（755のみ）
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Synchronize Player Position を変換できなかったため素通しします: "
-                    + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Synchronize Player Position（755 0x38 → 754 0x34）。
-     * 末尾の dismountVehicle を読んで落とす。読めないペイロードは素通しする。
-     */
-    public static byte[] translatePosition755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            double x = reader.readDouble();
-            double y = reader.readDouble();
-            double z = reader.readDouble();
-            float yaw = reader.readFloat();
-            float pitch = reader.readFloat();
-            byte flags = reader.readByte();
-            int teleportId = reader.readVarInt();
-            reader.readBoolean(); // dismountVehicle（755のみ）
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeDouble(x);
-            writer.writeDouble(y);
-            writer.writeDouble(z);
-            writer.writeFloat(yaw);
-            writer.writeFloat(pitch);
-            writer.writeByte(flags);
-            writer.writeVarInt(teleportId);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Synchronize Player Position を変換できなかったため素通しします: "
-                    + e.getMessage());
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Combat Event（754）⇔ enter／end／death_combat_event（755）
-    // ------------------------------------------------------------------
-
-    /**
-     * Combat Event（754 0x31 → 755）。754は {event varint, duration（event=1 のとき varint）,
-     * playerId（event=2 のとき varint）, entityId（event=1・2 のとき i32）,
-     * message（event=2 のとき string）} の1パケットで、event の値で3種に分かれる。
-     * 755は3パケットに分かれているため、event に応じて振り分けて返す。
-     * 戻り値は {@link MinecraftPacket}（755のパケットID＋ペイロード）。
-     * event が 0〜2 以外の場合と、読めないペイロードの場合は {@code null} を返す
-     * （呼び出し側は落とすこと。素通しはできない。755側の3パケットのどれにもならないため）。
-     */
-    public static MinecraftPacket translateCombatEvent754To755(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int event = reader.readVarInt();
-            return switch (event) {
-                case 0 -> {
-                    requireEnd(reader);
-                    yield new MinecraftPacket(
-                            PacketIds.PacketName.PLAY_ENTER_COMBAT_EVENT.idFor(755),
-                            new byte[0]);
-                }
-                case 1 -> {
-                    int duration = reader.readVarInt();
-                    int entityId = reader.readInt();
-                    requireEnd(reader);
-                    Writer writer = new Writer();
-                    writer.writeVarInt(duration);
-                    writer.writeInt(entityId);
-                    yield new MinecraftPacket(
-                            PacketIds.PacketName.PLAY_END_COMBAT_EVENT.idFor(755),
-                            writer.bytes());
-                }
-                case 2 -> {
-                    int playerId = reader.readVarInt();
-                    int entityId = reader.readInt();
-                    String message = reader.readString();
-                    requireEnd(reader);
-                    Writer writer = new Writer();
-                    writer.writeVarInt(playerId);
-                    writer.writeInt(entityId);
-                    writer.writeString(message);
-                    yield new MinecraftPacket(
-                            PacketIds.PacketName.PLAY_DEATH_COMBAT_EVENT.idFor(755),
-                            writer.bytes());
-                }
-                default -> {
-                    LOG.warning("Combat Event の event が範囲外のため落とします: " + event);
-                    yield null;
-                }
-            };
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Combat Event を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Enter Combat Event（755 0x34 → 754 0x31）。ペイロードは空で、754では {event=0} だけになる。
-     * ペイロードに余分なバイトがある場合は {@code null} を返す（呼び出し側は落とすこと）。
-     */
-    public static byte[] translateEnterCombatEvent755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(0);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Enter Combat Event を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * End Combat Event（755 0x33 → 754 0x31）。{duration varint, entityId i32} に
-     * event=1 を付けて組み立てる。
-     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
-     */
-    public static byte[] translateEndCombatEvent755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int duration = reader.readVarInt();
-            int entityId = reader.readInt();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(1);
-            writer.writeVarInt(duration);
-            writer.writeInt(entityId);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("End Combat Event を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Death Combat Event（755 0x35 → 754 0x31）。{playerId varint, entityId i32, message string} に
-     * event=2 を付けて組み立てる。
-     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
-     */
-    public static byte[] translateDeathCombatEvent755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int playerId = reader.readVarInt();
-            int entityId = reader.readInt();
-            String message = reader.readString();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(2);
-            writer.writeVarInt(playerId);
-            writer.writeInt(entityId);
-            writer.writeString(message);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Death Combat Event を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Title（754）⇔ set_title_text／set_title_subtitle／set_title_time／
-    // clear_titles／action_bar（755）
-    // ------------------------------------------------------------------
-
-    /**
-     * Title（754 0x4f → 755）。754は {action varint, text（action=0・1・2 のとき string）,
-     * fadeIn／stay／fadeOut（action=3 のとき i32×3）} の1パケットで、action の値で5種に分かれる。
-     * 755は5パケットに分かれているため、action に応じて振り分けて返す。
-     * action=4・5 はどちらも clear_titles（0x10）で、reset が false／true の違い
-     * （ViaVersion の Protocol1_16_4To1_17 の SET_TITLES 分岐と同じ）。
-     * 戻り値は {@link MinecraftPacket}（755のパケットID＋ペイロード）。
-     * action が 0〜5 以外の場合と、読めないペイロードの場合は {@code null} を返す
-     * （呼び出し側は落とすこと）。
-     */
-    public static MinecraftPacket translateTitle754To755(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int action = reader.readVarInt();
-            return switch (action) {
-                case 0 -> {
-                    String text = reader.readString();
-                    requireEnd(reader);
-                    Writer writer = new Writer();
-                    writer.writeString(text);
-                    yield new MinecraftPacket(
-                            PacketIds.PacketName.PLAY_SET_TITLE_TEXT.idFor(755),
-                            writer.bytes());
-                }
-                case 1 -> {
-                    String text = reader.readString();
-                    requireEnd(reader);
-                    Writer writer = new Writer();
-                    writer.writeString(text);
-                    yield new MinecraftPacket(
-                            PacketIds.PacketName.PLAY_SET_TITLE_SUBTITLE.idFor(755),
-                            writer.bytes());
-                }
-                case 2 -> {
-                    String text = reader.readString();
-                    requireEnd(reader);
-                    Writer writer = new Writer();
-                    writer.writeString(text);
-                    yield new MinecraftPacket(
-                            PacketIds.PacketName.PLAY_ACTION_BAR.idFor(755),
-                            writer.bytes());
-                }
-                case 3 -> {
-                    int fadeIn = reader.readInt();
-                    int stay = reader.readInt();
-                    int fadeOut = reader.readInt();
-                    requireEnd(reader);
-                    Writer writer = new Writer();
-                    writer.writeInt(fadeIn);
-                    writer.writeInt(stay);
-                    writer.writeInt(fadeOut);
-                    yield new MinecraftPacket(
-                            PacketIds.PacketName.PLAY_SET_TITLE_TIME.idFor(755),
-                            writer.bytes());
-                }
-                case 4, 5 -> {
-                    requireEnd(reader);
-                    Writer writer = new Writer();
-                    writer.writeBoolean(action == 5); // reset
-                    yield new MinecraftPacket(
-                            PacketIds.PacketName.PLAY_CLEAR_TITLES.idFor(755),
-                            writer.bytes());
-                }
-                default -> {
-                    LOG.warning("Title の action が範囲外のため落とします: " + action);
-                    yield null;
-                }
-            };
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Title を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Set Title Text（755 0x59 → 754 0x4f）。{text string} に action=0 を付けて組み立てる。
-     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
-     */
-    public static byte[] translateSetTitleText755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String text = reader.readString();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(0);
-            writer.writeString(text);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Set Title Text を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Set Title Subtitle（755 0x57 → 754 0x4f）。{text string} に action=1 を付けて組み立てる。
-     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
-     */
-    public static byte[] translateSetTitleSubtitle755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String text = reader.readString();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(1);
-            writer.writeString(text);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Set Title Subtitle を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Set Title Time（755 0x5a → 754 0x4f）。{fadeIn i32, stay i32, fadeOut i32} に
-     * action=3 を付けて組み立てる。
-     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
-     */
-    public static byte[] translateSetTitleTime755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int fadeIn = reader.readInt();
-            int stay = reader.readInt();
-            int fadeOut = reader.readInt();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(3);
-            writer.writeInt(fadeIn);
-            writer.writeInt(stay);
-            writer.writeInt(fadeOut);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Set Title Time を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Clear Titles（755 0x10 → 754 0x4f）。{reset bool} を action=5（reset=true）／
-     * action=4（reset=false）に直して組み立てる。
-     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
-     */
-    public static byte[] translateClearTitles755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            boolean reset = reader.readBoolean();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(reset ? 5 : 4);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Clear Titles を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Action Bar（755 0x41 → 754 0x4f）。{text string} に action=2 を付けて組み立てる。
-     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
-     */
-    public static byte[] translateActionBar755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String text = reader.readString();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(2);
-            writer.writeString(text);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Action Bar を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // World Border（754）⇔ initialize／center／lerp_size／size／
-    // warning_delay／warning_reach（755）
-    // ------------------------------------------------------------------
-
-    /**
-     * World Border（754 0x3d → 755）。754は {action varint,
-     * radius（action=0 のとき f64）, x・z（action=2・3 のとき f64）,
-     * old_radius・new_radius（action=1・3 のとき f64）, speed（action=1・3 のとき varlong）,
-     * portalBoundary（action=3 のとき varint）,
-     * warningBlocks（action=3 のとき varint）, warningTime（action=3 のとき varint）,
-     * warningTime（action=4 のとき varint）, warningBlocks（action=5 のとき varint）}
-     * の1パケットで、action の値で6種に分かれる。
-     * 注意：action=3 の warning の順序は warningBlocks→warningTime である。
-     * minecraft-data protocol.json の warning_time→warning_blocks の順序は誤りで、
-     * 実バニラ1.16.5の javap（ClientboundSetBorderPacket qt#write）と生キャプチャ
-     * （portalBoundary の後に 5→15）で確認した。
-     * また radius は直径の値そのもので、755の diameter と同じ値をそのまま写す
-     * （実バニラ1.16.5の既定ボーダーは 60000000.0、実バニラ1.17の既定ボーダーは
-     * 59999968.0。どちらも直径。32の差は1.17の既定値・上限値の変更によるもの）。
-     * 戻り値は {@link MinecraftPacket}（755のパケットID＋ペイロード）。
-     * action が 0〜5 以外の場合と、読めないペイロードの場合は {@code null} を返す
-     * （呼び出し側は落とすこと）。
-     */
-    public static MinecraftPacket translateWorldBorder754To755(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int action = reader.readVarInt();
-            return switch (action) {
-                case 0 -> {
-                    double radius = reader.readDouble();
-                    requireEnd(reader);
-                    Writer writer = new Writer();
-                    writer.writeDouble(radius); // diameter（値はそのまま）
-                    yield new MinecraftPacket(
-                            PacketIds.PacketName.PLAY_WORLD_BORDER_SIZE.idFor(755),
-                            writer.bytes());
-                }
-                case 1 -> {
-                    double oldRadius = reader.readDouble();
-                    double newRadius = reader.readDouble();
-                    long speed = reader.readVarLong();
-                    requireEnd(reader);
-                    Writer writer = new Writer();
-                    writer.writeDouble(oldRadius);
-                    writer.writeDouble(newRadius);
-                    writer.writeVarLong(speed);
-                    yield new MinecraftPacket(
-                            PacketIds.PacketName.PLAY_WORLD_BORDER_LERP_SIZE.idFor(755),
-                            writer.bytes());
-                }
-                case 2 -> {
-                    double x = reader.readDouble();
-                    double z = reader.readDouble();
-                    requireEnd(reader);
-                    Writer writer = new Writer();
-                    writer.writeDouble(x);
-                    writer.writeDouble(z);
-                    yield new MinecraftPacket(
-                            PacketIds.PacketName.PLAY_WORLD_BORDER_CENTER.idFor(755),
-                            writer.bytes());
-                }
-                case 3 -> {
-                    double x = reader.readDouble();
-                    double z = reader.readDouble();
-                    double oldRadius = reader.readDouble();
-                    double newRadius = reader.readDouble();
-                    long speed = reader.readVarLong();
-                    int portalBoundary = reader.readVarInt();
-                    int warningBlocks = reader.readVarInt();
-                    int warningTime = reader.readVarInt();
-                    requireEnd(reader);
-                    Writer writer = new Writer();
-                    writer.writeDouble(x);
-                    writer.writeDouble(z);
-                    writer.writeDouble(oldRadius);
-                    writer.writeDouble(newRadius);
-                    writer.writeVarLong(speed);
-                    writer.writeVarInt(portalBoundary);
-                    writer.writeVarInt(warningBlocks);
-                    writer.writeVarInt(warningTime);
-                    yield new MinecraftPacket(
-                            PacketIds.PacketName.PLAY_INITIALIZE_WORLD_BORDER.idFor(755),
-                            writer.bytes());
-                }
-                case 4 -> {
-                    int warningTime = reader.readVarInt();
-                    requireEnd(reader);
-                    Writer writer = new Writer();
-                    writer.writeVarInt(warningTime);
-                    yield new MinecraftPacket(
-                            PacketIds.PacketName.PLAY_WORLD_BORDER_WARNING_DELAY.idFor(755),
-                            writer.bytes());
-                }
-                case 5 -> {
-                    int warningBlocks = reader.readVarInt();
-                    requireEnd(reader);
-                    Writer writer = new Writer();
-                    writer.writeVarInt(warningBlocks);
-                    yield new MinecraftPacket(
-                            PacketIds.PacketName.PLAY_WORLD_BORDER_WARNING_REACH.idFor(755),
-                            writer.bytes());
-                }
-                default -> {
-                    LOG.warning("World Border の action が範囲外のため落とします: " + action);
-                    yield null;
-                }
-            };
-        } catch (IllegalArgumentException e) {
-            LOG.warning("World Border を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * Initialize World Border（755 0x20 → 754 0x3d）。
-     * {x f64, z f64, oldDiameter f64, newDiameter f64, speed varlong,
-     * portalTeleportBoundary varint, warningBlocks varint, warningTime varint} に
-     * action=3 を付けて組み立てる。warning の順序は warningBlocks→warningTime
-     * （755側の順序と同じ。754側もワイヤ上は同じ順序）。
-     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
-     */
-    public static byte[] translateInitializeWorldBorder755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            double x = reader.readDouble();
-            double z = reader.readDouble();
-            double oldDiameter = reader.readDouble();
-            double newDiameter = reader.readDouble();
-            long speed = reader.readVarLong();
-            int portalBoundary = reader.readVarInt();
-            int warningBlocks = reader.readVarInt();
-            int warningTime = reader.readVarInt();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(3);
-            writer.writeDouble(x);
-            writer.writeDouble(z);
-            writer.writeDouble(oldDiameter);
-            writer.writeDouble(newDiameter);
-            writer.writeVarLong(speed);
-            writer.writeVarInt(portalBoundary);
-            writer.writeVarInt(warningBlocks);
-            writer.writeVarInt(warningTime);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Initialize World Border を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * World Border Center（755 0x42 → 754 0x3d）。{x f64, z f64} に action=2 を付けて組み立てる。
-     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
-     */
-    public static byte[] translateWorldBorderCenter755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            double x = reader.readDouble();
-            double z = reader.readDouble();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(2);
-            writer.writeDouble(x);
-            writer.writeDouble(z);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("World Border Center を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * World Border Lerp Size（755 0x43 → 754 0x3d）。
-     * {oldDiameter f64, newDiameter f64, speed varlong} に action=1 を付けて組み立てる。
-     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
-     */
-    public static byte[] translateWorldBorderLerpSize755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            double oldDiameter = reader.readDouble();
-            double newDiameter = reader.readDouble();
-            long speed = reader.readVarLong();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(1);
-            writer.writeDouble(oldDiameter);
-            writer.writeDouble(newDiameter);
-            writer.writeVarLong(speed);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("World Border Lerp Size を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * World Border Size（755 0x44 → 754 0x3d）。{diameter f64} に action=0 を付けて組み立てる。
-     * diameter の値は radius としてそのまま写す（直径の値そのもののため）。
-     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
-     */
-    public static byte[] translateWorldBorderSize755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            double diameter = reader.readDouble();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(0);
-            writer.writeDouble(diameter);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("World Border Size を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * World Border Warning Delay（755 0x45 → 754 0x3d）。{warningTime varint} に
-     * action=4 を付けて組み立てる。
-     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
-     */
-    public static byte[] translateWorldBorderWarningDelay755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int warningTime = reader.readVarInt();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(4);
-            writer.writeVarInt(warningTime);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("World Border Warning Delay を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    /**
-     * World Border Warning Reach（755 0x46 → 754 0x3d）。{warningBlocks varint} に
-     * action=5 を付けて組み立てる。
-     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
-     */
-    public static byte[] translateWorldBorderWarningReach755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int warningBlocks = reader.readVarInt();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(5);
-            writer.writeVarInt(warningBlocks);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("World Border Warning Reach を変換できなかったため落とします: " + e.getMessage());
-            return null;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Resource Pack Send（754）
-    // ------------------------------------------------------------------
-
-    /**
-     * Resource Pack Send（754 0x38 → 755 0x3c）。754 は {url, hash} のみで、
-     * 755 は forced bool と promptMessage option が付く（mc-1.16／
-     * mc-1.17-protocol.json で実測）。forced は false、promptMessage は
-     * 無しを補う（ViaVersion の Protocol1_16_4To1_17 の RESOURCE_PACK と
-     * 同じ。ViaVersion は設定値から forced／prompt を入れるが、既定は
-     * forced=false・prompt 無し）。
-     * 読めないペイロードは素通しする。
-     */
-    public static byte[] translateResourcePack754To755(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String url = reader.readString();
-            String hash = reader.readString();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeString(url);
-            writer.writeString(hash);
-            writer.writeBoolean(false); // forced（754には無いため 1.17の既定値 false を補う）
-            writer.writeBoolean(false); // promptMessage 無し
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Resource Pack Send を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Resource Pack Send（755 0x3c → 754 0x38）。forced と promptMessage を
-     * 読んで落とす。読めないペイロードは素通しする。
-     */
-    public static byte[] translateResourcePack755To754(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String url = reader.readString();
-            String hash = reader.readString();
-            reader.readBoolean(); // forced（754には無い）
-            boolean hasPrompt = reader.readBoolean(); // promptMessage の option
-            if (hasPrompt) {
-                reader.readString();
-            }
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeString(url);
-            writer.writeString(hash);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Resource Pack Send を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Ping／Pong ⇔ Transaction（落とす）
-    // ------------------------------------------------------------------
-
-    /**
-     * Ping（755 0x30 → 754 0x11）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
-     * 根拠：1.17の ping {id i32} と1.16.5の transaction {windowId i8, actionNumber i16,
-     * accepted bool} には対応付けが無い。ViaVersion の Protocol1_16_4To1_17.java にも
-     * PING／PONG／CONTAINER_ACK の登録は無く（ローカルの複写を grep で確認）、
-     * i32 の id は i16 の actionNumber に往復できない。ping／pong は遅延測定だけで、
-     * 落としても接続は維持される（Keep Alive 0x1f⇔0x21 は別パケットで影響を受けない）。
-     * 素通しはしない（0x30 のペイロードを 0x11 として送ると、1.16.5クライアントが
-     * windowId／actionNumber として誤読するため）。
-     */
-    public static byte[] translatePing755To754(byte[] payload) {
-        return null;
-    }
-
-    /**
-     * Transaction（754 0x11 → 755 0x30）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
-     * 根拠は {@link #translatePing755To754(byte[])} と同じ。
-     * 1.16.5サーバーが送る transaction（ウィンドウクリックの確認応答）は、1.17の ping には
-     * 対応付けできないため落とす。
-     */
-    public static byte[] translateTransaction754ToPing755(byte[] payload) {
-        return null;
-    }
-
-    /**
-     * Pong（755 0x1d → 754 0x07）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
-     * 根拠は {@link #translatePing755To754(byte[])} と同じ。
-     * 1.17の pong {id i32} と1.16.5の transaction {windowId i8, actionNumber i16,
-     * accepted bool} には対応付けが無い。
-     */
-    public static byte[] translatePong755To754(byte[] payload) {
-        return null;
-    }
-
-    /**
-     * Transaction（754 0x07 → 755 0x1d）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
-     * 根拠は {@link #translatePing755To754(byte[])} と同じ。
-     * 1.16.5クライアントが送る transaction（ウィンドウクリックの確認応答）は、1.17の pong には
-     * 対応付けできないため落とす。
-     */
-    public static byte[] translateTransaction754ToPong755(byte[] payload) {
-        return null;
-    }
-
-    // ------------------------------------------------------------------
-    // Sculk Vibration Signal（755のみ。落とす）
-    // ------------------------------------------------------------------
-
-    /**
-     * Sculk Vibration Signal（755 0x05 → 754）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
-     * 根拠：1.16.5にはスカルク振動の信号が無く、754では -1（STAGE-A-754-NOTES.md §8.1の削除1件）。
-     * 素通しはしない（754のクライアントが 0x05 を別パケットとして誤読するため）。
-     */
-    public static byte[] translateSculkVibrationSignal755To754(byte[] payload) {
-        return null;
-    }
-
-    // ------------------------------------------------------------------
-    // 753（1.16.3）⇔ 754（1.16.4／1.16.5）— 恒等写像
-    // ------------------------------------------------------------------
-    //
-    // 恒等写像である根拠（推測なし。すべて Stage A の実測。753ノート §8.1・§11.1・§11.6）：
-    // - パケットID差分 0件：packet-ids-753.json（272件）で変更0・新規0・削除0。
-    //   全272件で id753 == id754（id753>=0 は159件で754と同じ）。
-    //   Join Game 0x24、Respawn 0x39、Client Information 0x05、
-    //   Synchronize Player Position（クライアント行き 0x34）は
-    //   753・754とも同一（PacketIds.java の753列・754列で確認）。
-    // - レジストリ差分 0件：実バニラ1.16.3の registries.json（272,499バイト）と
-    //   blocks-1.16.3-reports.json（3,477,609バイト）は1.16.5版とバイト単位で完全一致。
-    //   ブロック状態17,112・ブロック763・アイテム976・バイオーム79件（id 0〜173）とも同一。
-    //   mc-1.16.3-protocol.json（152,123バイト）も mc-1.16-protocol.json とバイト同一。
-    // - Login／Respawn フィールド同一：公式 server_mappings.txt の
-    //   ClientboundLoginPacket は1.16.3・1.16.5とも同じ15フィールド、
-    //   ClientboundRespawnPacket は同じ8フィールド。
-    //   previousGameMode は u8 で 0xFF=255、ワイヤ上は754の i8 -1 と同じ1バイト。
-    // - 生キャプチャ同一：実バニラ1.16.3の Join Game は30,847バイトで
-    //   実バニラ1.16.5の Join Game（30,847バイト）とバイト数・内容とも同一
-    //   （dimension_type 4件・バイオーム79件、dimension element に min_y／height 無し）。
-    //   parseJoinGame754 がこのキャプチャを30,847バイトちょうど消費してパースできる
-    //   （PlayTranslator753Test.joinGame753LiveCaptureParses で確認）。
-    //
-    // したがって本節の8変換器はすべて恒等写像で、入力ペイロードをそのまま返す。
-    // パースして書き直してはいけない（書き直しはバグの温床になる。754のパーサ／ライタは
-    // 753のバイトも読める・書けることが上記のテストで証明済みだが、変換器自体は
-    // パースしない）。754のパーサ（parseJoinGame754／readSpawnInfo754）は753の
-    // ペイロードの検証・テスト用に流用する。
-    //
-    // 変換器を作らないものと根拠：
-    // - combat_event（753・754とも単一ID 0x31）：754⇔755では3パケット
-    //   （enter／end／death_combat_event 0x34／0x33／0x35）への分割が必要だったが、
-    //   753と754は同じ単一パケット 0x31 を共有するため分割・合成は不要。
-    //   PacketIds の PLAY_ENTER／END／DEATH_COMBAT_EVENT の753列・754列とも 0x31。
-    // - title（753・754とも単一ID 0x4f）：754⇔755では5パケットへの分割が必要だったが、
-    //   753と754は同じ単一パケット 0x4f を共有するため分割・合成は不要。
-    //   PLAY_SET_TITLE_TEXT／SET_TITLE_SUBTITLE／SET_TITLE_TIME／CLEAR_TITLES／
-    //   ACTION_BAR の753列・754列とも 0x4f。
-    // - world_border（753・754とも単一ID 0x3d）：754⇔755では6パケットへの分割が
-    //   必要だったが、753と754は同じ単一パケット 0x3d を共有するため分割・合成は不要。
-    //   PLAY_INITIALIZE_WORLD_BORDER ほか6件の753列・754列とも 0x3d。
-    // - ping／pong ⇔ transaction：754⇔755では ping 0x30／pong 0x1d と
-    //   transaction 0x11／0x07 の対応付けが無く落としていたが、753と754は
-    //   両方とも transaction（クライアント行き 0x11／サーバー行き 0x07）で同一の
-    //   ため付け替え不要。PLAY_PING の753列・754列とも 0x11、
-    //   PLAY_PONG の753列・754列とも 0x07。
-    // - sculk_vibration_signal：753・754とも無し（PacketIds の753列・754列とも -1）。
-    //   755にだけある 0x05 のため、753⇔754間では落とす対象自体が存在しない。
-    // - declare_recipes（0x5a）：754⇔755で変換器不要だったもの。753⇔754でも
-    //   ID（0x5a）・ワイヤとも同一（protocol.json がバイト同一）のため変換器不要。
-    //   同じく754⇔755で変換器不要だったもののうち753⇔754でも同一のもの：
-    //   tags（0x5b。754⇔755では4固定→汎用配列の違いがあったが、753⇔754は同じ
-    //   4固定のため同一）、resource_pack_send（0x38。forced bool・promptMessage は
-    //   755での追加で、753・754とも {url, hash} のみのため同一）、
-    //   その他 Chat・Player Info・Set Held Item・Update Time（0x4e）・Keep Alive
-    //   （0x1f）・Set Slot・Window Items・Set Cooldown・Entity Equipment・Trade List・
-    //   Tile Entity Data・Entity Metadata・Sound Effect・Entity Sound Effect・
-    //   Named Sound Effect・Stop Sound・World Particles・Multi Block Change・
-    //   Block Change・Spawn Entity 系・Open Window・Block Action・Entity Effect・
-    //   Enchant Item など、パケットID差分0件・protocol.json バイト同一のため
-    //   すべて同一で、呼び出し側がIDを付け替えるだけでよい（IDも同じため付け替えすら不要）。
-    //   なお entity_destroy（0x36）・window_click・map_chunk・update_light・
-    //   explosion・entity_update_attributes・map は ChunkTranslator 担当の
-    //   パケットで、753⇔754間も ID・フィールドとも同一のため本節では扱わない。
-    //   entity（クライアント行き 0x2a）は PacketIds の対象外のまま（754と同じ扱い）。
-
-    /**
-     * Join Game（753 → 754）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は本節の冒頭（パケットID 0x24 同一、Login 15フィールド同一、
-     * 生キャプチャ30,847バイト同一）を参照。パースして書き直さない。
-     */
-    public static byte[] translateJoinGame753To754(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Join Game（754 → 753）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は {@link #translateJoinGame753To754(byte[])} と同じ。
-     */
-    public static byte[] translateJoinGame754To753(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Respawn（753 → 754）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は本節の冒頭（パケットID 0x39 同一、Respawn 8フィールド同一）を参照。
-     * パースして書き直さない。
-     */
-    public static byte[] translateRespawn753To754(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Respawn（754 → 753）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は {@link #translateRespawn753To754(byte[])} と同じ。
-     */
-    public static byte[] translateRespawn754To753(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Client Information（753 → 754）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は本節の冒頭（パケットID 0x05 同一、6フィールド同一。disableTextFiltering は
-     * 755での追加で、753・754とも無い）を参照。パースして書き直さない。
-     */
-    public static byte[] translateClientInformation753To754(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Client Information（754 → 753）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は {@link #translateClientInformation753To754(byte[])} と同じ。
-     */
-    public static byte[] translateClientInformation754To753(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Synchronize Player Position（753 → 754）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は本節の冒頭（パケットID 0x34 同一、
-     * フィールド同一。dismountVehicle は755での追加で、753・754とも無い）を参照。
-     * パースして書き直さない。
-     */
-    public static byte[] translatePosition753To754(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Synchronize Player Position（754 → 753）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は {@link #translatePosition753To754(byte[])} と同じ。
-     */
-    public static byte[] translatePosition754To753(byte[] payload) {
-        return payload;
-    }
-    // ------------------------------------------------------------------
-    // 751（1.16.2）⇔ 753（1.16.3）— 恒等写像
-    // ------------------------------------------------------------------
-    //
-    // 恒等写像である根拠（推測なし。すべて Stage A の実測。751ノート §8.1・§11.1・§11.6）：
-    // - パケットID差分 0件：packet-ids-751.json（272件）で変更0・新規0・削除0。
-    //   全272件で id751 == id753（id751>=0 は159件で753と同じ）。
-    //   Join Game 0x24、Respawn 0x39、Client Information 0x05、
-    //   Synchronize Player Position（クライアント行き 0x34）は
-    //   751・753とも同一（PacketIds.java の751列・753列で確認）。
-    // - レジストリ差分 0件：実バニラ1.16.2の registries.json と
-    //   blocks レポートは1.16.3版とバイト単位で完全一致。
-    //   ブロック状態17,112・ブロック763・アイテム976・バイオーム79件（id 0〜173）とも同一。
-    //   mc-1.16.2-protocol.json（152,123バイト）も mc-1.16.3-protocol.json とバイト同一。
-    // - Login／Respawn フィールド同一：公式 server_mappings.txt の
-    //   ClientboundLoginPacket は1.16.2・1.16.3とも同じ15フィールド、
-    //   ClientboundRespawnPacket は同じ8フィールド。
-    //   previousGameMode は u8 で 0xFF=255、ワイヤ上は753の i8 -1 と同じ1バイト。
-    // - 生キャプチャ同一：実バニラ1.16.2の Join Game は30,847バイトで
-    //   実バニラ1.16.3の Join Game（30,847バイト）とバイト数・内容とも同一
-    //   （dimension_type 4件・バイオーム79件、dimension element に min_y／height 無し）。
-    //   parseJoinGame753 がこのキャプチャを30,847バイトちょうど消費してパースできる
-    //   （PlayTranslator751Test.joinGame751LiveCaptureParses で確認）。
-    //
-    // したがって本節の8変換器はすべて恒等写像で、入力ペイロードをそのまま返す。
-    // パースして書き直してはいけない（書き直しはバグの温床になる。753のパーサ／ライタは
-    // 751のバイトも読める・書けることが上記のテストで証明済みだが、変換器自体は
-    // パースしない）。753のパーサ（parseJoinGame753／readSpawnInfo754）は751の
-    // ペイロードの検証・テスト用に流用する。
-    //
-    // 変換器を作らないものと根拠：
-    // - combat_event（751・753とも単一ID 0x31）：754⇔755では3パケット
-    //   （enter／end／death_combat_event 0x34／0x33／0x35）への分割が必要だったが、
-    //   751と753は同じ単一パケット 0x31 を共有するため分割・合成は不要。
-    //   PacketIds の PLAY_ENTER／END／DEATH_COMBAT_EVENT の751列・753列とも 0x31。
-    // - title（751・753とも単一ID 0x4f）：754⇔755では5パケットへの分割が必要だったが、
-    //   751と753は同じ単一パケット 0x4f を共有するため分割・合成は不要。
-    //   PLAY_SET_TITLE_TEXT／SET_TITLE_SUBTITLE／SET_TITLE_TIME／CLEAR_TITLES／
-    //   ACTION_BAR の751列・753列とも 0x4f。
-    // - world_border（751・753とも単一ID 0x3d）：754⇔755では6パケットへの分割が
-    //   必要だったが、751と753は同じ単一パケット 0x3d を共有するため分割・合成は不要。
-    //   PLAY_INITIALIZE_WORLD_BORDER ほか6件の751列・753列とも 0x3d。
-    // - ping／pong ⇔ transaction：754⇔755では ping 0x30／pong 0x1d と
-    //   transaction 0x11／0x07 の対応付けが無く落としていたが、751と753は
-    //   両方とも transaction（クライアント行き 0x11／サーバー行き 0x07）で同一の
-    //   ため付け替え不要。PLAY_PING の751列・753列とも 0x11、
-    //   PLAY_PONG の751列・753列とも 0x07。
-    // - sculk_vibration_signal：751・753とも無し（PacketIds の751列・753列とも -1）。
-    //   755にだけある 0x05 のため、751⇔753間では落とす対象自体が存在しない。
-    // - declare_recipes（0x5a）：754⇔755で変換器不要だったもの。751⇔753でも
-    //   ID（0x5a）・ワイヤとも同一（protocol.json がバイト同一）のため変換器不要。
-    //   同じく754⇔755で変換器不要だったもののうち751⇔753でも同一のもの：
-    //   tags（0x5b。754⇔755では4固定→汎用配列の違いがあったが、751⇔753は同じ
-    //   4固定のため同一）、resource_pack_send（0x38。forced bool・promptMessage は
-    //   755での追加で、751・753とも {url, hash} のみのため同一）、
-    //   その他 Chat・Player Info・Set Held Item・Update Time（0x4e）・Keep Alive
-    //   （0x1f）・Set Slot・Window Items・Set Cooldown・Entity Equipment・Trade List・
-    //   Tile Entity Data・Entity Metadata・Sound Effect・Entity Sound Effect・
-    //   Named Sound Effect・Stop Sound・World Particles・Multi Block Change・
-    //   Block Change・Spawn Entity 系・Open Window・Block Action・Entity Effect・
-    //   Enchant Item など、パケットID差分0件・protocol.json バイト同一のため
-    //   すべて同一で、呼び出し側がIDを付け替えるだけでよい（IDも同じため付け替えすら不要）。
-    //   なお entity_destroy（0x36）・window_click・map_chunk・update_light・
-    //   explosion・entity_update_attributes・map は ChunkTranslator 担当の
-    //   パケットで、751⇔753間も ID・フィールドとも同一のため本節では扱わない。
-    //   entity（クライアント行き 0x2a）は PacketIds の対象外のまま（753と同じ扱い）。
-
-    /**
-     * Join Game（751 → 753）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は本節の冒頭（パケットID 0x24 同一、Login 15フィールド同一、
-     * 生キャプチャ30,847バイト同一）を参照。パースして書き直さない。
-     */
-    public static byte[] translateJoinGame751To753(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Join Game（753 → 751）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は {@link #translateJoinGame751To753(byte[])} と同じ。
-     */
-    public static byte[] translateJoinGame753To751(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Respawn（751 → 753）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は本節の冒頭（パケットID 0x39 同一、Respawn 8フィールド同一）を参照。
-     * パースして書き直さない。
-     */
-    public static byte[] translateRespawn751To753(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Respawn（753 → 751）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は {@link #translateRespawn751To753(byte[])} と同じ。
-     */
-    public static byte[] translateRespawn753To751(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Client Information（751 → 753）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は本節の冒頭（パケットID 0x05 同一、6フィールド同一。disableTextFiltering は
-     * 755での追加で、751・753とも無い）を参照。パースして書き直さない。
-     */
-    public static byte[] translateClientInformation751To753(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Client Information（753 → 751）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は {@link #translateClientInformation751To753(byte[])} と同じ。
-     */
-    public static byte[] translateClientInformation753To751(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Synchronize Player Position（751 → 753）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は本節の冒頭（パケットID 0x34 同一、
-     * フィールド同一。dismountVehicle は755での追加で、751・753とも無い）を参照。
-     * パースして書き直さない。
-     */
-    public static byte[] translatePosition751To753(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Synchronize Player Position（753 → 751）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は {@link #translatePosition751To753(byte[])} と同じ。
-     */
-    public static byte[] translatePosition753To751(byte[] payload) {
-        return payload;
-    }
-
-    // ------------------------------------------------------------------
-    // 736（1.16.1）⇔ 751（1.16.2）
-    // ------------------------------------------------------------------
-    //
-    // 実測の根拠（推測なし）：
-    // - mc-1.16.1-protocol.json（pc/1.16.1）と mc-1.16.2-protocol.json（pc/1.16）の
-    //   全パケット・全方向の突き合わせ。toClient のフィールド差分は packet_login・
-    //   packet_respawn・packet_unlock_recipes・packet_declare_recipes・
-    //   packet_map_chunk・packet_multi_block_change の6件だけ（＋ID写像 packet）。
-    //   toServer のフィールド差分は無し（packet のID写像だけ。ただし
-    //   crafting_book_data⇔recipe_book は名前が違うため別途下記）。
-    //   それ以外の play パケットはフィールド完全同一。
-    // - STAGE-A-736-NOTES.md §8（パケットID差分：変更62件・新規0件・削除1件）と §11.6
-    //   （Join Game codec 実測：14フィールド、dimension は文字列、codec は
-    //   {"dimension": [...]} だけ、dimension 4件、バイオーム無し、min_y／height 無し）。
-    // - 実バニラ1.16.1の Join Game 生キャプチャ（1,159バイト。entityId 138。
-    //   consumed 1,159／1,159 で完全一致）と実バニラ1.16.2の Join Game 生キャプチャ
-    //   （30,847バイト。entityId 306。cap751-joingame-1-16-2.bin）の突き合わせ。
-    //   736の codec は 1,039バイトでキー "dimension" のみ。2回目のキャプチャ
-    //   （joingame-1.16.1a.bin。entityId 245）とも codec のバイトは同一。
-    // - 実バニラ1.16.1 jar（run/vanilla/server-1.16.1.jar）の javap 実測
-    //   （server_mappings.txt の Mojang 名→難読化名で特定）：
-    //   ClientboundLoginPacket（ox）#write、ClientboundRespawnPacket（pp）#write、
-    //   ClientboundPlayerPositionPacket（pk）#write、
-    //   ServerboundClientInformationPacket（rf）#write、
-    //   ClientboundPlayerCombatPacket（ph）#write、
-    //   ClientboundSetTitlesPacket（qk）#write、
-    //   ClientboundSetBorderPacket（ps）#write。
-    // - ViaVersion Protocol1_16_1To1_16_2.java（ローカルの複写。recipe_book の
-    //   分割写像と WorldPacketRewriter／TagRewriter の登録だけ。COMBAT／TITLE／
-    //   BORDER／LOGIN／RESPAWN／PING／PONG／CONTAINER_ACK の登録は無い）。
-    //
-    // 736⇔751の違いと扱い（IDは PacketIds.java／packet-ids-736.json 参照）：
-    // - Join Game（0x25⇔0x24）：14フィールド。hardcore は gameMode バイトの bit 3
-    //   （javap ox#write：writeByte(gameMode | (hardcore ? 8 : 0))）。
-    //   dimension は文字列。maxPlayers は u8（javap ox#write：writeByte。
-    //   751は varint）。dimensionCodec は {"dimension": [...]} だけ。
-    //   本節で変換器を作る。
-    // - Respawn（0x3a⇔0x39）：8フィールド同一。dimension だけ文字列⇔NBT
-    //   （javap pp#write：dimension は ResourceLocation＝文字列で読む・書く）。
-    //   本節で変換器を作る。
-    // - Client Information（0x05⇔0x05）：6フィールド同一（javap rf#write で確認。
-    //   locale、viewDistance i8、chatFlags varint、chatColors bool、skinParts u8、
-    //   mainHand varint。disableTextFiltering は755での追加で、736・751とも無い）。
-    //   本節の変換器は恒等写像。
-    // - Synchronize Player Position（0x35⇔0x34）：7フィールド同一（javap pk#write で確認。
-    //   x・y・z f64、yaw・pitch f32、flags i8、teleportId varint。
-    //   dismountVehicle は755での追加で、736・751とも無い）。本節の変換器は恒等写像。
-    // - combat_event（0x32⇔0x31）：フィールド同一。751は分割されていない
-    //   （分割は755での変更。minecraft-data の packet_combat_event は736・751で同一。
-    //   751の PLAY_ENTER／END／DEATH_COMBAT_EVENT のIDはどれも 0x31。
-    //   javap ph#write：event varint、END_COMBAT なら duration varint＋entityId i32、
-    //   ENTITY_DIED なら playerId varint＋entityId i32＋message）。
-    //   本節の変換器は恒等写像（IDだけ呼び出し側が付け替える）。
-    // - title（0x4f⇔0x4f）：IDもフィールドも同一（javap qk#write で確認。
-    //   action varint、0・1・2 なら text、3 なら fadeIn／stay／fadeOut i32×3、
-    //   4・5 なら何も無し）。本節の変換器は恒等写像。
-    // - world_border（0x3d⇔0x3d）：IDもフィールドも同一（javap ps#write で確認。
-    //   INITIALIZE は x, z, oldSize, newSize, speed, portalBoundary,
-    //   warningBlocks, warningTime の順。minecraft-data protocol.json の
-    //   warning_time→warning_blocks の順序は754のときと同じく誤り）。
-    //   本節の変換器は恒等写像。
-    // - ping（0x12）／pong（0x07）⇔ ping（0x11）／pong（0x07）：落とす（本節の null 返し）。
-    //   736側は transaction {windowId i8, actionNumber i16, accepted bool}、
-    //   751側は ping／pong {id i32} で、対応付けが無い。ViaVersion の
-    //   Protocol1_16_1To1_16_2 にも PING／PONG／CONTAINER_ACK の登録は無い。
-    //   Keep Alive（0x20⇔0x1f）は別パケットで影響を受けない。
-    // - displayed_recipe（751のみ 0x1f）：751→736では落とす（本節の null 返し）。
-    //   736には無い（Stage A §8.1の削除1件）。
-    // - entity（736のみ 0x2b）：PacketIds の対象外のまま落とす（下記の判断参照）。
-    //
-    // 決めたこと：
-    // - entity（クライアント行き 0x2b）は PacketIds にエントリを追加せず、対象外のまま落とす。
-    //   根拠：1.17で削除されたパケットで、ViaVersion の1.17 enum には無く
-    //   Protocol1_16_4To1_17 でも未登録（＝落としている）。内容は entityId varint 1個だけの
-    //   「移動なし」通知で、rel_entity_move 系とは別に位置同期には影響しない。
-    //   （754⇔755間の 0x2a と同じ判断。736では 0x2b。）
-    // - ping／pong ⇔ transaction は両方向とも落とす（null）。根拠は上記の通り。
-    // - dimensionCodec の書き換え：736側は dimension の生 element 4件だけ、
-    //   751側は dimension_type 4件＋バイオーム79件。共有する dimension element は
-    //   実バニラ既定値で丸ごと置き換える。736の element は "name"／"shrunk" を持ち、
-    //   751の element は "effects"／"coordinate_scale" を持つ（それ以外の共有フィールドの
-    //   値は同一。logical_height は両方とも overworld 256・nether／end 128）。
-    //   751の dimension element は754（1.16.5）のものとバイト完全同一
-    //   （実バニラ1.16.2のキャプチャ cap751-joingame-1-16-2.bin から4件とも確認。
-    //   751の element に min_y／height は無い。751ノート §11.6 とも一致。
-    //   min_y=0・height=256 は755（1.17）の element の話で、751には無い）。
-    //   バイオーム79件は実バニラ1.16.2の Join Game codec から取ったもの（下記の定数）。
-    //   逆向きは名前で落とす（754の dimensionCodec 書き換えと同じ方針）。
-    // - maxPlayers：736は u8、751は varint。20のような小さい値はワイヤ上同一の1バイト。
-    //   751→736で255を超える値は下位8ビットだけが送られる（実バニラの既定は20）。
-    // - previousGameMode：Join Game では736は u8（255＝なし）を -1 に読み替えて
-    //   JoinGame754 と同じ約束（-1＝なし、0〜3＝id）にする。Respawn では
-    //   SpawnInfo754 と同じく u8 のまま（255＝なし）扱う。
-    //
-    // 変換器を作らなかったもの（フィールド同一のため。IDだけ違うものは呼び出し側が付け替える）：
-    // Chat、Player Info、Set Held Item、Update Time（0x4e⇔0x4e）、Keep Alive（0x20⇔0x1f）、
-    // Set Slot、Window Items、Set Cooldown、Entity Equipment、Trade List、Tile Entity Data、
-    // Entity Metadata、Sound Effect、Entity Sound Effect、Named Sound Effect、Stop Sound、
-    // World Particles、Block Change、Spawn Entity 系、Open Window、Block Action、
-    // Entity Effect、Enchant Item、Tags（0x5b。4固定のまま同一）、
-    // Resource Pack Send（0x39⇔0x38。{url, hash} のまま同一）、Declare Recipes
-    // （0x5a⇔0x5a。成形レシピの width／height の入れ子は minecraft-data の記述の
-    // 違いだけで、ワイヤは同一。754⇔755の javap 確認と同じ。736⇔751 も
-    // ShapedRecipe$Serializer#toNetwork／fromNetwork の javap で確認済み）。
-    // なお Multi Block Change（0x0f⇔0x3b）はフィールドが違うため下記の ChunkTranslator へ
-    // 申し送る。Unlock Recipes（0x36⇔0x35）と Recipe Book（0x1e⇔0x1e）は
-    // フィールド／形式が違うため Stage B フォローアップで変換器を作った（下記参照）。
-    //
-    // ChunkTranslator担当へ申し送るもの：
-    // - entity_destroy（0x37⇔0x36）：フィールド同一（[entityIds varint配列]のまま）。
-    //   IDだけ違うが、ChunkTranslator担当のパケットのため本節では扱わない。
-    // - window_click（0x09⇔0x09）：フィールド同一。IDも同じ。ChunkTranslator担当。
-    // - map_chunk（0x21⇔0x20）：736は ignoreOldData bool 付きで biomes が
-    //   1024件固定の i32配列、751は biomes が varint件数の varint配列。
-    //   ChunkTranslator担当。
-    // - update_light（0x24⇔0x23）：フィールド同一。ChunkTranslator担当。
-    // - explosion（0x1c⇔0x1b）：フィールド同一。ChunkTranslator担当。
-    // - entity_update_attributes（0x58⇔0x58）：フィールド同一。ChunkTranslator担当。
-    // - map（0x26⇔0x25）：フィールド同一。ChunkTranslator担当。
-    // - multi_block_change（0x0f⇔0x3b）：736は {chunkX i32, chunkZ i32,
-    //   records[{horizontalPos u8, y u8, blockId varint}]}、751は
-    //   {chunkCoordinates bitfield, notTrustEdges bool, records[varlong]}。
-    //   ChunkTranslator担当。
-    //
-    // Stage B フォローアップで追加した変換器（本節の末尾。判断待ちは解消した）：
-    // - unlock_recipes（0x36⇔0x35）：736は blastFurnace／smoker の4 bool が無い
-    //   （blastFurnaceOpen／filteringBlastFurnace／smokerBookOpen／filteringSmoker）。
-    //   751→736では4 bool を落とし、736→751では false×4 を補う。
-    //   補完値 false の根拠は ViaVersion の ItemPacketRewriter1_16_2
-    //   （unlock_recipes で blast／smoker 用に false を4個書く）。
-    //   false＝新しい本は閉じた状態・フィルタ無効（1.16.1サーバーには
-    //   blast／smoker の本が無いため、開いた状態を補う根拠は無い）。
-    // - recipe_book（0x1e⇔0x1e）⇔ crafting_book_data：IDは同じだが形式が違う。
-    //   736は {type varint, switch：0→{displayedRecipe string}、
-    //   1→{craftingBookOpen／craftingFilter／smeltingBookOpen／smeltingFilter／
-    //   blastingBookOpen／blastingFilter／smokingBookOpen／smokingFilter の8 bool}}、
-    //   751は {bookId varint, bookOpen bool, filterActive bool}。
-    //   ViaVersion の Protocol1_16_1To1_16_2 は751の recipe_book（0x1e）を
-    //   type=1 の crafting_book_data に、displayed_recipe（0x1f）を type=0 の
-    //   crafting_book_data に写す登録がある。この節ではその写像をそのまま採用した。
-    //   751→736 は可逆（displayed_recipe は落とさず type=0 に変換する。
-    //   旧版の translateDisplayedRecipe751To736 は落としていたが、実測により
-    //   復元可能と判明したため変換に変更した）。
-    //   736→751 は非可逆（crafting_book_data type=1 は8 bool で4冊分だが、
-    //   751の recipe_book は1冊分しか持てない。開いている本を優先順で1冊選ぶ。
-    //   どれも開いていなければ bookId 0・open=false・filterActive=craftingFilter）。
-    //   素通しはしないこと（751の {bookId, bookOpen, filterActive} を736の
-    //   {type, switch} として読むと誤読するため）。
-
-    /** dimension_type の名前（736・751とも同じ4件・同じ順序。実バニラ両キャプチャで確認）。 */
     private static final String[] DIMENSION_TYPE_736_NAMES = {
             "minecraft:overworld", "minecraft:overworld_caves", "minecraft:the_nether", "minecraft:the_end",
     };
-
-    /** 751 の dimension_type の名前は736と同じ。 */
     private static final String[] DIMENSION_TYPE_751_NAMES = DIMENSION_TYPE_736_NAMES;
-
-    /** DIMENSION_TYPE_736_ELEMENT_HEX：実バニラ1.16.1の Join Game codec から取った element（anonymous NBT の16進）。"name"／"shrunk" を持ち、"effects"／"coordinate_scale"／min_y／height は無い。 */
     private static final String[] DIMENSION_TYPE_736_ELEMENT_HEX = {
 "0a01000b7069676c696e5f73616665000100076e61747572616c0105000d616d6269656e745f6c696768740000000008000a" +
             "696e66696e696275726e001e6d696e6563726166743a696e66696e696275726e5f6f766572776f726c640100147265737061" +
@@ -14276,25 +11638,10 @@ public final class PlayTranslator {
             "000e6c6f676963616c5f68656967687400000100010006736872756e6b00010009756c7472617761726d0001000b6861735f" +
             "6365696c696e670000"
     };
-
-    /** 実バニラ1.16.1の dimension element 4件（名前→element）。 */
     private static final Map<String, Tag.CompoundTag> DIMENSION_TYPE_736_ELEMENTS =
             elementMap(DIMENSION_TYPE_736_NAMES, DIMENSION_TYPE_736_ELEMENT_HEX);
-
-    /**
-     * 実バニラ1.16.2の dimension_type element 4件（名前→element）。
-     * 754（1.16.5）のものとバイト完全同一（実バニラ1.16.2の Join Game 生キャプチャ
-     * cap751-joingame-1-16-2.bin から4件とも確認）。min_y／height は無い。
-     */
     private static final Map<String, Tag.CompoundTag> DIMENSION_TYPE_751_ELEMENTS =
             DIMENSION_TYPE_754_ELEMENTS;
-
-    /**
-     * BIOME_751_REGISTRY_HEX：実バニラ1.16.2の Join Game codec から取った
-     * minecraft:worldgen/biome レジストリ全体（anonymous NBT の16進。79件。
-     * id は 0〜50・127・129〜134・140・149・151・155〜158・160〜173）。
-     * 736の codec にはバイオームレジストリが無いため、736→751でこれを補う。
-     */
     private static final String BIOME_751_REGISTRY_HEX =
 "0a0800047479706500186d696e6563726166743a776f726c6467656e2f62696f6d6509000576616c75650a0000004f080004" +
             "6e616d65000f6d696e6563726166743a6f6365616e0300026964000000000a0007656c656d656e7408000d70726563697069" +
@@ -14878,186 +12225,74 @@ public final class PlayTranslator {
             "743a616d6269656e742e626173616c745f64656c7461732e6d6f6f64030013626c6f636b5f7365617263685f657874656e74" +
             "00000008000005000564657074683dcccccd05000b74656d7065726174757265400000000500057363616c653e4ccccd0500" +
             "08646f776e66616c6c0000000008000863617465676f727900066e6574686572000000";
-
-    /** 実バニラ1.16.2のバイオームレジストリ（{type, value}）。736→751でそのまま使う。 */
     private static final Tag.CompoundTag BIOME_751_REGISTRY = parseElementHex(BIOME_751_REGISTRY_HEX);
-
+    private static final int UNLOCK_RECIPES_ACTION_INIT = 0;
+    /** 名前列と element の16進列から、名前→element のマップを作る。 */
+    private static Map<String, Tag.CompoundTag> elementMap(String[] names, String[] hexes) {
+        Map<String, Tag.CompoundTag> out = new LinkedHashMap<>();
+        for (int i = 0; i < names.length; i++) {
+            out.put(names[i], parseElementHex(hexes[i]));
+        }
+        return out;
+    }
+    /** 16進の anonymous NBT（1要素分）を CompoundTag に直す。 */
+    private static Tag.CompoundTag parseElementHex(String hex) {
+        Tag tag = Nbt.readAnonymous(HexFormat.of().parseHex(hex), 0).tag();
+        if (!(tag instanceof Tag.CompoundTag compound)) {
+            throw new IllegalArgumentException("element の NBT がコンパウンドではありません。");
+        }
+        return compound;
+    }
     /**
-     * 751の dimension（NBTの値）に対応する dimension_type の名前を返す。
-     * dimensionName754 と同じ手順で、既定の element は751のものを使う。
-     * codec が null の場合（Respawn）は codec での検索を飛ばす。
+     * Resource Pack Send（754 0x38 → 755 0x3c）。754 は {url, hash} のみで、
+     * 755 は forced bool と promptMessage option が付く（mc-1.16／
+     * mc-1.17-protocol.json で実測）。forced は false、promptMessage は
+     * 無しを補う（ViaVersion の Protocol1_16_4To1_17 の RESOURCE_PACK と
+     * 同じ。ViaVersion は設定値から forced／prompt を入れるが、既定は
+     * forced=false・prompt 無し）。
+     * 読めないペイロードは素通しする。
      */
-    private static String dimensionName751(Tag dimension, Tag.CompoundTag codec) {
-        if (codec != null) {
-            String fromCodec = findDimensionName(codec, dimension);
-            if (fromCodec != null) {
-                return fromCodec;
-            }
+    public static byte[] translateResourcePack754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String url = reader.readString();
+            String hash = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(url);
+            writer.writeString(hash);
+            writer.writeBoolean(false); // forced（754には無いため 1.17の既定値 false を補う）
+            writer.writeBoolean(false); // promptMessage 無し
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Resource Pack Send を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
         }
-        for (Map.Entry<String, Tag.CompoundTag> e : DIMENSION_TYPE_751_ELEMENTS.entrySet()) {
-            if (e.getValue().equals(dimension)) {
-                return e.getKey();
-            }
-        }
-        // 推定：effects と has_ceiling の組み合わせで4種を区別する（dimensionName754 と同じ）。
-        if (dimension instanceof Tag.CompoundTag compound) {
-            String effects = compound.getString("effects").orElse("");
-            boolean hasCeiling = compound.get("has_ceiling")
-                    .filter(t -> t instanceof Tag.ByteTag)
-                    .map(t -> ((Tag.ByteTag) t).value() != 0)
-                    .orElse(false);
-            if (effects.equals("minecraft:the_nether")) {
-                return "minecraft:the_nether";
-            }
-            if (effects.equals("minecraft:the_end")) {
-                return "minecraft:the_end";
-            }
-            if (effects.equals("minecraft:overworld")) {
-                return hasCeiling ? "minecraft:overworld_caves" : "minecraft:overworld";
-            }
-        }
-        LOG.warning("dimension の名前が分からなかったため minecraft:overworld にします。");
-        return "minecraft:overworld";
     }
-
     /**
-     * 751の dimension_type の名前に対応する751の element を返す。
-     * 既定の751 element を使う。名前が既定に無く、codec に element があればそれを使い、
-     * それも無ければ overworld の element にする。
+     * Resource Pack Send（755 0x3c → 754 0x38）。forced と promptMessage を
+     * 読んで落とす。読めないペイロードは素通しする。
      */
-    private static Tag dimensionValue751(String name, Tag.CompoundTag codec) {
-        Tag.CompoundTag element = DIMENSION_TYPE_751_ELEMENTS.get(name);
-        if (element != null) {
-            return element;
-        }
-        if (codec != null) {
-            Tag fromCodec = findDimensionElement(codec, name);
-            if (fromCodec != null) {
-                return fromCodec;
+    public static byte[] translateResourcePack755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String url = reader.readString();
+            String hash = reader.readString();
+            reader.readBoolean(); // forced（754には無い）
+            boolean hasPrompt = reader.readBoolean(); // promptMessage の option
+            if (hasPrompt) {
+                reader.readString();
             }
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(url);
+            writer.writeString(hash);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Resource Pack Send を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
         }
-        LOG.warning("dimension " + name + " の751 element が無いため minecraft:overworld にします。");
-        return DIMENSION_TYPE_751_ELEMENTS.get("minecraft:overworld");
     }
-
-    /** 751の dimension_type の名前に対応する751の element を返す（codec が無い場合。Respawn 用）。 */
-    private static Tag dimensionValue751(String name) {
-        return dimensionValue751(name, null);
-    }
-
-    /**
-     * 736の dimension_type の名前に対応する736の element を返す。
-     * 既定の736 element を使う。名前が既定に無ければ overworld の element にする。
-     */
-    private static Tag dimensionValue736(String name) {
-        Tag.CompoundTag element = DIMENSION_TYPE_736_ELEMENTS.get(name);
-        if (element != null) {
-            return element;
-        }
-        LOG.warning("dimension " + name + " の736 element が無いため minecraft:overworld にします。");
-        return DIMENSION_TYPE_736_ELEMENTS.get("minecraft:overworld");
-    }
-
-    /**
-     * 736の dimensionCodec を751形式にする。736の {"dimension": [生 element]} を
-     * minecraft:dimension_type のレジストリ（{name, id, element}。element は751既定値に
-     * 置き換え）に直し、バイオームレジストリ79件を実バニラ1.16.2のもので補う。
-     * codec のキーの並びは751の実バニラ通り（dimension_type、worldgen/biome）。
-     * "dimension" が無い・空の場合は4件とも既定値で作る。未知のレジストリがあれば
-     * そのまま引き継ぐ（ただし "dimension" は置き換えるため引き継がない）。
-     */
-    public static Tag.CompoundTag translateDimensionCodec736To751(Tag.CompoundTag codec736) {
-        if (codec736 == null) {
-            return null;
-        }
-        Map<String, Tag> codec = new LinkedHashMap<>();
-        List<Tag> dimensionList = codec736.getList("dimension")
-                .map(Tag.ListTag::value).orElse(List.of());
-        List<Tag> entries = new ArrayList<>(4);
-        if (dimensionList.isEmpty()) {
-            for (int i = 0; i < DIMENSION_TYPE_736_NAMES.length; i++) {
-                entries.add(biomeEntry(DIMENSION_TYPE_736_NAMES[i], i,
-                        dimensionValue751(DIMENSION_TYPE_736_NAMES[i])));
-            }
-        } else {
-            for (int i = 0; i < dimensionList.size(); i++) {
-                Tag raw = dimensionList.get(i);
-                String name = DIMENSION_TYPE_736_NAMES[i < DIMENSION_TYPE_736_NAMES.length ? i : 0];
-                if (raw instanceof Tag.CompoundTag element) {
-                    name = element.getString("name").orElse(name);
-                }
-                entries.add(biomeEntry(name, i, dimensionValue751(name)));
-            }
-        }
-        Map<String, Tag> dimensionRegistry = new LinkedHashMap<>();
-        dimensionRegistry.put("type", new Tag.StringTag("minecraft:dimension_type"));
-        dimensionRegistry.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
-        codec.put("minecraft:dimension_type", new Tag.CompoundTag(dimensionRegistry));
-        codec.put("minecraft:worldgen/biome", BIOME_751_REGISTRY);
-        codec736.value().forEach((k, v) -> {
-            if (!k.equals("dimension")
-                    && !k.equals("minecraft:dimension_type")
-                    && !k.equals("minecraft:worldgen/biome")) {
-                codec.put(k, v);
-            }
-        });
-        return new Tag.CompoundTag(codec);
-    }
-
-    /**
-     * 751の dimensionCodec を736形式にする。dimension_type のレジストリを
-     * {"dimension": [生 element]} に直す（element は736既定値に置き換え）。
-     * バイオームレジストリは落とす（736には無いため）。
-     * dimension_type レジストリが無い場合は4件とも既定値で作る。
-     * 未知のレジストリがあればそのまま引き継ぐ（ただし dimension_type と
-     * worldgen/biome は置き換えるため引き継がない）。
-     */
-    public static Tag.CompoundTag translateDimensionCodec751To736(Tag.CompoundTag codec751) {
-        if (codec751 == null) {
-            return null;
-        }
-        Map<String, Tag> codec = new LinkedHashMap<>();
-        List<Tag> entries = codec751.getCompound("minecraft:dimension_type")
-                .flatMap(r -> r.getList("value"))
-                .map(Tag.ListTag::value).orElse(List.of());
-        List<Tag> dimensionList = new ArrayList<>(4);
-        if (entries.isEmpty()) {
-            for (String name : DIMENSION_TYPE_736_NAMES) {
-                dimensionList.add(dimensionValue736(name));
-            }
-        } else {
-            for (int i = 0; i < entries.size(); i++) {
-                Tag entry = entries.get(i);
-                String name = DIMENSION_TYPE_736_NAMES[i < DIMENSION_TYPE_736_NAMES.length ? i : 0];
-                if (entry instanceof Tag.CompoundTag compound) {
-                    name = compound.getString("name").orElse(name);
-                }
-                dimensionList.add(dimensionValue736(name));
-            }
-        }
-        codec.put("dimension", new Tag.ListTag(Nbt.COMPOUND, dimensionList));
-        codec751.value().forEach((k, v) -> {
-            if (!k.equals("minecraft:dimension_type")
-                    && !k.equals("minecraft:worldgen/biome")
-                    && !k.equals("dimension")) {
-                codec.put(k, v);
-            }
-        });
-        return new Tag.CompoundTag(codec);
-    }
-
-    // ------------------------------------------------------------------
-    // Join Game（736）
-    // ------------------------------------------------------------------
-
-    /** 736の Join Game の中身。14フィールド。hardcore は gameMode バイトの bit 3 から分けたもの（751の JoinGame754 と同じく hardcore＋gameMode で持つ）。dimension は文字列。previousGameMode は -1＝なし（u8 の 255 を読み替えたもの）。maxPlayers は u8。 */
-    public record JoinGame736(int entityId, boolean hardcore, int gameMode, int previousGameMode,
-            List<String> worldNames, Tag.CompoundTag dimensionCodec, String dimension,
-            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
-            boolean reducedDebug, boolean enableRespawnScreen,
-            boolean isDebug, boolean isFlat) {
-    }
-
     /**
      * 736の Join Game を読む。順番は entityId, gameMode（u8。bit 3 が hardcore）,
      * previousGameMode（u8。255＝なし→-1）, worldNames,
@@ -15099,27 +12334,137 @@ public final class PlayTranslator {
                 codec, dimension, worldName, hashedSeed, maxPlayers, viewDistance,
                 reducedDebug, enableRespawnScreen, isDebug, isFlat);
     }
-
-    /** 736の Join Game を書く。gameMode バイトに hardcore の bit 3 を OR する。maxPlayers は u8 で書く。 */
-    public static byte[] writeJoinGame736(JoinGame736 join) {
-        Writer writer = new Writer();
-        writer.writeInt(join.entityId());
-        writer.writeByte(join.gameMode() | (join.hardcore() ? 8 : 0));
-        writer.writeByte(join.previousGameMode());
-        PacketIO.writeStringList(writer, join.worldNames());
-        writer.writeNamedNbt("", join.dimensionCodec());
-        writer.writeString(join.dimension());
-        writer.writeString(join.worldName());
-        writer.writeLong(join.hashedSeed());
-        writer.writeUnsignedByte(join.maxPlayers());
-        writer.writeVarInt(join.viewDistance());
-        writer.writeBoolean(join.reducedDebug());
-        writer.writeBoolean(join.enableRespawnScreen());
-        writer.writeBoolean(join.isDebug());
-        writer.writeBoolean(join.isFlat());
-        return writer.bytes();
+    /**
+     * 751の Join Game を読む。751 の packet_login は 753 と完全同一
+     * （minecraft-data mc-1.16.2-protocol.json は mc-1.16.3-protocol.json と
+     * バイト同一（152,123 バイト）。Stage A §11.6 の実バニラ 1.16.2 キャプチャは
+     * 30,847 バイトで 1.16.3 と同一）のため、753 のパーサにそのまま委譲する。
+     * 戻り値は JoinGame754（751 専用のレコードは作らない。フィールドは同一）。
+     */
+    public static JoinGame754 parseJoinGame751(byte[] payload) {
+        return parseJoinGame753(payload);
     }
-
+    /**
+     * 736の SpawnInfo を読む。順番は dimension（文字列）, worldName, hashedSeed,
+     * gameMode（u8）, previousGameMode（u8）, isDebug, isFlat, copyMetadata である
+     * （minecraft-data mc-1.16.1-protocol.json の packet_respawn と、実バニラ1.16.1 jar の
+     * ClientboundRespawnPacket#write（javap pp#write。dimension は ResourceLocation＝文字列）で確認）。
+     */
+    public static SpawnInfo736 readSpawnInfo736(Reader reader) {
+        String dimension = reader.readString();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readUnsignedByte();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        boolean copyMetadata = reader.readBoolean();
+        return new SpawnInfo736(dimension, worldName, hashedSeed, gameMode,
+                previousGameMode, isDebug, isFlat, copyMetadata);
+    }
+    /**
+     * Client Information（735 → 736）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x05 同一、6フィールド同一。javap rf が両jarで同一。
+     * disableTextFiltering は755での追加で、735・736とも無い）。パースして書き直さない。
+     */
+    public static byte[] translateClientInformation735To736(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Client Information（736 → 735）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateClientInformation735To736(byte[])} と同じ。
+     */
+    public static byte[] translateClientInformation736To735(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Combat Event（735 0x32 → 736 0x32）。恒等写像：入力ペイロードをそのまま返す
+     * （IDも同じため付け替えも不要）。分割されていないため振り分けは不要。
+     * 根拠は本節の冒頭（javap ph が両jarで同一。event varint、END_COMBAT なら
+     * duration varint＋entityId i32、ENTITY_DIED なら playerId varint＋entityId i32＋
+     * message。分割は755での変更）。
+     * パースして書き直さない。
+     */
+    public static byte[] translateCombatEvent735To736(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Combat Event（736 0x32 → 735 0x32）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateCombatEvent735To736(byte[])} と同じ。
+     */
+    public static byte[] translateCombatEvent736To735(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Displayed Recipe（736 → 751。type=0 用）。736の crafting_book_data
+     * type=0（{type=0, displayedRecipe}）を751の displayed_recipe
+     * {recipeId string} に変換する。type が 0 でない場合は {@code null} を返す
+     * （呼び出し側は type=1 なら {@link #translateRecipeBook736To751(byte[])} を使うこと）。
+     */
+    public static byte[] translateDisplayedRecipe736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int type = reader.readVarInt();
+            if (type != 0) {
+                return null;
+            }
+            String recipeId = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(recipeId);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Displayed Recipe を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Displayed Recipe（751 0x1f → 736）。736の crafting_book_data
+     * type=0（{type=0, displayedRecipe}）に変換する。落とさない。
+     * 根拠：ViaVersion の Protocol1_16_1To1_16_2 は displayed_recipe を
+     * type=0 の crafting_book_data に写す登録がある。旧版は落としていたが、
+     * 751→736 はこの変換で復元できる（Stage B フォローアップで実測により判明）。
+     */
+    public static byte[] translateDisplayedRecipe751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String recipeId = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(0); // type=SHOWN
+            writer.writeString(recipeId);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Displayed Recipe を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Join Game（735 → 736）。codec が同一のため、736の parse＋write の往復で
+     * 恒等写像になる。hardcore は gameMode バイトの bit 3、dimension は文字列、
+     * maxPlayers は u8、dimensionCodec は {"dimension": [...]} だけ。
+     * 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
+     */
+    public static byte[] translateJoinGame735To736(byte[] payload) {
+        try {
+            return writeJoinGame736(parseJoinGame736(payload));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Join Game（736 → 735）。codec が同一のため、736の parse＋write の往復で
+     * 恒等写像になる。根拠は {@link #translateJoinGame735To736(byte[])} と同じ。
+     */
+    public static byte[] translateJoinGame736To735(byte[] payload) {
+        try {
+            return writeJoinGame736(parseJoinGame736(payload));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
     /**
      * Join Game（736 → 751）。hardcore を gameMode バイトから分けて bool にし、
      * dimension は文字列から751の element（NBT）に直し、dimensionCodec は751形式に直す
@@ -15141,7 +12486,6 @@ public final class PlayTranslator {
             return payload;
         }
     }
-
     /**
      * Join Game（751 → 736）。hardcore を gameMode バイトの bit 3 に畳み、
      * dimension は NBT の値から codec 内の名前を引き、dimensionCodec は736形式に直す
@@ -15165,437 +12509,58 @@ public final class PlayTranslator {
             return payload;
         }
     }
-
-    // ------------------------------------------------------------------
-    // Respawn（736）
-    // ------------------------------------------------------------------
-
-    /** 736の Respawn（SpawnInfo）の中身。751と同一の8フィールド。dimension は文字列（751は NBT）。previousGameMode は u8（255＝なし。Join Game の -1 とは違う。SpawnInfo754 と同じ約束）。copyMetadata は末尾。 */
-    public record SpawnInfo736(String dimension, String worldName, long hashedSeed, int gameMode,
-            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata) {
-    }
-
     /**
-     * 736の SpawnInfo を読む。順番は dimension（文字列）, worldName, hashedSeed,
-     * gameMode（u8）, previousGameMode（u8）, isDebug, isFlat, copyMetadata である
-     * （minecraft-data mc-1.16.1-protocol.json の packet_respawn と、実バニラ1.16.1 jar の
-     * ClientboundRespawnPacket#write（javap pp#write。dimension は ResourceLocation＝文字列）で確認）。
+     * Ping（735 0x12 → 736 0x12）。恒等写像：入力ペイロードをそのまま返す。
+     * 両版とも transaction 形式（ClientboundContainerAckPacket。
+     * {windowId i8, actionNumber i16, accepted bool}。javap oe が両jarで同一）。
+     * 736⇔751で落としていたのは751側が {id i32} の ping だったためで、
+     * 735⇔736では両側が同じ形式のため落とさない。
      */
-    public static SpawnInfo736 readSpawnInfo736(Reader reader) {
-        String dimension = reader.readString();
-        String worldName = reader.readString();
-        long hashedSeed = reader.readLong();
-        int gameMode = reader.readUnsignedByte();
-        int previousGameMode = reader.readUnsignedByte();
-        boolean isDebug = reader.readBoolean();
-        boolean isFlat = reader.readBoolean();
-        boolean copyMetadata = reader.readBoolean();
-        return new SpawnInfo736(dimension, worldName, hashedSeed, gameMode,
-                previousGameMode, isDebug, isFlat, copyMetadata);
-    }
-
-    /** 736の SpawnInfo を書く。751と同一のフィールド順。dimension は文字列で書く。 */
-    public static void writeSpawnInfo736(Writer writer, SpawnInfo736 info) {
-        writer.writeString(info.dimension());
-        writer.writeString(info.worldName());
-        writer.writeLong(info.hashedSeed());
-        writer.writeByte(info.gameMode());
-        writer.writeByte(info.previousGameMode());
-        writer.writeBoolean(info.isDebug());
-        writer.writeBoolean(info.isFlat());
-        writer.writeBoolean(info.copyMetadata());
-    }
-
-    /**
-     * Respawn（736 → 751）。フィールドは同一のため、dimension だけ文字列から
-     * 751の element（NBT）に直す。copyMetadata はそのまま写す。
-     * previousGameMode は u8 のまま写す。読めないペイロードは素通しする。
-     */
-    public static byte[] translateRespawn736To751(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            SpawnInfo736 info = readSpawnInfo736(reader);
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writeSpawnInfo754(writer, new SpawnInfo754(
-                    dimensionValue751(info.dimension()),
-                    info.worldName(), info.hashedSeed(), info.gameMode(),
-                    info.previousGameMode(), info.isDebug(), info.isFlat(),
-                    info.copyMetadata()));
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Respawn（751 → 736）。フィールドは同一のため、dimension だけ NBT の値から
-     * 名前を引いて文字列に直す。copyMetadata はそのまま写す。
-     * previousGameMode は u8 のまま写す。読めないペイロードは素通しする。
-     */
-    public static byte[] translateRespawn751To736(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            SpawnInfo754 info = readSpawnInfo754(reader);
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writeSpawnInfo736(writer, new SpawnInfo736(
-                    dimensionName751(info.dimension(), null),
-                    info.worldName(), info.hashedSeed(), info.gameMode(),
-                    info.previousGameMode(), info.isDebug(), info.isFlat(),
-                    info.copyMetadata()));
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Client Information（Settings、736）
-    // ------------------------------------------------------------------
-
-    /**
-     * Client Information（736 → 751）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は本節の冒頭（パケットID 0x05 同一、6フィールド同一。minecraft-data の
-     * packet_settings は736・751で同一で、実バニラ1.16.1 jar の
-     * ServerboundClientInformationPacket#write（javap rf#write）でも
-     * locale・viewDistance i8・chatFlags varint・chatColors bool・skinParts u8・
-     * mainHand varint の6フィールドを確認。disableTextFiltering は755での追加で、
-     * 736・751とも無い）。パースして書き直さない。
-     */
-    public static byte[] translateClientInformation736To751(byte[] payload) {
+    public static byte[] translatePing735To736(byte[] payload) {
         return payload;
     }
-
     /**
-     * Client Information（751 → 736）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は {@link #translateClientInformation736To751(byte[])} と同じ。
+     * Ping（736 0x12 → 735 0x12）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translatePing735To736(byte[])} と同じ。
      */
-    public static byte[] translateClientInformation751To736(byte[] payload) {
+    public static byte[] translatePing736To735(byte[] payload) {
         return payload;
     }
-
-    // ------------------------------------------------------------------
-    // Synchronize Player Position（736）
-    // ------------------------------------------------------------------
-
     /**
-     * Synchronize Player Position（736 0x35 → 751 0x34）。恒等写像：入力ペイロードを
-     * そのまま返す（IDだけ呼び出し側が付け替える）。
-     * 根拠は本節の冒頭（minecraft-data の packet_position は736・751で同一で、
-     * 実バニラ1.16.1 jar の ClientboundPlayerPositionPacket#write（javap pk#write）でも
-     * x・y・z f64、yaw・pitch f32、flags i8、teleportId varint の7フィールドを確認。
-     * dismountVehicle は755での追加で、736・751とも無い）。パースして書き直さない。
+     * Pong（735 0x07 → 736 0x07）。恒等写像：入力ペイロードをそのまま返す。
+     * 両版とも transaction 形式（ServerboundContainerAckPacket。
+     * {windowId i8, actionNumber i16, accepted bool}。javap rh が両jarで同一）。
+     * 736⇔751で落としていたのは751側が {id i32} の pong だったためで、
+     * 735⇔736では両側が同じ形式のため落とさない。
      */
-    public static byte[] translatePosition736To751(byte[] payload) {
+    public static byte[] translatePong735To736(byte[] payload) {
         return payload;
     }
-
     /**
-     * Synchronize Player Position（751 0x34 → 736 0x35）。恒等写像：入力ペイロードを
-     * そのまま返す。根拠は {@link #translatePosition736To751(byte[])} と同じ。
+     * Pong（736 0x07 → 735 0x07）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translatePong735To736(byte[])} と同じ。
      */
-    public static byte[] translatePosition751To736(byte[] payload) {
+    public static byte[] translatePong736To735(byte[] payload) {
         return payload;
     }
-
-    // ------------------------------------------------------------------
-    // Combat Event（736）⇔ combat_event（751。分割されていない）
-    // ------------------------------------------------------------------
-
     /**
-     * Combat Event（736 0x32 → 751 0x31）。恒等写像：入力ペイロードをそのまま返す
-     * （IDだけ呼び出し側が付け替える）。751は分割されていないため振り分けは不要。
-     * 根拠は本節の冒頭（minecraft-data の packet_combat_event は736・751で同一。
-     * 実バニラ1.16.1 jar の ClientboundPlayerCombatPacket#write（javap ph#write）でも
-     * event varint、END_COMBAT なら duration varint＋entityId i32、ENTITY_DIED なら
-     * playerId varint＋entityId i32＋message の構成を確認。分割は755での変更で、
-     * 751の PLAY_ENTER／END／DEATH_COMBAT_EVENT のIDはどれも 0x31）。
+     * Synchronize Player Position（735 0x35 → 736 0x35）。恒等写像：入力ペイロードを
+     * そのまま返す（IDも同じため付け替えも不要）。
+     * 根拠は本節の冒頭（javap pk が両jarで同一。x・y・z f64、yaw・pitch f32、
+     * flags i8、teleportId varint の7フィールド。dismountVehicle は755での追加で、
+     * 735・736とも無い）。
      * パースして書き直さない。
      */
-    public static byte[] translateCombatEvent736To751(byte[] payload) {
+    public static byte[] translatePosition735To736(byte[] payload) {
         return payload;
     }
-
     /**
-     * Combat Event（751 0x31 → 736 0x32）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は {@link #translateCombatEvent736To751(byte[])} と同じ。
+     * Synchronize Player Position（736 0x35 → 735 0x35）。恒等写像：入力ペイロードを
+     * そのまま返す。根拠は {@link #translatePosition735To736(byte[])} と同じ。
      */
-    public static byte[] translateCombatEvent751To736(byte[] payload) {
+    public static byte[] translatePosition736To735(byte[] payload) {
         return payload;
     }
-
-    // ------------------------------------------------------------------
-    // Title（736）⇔ title（751。分割されていない）
-    // ------------------------------------------------------------------
-
-    /**
-     * Title（736 0x4f → 751 0x4f）。恒等写像：入力ペイロードをそのまま返す。
-     * 751は分割されていないため振り分けは不要。IDも同じ 0x4f。
-     * 根拠は本節の冒頭（minecraft-data の packet_title は736・751で同一。
-     * 実バニラ1.16.1 jar の ClientboundSetTitlesPacket#write（javap qk#write）でも
-     * action varint、0・1・2 なら text、3 なら fadeIn／stay／fadeOut i32×3 の構成を確認。
-     * 分割は755での変更で、751の PLAY_SET_TITLE_TEXT ほか5件のIDはどれも 0x4f）。
-     * パースして書き直さない。
-     */
-    public static byte[] translateTitle736To751(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Title（751 0x4f → 736 0x4f）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は {@link #translateTitle736To751(byte[])} と同じ。
-     */
-    public static byte[] translateTitle751To736(byte[] payload) {
-        return payload;
-    }
-
-    // ------------------------------------------------------------------
-    // World Border（736）⇔ world_border（751。分割されていない）
-    // ------------------------------------------------------------------
-
-    /**
-     * World Border（736 0x3d → 751 0x3d）。恒等写像：入力ペイロードをそのまま返す。
-     * 751は分割されていないため振り分けは不要。IDも同じ 0x3d。
-     * 根拠は本節の冒頭（minecraft-data の packet_world_border は736・751で同一。
-     * 実バニラ1.16.1 jar の ClientboundSetBorderPacket#write（javap ps#write）でも
-     * INITIALIZE は x, z, oldSize, newSize, speed, portalBoundary, warningBlocks,
-     * warningTime の順を確認。分割は755での変更で、751の
-     * PLAY_INITIALIZE_WORLD_BORDER ほか6件のIDはどれも 0x3d）。
-     * パースして書き直さない。
-     */
-    public static byte[] translateWorldBorder736To751(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * World Border（751 0x3d → 736 0x3d）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は {@link #translateWorldBorder736To751(byte[])} と同じ。
-     */
-    public static byte[] translateWorldBorder751To736(byte[] payload) {
-        return payload;
-    }
-
-    // ------------------------------------------------------------------
-    // Ping／Pong ⇔ Transaction（落とす）
-    // ------------------------------------------------------------------
-
-    /**
-     * Ping（751 0x11 → 736 0x12）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
-     * 根拠：751の ping {id i32} と736の transaction {windowId i8, actionNumber i16,
-     * accepted bool} には対応付けが無い。ViaVersion の Protocol1_16_1To1_16_2.java にも
-     * PING／PONG／CONTAINER_ACK の登録は無い。ping／pong は遅延測定だけで、
-     * 落としても接続は維持される（Keep Alive 0x1f⇔0x20 は別パケットで影響を受けない）。
-     * 素通しはしない（0x11 のペイロードを 0x12 として送ると、1.16.1クライアントが
-     * windowId／actionNumber として誤読するため）。
-     */
-    public static byte[] translatePing751To736(byte[] payload) {
-        return null;
-    }
-
-    /**
-     * Transaction（736 0x12 → 751 0x11）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
-     * 根拠は {@link #translatePing751To736(byte[])} と同じ。
-     * 1.16.1サーバーが送る transaction（ウィンドウクリックの確認応答）は、751の ping には
-     * 対応付けできないため落とす。
-     */
-    public static byte[] translateTransaction736ToPing751(byte[] payload) {
-        return null;
-    }
-
-    /**
-     * Pong（751 0x07 → 736 0x07）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
-     * 根拠は {@link #translatePing751To736(byte[])} と同じ。
-     * 751の pong {id i32} と736の transaction {windowId i8, actionNumber i16,
-     * accepted bool} には対応付けが無い。
-     */
-    public static byte[] translatePong751To736(byte[] payload) {
-        return null;
-    }
-
-    /**
-     * Transaction（736 0x07 → 751 0x07）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
-     * 根拠は {@link #translatePing751To736(byte[])} と同じ。
-     * 1.16.1クライアントが送る transaction（ウィンドウクリックの確認応答）は、751の pong には
-     * 対応付けできないため落とす。
-     */
-    public static byte[] translateTransaction736ToPong751(byte[] payload) {
-        return null;
-    }
-
-    // ------------------------------------------------------------------
-    // Displayed Recipe（751のみ。落とす）
-    // ------------------------------------------------------------------
-
-    /**
-     * Displayed Recipe（751 0x1f → 736）。736の crafting_book_data
-     * type=0（{type=0, displayedRecipe}）に変換する。落とさない。
-     * 根拠：ViaVersion の Protocol1_16_1To1_16_2 は displayed_recipe を
-     * type=0 の crafting_book_data に写す登録がある。旧版は落としていたが、
-     * 751→736 はこの変換で復元できる（Stage B フォローアップで実測により判明）。
-     */
-    public static byte[] translateDisplayedRecipe751To736(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            String recipeId = reader.readString();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(0); // type=SHOWN
-            writer.writeString(recipeId);
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Displayed Recipe を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Unlock Recipes / Recipe Book（736 <=> 751。Stage B フォローアップ）
-    // Unlock Recipes：736 は [action varint][craftingBookOpen bool]
-    // [filteringCraftable bool][smeltingBookOpen bool][filteringSmeltable bool]
-    // [recipes1 varint[文字列]][recipes2 varint[文字列]（action==0 のときだけ）]、
-    // 751 は smelting pair の後に [blastFurnaceOpen bool][filteringBlastFurnace bool]
-    // [smokerBookOpen bool][filteringSmoker bool] を追加したもの。
-    // （mc-1.16.1／mc-1.16.2-protocol.json で実測。実バニラ jar の javap でも確認：
-    // 1.16.1 の ClientboundRecipePacket（pl）は action enum（varint ordinal、
-    // INIT=0／ADD=1／REMOVE=2）の後に4 bool・recipes1・recipes2（action==INIT
-    // のときだけ）を読み書きする。1.16.2 の同パケット（ql）は設定を
-    // RecipeBookSettings（ads）として読む。ads の read は RecipeBookType enum
-    // （CRAFTING→FURNACE→BLAST_FURNACE→SMOKER の宣言順）ごとに open／filter の
-    // 2 bool を読むため、751の8 bool の順序は crafting pair、smelting pair、
-    // blast pair、smoker pair で、736の4 bool は先頭2組と同一順序。）
-    // Recipe Book：736 は crafting_book_data {type varint, switch：
-    // 0→{displayedRecipe string}、1→{8 bool}}、751 は recipe_book
-    // {bookId varint, bookOpen bool, filterActive bool} と displayed_recipe
-    // {recipeId string} に分割。ViaVersion の Protocol1_16_1To1_16_2 の
-    // 写像をそのまま採用する（下記の translateRecipeBook751To736 参照）。
-    // 変換失敗時は従来通り素通し（ペイロード unchanged）を返す。ただし
-    // translateRecipeBook736To751／translateDisplayedRecipe736To751 は
-    // 「type が違うため変換できない」ことを null で返す（ProxySession が
-    // type を読んで振り分ける。null のときは落とす）。
-    // ------------------------------------------------------------------
-
-    /** Unlock Recipes の action（INIT=0／ADD=1／REMOVE=2）。recipes2 は INIT のときだけ。 */
-    private static final int UNLOCK_RECIPES_ACTION_INIT = 0;
-
-    /**
-     * Unlock Recipes（736 → 751）。smelting pair の後に false×4
-     * （blastFurnaceOpen、filteringBlastFurnace、smokerBookOpen、filteringSmoker）を挿入する。
-     * 補完値 false の根拠は ViaVersion の ItemPacketRewriter1_16_2
-     * （unlock_recipes で blast／smoker 用に false を4個書く）。
-     * false＝新しい本は閉じた状態・フィルタ無効（1.16.1サーバーには blast／smoker
-     * の本が無いため、開いた状態を補う根拠は無い）。
-     */
-    public static byte[] translateUnlockRecipes736To751(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int action = reader.readVarInt();
-            boolean craftingBookOpen = reader.readBoolean();
-            boolean filteringCraftable = reader.readBoolean();
-            boolean smeltingBookOpen = reader.readBoolean();
-            boolean filteringSmeltable = reader.readBoolean();
-            List<String> recipes1 = PacketIO.readStringList(reader);
-            List<String> recipes2 = List.of();
-            if (action == UNLOCK_RECIPES_ACTION_INIT) {
-                recipes2 = PacketIO.readStringList(reader);
-            }
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(action);
-            writer.writeBoolean(craftingBookOpen);
-            writer.writeBoolean(filteringCraftable);
-            writer.writeBoolean(smeltingBookOpen);
-            writer.writeBoolean(filteringSmeltable);
-            writer.writeBoolean(false); // blastFurnaceOpen（補完。ViaVersion と同じ）
-            writer.writeBoolean(false); // filteringBlastFurnace（補完）
-            writer.writeBoolean(false); // smokerBookOpen（補完）
-            writer.writeBoolean(false); // filteringSmoker（補完）
-            PacketIO.writeStringList(writer, recipes1);
-            if (action == UNLOCK_RECIPES_ACTION_INIT) {
-                PacketIO.writeStringList(writer, recipes2);
-            }
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Unlock Recipes を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /** Unlock Recipes（751 → 736）。blast／smoker の4 bool を落とす。 */
-    public static byte[] translateUnlockRecipes751To736(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int action = reader.readVarInt();
-            boolean craftingBookOpen = reader.readBoolean();
-            boolean filteringCraftable = reader.readBoolean();
-            boolean smeltingBookOpen = reader.readBoolean();
-            boolean filteringSmeltable = reader.readBoolean();
-            reader.readBoolean(); // blastFurnaceOpen（落とす）
-            reader.readBoolean(); // filteringBlastFurnace（落とす）
-            reader.readBoolean(); // smokerBookOpen（落とす）
-            reader.readBoolean(); // filteringSmoker（落とす）
-            List<String> recipes1 = PacketIO.readStringList(reader);
-            List<String> recipes2 = List.of();
-            if (action == UNLOCK_RECIPES_ACTION_INIT) {
-                recipes2 = PacketIO.readStringList(reader);
-            }
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(action);
-            writer.writeBoolean(craftingBookOpen);
-            writer.writeBoolean(filteringCraftable);
-            writer.writeBoolean(smeltingBookOpen);
-            writer.writeBoolean(filteringSmeltable);
-            PacketIO.writeStringList(writer, recipes1);
-            if (action == UNLOCK_RECIPES_ACTION_INIT) {
-                PacketIO.writeStringList(writer, recipes2);
-            }
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Unlock Recipes を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Recipe Book（751 → 736）。751の recipe_book {bookId, bookOpen, filterActive}
-     * を736の crafting_book_data type=1（8 bool）に変換する。
-     * ViaVersion の Protocol1_16_1To1_16_2 の写像そのまま：
-     * craftingBookOpen＝(bookId==0 && open)、craftingFilter＝filter、
-     * smeltingBookOpen＝(bookId==1 && open)、smeltingFilter＝filter、
-     * blastingBookOpen＝(bookId==2 && open)、blastingFilter＝filter、
-     * smokingBookOpen＝(bookId==3 && open)、smokingFilter＝filter。
-     * bookId が 0〜3 の範囲外の場合も filterActive は4冊全てのフィルタに入る
-     * （open だけが全て false になる。フィルタは bookId に依存しない）。
-     * （751の recipe_book は1冊分しか持たないため、736の4冊のうち対応する1冊だけ
-     * が開き、残りは閉じた状態になる。）
-     */
-    public static byte[] translateRecipeBook751To736(byte[] payload) {
-        try {
-            Reader reader = new Reader(payload);
-            int bookId = reader.readVarInt();
-            boolean open = reader.readBoolean();
-            boolean filter = reader.readBoolean();
-            requireEnd(reader);
-            Writer writer = new Writer();
-            writer.writeVarInt(1); // type=SETTINGS
-            writer.writeBoolean(bookId == 0 && open); // craftingBookOpen
-            writer.writeBoolean(filter); // craftingFilter
-            writer.writeBoolean(bookId == 1 && open); // smeltingBookOpen
-            writer.writeBoolean(filter); // smeltingFilter
-            writer.writeBoolean(bookId == 2 && open); // blastingBookOpen
-            writer.writeBoolean(filter); // blastingFilter
-            writer.writeBoolean(bookId == 3 && open); // smokingBookOpen
-            writer.writeBoolean(filter); // smokingFilter
-            return writer.bytes();
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Recipe Book を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
     /**
      * Recipe Book（736 → 751。type=1 用）。736の crafting_book_data type=1
      * （8 bool）を751の recipe_book {bookId, bookOpen, filterActive} に変換する。
@@ -15656,172 +12621,42 @@ public final class PlayTranslator {
             return payload;
         }
     }
-
     /**
-     * Displayed Recipe（736 → 751。type=0 用）。736の crafting_book_data
-     * type=0（{type=0, displayedRecipe}）を751の displayed_recipe
-     * {recipeId string} に変換する。type が 0 でない場合は {@code null} を返す
-     * （呼び出し側は type=1 なら {@link #translateRecipeBook736To751(byte[])} を使うこと）。
+     * Recipe Book（751 → 736）。751の recipe_book {bookId, bookOpen, filterActive}
+     * を736の crafting_book_data type=1（8 bool）に変換する。
+     * ViaVersion の Protocol1_16_1To1_16_2 の写像そのまま：
+     * craftingBookOpen＝(bookId==0 && open)、craftingFilter＝filter、
+     * smeltingBookOpen＝(bookId==1 && open)、smeltingFilter＝filter、
+     * blastingBookOpen＝(bookId==2 && open)、blastingFilter＝filter、
+     * smokingBookOpen＝(bookId==3 && open)、smokingFilter＝filter。
+     * bookId が 0〜3 の範囲外の場合も filterActive は4冊全てのフィルタに入る
+     * （open だけが全て false になる。フィルタは bookId に依存しない）。
+     * （751の recipe_book は1冊分しか持たないため、736の4冊のうち対応する1冊だけ
+     * が開き、残りは閉じた状態になる。）
      */
-    public static byte[] translateDisplayedRecipe736To751(byte[] payload) {
+    public static byte[] translateRecipeBook751To736(byte[] payload) {
         try {
             Reader reader = new Reader(payload);
-            int type = reader.readVarInt();
-            if (type != 0) {
-                return null;
-            }
-            String recipeId = reader.readString();
+            int bookId = reader.readVarInt();
+            boolean open = reader.readBoolean();
+            boolean filter = reader.readBoolean();
             requireEnd(reader);
             Writer writer = new Writer();
-            writer.writeString(recipeId);
+            writer.writeVarInt(1); // type=SETTINGS
+            writer.writeBoolean(bookId == 0 && open); // craftingBookOpen
+            writer.writeBoolean(filter); // craftingFilter
+            writer.writeBoolean(bookId == 1 && open); // smeltingBookOpen
+            writer.writeBoolean(filter); // smeltingFilter
+            writer.writeBoolean(bookId == 2 && open); // blastingBookOpen
+            writer.writeBoolean(filter); // blastingFilter
+            writer.writeBoolean(bookId == 3 && open); // smokingBookOpen
+            writer.writeBoolean(filter); // smokingFilter
             return writer.bytes();
         } catch (IllegalArgumentException e) {
-            LOG.warning("Displayed Recipe を変換できなかったため素通しします: " + e.getMessage());
+            LOG.warning("Recipe Book を変換できなかったため素通しします: " + e.getMessage());
             return payload;
         }
     }
-
-
-    // ------------------------------------------------------------------
-    // 735（1.16）⇔ 736（1.16.1）
-    // ------------------------------------------------------------------
-    //
-    // 実測の根拠（推測なし）：
-    // - packet-ids-735.json（272件。実バニラjarの ConnectionProtocol 登録順＋Mojang
-    //   mappingsで実測）：736↔735のパケットID差分は変更0件・新規0件・削除0件。
-    //   STAGE-A-735-NOTES.md §8参照。ViaVersion照合157件・Wiki照合149件とも不一致0件。
-    // - Join Game codec：STAGE-A-735-NOTES.md §11.6。実バニラ1.16の生キャプチャ
-    //   （.tmp-735/packet/joingame-1.16.bin。1,159バイト・entityId 352・消費量
-    //   1,159／1,159で完全一致）は1.16.1のものと同一の14フィールド（isHardcore無し、
-    //   dimensionは文字列、dimensionCodecは {"dimension": [...]} だけ・1,039バイト、
-    //   dimension 4件、バイオーム無し、min_y／height無し）。
-    // - 実バニラ1.16 jar（run/vanilla/server-1.16.jar。sha1
-    //   a0d03225615ba897619220e256a266cb33a44b6b）と実バニラ1.16.1 jar
-    //   （~/workspace/detergentmc-736/run/vanilla/server-1.16.1.jar。sha1
-    //   a412fd69db1f81db3f511c1463fd304675244077）の全21,480クラスを sha1 比較した
-    //   ところ、異なるのは o.class（net.minecraft.DetectedVersion。バージョン文字列
-    //   "1.16"／"1.16.1"、world 2566／2567、protocol 735／736のみ）1件だけで、
-    //   パケット関連を含む他の全クラスはバイト同一。よって全playパケットの
-    //   ワイヤ形式は同一である。個別にも javap -p -c で確認済み：
-    //   ClientboundLoginPacket（ox）・ClientboundRespawnPacket（pp）・
-    //   ClientboundRecipePacket（pl）・ServerboundClientInformationPacket（rf）・
-    //   ClientboundPlayerPositionPacket（pk）・ClientboundPlayerCombatPacket（ph）・
-    //   ClientboundSetTitlesPacket（qk）・ClientboundSetBorderPacket（ps）・
-    //   ClientboundContainerAckPacket（oe）・ServerboundContainerAckPacket（rh）・
-    //   ServerboundRecipeBookUpdatePacket（sb）・ClientboundUpdateRecipesPacket（qv）は
-    //   両jarでバイト同一。server_mappings.txt も両版で同一
-    //   （sha1 11120c39da4df293c4bd020896391fb9ddd6c2ba。piston-metaの値と一致）。
-    //   jar-packets-1.16.json と jar-packets-1.16.1.json も全状態・全方向で同一。
-    //
-    // 735⇔736の違いと扱い（IDは PacketIds.java／packet-ids-735.json 参照）：
-    // - Join Game（0x25⇔0x25）：codec同一。14フィールド。hardcore は gameMode バイトの
-    //   bit 3、dimension は文字列、maxPlayers は u8、dimensionCodec は
-    //   {"dimension": [...]} だけ。JoinGame736 の record・parse・write をそのまま使う
-    //   （JoinGame735 は作らない）。本節の変換器は parse＋write の往復（恒等写像）。
-    // - Respawn（0x3a⇔0x3a）：8フィールド同一。順序は dimension（文字列。
-    //   javap pp#b：dimensionType・dimension とも ResourceKey を mg.a(uh)＝文字列で
-    //   書く）／worldName／hashedSeed／gameMode u8／previousGameMode u8／isDebug／
-    //   isFlat／copyMetadata。Stage A §13.3の未確認事項はこれで解決。
-    //   SpawnInfo736 の record・read・write をそのまま使う（SpawnInfo735 は作らない）。
-    //   本節の変換器は read＋write の往復（恒等写像）。
-    // - Client Information（0x05⇔0x05）：6フィールド同一（javap rf が両jarで同一。
-    //   locale・viewDistance i8・chatFlags varint・chatColors bool・skinParts u8・
-    //   mainHand varint。disableTextFiltering は755での追加で、735・736とも無い）。
-    //   本節の変換器は恒等写像。
-    // - Synchronize Player Position（0x35⇔0x35）：7フィールド同一（javap pk が両jarで同一。
-    //   x・y・z f64、yaw・pitch f32、flags i8、teleportId varint。
-    //   dismountVehicle は755での追加で、735・736とも無い）。本節の変換器は恒等写像。
-    // - combat_event（0x32⇔0x32）：フィールド同一。736と同じく分割されていない
-    //   （分割は755での変更。751でも単一パケットであることは736 §14.3の訂正1で確定済み）。
-    //   本節の変換器は恒等写像（IDも同じため付け替えも不要）。
-    // - title（0x4f⇔0x4f）：IDもフィールドも同一（javap qk が両jarで同一）。
-    //   本節の変換器は恒等写像。
-    // - world_border（0x3d⇔0x3d）：IDもフィールドも同一（javap ps が両jarで同一）。
-    //   本節の変換器は恒等写像。
-    // - ping（0x12⇔0x12）／pong（0x07⇔0x07）：恒等写像。両版とも transaction 形式
-    //   （ClientboundContainerAckPacket oe／ServerboundContainerAckPacket rh。
-    //   {windowId i8, actionNumber i16, accepted bool}。javap が両jarで同一で、
-    //   ConnectionProtocol の登録順でも両版とも clientbound 0x12・serverbound 0x07）。
-    //   736⇔751で落としていたのは751側が {id i32} の ping／pong だったためで、
-    //   735⇔736では両側が同じ形式のため落とさない。Keep Alive（0x20⇔0x20）は別パケット。
-    // - displayed_recipe（両版とも -1）：変換器は作らない。735にも736にも無い
-    //   （packet-ids-735.json で id735＝id736＝-1。751で追加されたため736では
-    //   「削除」1件だったが、735は736と同じく -1）。crafting_book_data（0x1e）は
-    //   両版ともあり、形式も同一（javap sb が両jarで同一）のため変換器は不要。
-    // - entity（735では0x2b）：PacketIds の対象外のまま落とす（下記の判断参照）。
-    //
-    // 決めたこと：
-    // - entity（クライアント行き 0x2b）は PacketIds にエントリを追加せず、対象外のまま落とす。
-    //   根拠：1.17で削除されたパケットで、ViaVersion の1.17 enum には無く
-    //   Protocol1_16_4To1_17 でも未登録（＝落としている）。内容は entityId varint 1個だけの
-    //   「移動なし」通知で、rel_entity_move 系とは別に位置同期には影響しない。
-    //   （736の 0x2b と同じ判断。Stage A §8.2参照。）
-    // - ping／pong は両方向とも恒等写像（落とさない）。根拠は上記の通り。
-    // - Join Game／Respawn は codec が同一のため parse＋write の往復で恒等写像になる。
-    //   735専用の record・parse・write は作らず、736のものをそのまま使う。
-    //
-    // 変換器を作らなかったもの（ID同一で、形式も同一のため。IDも同じものは呼び出し側の付け替えも不要）：
-    // Chat、Player Info、Set Held Item、Update Time（0x4e⇔0x4e）、Keep Alive（0x20⇔0x20）、
-    // Set Slot、Window Items、Set Cooldown、Entity Equipment、Trade List、Tile Entity Data、
-    // Entity Metadata、Sound Effect、Entity Sound Effect、Named Sound Effect、Stop Sound、
-    // World Particles、Block Change、Spawn Entity 系、Open Window、Block Action、
-    // Entity Effect、Enchant Item、Tags、Resource Pack Send、Declare Recipes
-    // （ClientboundUpdateRecipesPacket qv の javap が両jarで同一。736⇔751の
-    // ShapedRecipe$Serializer の確認と同じくワイヤ同一）、Unlock Recipes
-    // （0x36⇔0x36。ClientboundRecipePacket pl の javap が両jarで同一。blast／smoker の
-    // 4 bool が無いのは735・736とも同じで、736⇔751の違いは751側の追加によるもの）、
-    // Recipe Book（crafting_book_data。サーバー行き 0x1e⇔0x1e。
-    // ServerboundRecipeBookUpdatePacket sb の javap が両jarで同一）。
-    // 根拠は冒頭の全クラス sha1 比較（異なるのは DetectedVersion 1件だけ）による。
-    //
-    // ChunkTranslator担当へ申し送るもの：
-    // - entity_destroy（0x37⇔0x37）：ID同一。ChunkTranslator担当のパケットのため本節では扱わない。
-    // - window_click（0x09⇔0x09）：ID同一。ChunkTranslator担当。
-    // - map_chunk（0x21⇔0x21）：ID同一。ChunkTranslator担当。
-    // - update_light（0x24⇔0x24）：ID同一。ChunkTranslator担当。
-    // - explosion（0x1c⇔0x1c）：ID同一。ChunkTranslator担当。
-    // - entity_update_attributes（0x58⇔0x58）：ID同一。ChunkTranslator担当。
-    // - map（0x26⇔0x26）：ID同一。ChunkTranslator担当。
-    // - multi_block_change（0x0f⇔0x0f）：ID同一。ChunkTranslator担当。
-    // （上記8件の形式の実測は ChunkTranslator担当。冒頭の全クラス比較により
-    // 735と736でワイヤ形式が違う可能性は DetectedVersion 以外に無いことが分かっている。）
-
-    // ------------------------------------------------------------------
-    // Join Game（735⇔736。codec同一）
-    // ------------------------------------------------------------------
-
-    /**
-     * Join Game（735 → 736）。codec が同一のため、736の parse＋write の往復で
-     * 恒等写像になる。hardcore は gameMode バイトの bit 3、dimension は文字列、
-     * maxPlayers は u8、dimensionCodec は {"dimension": [...]} だけ。
-     * 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
-     */
-    public static byte[] translateJoinGame735To736(byte[] payload) {
-        try {
-            return writeJoinGame736(parseJoinGame736(payload));
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    /**
-     * Join Game（736 → 735）。codec が同一のため、736の parse＋write の往復で
-     * 恒等写像になる。根拠は {@link #translateJoinGame735To736(byte[])} と同じ。
-     */
-    public static byte[] translateJoinGame736To735(byte[] payload) {
-        try {
-            return writeJoinGame736(parseJoinGame736(payload));
-        } catch (IllegalArgumentException e) {
-            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
-            return payload;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // Respawn（735⇔736。8フィールド同一）
-    // ------------------------------------------------------------------
-
     /**
      * Respawn（735 → 736）。8フィールド同一のため、736の read＋write の往復で
      * 恒等写像になる。dimension は文字列（javap pp#b で両jarとも ResourceKey を
@@ -15840,7 +12675,6 @@ public final class PlayTranslator {
             return payload;
         }
     }
-
     /**
      * Respawn（736 → 735）。8フィールド同一のため、736の read＋write の往復で
      * 恒等写像になる。根拠は {@link #translateRespawn735To736(byte[])} と同じ。
@@ -15858,80 +12692,28 @@ public final class PlayTranslator {
             return payload;
         }
     }
-
-    // ------------------------------------------------------------------
-    // Client Information（Settings、735⇔736）
-    // ------------------------------------------------------------------
-
     /**
-     * Client Information（735 → 736）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は本節の冒頭（パケットID 0x05 同一、6フィールド同一。javap rf が両jarで同一。
-     * disableTextFiltering は755での追加で、735・736とも無い）。パースして書き直さない。
+     * Respawn（736 → 751）。フィールドは同一のため、dimension だけ文字列から
+     * 751の element（NBT）に直す。copyMetadata はそのまま写す。
+     * previousGameMode は u8 のまま写す。読めないペイロードは素通しする。
      */
-    public static byte[] translateClientInformation735To736(byte[] payload) {
-        return payload;
+    public static byte[] translateRespawn736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo736 info = readSpawnInfo736(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo754(writer, new SpawnInfo754(
+                    dimensionValue751(info.dimension()),
+                    info.worldName(), info.hashedSeed(), info.gameMode(),
+                    info.previousGameMode(), info.isDebug(), info.isFlat(),
+                    info.copyMetadata()));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
     }
-
-    /**
-     * Client Information（736 → 735）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は {@link #translateClientInformation735To736(byte[])} と同じ。
-     */
-    public static byte[] translateClientInformation736To735(byte[] payload) {
-        return payload;
-    }
-
-    // ------------------------------------------------------------------
-    // Synchronize Player Position（735⇔736）
-    // ------------------------------------------------------------------
-
-    /**
-     * Synchronize Player Position（735 0x35 → 736 0x35）。恒等写像：入力ペイロードを
-     * そのまま返す（IDも同じため付け替えも不要）。
-     * 根拠は本節の冒頭（javap pk が両jarで同一。x・y・z f64、yaw・pitch f32、
-     * flags i8、teleportId varint の7フィールド。dismountVehicle は755での追加で、
-     * 735・736とも無い）。
-     * パースして書き直さない。
-     */
-    public static byte[] translatePosition735To736(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Synchronize Player Position（736 0x35 → 735 0x35）。恒等写像：入力ペイロードを
-     * そのまま返す。根拠は {@link #translatePosition735To736(byte[])} と同じ。
-     */
-    public static byte[] translatePosition736To735(byte[] payload) {
-        return payload;
-    }
-
-    // ------------------------------------------------------------------
-    // Combat Event（735⇔736。分割されていない）
-    // ------------------------------------------------------------------
-
-    /**
-     * Combat Event（735 0x32 → 736 0x32）。恒等写像：入力ペイロードをそのまま返す
-     * （IDも同じため付け替えも不要）。分割されていないため振り分けは不要。
-     * 根拠は本節の冒頭（javap ph が両jarで同一。event varint、END_COMBAT なら
-     * duration varint＋entityId i32、ENTITY_DIED なら playerId varint＋entityId i32＋
-     * message。分割は755での変更）。
-     * パースして書き直さない。
-     */
-    public static byte[] translateCombatEvent735To736(byte[] payload) {
-        return payload;
-    }
-
-    /**
-     * Combat Event（736 0x32 → 735 0x32）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は {@link #translateCombatEvent735To736(byte[])} と同じ。
-     */
-    public static byte[] translateCombatEvent736To735(byte[] payload) {
-        return payload;
-    }
-
-    // ------------------------------------------------------------------
-    // Title（735⇔736。分割されていない）
-    // ------------------------------------------------------------------
-
     /**
      * Title（735 0x4f → 736 0x4f）。恒等写像：入力ペイロードをそのまま返す。
      * 分割されていないため振り分けは不要。IDも同じ 0x4f。
@@ -15942,7 +12724,6 @@ public final class PlayTranslator {
     public static byte[] translateTitle735To736(byte[] payload) {
         return payload;
     }
-
     /**
      * Title（736 0x4f → 735 0x4f）。恒等写像：入力ペイロードをそのまま返す。
      * 根拠は {@link #translateTitle735To736(byte[])} と同じ。
@@ -15950,11 +12731,83 @@ public final class PlayTranslator {
     public static byte[] translateTitle736To735(byte[] payload) {
         return payload;
     }
-
-    // ------------------------------------------------------------------
-    // World Border（735⇔736。分割されていない）
-    // ------------------------------------------------------------------
-
+    /**
+     * Unlock Recipes（736 → 751）。smelting pair の後に false×4
+     * （blastFurnaceOpen、filteringBlastFurnace、smokerBookOpen、filteringSmoker）を挿入する。
+     * 補完値 false の根拠は ViaVersion の ItemPacketRewriter1_16_2
+     * （unlock_recipes で blast／smoker 用に false を4個書く）。
+     * false＝新しい本は閉じた状態・フィルタ無効（1.16.1サーバーには blast／smoker
+     * の本が無いため、開いた状態を補う根拠は無い）。
+     */
+    public static byte[] translateUnlockRecipes736To751(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int action = reader.readVarInt();
+            boolean craftingBookOpen = reader.readBoolean();
+            boolean filteringCraftable = reader.readBoolean();
+            boolean smeltingBookOpen = reader.readBoolean();
+            boolean filteringSmeltable = reader.readBoolean();
+            List<String> recipes1 = PacketIO.readStringList(reader);
+            List<String> recipes2 = List.of();
+            if (action == UNLOCK_RECIPES_ACTION_INIT) {
+                recipes2 = PacketIO.readStringList(reader);
+            }
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(action);
+            writer.writeBoolean(craftingBookOpen);
+            writer.writeBoolean(filteringCraftable);
+            writer.writeBoolean(smeltingBookOpen);
+            writer.writeBoolean(filteringSmeltable);
+            writer.writeBoolean(false); // blastFurnaceOpen（補完。ViaVersion と同じ）
+            writer.writeBoolean(false); // filteringBlastFurnace（補完）
+            writer.writeBoolean(false); // smokerBookOpen（補完）
+            writer.writeBoolean(false); // filteringSmoker（補完）
+            PacketIO.writeStringList(writer, recipes1);
+            if (action == UNLOCK_RECIPES_ACTION_INIT) {
+                PacketIO.writeStringList(writer, recipes2);
+            }
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Unlock Recipes を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /** Unlock Recipes（751 → 736）。blast／smoker の4 bool を落とす。 */
+    public static byte[] translateUnlockRecipes751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int action = reader.readVarInt();
+            boolean craftingBookOpen = reader.readBoolean();
+            boolean filteringCraftable = reader.readBoolean();
+            boolean smeltingBookOpen = reader.readBoolean();
+            boolean filteringSmeltable = reader.readBoolean();
+            reader.readBoolean(); // blastFurnaceOpen（落とす）
+            reader.readBoolean(); // filteringBlastFurnace（落とす）
+            reader.readBoolean(); // smokerBookOpen（落とす）
+            reader.readBoolean(); // filteringSmoker（落とす）
+            List<String> recipes1 = PacketIO.readStringList(reader);
+            List<String> recipes2 = List.of();
+            if (action == UNLOCK_RECIPES_ACTION_INIT) {
+                recipes2 = PacketIO.readStringList(reader);
+            }
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(action);
+            writer.writeBoolean(craftingBookOpen);
+            writer.writeBoolean(filteringCraftable);
+            writer.writeBoolean(smeltingBookOpen);
+            writer.writeBoolean(filteringSmeltable);
+            PacketIO.writeStringList(writer, recipes1);
+            if (action == UNLOCK_RECIPES_ACTION_INIT) {
+                PacketIO.writeStringList(writer, recipes2);
+            }
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Unlock Recipes を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
     /**
      * World Border（735 0x3d → 736 0x3d）。恒等写像：入力ペイロードをそのまま返す。
      * 分割されていないため振り分けは不要。IDも同じ 0x3d。
@@ -15965,7 +12818,6 @@ public final class PlayTranslator {
     public static byte[] translateWorldBorder735To736(byte[] payload) {
         return payload;
     }
-
     /**
      * World Border（736 0x3d → 735 0x3d）。恒等写像：入力ペイロードをそのまま返す。
      * 根拠は {@link #translateWorldBorder735To736(byte[])} と同じ。
@@ -15973,47 +12825,4022 @@ public final class PlayTranslator {
     public static byte[] translateWorldBorder736To735(byte[] payload) {
         return payload;
     }
-
-    // ------------------------------------------------------------------
-    // Ping／Pong（735⇔736。両版とも transaction 形式）
-    // ------------------------------------------------------------------
-
+    /** 736の Join Game の中身。14フィールド。hardcore は gameMode バイトの bit 3 から分けたもの（751の JoinGame754 と同じく hardcore＋gameMode で持つ）。dimension は文字列。previousGameMode は -1＝なし（u8 の 255 を読み替えたもの）。maxPlayers は u8。 */
+    public record JoinGame736(int entityId, boolean hardcore, int gameMode, int previousGameMode,
+            List<String> worldNames, Tag.CompoundTag dimensionCodec, String dimension,
+            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
+            boolean reducedDebug, boolean enableRespawnScreen,
+            boolean isDebug, boolean isFlat) {
+    }
+    /** 754の Join Game の中身。755と同一の15フィールド。dimension は DimensionType の値そのもの（NBT）。previousGameMode は i8 として読む（minecraft-data では754は u8・755は i8 と書かれているが、ワイヤ上は同じ1バイトで、255＝「無し」は i8 の -1 と同じ値。755と同じ読み方）。simulationDistance は無い。 */
+    public record JoinGame754(int entityId, boolean hardcore, int gameMode, int previousGameMode,
+            List<String> worldNames, Tag.CompoundTag dimensionCodec, Tag dimension,
+            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
+            boolean reducedDebug, boolean enableRespawnScreen,
+            boolean isDebug, boolean isFlat) {
+    }
+    /** 736の Respawn（SpawnInfo）の中身。751と同一の8フィールド。dimension は文字列（751は NBT）。previousGameMode は u8（255＝なし。Join Game の -1 とは違う。SpawnInfo754 と同じ約束）。copyMetadata は末尾。 */
+    public record SpawnInfo736(String dimension, String worldName, long hashedSeed, int gameMode,
+            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata) {
+    }
+    /** 754の Respawn（SpawnInfo）の中身。755と同一の8フィールド。dimension は DimensionType の値そのもの（NBT）。previousGameMode は u8（Join Game の i8 とは違う。protocol.json で確認）。copyMetadata は末尾。dataToKeep は無い。 */
+    public record SpawnInfo754(Tag dimension, String worldName, long hashedSeed, int gameMode,
+            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata) {
+    }
+    /** 757／759の previousGameMode（i8）が GameType の範囲内か。-1＝なし、0〜3＝id。 */
+    private static void checkPreviousGameMode757(int value) {
+        if (value != -1 && (value < 0 || value > MAX_GAME_TYPE_ID_757)) {
+            throw new IllegalArgumentException(
+                    "previousGameMode が GameType の範囲外です: " + value);
+        }
+    }
     /**
-     * Ping（735 0x12 → 736 0x12）。恒等写像：入力ペイロードをそのまま返す。
-     * 両版とも transaction 形式（ClientboundContainerAckPacket。
-     * {windowId i8, actionNumber i16, accepted bool}。javap oe が両jarで同一）。
-     * 736⇔751で落としていたのは751側が {id i32} の ping だったためで、
-     * 735⇔736では両側が同じ形式のため落とさない。
+     * 751の dimension（NBTの値）に対応する dimension_type の名前を返す。
+     * dimensionName754 と同じ手順で、既定の element は751のものを使う。
+     * codec が null の場合（Respawn）は codec での検索を飛ばす。
      */
-    public static byte[] translatePing735To736(byte[] payload) {
+    private static String dimensionName751(Tag dimension, Tag.CompoundTag codec) {
+        if (codec != null) {
+            String fromCodec = findDimensionName(codec, dimension);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        for (Map.Entry<String, Tag.CompoundTag> e : DIMENSION_TYPE_751_ELEMENTS.entrySet()) {
+            if (e.getValue().equals(dimension)) {
+                return e.getKey();
+            }
+        }
+        // 推定：effects と has_ceiling の組み合わせで4種を区別する（dimensionName754 と同じ）。
+        if (dimension instanceof Tag.CompoundTag compound) {
+            String effects = compound.getString("effects").orElse("");
+            boolean hasCeiling = compound.get("has_ceiling")
+                    .filter(t -> t instanceof Tag.ByteTag)
+                    .map(t -> ((Tag.ByteTag) t).value() != 0)
+                    .orElse(false);
+            if (effects.equals("minecraft:the_nether")) {
+                return "minecraft:the_nether";
+            }
+            if (effects.equals("minecraft:the_end")) {
+                return "minecraft:the_end";
+            }
+            if (effects.equals("minecraft:overworld")) {
+                return hasCeiling ? "minecraft:overworld_caves" : "minecraft:overworld";
+            }
+        }
+        LOG.warning("dimension の名前が分からなかったため minecraft:overworld にします。");
+        return "minecraft:overworld";
+    }
+    /** 751の dimension_type の名前に対応する751の element を返す（codec が無い場合。Respawn 用）。 */
+    private static Tag dimensionValue751(String name) {
+        return dimensionValue751(name, null);
+    }
+    /**
+     * 753の Join Game を読む。753 の packet_login は 754 と完全同一
+     * （minecraft-data mc-1.16.3-protocol.json は mc-1.16-protocol.json と
+     * バイト同一（152,123 バイト）。Stage A §11.6 の実バニラ 1.16.3 キャプチャは
+     * 30,847 バイトで 1.16.5 と同一）のため、754 のパーサにそのまま委譲する。
+     * 戻り値は JoinGame754（753 専用のレコードは作らない。フィールドは同一）。
+     */
+    public static JoinGame754 parseJoinGame753(byte[] payload) {
+        return parseJoinGame754(payload);
+    }
+    /**
+     * 736の dimensionCodec を751形式にする。736の {"dimension": [生 element]} を
+     * minecraft:dimension_type のレジストリ（{name, id, element}。element は751既定値に
+     * 置き換え）に直し、バイオームレジストリ79件を実バニラ1.16.2のもので補う。
+     * codec のキーの並びは751の実バニラ通り（dimension_type、worldgen/biome）。
+     * "dimension" が無い・空の場合は4件とも既定値で作る。未知のレジストリがあれば
+     * そのまま引き継ぐ（ただし "dimension" は置き換えるため引き継がない）。
+     */
+    public static Tag.CompoundTag translateDimensionCodec736To751(Tag.CompoundTag codec736) {
+        if (codec736 == null) {
+            return null;
+        }
+        Map<String, Tag> codec = new LinkedHashMap<>();
+        List<Tag> dimensionList = codec736.getList("dimension")
+                .map(Tag.ListTag::value).orElse(List.of());
+        List<Tag> entries = new ArrayList<>(4);
+        if (dimensionList.isEmpty()) {
+            for (int i = 0; i < DIMENSION_TYPE_736_NAMES.length; i++) {
+                entries.add(biomeEntry(DIMENSION_TYPE_736_NAMES[i], i,
+                        dimensionValue751(DIMENSION_TYPE_736_NAMES[i])));
+            }
+        } else {
+            for (int i = 0; i < dimensionList.size(); i++) {
+                Tag raw = dimensionList.get(i);
+                String name = DIMENSION_TYPE_736_NAMES[i < DIMENSION_TYPE_736_NAMES.length ? i : 0];
+                if (raw instanceof Tag.CompoundTag element) {
+                    name = element.getString("name").orElse(name);
+                }
+                entries.add(biomeEntry(name, i, dimensionValue751(name)));
+            }
+        }
+        Map<String, Tag> dimensionRegistry = new LinkedHashMap<>();
+        dimensionRegistry.put("type", new Tag.StringTag("minecraft:dimension_type"));
+        dimensionRegistry.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+        codec.put("minecraft:dimension_type", new Tag.CompoundTag(dimensionRegistry));
+        codec.put("minecraft:worldgen/biome", BIOME_751_REGISTRY);
+        codec736.value().forEach((k, v) -> {
+            if (!k.equals("dimension")
+                    && !k.equals("minecraft:dimension_type")
+                    && !k.equals("minecraft:worldgen/biome")) {
+                codec.put(k, v);
+            }
+        });
+        return new Tag.CompoundTag(codec);
+    }
+    /**
+     * 751の dimensionCodec を736形式にする。dimension_type のレジストリを
+     * {"dimension": [生 element]} に直す（element は736既定値に置き換え）。
+     * バイオームレジストリは落とす（736には無いため）。
+     * dimension_type レジストリが無い場合は4件とも既定値で作る。
+     * 未知のレジストリがあればそのまま引き継ぐ（ただし dimension_type と
+     * worldgen/biome は置き換えるため引き継がない）。
+     */
+    public static Tag.CompoundTag translateDimensionCodec751To736(Tag.CompoundTag codec751) {
+        if (codec751 == null) {
+            return null;
+        }
+        Map<String, Tag> codec = new LinkedHashMap<>();
+        List<Tag> entries = codec751.getCompound("minecraft:dimension_type")
+                .flatMap(r -> r.getList("value"))
+                .map(Tag.ListTag::value).orElse(List.of());
+        List<Tag> dimensionList = new ArrayList<>(4);
+        if (entries.isEmpty()) {
+            for (String name : DIMENSION_TYPE_736_NAMES) {
+                dimensionList.add(dimensionValue736(name));
+            }
+        } else {
+            for (int i = 0; i < entries.size(); i++) {
+                Tag entry = entries.get(i);
+                String name = DIMENSION_TYPE_736_NAMES[i < DIMENSION_TYPE_736_NAMES.length ? i : 0];
+                if (entry instanceof Tag.CompoundTag compound) {
+                    name = compound.getString("name").orElse(name);
+                }
+                dimensionList.add(dimensionValue736(name));
+            }
+        }
+        codec.put("dimension", new Tag.ListTag(Nbt.COMPOUND, dimensionList));
+        codec751.value().forEach((k, v) -> {
+            if (!k.equals("minecraft:dimension_type")
+                    && !k.equals("minecraft:worldgen/biome")
+                    && !k.equals("dimension")) {
+                codec.put(k, v);
+            }
+        });
+        return new Tag.CompoundTag(codec);
+    }
+    /** 736の Join Game を書く。gameMode バイトに hardcore の bit 3 を OR する。maxPlayers は u8 で書く。 */
+    public static byte[] writeJoinGame736(JoinGame736 join) {
+        Writer writer = new Writer();
+        writer.writeInt(join.entityId());
+        writer.writeByte(join.gameMode() | (join.hardcore() ? 8 : 0));
+        writer.writeByte(join.previousGameMode());
+        PacketIO.writeStringList(writer, join.worldNames());
+        writer.writeNamedNbt("", join.dimensionCodec());
+        writer.writeString(join.dimension());
+        writer.writeString(join.worldName());
+        writer.writeLong(join.hashedSeed());
+        writer.writeUnsignedByte(join.maxPlayers());
+        writer.writeVarInt(join.viewDistance());
+        writer.writeBoolean(join.reducedDebug());
+        writer.writeBoolean(join.enableRespawnScreen());
+        writer.writeBoolean(join.isDebug());
+        writer.writeBoolean(join.isFlat());
+        return writer.bytes();
+    }
+    /** 754の Join Game を書く。755と同一のフィールド順。 */
+    public static byte[] writeJoinGame754(JoinGame754 join) {
+        Writer writer = new Writer();
+        writer.writeInt(join.entityId());
+        writer.writeBoolean(join.hardcore());
+        writer.writeByte(join.gameMode());
+        writer.writeByte(join.previousGameMode());
+        PacketIO.writeStringList(writer, join.worldNames());
+        writer.writeNamedNbt("", join.dimensionCodec());
+        writer.writeNamedNbt("", join.dimension());
+        writer.writeString(join.worldName());
+        writer.writeLong(join.hashedSeed());
+        writer.writeVarInt(join.maxPlayers());
+        writer.writeVarInt(join.viewDistance());
+        writer.writeBoolean(join.reducedDebug());
+        writer.writeBoolean(join.enableRespawnScreen());
+        writer.writeBoolean(join.isDebug());
+        writer.writeBoolean(join.isFlat());
+        return writer.bytes();
+    }
+    /** 736の SpawnInfo を書く。751と同一のフィールド順。dimension は文字列で書く。 */
+    public static void writeSpawnInfo736(Writer writer, SpawnInfo736 info) {
+        writer.writeString(info.dimension());
+        writer.writeString(info.worldName());
+        writer.writeLong(info.hashedSeed());
+        writer.writeByte(info.gameMode());
+        writer.writeByte(info.previousGameMode());
+        writer.writeBoolean(info.isDebug());
+        writer.writeBoolean(info.isFlat());
+        writer.writeBoolean(info.copyMetadata());
+    }
+    /** 754の SpawnInfo を書く。755と同一のフィールド順。 */
+    public static void writeSpawnInfo754(Writer writer, SpawnInfo754 info) {
+        writer.writeNamedNbt("", info.dimension());
+        writer.writeString(info.worldName());
+        writer.writeLong(info.hashedSeed());
+        writer.writeByte(info.gameMode());
+        writer.writeByte(info.previousGameMode());
+        writer.writeBoolean(info.isDebug());
+        writer.writeBoolean(info.isFlat());
+        writer.writeBoolean(info.copyMetadata());
+    }
+    /** バイオームのレジストリエントリ1件を作る。element が null の場合は element 無し。 */
+    private static Tag.CompoundTag biomeEntry(String name, int id, Tag element) {
+        Map<String, Tag> entry = new LinkedHashMap<>();
+        entry.put("name", new Tag.StringTag(name));
+        entry.put("id", new Tag.IntTag(id));
+        if (element != null) {
+            entry.put("element", element);
+        }
+        return new Tag.CompoundTag(entry);
+    }
+    /**
+     * 736の dimension_type の名前に対応する736の element を返す。
+     * 既定の736 element を使う。名前が既定に無ければ overworld の element にする。
+     */
+    private static Tag dimensionValue736(String name) {
+        Tag.CompoundTag element = DIMENSION_TYPE_736_ELEMENTS.get(name);
+        if (element != null) {
+            return element;
+        }
+        LOG.warning("dimension " + name + " の736 element が無いため minecraft:overworld にします。");
+        return DIMENSION_TYPE_736_ELEMENTS.get("minecraft:overworld");
+    }
+    /** codec の dimension_type から、element が dimension と一致するエントリの名前を返す。無ければ null。 */
+    private static String findDimensionName(Tag.CompoundTag codec, Tag dimension) {
+        return codec.getCompound("minecraft:dimension_type")
+                .flatMap(r -> r.getList("value"))
+                .map(Tag.ListTag::value)
+                .orElse(List.of()).stream()
+                .filter(e -> e instanceof Tag.CompoundTag)
+                .map(e -> (Tag.CompoundTag) e)
+                .filter(e -> e.get("element").map(el -> el.equals(dimension)).orElse(false))
+                .findFirst()
+                .flatMap(e -> e.getString("name"))
+                .orElse(null);
+    }
+    /**
+     * 754の Join Game を読む。順番は entityId, hardcore, gameMode, previousGameMode(i8),
+     * worldNames, dimensionCodec（名前付き NBT）, dimension（名前付き NBT）,
+     * worldName, hashedSeed, maxPlayers, viewDistance,
+     * reducedDebug, enableRespawnScreen, isDebug, isFlat である
+     * （minecraft-data mc-1.16-protocol.json の packet_login と mc-1.17-protocol.json の
+     * packet_login が previousGameMode の型名以外は完全同一であること、および
+     * STAGE-A-754-NOTES.md §11.6 の実バニラ1.16.5キャプチャ（30,847バイト。
+     * 消費量 30,847／30,847 で完全一致）で確認）。
+     */
+    public static JoinGame754 parseJoinGame754(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        boolean hardcore = reader.readBoolean();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readByte();
+        checkPreviousGameMode757(previousGameMode);
+        List<String> worldNames = PacketIO.readStringList(reader);
+        Tag dimensionCodec = reader.readNamedNbt().tag();
+        if (!(dimensionCodec instanceof Tag.CompoundTag codec)) {
+            throw new IllegalArgumentException("Join Game の dimensionCodec がコンパウンドではありません。");
+        }
+        Tag dimension = reader.readNamedNbt().tag();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int maxPlayers = reader.readVarInt();
+        int viewDistance = reader.readVarInt();
+        boolean reducedDebug = reader.readBoolean();
+        boolean enableRespawnScreen = reader.readBoolean();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        requireEnd(reader);
+        return new JoinGame754(entityId, hardcore, gameMode, previousGameMode, worldNames,
+                codec, dimension, worldName, hashedSeed, maxPlayers, viewDistance,
+                reducedDebug, enableRespawnScreen, isDebug, isFlat);
+    }
+    private static Tag dimensionValue751(String name, Tag.CompoundTag codec) {
+        Tag.CompoundTag element = DIMENSION_TYPE_751_ELEMENTS.get(name);
+        if (element != null) {
+            return element;
+        }
+        if (codec != null) {
+            Tag fromCodec = findDimensionElement(codec, name);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        LOG.warning("dimension " + name + " の751 element が無いため minecraft:overworld にします。");
+        return DIMENSION_TYPE_751_ELEMENTS.get("minecraft:overworld");
+    }
+    /** codec の dimension_type から、名前のエントリの element を返す。無ければ null。 */
+    private static Tag findDimensionElement(Tag.CompoundTag codec, String name) {
+        return codec.getCompound("minecraft:dimension_type")
+                .flatMap(r -> r.getList("value"))
+                .map(Tag.ListTag::value)
+                .orElse(List.of()).stream()
+                .filter(e -> e instanceof Tag.CompoundTag)
+                .map(e -> (Tag.CompoundTag) e)
+                .filter(e -> e.getString("name").map(name::equals).orElse(false))
+                .findFirst()
+                .flatMap(e -> e.get("element"))
+                .orElse(null);
+    }
+    /**
+     * 755の Join Game を読む。順番は entityId, hardcore, gameMode, previousGameMode(i8),
+     * worldNames, dimensionCodec（名前付き NBT）, dimension（名前付き NBT）,
+     * worldName, hashedSeed, maxPlayers, viewDistance,
+     * reducedDebug, enableRespawnScreen, isDebug, isFlat である
+     * （minecraft-data mc-1.17-protocol.json の packet_login と mc-1.17.1-protocol.json の
+     * packet_login が完全同一であること、および STAGE-A-755-NOTES.md §11.6 の実バニラ
+     * 1.17キャプチャ（31,555バイト）で確認）。
+     */
+    public static JoinGame755 parseJoinGame755(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        boolean hardcore = reader.readBoolean();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readByte();
+        checkPreviousGameMode757(previousGameMode);
+        List<String> worldNames = PacketIO.readStringList(reader);
+        Tag dimensionCodec = reader.readNamedNbt().tag();
+        if (!(dimensionCodec instanceof Tag.CompoundTag codec)) {
+            throw new IllegalArgumentException("Join Game の dimensionCodec がコンパウンドではありません。");
+        }
+        Tag dimension = reader.readNamedNbt().tag();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int maxPlayers = reader.readVarInt();
+        int viewDistance = reader.readVarInt();
+        boolean reducedDebug = reader.readBoolean();
+        boolean enableRespawnScreen = reader.readBoolean();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        requireEnd(reader);
+        return new JoinGame755(entityId, hardcore, gameMode, previousGameMode, worldNames,
+                codec, dimension, worldName, hashedSeed, maxPlayers, viewDistance,
+                reducedDebug, enableRespawnScreen, isDebug, isFlat);
+    }
+    /** 754の SpawnInfo を読む。755と同一のフィールド順。 */
+    public static SpawnInfo754 readSpawnInfo754(Reader reader) {
+        Tag dimension = reader.readNamedNbt().tag();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readUnsignedByte();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        boolean copyMetadata = reader.readBoolean();
+        return new SpawnInfo754(dimension, worldName, hashedSeed, gameMode,
+                previousGameMode, isDebug, isFlat, copyMetadata);
+    }
+    /** 755の SpawnInfo を読む。756と同一のフィールド順。 */
+    public static SpawnInfo755 readSpawnInfo755(Reader reader) {
+        Tag dimension = reader.readNamedNbt().tag();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readUnsignedByte();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        boolean copyMetadata = reader.readBoolean();
+        return new SpawnInfo755(dimension, worldName, hashedSeed, gameMode,
+                previousGameMode, isDebug, isFlat, copyMetadata);
+    }
+    /**
+     * Client Information（736 → 751）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x05 同一、6フィールド同一。minecraft-data の
+     * packet_settings は736・751で同一で、実バニラ1.16.1 jar の
+     * ServerboundClientInformationPacket#write（javap rf#write）でも
+     * locale・viewDistance i8・chatFlags varint・chatColors bool・skinParts u8・
+     * mainHand varint の6フィールドを確認。disableTextFiltering は755での追加で、
+     * 736・751とも無い）。パースして書き直さない。
+     */
+    public static byte[] translateClientInformation736To751(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Client Information（751 → 736）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateClientInformation736To751(byte[])} と同じ。
+     */
+    public static byte[] translateClientInformation751To736(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Client Information（751 → 753）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x05 同一、6フィールド同一。disableTextFiltering は
+     * 755での追加で、751・753とも無い）を参照。パースして書き直さない。
+     */
+    public static byte[] translateClientInformation751To753(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Client Information（753 → 751）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateClientInformation751To753(byte[])} と同じ。
+     */
+    public static byte[] translateClientInformation753To751(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Client Information（753 → 754）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x05 同一、6フィールド同一。disableTextFiltering は
+     * 755での追加で、753・754とも無い）を参照。パースして書き直さない。
+     */
+    public static byte[] translateClientInformation753To754(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Client Information（754 → 753）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateClientInformation753To754(byte[])} と同じ。
+     */
+    public static byte[] translateClientInformation754To753(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Client Information（754 → 755）。754は {locale, viewDistance i8, chatFlags varint,
+     * chatColors bool, skinParts u8, mainHand varint} の6フィールドで、755は末尾に
+     * disableTextFiltering bool が付いた7フィールド。末尾に false を足す。
+     * false の根拠：false はフィルタ有効で、1.17のバニラクライアントの既定値
+     * （設定で無効化しない限り false を送る）。1.16.5のクライアントはこの設定を持たないため、
+     * 1.17の既定値を適用する。ViaVersion の Protocol1_16_4To1_17 は
+     * CLIENT_INFORMATION で1.17側の text filtering bool を読んで落とす（755→754方向）だけで、
+     * 逆向きの補完値は ViaVersion には無いため、この既定値の選択は DetergentMC の判断である。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateClientInformation754To755(byte[] payload) {
+        if (payload == null) {
+            return payload;
+        }
+        try {
+            Reader reader = new Reader(payload);
+            String locale = reader.readString();
+            int viewDistance = reader.readByte();
+            int chatFlags = reader.readVarInt();
+            boolean chatColors = reader.readBoolean();
+            int skinParts = reader.readUnsignedByte();
+            int mainHand = reader.readVarInt();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Client Information に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString(locale);
+            writer.writeByte(viewDistance);
+            writer.writeVarInt(chatFlags);
+            writer.writeBoolean(chatColors);
+            writer.writeUnsignedByte(skinParts);
+            writer.writeVarInt(mainHand);
+            writer.writeBoolean(false); // disableTextFiltering：754には無いため 1.17の既定値 false を補う
+            return writer.bytes();
+        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            return payload;
+        }
+    }
+    /**
+     * Client Information（755 → 754）。末尾の disableTextFiltering bool を落とす。
+     * 根拠：ViaVersion の Protocol1_16_4To1_17 の CLIENT_INFORMATION も
+     * 1.17側の text filtering bool を読んで落としている（read(Types.BOOLEAN)）。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateClientInformation755To754(byte[] payload) {
+        if (payload == null) {
+            return payload;
+        }
+        try {
+            Reader reader = new Reader(payload);
+            String locale = reader.readString();
+            int viewDistance = reader.readByte();
+            int chatFlags = reader.readVarInt();
+            boolean chatColors = reader.readBoolean();
+            int skinParts = reader.readUnsignedByte();
+            int mainHand = reader.readVarInt();
+            boolean disableTextFiltering = reader.readBoolean();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Client Information に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString(locale);
+            writer.writeByte(viewDistance);
+            writer.writeVarInt(chatFlags);
+            writer.writeBoolean(chatColors);
+            writer.writeUnsignedByte(skinParts);
+            writer.writeVarInt(mainHand);
+            return writer.bytes();
+        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            return payload;
+        }
+    }
+    /**
+     * Combat Event（736 0x32 → 751 0x31）。恒等写像：入力ペイロードをそのまま返す
+     * （IDだけ呼び出し側が付け替える）。751は分割されていないため振り分けは不要。
+     * 根拠は本節の冒頭（minecraft-data の packet_combat_event は736・751で同一。
+     * 実バニラ1.16.1 jar の ClientboundPlayerCombatPacket#write（javap ph#write）でも
+     * event varint、END_COMBAT なら duration varint＋entityId i32、ENTITY_DIED なら
+     * playerId varint＋entityId i32＋message の構成を確認。分割は755での変更で、
+     * 751の PLAY_ENTER／END／DEATH_COMBAT_EVENT のIDはどれも 0x31）。
+     * パースして書き直さない。
+     */
+    public static byte[] translateCombatEvent736To751(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Combat Event（751 0x31 → 736 0x32）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateCombatEvent736To751(byte[])} と同じ。
+     */
+    public static byte[] translateCombatEvent751To736(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Combat Event（754 0x31 → 755）。754は {event varint, duration（event=1 のとき varint）,
+     * playerId（event=2 のとき varint）, entityId（event=1・2 のとき i32）,
+     * message（event=2 のとき string）} の1パケットで、event の値で3種に分かれる。
+     * 755は3パケットに分かれているため、event に応じて振り分けて返す。
+     * 戻り値は {@link MinecraftPacket}（755のパケットID＋ペイロード）。
+     * event が 0〜2 以外の場合と、読めないペイロードの場合は {@code null} を返す
+     * （呼び出し側は落とすこと。素通しはできない。755側の3パケットのどれにもならないため）。
+     */
+    public static MinecraftPacket translateCombatEvent754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int event = reader.readVarInt();
+            return switch (event) {
+                case 0 -> {
+                    requireEnd(reader);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_ENTER_COMBAT_EVENT.idFor(755),
+                            new byte[0]);
+                }
+                case 1 -> {
+                    int duration = reader.readVarInt();
+                    int entityId = reader.readInt();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeVarInt(duration);
+                    writer.writeInt(entityId);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_END_COMBAT_EVENT.idFor(755),
+                            writer.bytes());
+                }
+                case 2 -> {
+                    int playerId = reader.readVarInt();
+                    int entityId = reader.readInt();
+                    String message = reader.readString();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeVarInt(playerId);
+                    writer.writeInt(entityId);
+                    writer.writeString(message);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_DEATH_COMBAT_EVENT.idFor(755),
+                            writer.bytes());
+                }
+                default -> {
+                    LOG.warning("Combat Event の event が範囲外のため落とします: " + event);
+                    yield null;
+                }
+            };
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Combat Event を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /**
+     * Death Combat Event（755 0x35 → 754 0x31）。{playerId varint, entityId i32, message string} に
+     * event=2 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateDeathCombatEvent755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int playerId = reader.readVarInt();
+            int entityId = reader.readInt();
+            String message = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(2);
+            writer.writeVarInt(playerId);
+            writer.writeInt(entityId);
+            writer.writeString(message);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Death Combat Event を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /**
+     * End Combat Event（755 0x33 → 754 0x31）。{duration varint, entityId i32} に
+     * event=1 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateEndCombatEvent755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int duration = reader.readVarInt();
+            int entityId = reader.readInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(1);
+            writer.writeVarInt(duration);
+            writer.writeInt(entityId);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("End Combat Event を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /**
+     * Enter Combat Event（755 0x34 → 754 0x31）。ペイロードは空で、754では {event=0} だけになる。
+     * ペイロードに余分なバイトがある場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateEnterCombatEvent755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(0);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Enter Combat Event を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /**
+     * Join Game（751 → 753）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x24 同一、Login 15フィールド同一、
+     * 生キャプチャ30,847バイト同一）を参照。パースして書き直さない。
+     */
+    public static byte[] translateJoinGame751To753(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Join Game（753 → 751）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateJoinGame751To753(byte[])} と同じ。
+     */
+    public static byte[] translateJoinGame753To751(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Join Game（753 → 754）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x24 同一、Login 15フィールド同一、
+     * 生キャプチャ30,847バイト同一）を参照。パースして書き直さない。
+     */
+    public static byte[] translateJoinGame753To754(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Join Game（754 → 753）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateJoinGame753To754(byte[])} と同じ。
+     */
+    public static byte[] translateJoinGame754To753(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Join Game（754 → 755）。dimension は NBT の値から codec 内の名前を引き、755の element に直す。
+     * dimensionCodec は755形式に直す（dimension_type の element に min_y=0・height=256 を足し、
+     * バイオームに dripstone_caves・lush_caves を補う）。
+     * 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
+     */
+    public static byte[] translateJoinGame754To755(byte[] payload) {
+        try {
+            JoinGame754 join = parseJoinGame754(payload);
+            String dimensionName = dimensionName754(join.dimension(), join.dimensionCodec());
+            return writeJoinGame755(new JoinGame755(join.entityId(), join.hardcore(),
+                    join.gameMode(), join.previousGameMode(), join.worldNames(),
+                    translateDimensionCodec754To755(join.dimensionCodec()),
+                    dimensionValue755(dimensionName),
+                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
+                    join.reducedDebug(), join.enableRespawnScreen(),
+                    join.isDebug(), join.isFlat()));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Join Game（755 → 754）。dimension は NBT の値から codec 内の名前を引き、754の element に直す。
+     * dimensionCodec は754形式に直す（dimension_type の element から min_y・height を除き、
+     * バイオームから dripstone_caves・lush_caves を落とす）。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateJoinGame755To754(byte[] payload) {
+        try {
+            JoinGame755 join = parseJoinGame755(payload);
+            String dimensionName = dimensionName755(join.dimension(), join.dimensionCodec());
+            return writeJoinGame754(new JoinGame754(join.entityId(), join.hardcore(),
+                    join.gameMode(), join.previousGameMode(), join.worldNames(),
+                    translateDimensionCodec755To754(join.dimensionCodec()),
+                    dimensionValue754(dimensionName),
+                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
+                    join.reducedDebug(), join.enableRespawnScreen(),
+                    join.isDebug(), join.isFlat()));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Ping（751 0x11 → 736 0x12）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠：751の ping {id i32} と736の transaction {windowId i8, actionNumber i16,
+     * accepted bool} には対応付けが無い。ViaVersion の Protocol1_16_1To1_16_2.java にも
+     * PING／PONG／CONTAINER_ACK の登録は無い。ping／pong は遅延測定だけで、
+     * 落としても接続は維持される（Keep Alive 0x1f⇔0x20 は別パケットで影響を受けない）。
+     * 素通しはしない（0x11 のペイロードを 0x12 として送ると、1.16.1クライアントが
+     * windowId／actionNumber として誤読するため）。
+     */
+    public static byte[] translatePing751To736(byte[] payload) {
+        return null;
+    }
+    /**
+     * Pong（751 0x07 → 736 0x07）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠は {@link #translatePing751To736(byte[])} と同じ。
+     * 751の pong {id i32} と736の transaction {windowId i8, actionNumber i16,
+     * accepted bool} には対応付けが無い。
+     */
+    public static byte[] translatePong751To736(byte[] payload) {
+        return null;
+    }
+    /**
+     * Synchronize Player Position（736 0x35 → 751 0x34）。恒等写像：入力ペイロードを
+     * そのまま返す（IDだけ呼び出し側が付け替える）。
+     * 根拠は本節の冒頭（minecraft-data の packet_position は736・751で同一で、
+     * 実バニラ1.16.1 jar の ClientboundPlayerPositionPacket#write（javap pk#write）でも
+     * x・y・z f64、yaw・pitch f32、flags i8、teleportId varint の7フィールドを確認。
+     * dismountVehicle は755での追加で、736・751とも無い）。パースして書き直さない。
+     */
+    public static byte[] translatePosition736To751(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Synchronize Player Position（751 0x34 → 736 0x35）。恒等写像：入力ペイロードを
+     * そのまま返す。根拠は {@link #translatePosition736To751(byte[])} と同じ。
+     */
+    public static byte[] translatePosition751To736(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Synchronize Player Position（751 → 753）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x34 同一、
+     * フィールド同一。dismountVehicle は755での追加で、751・753とも無い）を参照。
+     * パースして書き直さない。
+     */
+    public static byte[] translatePosition751To753(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Synchronize Player Position（753 → 751）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translatePosition751To753(byte[])} と同じ。
+     */
+    public static byte[] translatePosition753To751(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Synchronize Player Position（753 → 754）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x34 同一、
+     * フィールド同一。dismountVehicle は755での追加で、753・754とも無い）を参照。
+     * パースして書き直さない。
+     */
+    public static byte[] translatePosition753To754(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Synchronize Player Position（754 → 753）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translatePosition753To754(byte[])} と同じ。
+     */
+    public static byte[] translatePosition754To753(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Respawn（751 → 736）。フィールドは同一のため、dimension だけ NBT の値から
+     * 名前を引いて文字列に直す。copyMetadata はそのまま写す。
+     * previousGameMode は u8 のまま写す。読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn751To736(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo754 info = readSpawnInfo754(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo736(writer, new SpawnInfo736(
+                    dimensionName751(info.dimension(), null),
+                    info.worldName(), info.hashedSeed(), info.gameMode(),
+                    info.previousGameMode(), info.isDebug(), info.isFlat(),
+                    info.copyMetadata()));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Respawn（751 → 753）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x39 同一、Respawn 8フィールド同一）を参照。
+     * パースして書き直さない。
+     */
+    public static byte[] translateRespawn751To753(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Respawn（753 → 751）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateRespawn751To753(byte[])} と同じ。
+     */
+    public static byte[] translateRespawn753To751(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Respawn（753 → 754）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は本節の冒頭（パケットID 0x39 同一、Respawn 8フィールド同一）を参照。
+     * パースして書き直さない。
+     */
+    public static byte[] translateRespawn753To754(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Respawn（754 → 753）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateRespawn753To754(byte[])} と同じ。
+     */
+    public static byte[] translateRespawn754To753(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Respawn（754 → 755）。フィールドは同一のため、dimension の element だけ755既定値に直す
+     * （min_y=0・height=256 を足す）。copyMetadata はそのまま写す。
+     * previousGameMode は u8 のまま写す（範囲検査はしない。Join Game の i8 と違い、"無し" の符号が protocol.json には無いため）。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo754 info = readSpawnInfo754(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo755(writer, new SpawnInfo755(
+                    dimensionValue755(dimensionName754(info.dimension(), null)),
+                    info.worldName(), info.hashedSeed(), info.gameMode(),
+                    info.previousGameMode(), info.isDebug(), info.isFlat(),
+                    info.copyMetadata()));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Respawn（755 → 754）。フィールドは同一のため、dimension の element だけ754既定値に直す
+     * （min_y・height を除く）。copyMetadata はそのまま写す。読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo755 info = readSpawnInfo755(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo754(writer, new SpawnInfo754(
+                    dimensionValue754(dimensionName755(info.dimension(), null)),
+                    info.worldName(), info.hashedSeed(), info.gameMode(),
+                    info.previousGameMode(), info.isDebug(), info.isFlat(),
+                    info.copyMetadata()));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Title（736 0x4f → 751 0x4f）。恒等写像：入力ペイロードをそのまま返す。
+     * 751は分割されていないため振り分けは不要。IDも同じ 0x4f。
+     * 根拠は本節の冒頭（minecraft-data の packet_title は736・751で同一。
+     * 実バニラ1.16.1 jar の ClientboundSetTitlesPacket#write（javap qk#write）でも
+     * action varint、0・1・2 なら text、3 なら fadeIn／stay／fadeOut i32×3 の構成を確認。
+     * 分割は755での変更で、751の PLAY_SET_TITLE_TEXT ほか5件のIDはどれも 0x4f）。
+     * パースして書き直さない。
+     */
+    public static byte[] translateTitle736To751(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Title（751 0x4f → 736 0x4f）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateTitle736To751(byte[])} と同じ。
+     */
+    public static byte[] translateTitle751To736(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Transaction（736 0x12 → 751 0x11）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠は {@link #translatePing751To736(byte[])} と同じ。
+     * 1.16.1サーバーが送る transaction（ウィンドウクリックの確認応答）は、751の ping には
+     * 対応付けできないため落とす。
+     */
+    public static byte[] translateTransaction736ToPing751(byte[] payload) {
+        return null;
+    }
+    /**
+     * Transaction（736 0x07 → 751 0x07）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠は {@link #translatePing751To736(byte[])} と同じ。
+     * 1.16.1クライアントが送る transaction（ウィンドウクリックの確認応答）は、751の pong には
+     * 対応付けできないため落とす。
+     */
+    public static byte[] translateTransaction736ToPong751(byte[] payload) {
+        return null;
+    }
+    /**
+     * World Border（736 0x3d → 751 0x3d）。恒等写像：入力ペイロードをそのまま返す。
+     * 751は分割されていないため振り分けは不要。IDも同じ 0x3d。
+     * 根拠は本節の冒頭（minecraft-data の packet_world_border は736・751で同一。
+     * 実バニラ1.16.1 jar の ClientboundSetBorderPacket#write（javap ps#write）でも
+     * INITIALIZE は x, z, oldSize, newSize, speed, portalBoundary, warningBlocks,
+     * warningTime の順を確認。分割は755での変更で、751の
+     * PLAY_INITIALIZE_WORLD_BORDER ほか6件のIDはどれも 0x3d）。
+     * パースして書き直さない。
+     */
+    public static byte[] translateWorldBorder736To751(byte[] payload) {
+        return payload;
+    }
+    /**
+     * World Border（751 0x3d → 736 0x3d）。恒等写像：入力ペイロードをそのまま返す。
+     * 根拠は {@link #translateWorldBorder736To751(byte[])} と同じ。
+     */
+    public static byte[] translateWorldBorder751To736(byte[] payload) {
+        return payload;
+    }
+    /** 755の Join Game の中身。756と同一の15フィールド。dimension は DimensionType の値そのもの（NBT）。previousGameMode は i8（-1＝なし）。simulationDistance は無い。 */
+    public record JoinGame755(int entityId, boolean hardcore, int gameMode, int previousGameMode,
+            List<String> worldNames, Tag.CompoundTag dimensionCodec, Tag dimension,
+            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
+            boolean reducedDebug, boolean enableRespawnScreen,
+            boolean isDebug, boolean isFlat) {
+    }
+    /** 755の Respawn（SpawnInfo）の中身。756と同一の8フィールド。dimension は DimensionType の値そのもの（NBT）。previousGameMode は u8（Join Game の i8 とは違う。protocol.json で確認）。copyMetadata は末尾。dataToKeep は無い。 */
+    public record SpawnInfo755(Tag dimension, String worldName, long hashedSeed, int gameMode,
+            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata) {
+    }
+    /**
+     * 754の dimension（NBTの値）に対応する dimension_type の名前を返す。
+     * dimensionName757／dimensionName756 と同じ手順で、既定の element は754のものを使う。
+     * codec が null の場合（Respawn）は codec での検索を飛ばす。
+     */
+    private static String dimensionName754(Tag dimension, Tag.CompoundTag codec) {
+        if (codec != null) {
+            String fromCodec = findDimensionName(codec, dimension);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        for (Map.Entry<String, Tag.CompoundTag> e : DIMENSION_TYPE_754_ELEMENTS.entrySet()) {
+            if (e.getValue().equals(dimension)) {
+                return e.getKey();
+            }
+        }
+        // 推定：effects と has_ceiling の組み合わせで4種を区別する（dimensionName757 と同じ）。
+        if (dimension instanceof Tag.CompoundTag compound) {
+            String effects = compound.getString("effects").orElse("");
+            boolean hasCeiling = compound.get("has_ceiling")
+                    .filter(t -> t instanceof Tag.ByteTag)
+                    .map(t -> ((Tag.ByteTag) t).value() != 0)
+                    .orElse(false);
+            if (effects.equals("minecraft:the_nether")) {
+                return "minecraft:the_nether";
+            }
+            if (effects.equals("minecraft:the_end")) {
+                return "minecraft:the_end";
+            }
+            if (effects.equals("minecraft:overworld")) {
+                return hasCeiling ? "minecraft:overworld_caves" : "minecraft:overworld";
+            }
+        }
+        LOG.warning("dimension の名前が分からなかったため minecraft:overworld にします。");
+        return "minecraft:overworld";
+    }
+    /**
+     * 755の dimension（NBTの値）に対応する dimension_type の名前を返す。
+     * dimensionName754 と同じ手順で、既定の element は755のものを使う。
+     * codec が null の場合（Respawn）は codec での検索を飛ばす。
+     */
+    private static String dimensionName755(Tag dimension, Tag.CompoundTag codec) {
+        if (codec != null) {
+            String fromCodec = findDimensionName(codec, dimension);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        for (Map.Entry<String, Tag.CompoundTag> e : DIMENSION_TYPE_755_ELEMENTS.entrySet()) {
+            if (e.getValue().equals(dimension)) {
+                return e.getKey();
+            }
+        }
+        if (dimension instanceof Tag.CompoundTag compound) {
+            String effects = compound.getString("effects").orElse("");
+            boolean hasCeiling = compound.get("has_ceiling")
+                    .filter(t -> t instanceof Tag.ByteTag)
+                    .map(t -> ((Tag.ByteTag) t).value() != 0)
+                    .orElse(false);
+            if (effects.equals("minecraft:the_nether")) {
+                return "minecraft:the_nether";
+            }
+            if (effects.equals("minecraft:the_end")) {
+                return "minecraft:the_end";
+            }
+            if (effects.equals("minecraft:overworld")) {
+                return hasCeiling ? "minecraft:overworld_caves" : "minecraft:overworld";
+            }
+        }
+        LOG.warning("dimension の名前が分からなかったため minecraft:overworld にします。");
+        return "minecraft:overworld";
+    }
+    /** 754の dimension_type の名前に対応する754の element を返す（codec が無い場合。Respawn 用）。 */
+    private static Tag dimensionValue754(String name) {
+        return dimensionValue754(name, null);
+    }
+    /** 755の dimension_type の名前に対応する755の element を返す（codec が無い場合。Respawn 用）。 */
+    private static Tag dimensionValue755(String name) {
+        return dimensionValue755(name, null);
+    }
+    /**
+     * 754の dimensionCodec を755形式にする。dimension_type の element を755既定値に
+     * 置き換え（min_y=0・height=256 を足す）、バイオームに dripstone_caves・lush_caves
+     * の2件を補う。共有バイオームの element はそのまま引き継ぐ（実測でバイト同一）。
+     * codec のキーの並びは755の実バニラ通り（dimension_type、worldgen/biome）。
+     * 未知のレジストリがあればそのまま引き継ぐ。
+     */
+    public static Tag.CompoundTag translateDimensionCodec754To755(Tag.CompoundTag codec754) {
+        if (codec754 == null) {
+            return null;
+        }
+        Map<String, Tag> codec = new LinkedHashMap<>();
+        Tag.CompoundTag dimensionRegistry = codec754.getCompound("minecraft:dimension_type")
+                .orElse(null);
+        if (dimensionRegistry != null) {
+            List<Tag> entries = substituteDimensionTypeElements(
+                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
+                    ProtocolVersion.V1_17);
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
+        }
+        Tag.CompoundTag biomeRegistry = codec754.getCompound("minecraft:worldgen/biome")
+                .orElse(null);
+        if (biomeRegistry != null) {
+            List<Tag> entries = appendNewBiomes754To755(
+                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
+        }
+        codec754.value().forEach((k, v) -> {
+            if (!codec.containsKey(k)) {
+                codec.put(k, v);
+            }
+        });
+        return new Tag.CompoundTag(codec);
+    }
+    /**
+     * 755の dimensionCodec を754形式にする。dimension_type の element を754既定値に
+     * 置き換え（min_y・height を除く）、バイオームから dripstone_caves・lush_caves の
+     * 2件を落とす。共有バイオームの element はそのまま引き継ぐ。
+     * codec のキーの並びは754の実バニラ通り（dimension_type、worldgen/biome）。
+     * 未知のレジストリがあればそのまま引き継ぐ。
+     */
+    public static Tag.CompoundTag translateDimensionCodec755To754(Tag.CompoundTag codec755) {
+        if (codec755 == null) {
+            return null;
+        }
+        Map<String, Tag> codec = new LinkedHashMap<>();
+        Tag.CompoundTag dimensionRegistry = codec755.getCompound("minecraft:dimension_type")
+                .orElse(null);
+        if (dimensionRegistry != null) {
+            List<Tag> entries = substituteDimensionTypeElements(
+                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
+                    ProtocolVersion.V1_16_5);
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
+        }
+        Tag.CompoundTag biomeRegistry = codec755.getCompound("minecraft:worldgen/biome")
+                .orElse(null);
+        if (biomeRegistry != null) {
+            List<Tag> entries = dropNewBiomes755To754(
+                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
+        }
+        codec755.value().forEach((k, v) -> {
+            if (!codec.containsKey(k)) {
+                codec.put(k, v);
+            }
+        });
+        return new Tag.CompoundTag(codec);
+    }
+    /** 755の Join Game を書く。756と同一のフィールド順。 */
+    public static byte[] writeJoinGame755(JoinGame755 join) {
+        Writer writer = new Writer();
+        writer.writeInt(join.entityId());
+        writer.writeBoolean(join.hardcore());
+        writer.writeByte(join.gameMode());
+        writer.writeByte(join.previousGameMode());
+        PacketIO.writeStringList(writer, join.worldNames());
+        writer.writeNamedNbt("", join.dimensionCodec());
+        writer.writeNamedNbt("", join.dimension());
+        writer.writeString(join.worldName());
+        writer.writeLong(join.hashedSeed());
+        writer.writeVarInt(join.maxPlayers());
+        writer.writeVarInt(join.viewDistance());
+        writer.writeBoolean(join.reducedDebug());
+        writer.writeBoolean(join.enableRespawnScreen());
+        writer.writeBoolean(join.isDebug());
+        writer.writeBoolean(join.isFlat());
+        return writer.bytes();
+    }
+    /** 755の SpawnInfo を書く。756と同一のフィールド順。 */
+    public static void writeSpawnInfo755(Writer writer, SpawnInfo755 info) {
+        writer.writeNamedNbt("", info.dimension());
+        writer.writeString(info.worldName());
+        writer.writeLong(info.hashedSeed());
+        writer.writeByte(info.gameMode());
+        writer.writeByte(info.previousGameMode());
+        writer.writeBoolean(info.isDebug());
+        writer.writeBoolean(info.isFlat());
+        writer.writeBoolean(info.copyMetadata());
+    }
+    private static Tag dimensionValue754(String name, Tag.CompoundTag codec) {
+        Tag.CompoundTag element = DIMENSION_TYPE_754_ELEMENTS.get(name);
+        if (element != null) {
+            return element;
+        }
+        if (codec != null) {
+            Tag fromCodec = findDimensionElement(codec, name);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        LOG.warning("dimension " + name + " の754 element が無いため minecraft:overworld にします。");
+        return DIMENSION_TYPE_754_ELEMENTS.get("minecraft:overworld");
+    }
+    private static Tag dimensionValue755(String name, Tag.CompoundTag codec) {
+        Tag.CompoundTag element = DIMENSION_TYPE_755_ELEMENTS.get(name);
+        if (element != null) {
+            return element;
+        }
+        if (codec != null) {
+            Tag fromCodec = findDimensionElement(codec, name);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        LOG.warning("dimension " + name + " の755 element が無いため minecraft:overworld にします。");
+        return DIMENSION_TYPE_755_ELEMENTS.get("minecraft:overworld");
+    }
+    /**
+     * バイオームのエントリ列を754順から755順にする。共有する79件は id・element とも
+     * そのまま（実測で id 同一）。755にだけある dripstone_caves（174）・lush_caves（175）を
+     * 実バニラ1.17の element で補う。既に両方ある場合はそのまま返す。
+     */
+    private static List<Tag> appendNewBiomes754To755(List<Tag> entries) {
+        boolean hasDripstone = false;
+        boolean hasLush = false;
+        for (Tag entry : entries) {
+            if (entry instanceof Tag.CompoundTag compound) {
+                String name = compound.getString("name").orElse("");
+                if (name.equals("minecraft:dripstone_caves")) {
+                    hasDripstone = true;
+                } else if (name.equals("minecraft:lush_caves")) {
+                    hasLush = true;
+                }
+            }
+        }
+        if (hasDripstone && hasLush) {
+            return entries;
+        }
+        List<Tag> out = new ArrayList<>(entries);
+        if (!hasDripstone) {
+            out.add(biomeEntry("minecraft:dripstone_caves", 174,
+                    BIOME_755_NEW_ELEMENTS.get("minecraft:dripstone_caves")));
+        }
+        if (!hasLush) {
+            out.add(biomeEntry("minecraft:lush_caves", 175,
+                    BIOME_755_NEW_ELEMENTS.get("minecraft:lush_caves")));
+        }
+        return out;
+    }
+    /**
+     * バイオームのエントリ列を755順から754順にする。共有する79件は id・element とも
+     * そのまま。755にだけある dripstone_caves・lush_caves は落とす（754には無いため。
+     * 平原への付け替えはしない。平原と重複するエントリになってしまうため）。
+     */
+    private static List<Tag> dropNewBiomes755To754(List<Tag> entries) {
+        List<Tag> out = new ArrayList<>(entries.size());
+        for (Tag entry : entries) {
+            if (entry instanceof Tag.CompoundTag compound) {
+                String name = compound.getString("name").orElse("");
+                if (name.equals("minecraft:dripstone_caves")
+                        || name.equals("minecraft:lush_caves")) {
+                    continue;
+                }
+            }
+            out.add(entry);
+        }
+        return out;
+    }
+    /**
+     * dimension_type のエントリ列の element を、受信側バージョンの既定値で置き換える。
+     * 名前が既定に無いもの（カスタムの dimension_type）はそのまま。
+     * 757の element には monster_spawn_block_light_limit／monster_spawn_light_level が無く、
+     * infiniburn も "#" 無しのため、そのまま759クライアントに送ると読めない。
+     * 逆に759の element には757に無いフィールドがあるため、そのまま757に送らない。
+     * 既定値は実バニラの Join Game codec から取ったもの（ライブキャプチャで確認）。
+     */
+    private static List<Tag> substituteDimensionTypeElements(List<Tag> entries, int toProtocol) {
+        Map<String, Tag.CompoundTag> defaults = toProtocol == ProtocolVersion.V1_19
+                ? DIMENSION_TYPE_759_ELEMENTS
+                : toProtocol == ProtocolVersion.V1_17_1
+                        ? DIMENSION_TYPE_756_ELEMENTS
+                        : toProtocol == ProtocolVersion.V1_16_5
+                                ? DIMENSION_TYPE_754_ELEMENTS
+                                : toProtocol == ProtocolVersion.V1_17
+                                        ? DIMENSION_TYPE_755_ELEMENTS : DIMENSION_TYPE_757_ELEMENTS;
+        List<Tag> out = new ArrayList<>(entries.size());
+        for (Tag entry : entries) {
+            if (!(entry instanceof Tag.CompoundTag compound)) {
+                out.add(entry);
+                continue;
+            }
+            String name = compound.getString("name").orElse(null);
+            Tag.CompoundTag replacement = name == null ? null : defaults.get(name);
+            if (replacement == null) {
+                out.add(entry);
+                continue;
+            }
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            compound.value().forEach((k, v) -> {
+                if (!k.equals("element")) {
+                    rebuilt.put(k, v);
+                }
+            });
+            rebuilt.put("element", replacement);
+            out.add(new Tag.CompoundTag(rebuilt));
+        }
+        return out;
+    }
+    /**
+     * 756の Join Game を読む。順番は entityId, hardcore, gameMode, previousGameMode(i8),
+     * worldNames, dimensionCodec（名前付き NBT）, dimension（名前付き NBT）,
+     * worldName, hashedSeed, maxPlayers, viewDistance,
+     * reducedDebug, enableRespawnScreen, isDebug, isFlat である
+     * （minecraft-data mc-1.17.1-protocol.json の packet_login とライブキャプチャで確認）。
+     */
+    public static JoinGame756 parseJoinGame756(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        boolean hardcore = reader.readBoolean();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readByte();
+        checkPreviousGameMode757(previousGameMode);
+        List<String> worldNames = PacketIO.readStringList(reader);
+        Tag dimensionCodec = reader.readNamedNbt().tag();
+        if (!(dimensionCodec instanceof Tag.CompoundTag codec)) {
+            throw new IllegalArgumentException("Join Game の dimensionCodec がコンパウンドではありません。");
+        }
+        Tag dimension = reader.readNamedNbt().tag();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int maxPlayers = reader.readVarInt();
+        int viewDistance = reader.readVarInt();
+        boolean reducedDebug = reader.readBoolean();
+        boolean enableRespawnScreen = reader.readBoolean();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        requireEnd(reader);
+        return new JoinGame756(entityId, hardcore, gameMode, previousGameMode, worldNames,
+                codec, dimension, worldName, hashedSeed, maxPlayers, viewDistance,
+                reducedDebug, enableRespawnScreen, isDebug, isFlat);
+    }
+    /**
+     * 757の Join Game を読む。順番は entityId, hardcore, gameMode, previousGameMode(i8),
+     * worldNames, dimensionCodec（名前付き NBT）, dimension（名前付き NBT）,
+     * worldName, hashedSeed, maxPlayers, viewDistance, simulationDistance,
+     * reducedDebug, enableRespawnScreen, isDebug, isFlat である
+     * （minecraft-data mc-1.18-protocol.json の packet_login とライブキャプチャで確認）。
+     */
+    public static JoinGame757 parseJoinGame757(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        boolean hardcore = reader.readBoolean();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readByte();
+        checkPreviousGameMode757(previousGameMode);
+        List<String> worldNames = PacketIO.readStringList(reader);
+        Tag dimensionCodec = reader.readNamedNbt().tag();
+        if (!(dimensionCodec instanceof Tag.CompoundTag codec)) {
+            throw new IllegalArgumentException("Join Game の dimensionCodec がコンパウンドではありません。");
+        }
+        Tag dimension = reader.readNamedNbt().tag();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int maxPlayers = reader.readVarInt();
+        int viewDistance = reader.readVarInt();
+        int simulationDistance = reader.readVarInt();
+        boolean reducedDebug = reader.readBoolean();
+        boolean enableRespawnScreen = reader.readBoolean();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        requireEnd(reader);
+        return new JoinGame757(entityId, hardcore, gameMode, previousGameMode, worldNames,
+                codec, dimension, worldName, hashedSeed, maxPlayers, viewDistance,
+                simulationDistance, reducedDebug, enableRespawnScreen, isDebug, isFlat);
+    }
+    /** 756の SpawnInfo を読む。 */
+    public static SpawnInfo756 readSpawnInfo756(Reader reader) {
+        Tag dimension = reader.readNamedNbt().tag();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readUnsignedByte();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        boolean copyMetadata = reader.readBoolean();
+        return new SpawnInfo756(dimension, worldName, hashedSeed, gameMode,
+                previousGameMode, isDebug, isFlat, copyMetadata);
+    }
+    /**
+     * Action Bar（755 0x41 → 754 0x4f）。{text string} に action=2 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateActionBar755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String text = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(2);
+            writer.writeString(text);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Action Bar を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /**
+     * Clear Titles（755 0x10 → 754 0x4f）。{reset bool} を action=5（reset=true）／
+     * action=4（reset=false）に直して組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateClearTitles755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            boolean reset = reader.readBoolean();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(reset ? 5 : 4);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Clear Titles を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /**
+     * Client Information（755 → 756）。フィールド同一のため素通し（ペイロード unchanged）。
+     * 根拠：protocol.json の packet_settings が両バージョンで完全同一（locale string、
+     * viewDistance i8、chatFlags varint、chatColors bool、skinParts u8、mainHand varint、
+     * disableTextFiltering bool の7フィールド。756→757であった enableTextFiltering への
+     * 反転や enableServerListing の補完は、755⇔756間では不要）。
+     * IDも両方0x05。読めないペイロードも素通しする。
+     */
+    public static byte[] translateClientInformation755To756(byte[] payload) {
+        return payload;
+    }
+    /**
+     * Client Information（756 → 755）。フィールド同一のため素通し（ペイロード unchanged）。
+     * 根拠は {@link #translateClientInformation755To756(byte[])} と同じ。IDも両方0x05。
+     */
+    public static byte[] translateClientInformation756To755(byte[] payload) {
+        return payload;
+    }
+    /**
+     * 755の dimensionCodec を756形式にする。レジストリ差分は0件のため素通し（同一インスタンスを返す）。
+     * 根拠：STAGE-A-755-NOTES.md §11.1（差分0件。dimension_type 4件・バイオーム81件とも同一順序・同一内容）
+     * と protocol.json の packet_login 突き合わせ（dimensionCodec は両方 nbt）。
+     */
+    public static Tag.CompoundTag translateDimensionCodec755To756(Tag.CompoundTag codec755) {
+        return codec755;
+    }
+    /**
+     * 756の dimensionCodec を755形式にする。レジストリ差分は0件のため素通し（同一インスタンスを返す）。
+     * 根拠は {@link #translateDimensionCodec755To756(Tag.CompoundTag)} と同じ。
+     */
+    public static Tag.CompoundTag translateDimensionCodec756To755(Tag.CompoundTag codec756) {
+        return codec756;
+    }
+    /**
+     * 756の dimensionCodec を757形式にする。dimension_type の element を757既定値に置き換え、
+     * biome を757順に並べ替える（depth・scale を落とす。757にしか無い6件は実バニラ1.18の element で補う）。
+     * codec のキーの並びは実バニラ通り（dimension_type、worldgen/biome）。
+     */
+    public static Tag.CompoundTag translateDimensionCodec756To757(Tag.CompoundTag codec756) {
+        Map<String, Tag.CompoundTag> registries = registriesFromCodec(codec756);
+        Map<String, Tag> codec = new LinkedHashMap<>();
+        Tag.CompoundTag dimensionRegistry = registries.get("minecraft:dimension_type");
+        if (dimensionRegistry != null) {
+            List<Tag> entries = substituteDimensionTypeElements(
+                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
+                    ProtocolVersion.V1_18);
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
+        }
+        Tag.CompoundTag biomeRegistry = registries.get("minecraft:worldgen/biome");
+        if (biomeRegistry != null) {
+            List<Tag> entries = reorderBiomeEntries756To757(
+                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
+        }
+        return new Tag.CompoundTag(codec);
+    }
+    /**
+     * 757の dimensionCodec を756形式にする。dimension_type の element を756既定値に置き換え、
+     * biome を756順に並べ替える（depth・scale を足す。写像で埋まらない25件は実バニラ1.17.1の element で補う）。
+     * codec のキーの並びは実バニラ通り（dimension_type、worldgen/biome）。
+     */
+    public static Tag.CompoundTag translateDimensionCodec757To756(Tag.CompoundTag codec757) {
+        Map<String, Tag.CompoundTag> registries = registriesFromCodec(codec757);
+        Map<String, Tag> codec = new LinkedHashMap<>();
+        Tag.CompoundTag dimensionRegistry = registries.get("minecraft:dimension_type");
+        if (dimensionRegistry != null) {
+            List<Tag> entries = substituteDimensionTypeElements(
+                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
+                    ProtocolVersion.V1_17_1);
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
+        }
+        Tag.CompoundTag biomeRegistry = registries.get("minecraft:worldgen/biome");
+        if (biomeRegistry != null) {
+            List<Tag> entries = reorderBiomeEntries757To756(
+                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
+        }
+        return new Tag.CompoundTag(codec);
+    }
+    /**
+     * Initialize World Border（755 0x20 → 754 0x3d）。
+     * {x f64, z f64, oldDiameter f64, newDiameter f64, speed varlong,
+     * portalTeleportBoundary varint, warningBlocks varint, warningTime varint} に
+     * action=3 を付けて組み立てる。warning の順序は warningBlocks→warningTime
+     * （755側の順序と同じ。754側もワイヤ上は同じ順序）。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateInitializeWorldBorder755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            double x = reader.readDouble();
+            double z = reader.readDouble();
+            double oldDiameter = reader.readDouble();
+            double newDiameter = reader.readDouble();
+            long speed = reader.readVarLong();
+            int portalBoundary = reader.readVarInt();
+            int warningBlocks = reader.readVarInt();
+            int warningTime = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(3);
+            writer.writeDouble(x);
+            writer.writeDouble(z);
+            writer.writeDouble(oldDiameter);
+            writer.writeDouble(newDiameter);
+            writer.writeVarLong(speed);
+            writer.writeVarInt(portalBoundary);
+            writer.writeVarInt(warningBlocks);
+            writer.writeVarInt(warningTime);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Initialize World Border を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /**
+     * Join Game（755 → 756）。パケットID（0x26）も codec も同一のため素通し（ペイロード unchanged）。
+     * 根拠：protocol.json の packet_login 完全同一と STAGE-A-755-NOTES.md §11.6 の実測
+     * （両 Join Game は31,555バイトで、差分は entityId 1バイト＋hashedSeed 8バイトのみ）。
+     * 検証のためパースだけ行い、読めないペイロードも素通しする。
+     */
+    public static byte[] translateJoinGame755To756(byte[] payload) {
+        try {
+            parseJoinGame755(payload);
+            return payload;
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Join Game（756 → 755）。パケットID（0x26）も codec も同一のため素通し（ペイロード unchanged）。
+     * 根拠は {@link #translateJoinGame755To756(byte[])} と同じ。読めないペイロードも素通しする。
+     */
+    public static byte[] translateJoinGame756To755(byte[] payload) {
+        try {
+            parseJoinGame756(payload);
+            return payload;
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Join Game（756 → 757）。dimension は NBT の値から codec 内の名前を引き、757の element に直す。
+     * dimensionCodec は757形式に直す。simulationDistance は viewDistance と同じ値にする
+     * （1.17.1に simulationDistance は無く、実質のシミュレーション距離は描画距離だったため）。
+     * 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
+     */
+    public static byte[] translateJoinGame756To757(byte[] payload) {
+        try {
+            JoinGame756 join = parseJoinGame756(payload);
+            String dimensionName = dimensionName756(join.dimension(), join.dimensionCodec());
+            return writeJoinGame757(new JoinGame757(join.entityId(), join.hardcore(),
+                    join.gameMode(), join.previousGameMode(), join.worldNames(),
+                    translateDimensionCodec756To757(join.dimensionCodec()),
+                    dimensionValue759(dimensionName),
+                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
+                    join.viewDistance(), join.reducedDebug(), join.enableRespawnScreen(),
+                    join.isDebug(), join.isFlat()));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Join Game（757 → 756）。dimension は名前から756の element を引き、
+     * dimensionCodec は756形式に直す。simulationDistance は落とす。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateJoinGame757To756(byte[] payload) {
+        try {
+            JoinGame757 join = parseJoinGame757(payload);
+            String dimensionName = dimensionName757(join.dimension(), join.dimensionCodec());
+            return writeJoinGame756(new JoinGame756(join.entityId(), join.hardcore(),
+                    join.gameMode(), join.previousGameMode(), join.worldNames(),
+                    translateDimensionCodec757To756(join.dimensionCodec()),
+                    dimensionValue756(dimensionName),
+                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
+                    join.reducedDebug(), join.enableRespawnScreen(),
+                    join.isDebug(), join.isFlat()));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Ping（755 0x30 → 754 0x11）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠：1.17の ping {id i32} と1.16.5の transaction {windowId i8, actionNumber i16,
+     * accepted bool} には対応付けが無い。ViaVersion の Protocol1_16_4To1_17.java にも
+     * PING／PONG／CONTAINER_ACK の登録は無く（ローカルの複写を grep で確認）、
+     * i32 の id は i16 の actionNumber に往復できない。ping／pong は遅延測定だけで、
+     * 落としても接続は維持される（Keep Alive 0x1f⇔0x21 は別パケットで影響を受けない）。
+     * 素通しはしない（0x30 のペイロードを 0x11 として送ると、1.16.5クライアントが
+     * windowId／actionNumber として誤読するため）。
+     */
+    public static byte[] translatePing755To754(byte[] payload) {
+        return null;
+    }
+    /**
+     * Pong（755 0x1d → 754 0x07）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠は {@link #translatePing755To754(byte[])} と同じ。
+     * 1.17の pong {id i32} と1.16.5の transaction {windowId i8, actionNumber i16,
+     * accepted bool} には対応付けが無い。
+     */
+    public static byte[] translatePong755To754(byte[] payload) {
+        return null;
+    }
+    /**
+     * Synchronize Player Position（754 0x34 → 755 0x38）。
+     * 755 にだけ末尾の dismountVehicle（bool）があるため false を足す。
+     * false の根拠：false は「乗り物から降りない」で、1.16.5には降車の概念が無く、
+     * 乗り続けるのが元の挙動（translatePosition762To761 と同じ選択）。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translatePosition754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            float yaw = reader.readFloat();
+            float pitch = reader.readFloat();
+            byte flags = reader.readByte();
+            int teleportId = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeFloat(yaw);
+            writer.writeFloat(pitch);
+            writer.writeByte(flags);
+            writer.writeVarInt(teleportId);
+            writer.writeBoolean(false); // dismountVehicle（755のみ）
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Synchronize Player Position を変換できなかったため素通しします: "
+                    + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Synchronize Player Position（755 0x38 → 754 0x34）。
+     * 末尾の dismountVehicle を読んで落とす。読めないペイロードは素通しする。
+     */
+    public static byte[] translatePosition755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            float yaw = reader.readFloat();
+            float pitch = reader.readFloat();
+            byte flags = reader.readByte();
+            int teleportId = reader.readVarInt();
+            reader.readBoolean(); // dismountVehicle（755のみ）
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeFloat(yaw);
+            writer.writeFloat(pitch);
+            writer.writeByte(flags);
+            writer.writeVarInt(teleportId);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Synchronize Player Position を変換できなかったため素通しします: "
+                    + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Respawn（755 → 756）。パケットID（0x3d）もフィールドも同一のため素通し（ペイロード unchanged）。
+     * 根拠：protocol.json の packet_respawn 完全同一（dimension nbt、worldName、hashedSeed i64、
+     * gamemode u8、previousGamemode u8、isDebug、isFlat、copyMetadata）と STAGE-A-755-NOTES.md
+     * §11.6（Respawn も同一）。検証のためパースだけ行い、読めないペイロードも素通しする。
+     */
+    public static byte[] translateRespawn755To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            readSpawnInfo755(reader);
+            requireEnd(reader);
+            return payload;
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Respawn（756 → 755）。パケットID（0x3d）もフィールドも同一のため素通し（ペイロード unchanged）。
+     * 根拠は {@link #translateRespawn755To756(byte[])} と同じ。読めないペイロードも素通しする。
+     */
+    public static byte[] translateRespawn756To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            readSpawnInfo756(reader);
+            requireEnd(reader);
+            return payload;
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Sculk Vibration Signal（755 0x05 → 754）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠：1.16.5にはスカルク振動の信号が無く、754では -1（STAGE-A-754-NOTES.md §8.1の削除1件）。
+     * 素通しはしない（754のクライアントが 0x05 を別パケットとして誤読するため）。
+     */
+    public static byte[] translateSculkVibrationSignal755To754(byte[] payload) {
+        return null;
+    }
+    /**
+     * Set Title Subtitle（755 0x57 → 754 0x4f）。{text string} に action=1 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateSetTitleSubtitle755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String text = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(1);
+            writer.writeString(text);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Title Subtitle を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /**
+     * Set Title Text（755 0x59 → 754 0x4f）。{text string} に action=0 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateSetTitleText755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String text = reader.readString();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(0);
+            writer.writeString(text);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Title Text を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /**
+     * Set Title Time（755 0x5a → 754 0x4f）。{fadeIn i32, stay i32, fadeOut i32} に
+     * action=3 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateSetTitleTime755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int fadeIn = reader.readInt();
+            int stay = reader.readInt();
+            int fadeOut = reader.readInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(3);
+            writer.writeInt(fadeIn);
+            writer.writeInt(stay);
+            writer.writeInt(fadeOut);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Set Title Time を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /**
+     * Title（754 0x4f → 755）。754は {action varint, text（action=0・1・2 のとき string）,
+     * fadeIn／stay／fadeOut（action=3 のとき i32×3）} の1パケットで、action の値で5種に分かれる。
+     * 755は5パケットに分かれているため、action に応じて振り分けて返す。
+     * action=4・5 はどちらも clear_titles（0x10）で、reset が false／true の違い
+     * （ViaVersion の Protocol1_16_4To1_17 の SET_TITLES 分岐と同じ）。
+     * 戻り値は {@link MinecraftPacket}（755のパケットID＋ペイロード）。
+     * action が 0〜5 以外の場合と、読めないペイロードの場合は {@code null} を返す
+     * （呼び出し側は落とすこと）。
+     */
+    public static MinecraftPacket translateTitle754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int action = reader.readVarInt();
+            return switch (action) {
+                case 0 -> {
+                    String text = reader.readString();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeString(text);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_SET_TITLE_TEXT.idFor(755),
+                            writer.bytes());
+                }
+                case 1 -> {
+                    String text = reader.readString();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeString(text);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_SET_TITLE_SUBTITLE.idFor(755),
+                            writer.bytes());
+                }
+                case 2 -> {
+                    String text = reader.readString();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeString(text);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_ACTION_BAR.idFor(755),
+                            writer.bytes());
+                }
+                case 3 -> {
+                    int fadeIn = reader.readInt();
+                    int stay = reader.readInt();
+                    int fadeOut = reader.readInt();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeInt(fadeIn);
+                    writer.writeInt(stay);
+                    writer.writeInt(fadeOut);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_SET_TITLE_TIME.idFor(755),
+                            writer.bytes());
+                }
+                case 4, 5 -> {
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeBoolean(action == 5); // reset
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_CLEAR_TITLES.idFor(755),
+                            writer.bytes());
+                }
+                default -> {
+                    LOG.warning("Title の action が範囲外のため落とします: " + action);
+                    yield null;
+                }
+            };
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Title を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /**
+     * Transaction（754 0x11 → 755 0x30）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠は {@link #translatePing755To754(byte[])} と同じ。
+     * 1.16.5サーバーが送る transaction（ウィンドウクリックの確認応答）は、1.17の ping には
+     * 対応付けできないため落とす。
+     */
+    public static byte[] translateTransaction754ToPing755(byte[] payload) {
+        return null;
+    }
+    /**
+     * Transaction（754 0x07 → 755 0x1d）。落とす（{@code null} を返す。呼び出し側は落とすこと）。
+     * 根拠は {@link #translatePing755To754(byte[])} と同じ。
+     * 1.16.5クライアントが送る transaction（ウィンドウクリックの確認応答）は、1.17の pong には
+     * 対応付けできないため落とす。
+     */
+    public static byte[] translateTransaction754ToPong755(byte[] payload) {
+        return null;
+    }
+    /**
+     * World Border（754 0x3d → 755）。754は {action varint,
+     * radius（action=0 のとき f64）, x・z（action=2・3 のとき f64）,
+     * old_radius・new_radius（action=1・3 のとき f64）, speed（action=1・3 のとき varlong）,
+     * portalBoundary（action=3 のとき varint）,
+     * warningBlocks（action=3 のとき varint）, warningTime（action=3 のとき varint）,
+     * warningTime（action=4 のとき varint）, warningBlocks（action=5 のとき varint）}
+     * の1パケットで、action の値で6種に分かれる。
+     * 注意：action=3 の warning の順序は warningBlocks→warningTime である。
+     * minecraft-data protocol.json の warning_time→warning_blocks の順序は誤りで、
+     * 実バニラ1.16.5の javap（ClientboundSetBorderPacket qt#write）と生キャプチャ
+     * （portalBoundary の後に 5→15）で確認した。
+     * また radius は直径の値そのもので、755の diameter と同じ値をそのまま写す
+     * （実バニラ1.16.5の既定ボーダーは 60000000.0、実バニラ1.17の既定ボーダーは
+     * 59999968.0。どちらも直径。32の差は1.17の既定値・上限値の変更によるもの）。
+     * 戻り値は {@link MinecraftPacket}（755のパケットID＋ペイロード）。
+     * action が 0〜5 以外の場合と、読めないペイロードの場合は {@code null} を返す
+     * （呼び出し側は落とすこと）。
+     */
+    public static MinecraftPacket translateWorldBorder754To755(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int action = reader.readVarInt();
+            return switch (action) {
+                case 0 -> {
+                    double radius = reader.readDouble();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeDouble(radius); // diameter（値はそのまま）
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_WORLD_BORDER_SIZE.idFor(755),
+                            writer.bytes());
+                }
+                case 1 -> {
+                    double oldRadius = reader.readDouble();
+                    double newRadius = reader.readDouble();
+                    long speed = reader.readVarLong();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeDouble(oldRadius);
+                    writer.writeDouble(newRadius);
+                    writer.writeVarLong(speed);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_WORLD_BORDER_LERP_SIZE.idFor(755),
+                            writer.bytes());
+                }
+                case 2 -> {
+                    double x = reader.readDouble();
+                    double z = reader.readDouble();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeDouble(x);
+                    writer.writeDouble(z);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_WORLD_BORDER_CENTER.idFor(755),
+                            writer.bytes());
+                }
+                case 3 -> {
+                    double x = reader.readDouble();
+                    double z = reader.readDouble();
+                    double oldRadius = reader.readDouble();
+                    double newRadius = reader.readDouble();
+                    long speed = reader.readVarLong();
+                    int portalBoundary = reader.readVarInt();
+                    int warningBlocks = reader.readVarInt();
+                    int warningTime = reader.readVarInt();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeDouble(x);
+                    writer.writeDouble(z);
+                    writer.writeDouble(oldRadius);
+                    writer.writeDouble(newRadius);
+                    writer.writeVarLong(speed);
+                    writer.writeVarInt(portalBoundary);
+                    writer.writeVarInt(warningBlocks);
+                    writer.writeVarInt(warningTime);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_INITIALIZE_WORLD_BORDER.idFor(755),
+                            writer.bytes());
+                }
+                case 4 -> {
+                    int warningTime = reader.readVarInt();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeVarInt(warningTime);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_WORLD_BORDER_WARNING_DELAY.idFor(755),
+                            writer.bytes());
+                }
+                case 5 -> {
+                    int warningBlocks = reader.readVarInt();
+                    requireEnd(reader);
+                    Writer writer = new Writer();
+                    writer.writeVarInt(warningBlocks);
+                    yield new MinecraftPacket(
+                            PacketIds.PacketName.PLAY_WORLD_BORDER_WARNING_REACH.idFor(755),
+                            writer.bytes());
+                }
+                default -> {
+                    LOG.warning("World Border の action が範囲外のため落とします: " + action);
+                    yield null;
+                }
+            };
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Border を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /**
+     * World Border Center（755 0x42 → 754 0x3d）。{x f64, z f64} に action=2 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateWorldBorderCenter755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            double x = reader.readDouble();
+            double z = reader.readDouble();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(2);
+            writer.writeDouble(x);
+            writer.writeDouble(z);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Border Center を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /**
+     * World Border Lerp Size（755 0x43 → 754 0x3d）。
+     * {oldDiameter f64, newDiameter f64, speed varlong} に action=1 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateWorldBorderLerpSize755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            double oldDiameter = reader.readDouble();
+            double newDiameter = reader.readDouble();
+            long speed = reader.readVarLong();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(1);
+            writer.writeDouble(oldDiameter);
+            writer.writeDouble(newDiameter);
+            writer.writeVarLong(speed);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Border Lerp Size を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /**
+     * World Border Size（755 0x44 → 754 0x3d）。{diameter f64} に action=0 を付けて組み立てる。
+     * diameter の値は radius としてそのまま写す（直径の値そのもののため）。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateWorldBorderSize755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            double diameter = reader.readDouble();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(0);
+            writer.writeDouble(diameter);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Border Size を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /**
+     * World Border Warning Delay（755 0x45 → 754 0x3d）。{warningTime varint} に
+     * action=4 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateWorldBorderWarningDelay755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int warningTime = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(4);
+            writer.writeVarInt(warningTime);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Border Warning Delay を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /**
+     * World Border Warning Reach（755 0x46 → 754 0x3d）。{warningBlocks varint} に
+     * action=5 を付けて組み立てる。
+     * 読めないペイロードの場合は {@code null} を返す（呼び出し側は落とすこと）。
+     */
+    public static byte[] translateWorldBorderWarningReach755To754(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int warningBlocks = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(5);
+            writer.writeVarInt(warningBlocks);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("World Border Warning Reach を変換できなかったため落とします: " + e.getMessage());
+            return null;
+        }
+    }
+    /** 756の Join Game の中身。757と違い simulationDistance が無い。dimension は DimensionType の値そのもの（NBT）。previousGameMode は i8（-1＝なし）。 */
+    public record JoinGame756(int entityId, boolean hardcore, int gameMode, int previousGameMode,
+            List<String> worldNames, Tag.CompoundTag dimensionCodec, Tag dimension,
+            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
+            boolean reducedDebug, boolean enableRespawnScreen,
+            boolean isDebug, boolean isFlat) {
+    }
+    /** 757の Join Game の中身。dimension は DimensionType の値そのもの（NBT）。previousGameMode は i8（-1＝なし）。 */
+    public record JoinGame757(int entityId, boolean hardcore, int gameMode, int previousGameMode,
+            List<String> worldNames, Tag.CompoundTag dimensionCodec, Tag dimension,
+            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
+            int simulationDistance, boolean reducedDebug, boolean enableRespawnScreen,
+            boolean isDebug, boolean isFlat) {
+    }
+    /** 756の Respawn（SpawnInfo）の中身。757と同一の8フィールド。dimension は DimensionType の値そのもの（NBT）。previousGameMode は u8（Join Game の i8 とは違う。protocol.json で確認）。copyMetadata は末尾。dataToKeep は無い。 */
+    public record SpawnInfo756(Tag dimension, String worldName, long hashedSeed, int gameMode,
+            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata) {
+    }
+    /**
+     * 756の dimension（NBTの値）に対応する dimension_type の名前を返す。
+     * dimensionName757 と同じ手順で、既定の element は756のものを使う。
+     * （756と757の overworld／overworld_caves の element は logical_height／min_y／height が違うため、
+     * 757の既定値では一致しない。）codec が null の場合（Respawn）は codec での検索を飛ばす。
+     */
+    private static String dimensionName756(Tag dimension, Tag.CompoundTag codec) {
+        if (codec != null) {
+            String fromCodec = findDimensionName(codec, dimension);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        for (Map.Entry<String, Tag.CompoundTag> e : DIMENSION_TYPE_756_ELEMENTS.entrySet()) {
+            if (e.getValue().equals(dimension)) {
+                return e.getKey();
+            }
+        }
+        // 推定：effects と has_ceiling の組み合わせで4種を区別する（dimensionName757 と同じ）。
+        if (dimension instanceof Tag.CompoundTag compound) {
+            String effects = compound.getString("effects").orElse("");
+            boolean hasCeiling = compound.get("has_ceiling")
+                    .filter(t -> t instanceof Tag.ByteTag)
+                    .map(t -> ((Tag.ByteTag) t).value() != 0)
+                    .orElse(false);
+            if (effects.equals("minecraft:the_nether")) {
+                return "minecraft:the_nether";
+            }
+            if (effects.equals("minecraft:the_end")) {
+                return "minecraft:the_end";
+            }
+            if (effects.equals("minecraft:overworld")) {
+                return hasCeiling ? "minecraft:overworld_caves" : "minecraft:overworld";
+            }
+        }
+        LOG.warning("dimension の名前が分からなかったため minecraft:overworld にします。");
+        return "minecraft:overworld";
+    }
+    /**
+     * 757の dimension（NBTの値）に対応する dimension_type の名前を返す。
+     * codec 内の element との完全一致で探し、無ければ既定の757 element との一致、
+     * (effects, has_ceiling) での推定の順に試す。どれも当たらなければ overworld。
+     * codec が null の場合（Respawn）は codec での検索を飛ばす。
+     */
+    private static String dimensionName757(Tag dimension, Tag.CompoundTag codec) {
+        if (codec != null) {
+            String fromCodec = findDimensionName(codec, dimension);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        for (Map.Entry<String, Tag.CompoundTag> e : DIMENSION_TYPE_757_ELEMENTS.entrySet()) {
+            if (e.getValue().equals(dimension)) {
+                return e.getKey();
+            }
+        }
+        // 推定：effects と has_ceiling の組み合わせで4種を区別する
+        // （overworld と overworld_caves は has_ceiling だけが違う。ライブキャプチャで確認）。
+        if (dimension instanceof Tag.CompoundTag compound) {
+            String effects = compound.getString("effects").orElse("");
+            boolean hasCeiling = compound.get("has_ceiling")
+                    .filter(t -> t instanceof Tag.ByteTag)
+                    .map(t -> ((Tag.ByteTag) t).value() != 0)
+                    .orElse(false);
+            if (effects.equals("minecraft:the_nether")) {
+                return "minecraft:the_nether";
+            }
+            if (effects.equals("minecraft:the_end")) {
+                return "minecraft:the_end";
+            }
+            if (effects.equals("minecraft:overworld")) {
+                return hasCeiling ? "minecraft:overworld_caves" : "minecraft:overworld";
+            }
+        }
+        LOG.warning("dimension の名前が分からなかったため minecraft:overworld にします。");
+        return "minecraft:overworld";
+    }
+    /** 756の dimension_type の名前に対応する756の element を返す（codec が無い場合。Respawn 用）。 */
+    private static Tag dimensionValue756(String name) {
+        return dimensionValue756(name, null);
+    }
+    /** 759の dimension（名前）に対応する757の dimension（NBTの値）を返す（codec が無い場合。Respawn 用）。 */
+    private static Tag dimensionValue759(String name) {
+        return dimensionValue759(name, null);
+    }
+    /** codec（名前付き NBT の中身）からレジストリのマップを抜く。 */
+    private static Map<String, Tag.CompoundTag> registriesFromCodec(Tag.CompoundTag codec) {
+        Map<String, Tag.CompoundTag> out = new LinkedHashMap<>();
+        for (Map.Entry<String, Tag> e : codec.value().entrySet()) {
+            if (e.getValue() instanceof Tag.CompoundTag reg) {
+                out.put(e.getKey(), reg);
+            }
+        }
+        return out;
+    }
+    /**
+     * 756のバイオームのエントリ列を757順に並べ替える。
+     * RegistryRemapper.mapBiome756To757 で写す。element は depth・scale を落として引き継ぐ。
+     * 同じ757 id になるものが複数ある場合、逆写像（mapBiome757To756）が指す正規の元を優先する
+     * （正規の元が後から来たら上書きする。それ以外は先勝ち）。これが無いと windswept_forest
+     * （757 id 20）で wooded_hills（756 id 18）の element が残り、往復で wooded_mountains
+     * （756 id 34）が wooded_hills の element に化けてしまう（逆写像は34を指す）。
+     * 写像で埋まらない757のバイオームは実バニラ1.18の element（BIOME_757_FILL_ELEMENTS）で
+     * 埋め、61件にする。
+     */
+    private static List<Tag> reorderBiomeEntries756To757(List<Tag> entries) {
+        Tag[] out = new Tag[BIOME_757_NAMES.length];
+        for (Tag entry : entries) {
+            if (!(entry instanceof Tag.CompoundTag compound)) {
+                continue;
+            }
+            int srcId = registryEntryId(compound);
+            if (srcId < 0 || srcId >= BIOME_756_NAMES.length) {
+                continue;
+            }
+            int dstId = RegistryRemapper.mapBiome756To757(srcId);
+            if (dstId < 0 || dstId >= out.length) {
+                continue;
+            }
+            boolean canonical = RegistryRemapper.mapBiome757To756(dstId) == srcId;
+            if (out[dstId] != null && !canonical) {
+                continue;
+            }
+            Tag element = compound.get("element").orElse(null);
+            Tag stripped = element instanceof Tag.CompoundTag elementCompound
+                    ? stripDepthScale(elementCompound) : element;
+            out[dstId] = biomeEntry(BIOME_757_NAMES[dstId], dstId, stripped);
+        }
+        for (int i = 0; i < out.length; i++) {
+            if (out[i] == null) {
+                Tag.CompoundTag element = BIOME_757_FILL_ELEMENTS.get(BIOME_757_NAMES[i]);
+                if (element == null) {
+                    continue; // fill 表に無い（ありえないはず）
+                }
+                out[i] = biomeEntry(BIOME_757_NAMES[i], i, element);
+            }
+        }
+        return List.of(out);
+    }
+    /**
+     * 757のバイオームのエントリ列を756順に並べ替える。
+     * RegistryRemapper.mapBiome757To756 で写す。element は写像先の756バイオームの depth・scale を
+     * 足して引き継ぐ。同じ756 id になるものが複数ある場合、逆写像（mapBiome756To757）が指す
+     * 正規の元を優先する（756→757側と同じ規則。こちらの衝突4組は先勝ちでも正規の元が残るが、
+     * 入力の並びに依存しないよう同じ規則にしている）。
+     * 写像で埋まらない756のバイオームは実バニラ1.17.1の element（BIOME_756_FILL_ELEMENTS）で
+     * 埋め、81件にする。返り値は756 id の昇順（実バニラ1.17.1の codec と同じ並び）。
+     */
+    private static List<Tag> reorderBiomeEntries757To756(List<Tag> entries) {
+        Tag[] out = new Tag[BIOME_756_NAMES.length];
+        for (Tag entry : entries) {
+            if (!(entry instanceof Tag.CompoundTag compound)) {
+                continue;
+            }
+            int srcId = registryEntryId(compound);
+            if (srcId < 0 || srcId >= BIOME_757_NAMES.length) {
+                continue;
+            }
+            int dstId = RegistryRemapper.mapBiome757To756(srcId);
+            if (dstId < 0 || dstId >= out.length) {
+                continue;
+            }
+            boolean canonical = RegistryRemapper.mapBiome756To757(dstId) == srcId;
+            if (out[dstId] != null && !canonical) {
+                continue;
+            }
+            String name = BIOME_756_NAMES[dstId];
+            if (name == null) {
+                continue; // 756の隙間 id（表の上ではありえないはずだが安全のため）
+            }
+            float[] depthScale = BIOME_757_DEPTH_SCALE[srcId];
+            Tag element = compound.get("element").orElse(null);
+            Tag withDepthScale = element instanceof Tag.CompoundTag elementCompound
+                    ? addDepthScale(elementCompound, depthScale[0], depthScale[1]) : element;
+            out[dstId] = biomeEntry(name, dstId, withDepthScale);
+        }
+        for (int i = 0; i < out.length; i++) {
+            if (out[i] == null && BIOME_756_NAMES[i] != null) {
+                Tag.CompoundTag element = BIOME_756_FILL_ELEMENTS.get(BIOME_756_NAMES[i]);
+                if (element == null) {
+                    continue; // fill 表に無い（ありえないはず）
+                }
+                out[i] = biomeEntry(BIOME_756_NAMES[i], i, element);
+            }
+        }
+        List<Tag> result = new ArrayList<>();
+        for (Tag tag : out) {
+            if (tag != null) {
+                result.add(tag);
+            }
+        }
+        return result;
+    }
+    /** 756の Join Game を書く。 */
+    public static byte[] writeJoinGame756(JoinGame756 join) {
+        Writer writer = new Writer();
+        writer.writeInt(join.entityId());
+        writer.writeBoolean(join.hardcore());
+        writer.writeByte(join.gameMode());
+        writer.writeByte(join.previousGameMode());
+        PacketIO.writeStringList(writer, join.worldNames());
+        writer.writeNamedNbt("", join.dimensionCodec());
+        writer.writeNamedNbt("", join.dimension());
+        writer.writeString(join.worldName());
+        writer.writeLong(join.hashedSeed());
+        writer.writeVarInt(join.maxPlayers());
+        writer.writeVarInt(join.viewDistance());
+        writer.writeBoolean(join.reducedDebug());
+        writer.writeBoolean(join.enableRespawnScreen());
+        writer.writeBoolean(join.isDebug());
+        writer.writeBoolean(join.isFlat());
+        return writer.bytes();
+    }
+    /** 757の Join Game を書く。 */
+    public static byte[] writeJoinGame757(JoinGame757 join) {
+        Writer writer = new Writer();
+        writer.writeInt(join.entityId());
+        writer.writeBoolean(join.hardcore());
+        writer.writeByte(join.gameMode());
+        writer.writeByte(join.previousGameMode());
+        PacketIO.writeStringList(writer, join.worldNames());
+        writer.writeNamedNbt("", join.dimensionCodec());
+        writer.writeNamedNbt("", join.dimension());
+        writer.writeString(join.worldName());
+        writer.writeLong(join.hashedSeed());
+        writer.writeVarInt(join.maxPlayers());
+        writer.writeVarInt(join.viewDistance());
+        writer.writeVarInt(join.simulationDistance());
+        writer.writeBoolean(join.reducedDebug());
+        writer.writeBoolean(join.enableRespawnScreen());
+        writer.writeBoolean(join.isDebug());
+        writer.writeBoolean(join.isFlat());
+        return writer.bytes();
+    }
+    private static Tag dimensionValue756(String name, Tag.CompoundTag codec) {
+        Tag.CompoundTag element = DIMENSION_TYPE_756_ELEMENTS.get(name);
+        if (element != null) {
+            return element;
+        }
+        if (codec != null) {
+            Tag fromCodec = findDimensionElement(codec, name);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        LOG.warning("dimension " + name + " の756 element が無いため minecraft:overworld にします。");
+        return DIMENSION_TYPE_756_ELEMENTS.get("minecraft:overworld");
+    }
+    private static Tag dimensionValue759(String name, Tag.CompoundTag codec) {
+        Tag.CompoundTag element = DIMENSION_TYPE_757_ELEMENTS.get(name);
+        if (element != null) {
+            return element;
+        }
+        if (codec != null) {
+            Tag fromCodec = findDimensionElement(codec, name);
+            if (fromCodec != null) {
+                return fromCodec;
+            }
+        }
+        LOG.warning("dimension " + name + " の757 element が無いため minecraft:overworld にします。");
+        return DIMENSION_TYPE_757_ELEMENTS.get("minecraft:overworld");
+    }
+    /**
+     * バイオーム element に depth・scale を足す（757→756。1.17.1の element は depth・scale を要する）。
+     * 実バニラ1.17.1の並び（precipitation, effects, depth, temperature, scale, downfall, category）に合わせ、
+     * depth は effects の直後、scale は temperature の直後に入れる。anchor が無い場合は末尾に足す。
+     */
+    private static Tag.CompoundTag addDepthScale(Tag.CompoundTag element, float depth, float scale) {
+        Map<String, Tag> rebuilt = new LinkedHashMap<>();
+        boolean depthAdded = false;
+        boolean scaleAdded = false;
+        for (Map.Entry<String, Tag> e : element.value().entrySet()) {
+            rebuilt.put(e.getKey(), e.getValue());
+            if (e.getKey().equals("effects")) {
+                rebuilt.put("depth", new Tag.FloatTag(depth));
+                depthAdded = true;
+            } else if (e.getKey().equals("temperature")) {
+                rebuilt.put("scale", new Tag.FloatTag(scale));
+                scaleAdded = true;
+            }
+        }
+        if (!depthAdded) {
+            rebuilt.put("depth", new Tag.FloatTag(depth));
+        }
+        if (!scaleAdded) {
+            rebuilt.put("scale", new Tag.FloatTag(scale));
+        }
+        return new Tag.CompoundTag(rebuilt);
+    }
+    /** レジストリのエントリ列の1件から id を抜く。無ければ -1。 */
+    private static int registryEntryId(Tag.CompoundTag compound) {
+        return compound.get("id")
+                .filter(t -> t instanceof Tag.IntTag)
+                .map(t -> ((Tag.IntTag) t).value())
+                .orElse(-1);
+    }
+    /** バイオーム element から depth・scale を落とす（756→757。1.18の element には無い）。他のフィールドは順番も含めてそのまま。 */
+    private static Tag.CompoundTag stripDepthScale(Tag.CompoundTag element) {
+        Map<String, Tag> rebuilt = new LinkedHashMap<>();
+        element.value().forEach((k, v) -> {
+            if (!k.equals("depth") && !k.equals("scale")) {
+                rebuilt.put(k, v);
+            }
+        });
+        return new Tag.CompoundTag(rebuilt);
+    }
+    /**
+     * 759の Join Game を読む。757と同じ順番だが、dimension は ResourceKey（文字列）で、
+     * 末尾に death（lastDeathLocation の option）が付く
+     * （minecraft-data mc-1.19-protocol.json の packet_login とライブキャプチャで確認）。
+     */
+    public static JoinGame759 parseJoinGame759(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        boolean hardcore = reader.readBoolean();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readByte();
+        checkPreviousGameMode757(previousGameMode);
+        List<String> worldNames = PacketIO.readStringList(reader);
+        Tag dimensionCodec = reader.readNamedNbt().tag();
+        if (!(dimensionCodec instanceof Tag.CompoundTag codec)) {
+            throw new IllegalArgumentException("Join Game の dimensionCodec がコンパウンドではありません。");
+        }
+        String dimension = reader.readString();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int maxPlayers = reader.readVarInt();
+        int viewDistance = reader.readVarInt();
+        int simulationDistance = reader.readVarInt();
+        boolean reducedDebug = reader.readBoolean();
+        boolean enableRespawnScreen = reader.readBoolean();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        boolean hasDeath = reader.readBoolean();
+        String deathDimension = null;
+        long deathLocation = 0;
+        if (hasDeath) {
+            deathDimension = reader.readString();
+            deathLocation = reader.readPositionRaw();
+        }
+        requireEnd(reader);
+        return new JoinGame759(entityId, hardcore, gameMode, previousGameMode, worldNames,
+                codec, dimension, worldName, hashedSeed, maxPlayers, viewDistance,
+                simulationDistance, reducedDebug, enableRespawnScreen, isDebug, isFlat,
+                hasDeath, deathDimension, deathLocation);
+    }
+    /** 757の SpawnInfo を読む。 */
+    public static SpawnInfo757 readSpawnInfo757(Reader reader) {
+        Tag dimension = reader.readNamedNbt().tag();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readUnsignedByte();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        boolean copyMetadata = reader.readBoolean();
+        return new SpawnInfo757(dimension, worldName, hashedSeed, gameMode,
+                previousGameMode, isDebug, isFlat, copyMetadata);
+    }
+    /** 759の SpawnInfo を読む。 */
+    public static SpawnInfo759 readSpawnInfo759(Reader reader) {
+        String dimension = reader.readString();
+        String worldName = reader.readString();
+        long hashedSeed = reader.readLong();
+        int gameMode = reader.readUnsignedByte();
+        int previousGameMode = reader.readUnsignedByte();
+        boolean isDebug = reader.readBoolean();
+        boolean isFlat = reader.readBoolean();
+        boolean copyMetadata = reader.readBoolean();
+        boolean hasDeath = reader.readBoolean();
+        String deathDimension = null;
+        long deathLocation = 0;
+        if (hasDeath) {
+            deathDimension = reader.readString();
+            deathLocation = reader.readPositionRaw();
+        }
+        return new SpawnInfo759(dimension, worldName, hashedSeed, gameMode,
+                previousGameMode, isDebug, isFlat, copyMetadata, hasDeath, deathDimension,
+                deathLocation);
+    }
+    /**
+     * Chat（757 サーバー行き 0x03 → 759 Chat Command 0x03）。"/" で始まらないものはコマンドではないため null を返す
+     * （translateChat757ToChatMessage を使う）。コマンド文字列は "/" を除いたもの。
+     * 引数署名は空、timestamp＝現在時刻、salt＝0、signedPreview＝false で埋める。
+     */
+    public static byte[] translateChat757ToChatCommand(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            requireEnd(reader);
+            if (!message.startsWith("/")) {
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writeString(message.substring(1));
+            writer.writeLong(System.currentTimeMillis());
+            writer.writeLong(0L);
+            writer.writeVarInt(0); // argumentSignatures（空）
+            writer.writeBoolean(false);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Chat（757 サーバー行き 0x03 → 759 Chat Message 0x04）。"/" で始まるものはコマンドのため null を返す
+     * （translateChat757ToChatCommand を使う。ProxySession は null の場合にそちらを試す）。
+     * 署名は無いため timestamp＝現在時刻、salt＝0、署名は空、signedPreview＝false で埋める
+     * （763の簡略形と同じ方針。署名の検証はしない）。
+     */
+    public static byte[] translateChat757ToChatMessage(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            requireEnd(reader);
+            if (message.startsWith("/")) {
+                return null;
+            }
+            Writer writer = new Writer();
+            writer.writeString(message);
+            writer.writeLong(System.currentTimeMillis());
+            writer.writeLong(0L);
+            writer.writeByteArray(new byte[0]);
+            writer.writeBoolean(false);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Chat（757 クライアント行き 0x0F → 759 System Chat 0x5F）。
+     * 757は {message string, position i8, sender UUID}、759は {content string, type varint}。
+     * position は chat_type の id と同じ並び（0=chat、1=system、2=game_info）。
+     * sender は System Chat に無いため落とす。
+     * （注：759の System Chat の type は varint であり、overlay bool ではない。
+     * overlay bool は1.19.1／760で追加されたもので、759には無い。
+     * minecraft-data mc-1.19-protocol.json の packet_system_chat で確認。）
+     */
+    public static byte[] translateChat757ToSystemChat(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            int position = reader.readByte();
+            reader.readUuid(); // sender（759 の System Chat には無い）
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(message);
+            writer.writeVarInt(chatPositionToChatType(position));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /** Chat Command（759 サーバー行き 0x03 → 757 Chat 0x03）。"/" を付けて戻す。引数署名は落とす。 */
+    public static byte[] translateChatCommand759ToChat(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String command = reader.readString();
+            reader.readLong(); // timestamp
+            reader.readLong(); // salt
+            int argCount = reader.readVarInt();
+            if (argCount < 0) {
+                throw new IllegalArgumentException("Chat Command の引数の件数が負です: " + argCount);
+            }
+            for (int i = 0; i < argCount; i++) {
+                reader.readString();
+                reader.readByteArray();
+            }
+            reader.readBoolean(); // signedPreview
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString("/" + command);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat Command を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /** Chat Message（759 サーバー行き 0x04 → 757 Chat 0x03）。署名・タイムスタンプ・salt・signedPreview を落として本文だけ通す。 */
+    public static byte[] translateChatMessage759ToChat(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            reader.readLong(); // timestamp
+            reader.readLong(); // salt
+            reader.readByteArray(); // signature
+            reader.readBoolean(); // signedPreview
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(message);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Chat Message を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Client Information（756 → 757）。756は {locale, viewDistance i8, chatFlags varint,
+     * chatColors bool, skinParts u8, mainHand varint, disableTextFiltering bool} の7フィールド、
+     * 757は末尾に enableServerListing bool が付いた8フィールド。
+     * disableTextFiltering は反転して enableTextFiltering にする。
+     * enableServerListing は true で補完する（1.18以前のクライアントに一覧表示の拒否手段は無かったため。
+     * 実バニラ1.18クライアントの送信値は未確認）。読めないペイロードは素通しする。
+     */
+    public static byte[] translateClientInformation756To757(byte[] payload) {
+        if (payload == null) {
+            return payload;
+        }
+        try {
+            Reader reader = new Reader(payload);
+            String locale = reader.readString();
+            int viewDistance = reader.readByte();
+            int chatFlags = reader.readVarInt();
+            boolean chatColors = reader.readBoolean();
+            int skinParts = reader.readUnsignedByte();
+            int mainHand = reader.readVarInt();
+            boolean disableTextFiltering = reader.readBoolean();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Client Information に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString(locale);
+            writer.writeByte(viewDistance);
+            writer.writeVarInt(chatFlags);
+            writer.writeBoolean(chatColors);
+            writer.writeUnsignedByte(skinParts);
+            writer.writeVarInt(mainHand);
+            writer.writeBoolean(!disableTextFiltering); // enableTextFiltering
+            writer.writeBoolean(true); // enableServerListing：756には無いため true を補う
+            return writer.bytes();
+        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            return payload;
+        }
+    }
+    /**
+     * Client Information（757 → 756）。末尾の enableServerListing を落とし、
+     * enableTextFiltering を反転して disableTextFiltering にする。読めないペイロードは素通しする。
+     */
+    public static byte[] translateClientInformation757To756(byte[] payload) {
+        if (payload == null) {
+            return payload;
+        }
+        try {
+            Reader reader = new Reader(payload);
+            String locale = reader.readString();
+            int viewDistance = reader.readByte();
+            int chatFlags = reader.readVarInt();
+            boolean chatColors = reader.readBoolean();
+            int skinParts = reader.readUnsignedByte();
+            int mainHand = reader.readVarInt();
+            boolean enableTextFiltering = reader.readBoolean();
+            boolean enableServerListing = reader.readBoolean();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Client Information に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString(locale);
+            writer.writeByte(viewDistance);
+            writer.writeVarInt(chatFlags);
+            writer.writeBoolean(chatColors);
+            writer.writeUnsignedByte(skinParts);
+            writer.writeVarInt(mainHand);
+            writer.writeBoolean(!enableTextFiltering); // disableTextFiltering
+            return writer.bytes();
+        } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            return payload;
+        }
+    }
+    /**
+     * Join Game（757 → 759）。dimension は NBT の値から codec 内の名前を引き、
+     * dimensionCodec は759形式に直す（chat_type 8件を補う）。lastDeathLocation は757に無いため absent。
+     * 読めないペイロードは素通しする（このファイルの他の変換器と同じ方針）。
+     */
+    public static byte[] translateJoinGame757To759(byte[] payload) {
+        try {
+            JoinGame757 join = parseJoinGame757(payload);
+            String dimensionName = dimensionName757(join.dimension(), join.dimensionCodec());
+            return writeJoinGame759(new JoinGame759(join.entityId(), join.hardcore(),
+                    join.gameMode(), join.previousGameMode(), join.worldNames(),
+                    translateDimensionCodec757To759(join.dimensionCodec()), dimensionName,
+                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
+                    join.simulationDistance(), join.reducedDebug(), join.enableRespawnScreen(),
+                    join.isDebug(), join.isFlat(), false, null, 0));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Join Game（759 → 757）。dimension は名前から757の element を引き、
+     * dimensionCodec は757形式に直す（chat_type を落とす）。lastDeathLocation は落とす。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateJoinGame759To757(byte[] payload) {
+        try {
+            JoinGame759 join = parseJoinGame759(payload);
+            Tag dimension = dimensionValue759(join.dimension(), join.dimensionCodec());
+            return writeJoinGame757(new JoinGame757(join.entityId(), join.hardcore(),
+                    join.gameMode(), join.previousGameMode(), join.worldNames(),
+                    translateDimensionCodec759To757(join.dimensionCodec()), dimension,
+                    join.worldName(), join.hashedSeed(), join.maxPlayers(), join.viewDistance(),
+                    join.simulationDistance(), join.reducedDebug(), join.enableRespawnScreen(),
+                    join.isDebug(), join.isFlat()));
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Player Chat（759 クライアント行き 0x30 → 757）。署名付きのため757へは変換せず null を返す（落とす）。
+     * 759の Player Chat は署名付きの発言で、757の Chat には署名の送り先が無い。
+     * 本文だけを Chat に直すことも考えられるが、chat_type の装飾（"&lt;名前&gt; 本文" 等）を
+     * プロキシが合成することになり、サーバーの書式とずれるため行わない。
+     * 呼び出し側（ProxySession）は null を受けたらパケットを落とす。
+     */
+    public static byte[] translatePlayerChat759ToChat(byte[] payload) {
+        return null;
+    }
+    /**
+     * Player Info（757 0x36 → 759 0x34）。759は add_player に crypto（公開鍵＋署名の option）が追加されたため、
+     * 757→759では absent を補う。action 1〜4（update_game_mode／update_latency／update_display_name／remove_player）は同一。
+     * （minecraft-data mc-1.18／mc-1.19-protocol.json の packet_player_info で確認。）
+     */
+    public static byte[] translatePlayerInfo757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int action = reader.readVarInt();
+            checkPlayerInfoAction(action);
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Player Info の件数が負です: " + count);
+            }
+            List<PlayerInfo757Entry> entries = new ArrayList<>(count);
+            for (int i = 0; i < count; i++) {
+                entries.add(readPlayerInfo757Entry(reader, action, false));
+            }
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(action);
+            writer.writeVarInt(count);
+            for (PlayerInfo757Entry entry : entries) {
+                writePlayerInfo757Entry(writer, entry, action, true);
+            }
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Player Info を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Player Info（759 0x34 → 757 0x36）。add_player の crypto を落とす。
+     * それ以外は同一。
+     */
+    public static byte[] translatePlayerInfo759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int action = reader.readVarInt();
+            checkPlayerInfoAction(action);
+            int count = reader.readVarInt();
+            if (count < 0) {
+                throw new IllegalArgumentException("Player Info の件数が負です: " + count);
+            }
+            List<PlayerInfo757Entry> entries = new ArrayList<>(count);
+            for (int i = 0; i < count; i++) {
+                entries.add(readPlayerInfo757Entry(reader, action, true));
+            }
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(action);
+            writer.writeVarInt(count);
+            for (PlayerInfo757Entry entry : entries) {
+                writePlayerInfo757Entry(writer, entry, action, false);
+            }
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Player Info を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Respawn（756 → 757）。フィールドは同一のため、dimension の element だけ757既定値に直す
+     * （overworld／overworld_caves の height が違う）。copyMetadata はそのまま写す。
+     * previousGameMode は u8 のまま写す（範囲検査はしない。Join Game の i8 と違い、"無し" の符号が protocol.json には無いため）。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn756To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo756 info = readSpawnInfo756(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo757(writer, new SpawnInfo757(
+                    dimensionValue759(dimensionName756(info.dimension(), null)),
+                    info.worldName(), info.hashedSeed(), info.gameMode(),
+                    info.previousGameMode(), info.isDebug(), info.isFlat(),
+                    info.copyMetadata()));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Respawn（757 → 756）。フィールドは同一のため、dimension の element だけ756既定値に直す。
+     * copyMetadata はそのまま写す。読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn757To756(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo757 info = readSpawnInfo757(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo756(writer, new SpawnInfo756(
+                    dimensionValue756(dimensionName757(info.dimension(), null)),
+                    info.worldName(), info.hashedSeed(), info.gameMode(),
+                    info.previousGameMode(), info.isDebug(), info.isFlat(),
+                    info.copyMetadata()));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Respawn（757 → 759）。dimension は NBT の値から名前を引く（codec が無いため既定の757 element との一致で判定）。
+     * lastDeathLocation は757に無いため absent。copyMetadata はそのまま写す。
+     * previousGameMode は u8 のまま写す（範囲検査はしない。Join Game の i8 と違い、"無し" の符号が protocol.json には無いため）。
+     * 読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo757 info = readSpawnInfo757(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo759(writer, new SpawnInfo759(
+                    dimensionName757(info.dimension(), null),
+                    info.worldName(), info.hashedSeed(), info.gameMode(),
+                    info.previousGameMode(), info.isDebug(), info.isFlat(),
+                    info.copyMetadata(), false, null, 0));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Respawn（759 → 757）。dimension は名前から757の element を引く。lastDeathLocation は落とす。
+     * copyMetadata はそのまま写す。読めないペイロードは素通しする。
+     */
+    public static byte[] translateRespawn759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            SpawnInfo759 info = readSpawnInfo759(reader);
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writeSpawnInfo757(writer, new SpawnInfo757(
+                    dimensionValue759(info.dimension()),
+                    info.worldName(), info.hashedSeed(), info.gameMode(),
+                    info.previousGameMode(), info.isDebug(), info.isFlat(),
+                    info.copyMetadata()));
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Spawn Entity（757 0x00 → 759 Spawn Entity 0x00）。
+     * 757は {entityId, uuid, type, x, y, z, pitch, yaw, objectData i32, velocity}、
+     * 759は {entityId, uuid, type, x, y, z, pitch, yaw, headPitch, objectData varint, velocity}。
+     * headPitch は 0 を補う（実バニラ1.19の (Entity, int) コンストラクタは yHeadRot=0.0 で、javap で確認）。
+     * objectData は i32→varint に直す。type はエンティティ種別表で付け替える。
+     */
+    public static byte[] translateSpawnEntity757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            UUID uuid = reader.readUuid();
+            int type = reader.readVarInt();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            int pitch = reader.readByte();
+            int yaw = reader.readByte();
+            int objectData = reader.readInt();
+            int velX = reader.readShort();
+            int velY = reader.readShort();
+            int velZ = reader.readShort();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeUuid(uuid);
+            writer.writeVarInt(RegistryRemapper.mapEntityType757To759(type));
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeByte(pitch);
+            writer.writeByte(yaw);
+            writer.writeByte(0); // headPitch（汎用は 0）
+            writer.writeVarInt(objectData);
+            writer.writeShort(velX);
+            writer.writeShort(velY);
+            writer.writeShort(velZ);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Spawn Entity（759 0x00 → 757 Spawn Entity 0x00）。type が living でも painting でもない場合のみ変換し、
+     * それ以外は null を返す（translateSpawnEntity759ToLiving／translateSpawnEntity759ToPainting を使う）。
+     * headPitch を落とし、objectData は varint→i32 に直す。type はエンティティ種別表で付け替える。
+     */
+    public static byte[] translateSpawnEntity759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            UUID uuid = reader.readUuid();
+            int type = reader.readVarInt();
+            if (type == PAINTING_ENTITY_759 || isLivingEntityType759(type)) {
+                return null;
+            }
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            int pitch = reader.readByte();
+            int yaw = reader.readByte();
+            reader.readByte(); // headPitch（757 の汎用には無い）
+            int objectData = reader.readVarInt();
+            int velX = reader.readShort();
+            int velY = reader.readShort();
+            int velZ = reader.readShort();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeUuid(uuid);
+            writer.writeVarInt(RegistryRemapper.mapEntityType759To757(type));
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeByte(pitch);
+            writer.writeByte(yaw);
+            writer.writeInt(objectData);
+            writer.writeShort(velX);
+            writer.writeShort(velY);
+            writer.writeShort(velZ);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Spawn Entity（759 0x00 → 757 Spawn Entity Living 0x02）。type が living の場合のみ変換し、それ以外は null を返す。
+     * pitch／yaw の順序を入れ替え、objectData を落とす。type はエンティティ種別表で付け替える。
+     */
+    public static byte[] translateSpawnEntity759ToLiving(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            UUID uuid = reader.readUuid();
+            int type = reader.readVarInt();
+            if (!isLivingEntityType759(type)) {
+                return null;
+            }
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            int pitch = reader.readByte();
+            int yaw = reader.readByte();
+            int headPitch = reader.readByte();
+            reader.readVarInt(); // objectData（757 の living には無い）
+            int velX = reader.readShort();
+            int velY = reader.readShort();
+            int velZ = reader.readShort();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeUuid(uuid);
+            writer.writeVarInt(RegistryRemapper.mapEntityType759To757(type));
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeByte(yaw);
+            writer.writeByte(pitch);
+            writer.writeByte(headPitch);
+            writer.writeShort(velX);
+            writer.writeShort(velY);
+            writer.writeShort(velZ);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Spawn Entity（759 0x00 → 757 Spawn Entity Painting 0x03）。type が painting（63）の場合のみ変換し、それ以外は null を返す。
+     * x／y／z は double からブロック座標に直す。direction は objectData（3D data value）。
+     * motive（絵柄）は Spawn Entity からは分からないため 0（kebab。1.18の既定）にする。
+     * 正しい絵柄は後の Set Entity Data で送られる（別途の変換対象）。
+     */
+    public static byte[] translateSpawnEntity759ToPainting(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            UUID uuid = reader.readUuid();
+            int type = reader.readVarInt();
+            if (type != PAINTING_ENTITY_759) {
+                return null;
+            }
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            reader.readByte(); // pitch（絵画は0。使わない）
+            reader.readByte(); // yaw（direction から決まるため使わない）
+            reader.readByte(); // headPitch（使わない）
+            int objectData = reader.readVarInt();
+            reader.readShort(); // velocity（使わない）
+            reader.readShort();
+            reader.readShort();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeUuid(uuid);
+            writer.writeVarInt(0); // motive：不明のため kebab（0）
+            writer.writePositionRaw(packBlockPosition(
+                    (int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z)));
+            writer.writeByte(objectData);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Spawn Entity Living（757 0x02 → 759 Spawn Entity 0x00）。
+     * 757は {entityId, uuid, type, x, y, z, yaw, pitch, headPitch, velocity}、
+     * 759は {entityId, uuid, type, x, y, z, pitch, yaw, headPitch, objectData, velocity}。
+     * pitch／yaw の順序を入れ替え、type はエンティティ種別表で付け替え、
+     * objectData は 0 を補う（living には不要。実バニラ1.19の ClientboundAddEntityPacket(Entity) は
+     * this(entity, 0) で、javap で確認）。
+     */
+    public static byte[] translateSpawnEntityLiving757ToSpawnEntity759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            UUID uuid = reader.readUuid();
+            int type = reader.readVarInt();
+            double x = reader.readDouble();
+            double y = reader.readDouble();
+            double z = reader.readDouble();
+            int yaw = reader.readByte();
+            int pitch = reader.readByte();
+            int headPitch = reader.readByte();
+            int velX = reader.readShort();
+            int velY = reader.readShort();
+            int velZ = reader.readShort();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeUuid(uuid);
+            writer.writeVarInt(RegistryRemapper.mapEntityType757To759(type));
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeByte(pitch);
+            writer.writeByte(yaw);
+            writer.writeByte(headPitch);
+            writer.writeVarInt(0); // objectData（living は 0）
+            writer.writeShort(velX);
+            writer.writeShort(velY);
+            writer.writeShort(velZ);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity Living を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * Spawn Entity Painting（757 0x03 → 759 Spawn Entity 0x00）。
+     * 757は {entityId, uuid, motive varint, pos, direction u8}、
+     * 759は {entityId, uuid, type, x, y, z, pitch, yaw, headPitch, objectData, velocity}。
+     * type は painting（757:60→759:63）。x／y／z はブロック座標を double に直す。
+     * pitch=0、yaw は direction から（実バニラ1.19の AbstractPainting.setDirection は
+     * setYRot(get2DDataValue()*90) で、javap で確認）、headPitch=0、
+     * objectData は direction の3D data value（実バニラ1.19の Painting.getAddEntityPacket は
+     * new ClientboundAddEntityPacket(this, direction.get3DDataValue(), blockPos) で、javap で確認）、
+     * velocity は (0, 0, 0)。motive（絵柄）は759の Spawn Entity には無いため落とす
+     * （絵柄は後の Set Entity Data で送られる）。
+     */
+    public static byte[] translateSpawnEntityPainting757ToSpawnEntity759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int entityId = reader.readVarInt();
+            UUID uuid = reader.readUuid();
+            reader.readVarInt(); // motive（759 には無い）
+            long pos = reader.readPositionRaw();
+            int direction = reader.readUnsignedByte();
+            requireEnd(reader);
+            int x = (int) (pos >> 38);
+            int y = (int) (pos & 0xFFF);
+            int z = (int) ((pos << 26) >> 38); // 26ビットの符号付き（負の座標も正しく復元する）
+            Writer writer = new Writer();
+            writer.writeVarInt(entityId);
+            writer.writeUuid(uuid);
+            writer.writeVarInt(RegistryRemapper.mapEntityType757To759(PAINTING_ENTITY_757));
+            writer.writeDouble(x);
+            writer.writeDouble(y);
+            writer.writeDouble(z);
+            writer.writeByte(0); // pitch（絵画は0）
+            writer.writeByte(paintingDirectionToYaw(direction));
+            writer.writeByte(0); // headPitch
+            writer.writeVarInt(direction); // objectData（3D data value）
+            writer.writeShort(0);
+            writer.writeShort(0);
+            writer.writeShort(0);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Spawn Entity Painting を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /**
+     * System Chat（759 0x5F → 757 Chat 0x0F）。sender は無いため nil UUID を補う。
+     * type 3〜7（say_command 等）は1.18に無いため chat（position 0）扱いにする。
+     */
+    public static byte[] translateSystemChat759ToChat(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String content = reader.readString();
+            int type = reader.readVarInt();
+            requireEnd(reader);
+            Writer writer = new Writer();
+            writer.writeString(content);
+            writer.writeByte(chatTypeToChatPosition(type));
+            writer.writeUuid(NIL_UUID);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("System Chat を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+    /** 756の SpawnInfo を書く。 */
+    public static void writeSpawnInfo756(Writer writer, SpawnInfo756 info) {
+        writer.writeNamedNbt("", info.dimension());
+        writer.writeString(info.worldName());
+        writer.writeLong(info.hashedSeed());
+        writer.writeByte(info.gameMode());
+        writer.writeByte(info.previousGameMode());
+        writer.writeBoolean(info.isDebug());
+        writer.writeBoolean(info.isFlat());
+        writer.writeBoolean(info.copyMetadata());
+    }
+    /** 759の Join Game の中身。dimension は ResourceKey（文字列）。death は lastDeathLocation。 */
+    public record JoinGame759(int entityId, boolean hardcore, int gameMode, int previousGameMode,
+            List<String> worldNames, Tag.CompoundTag dimensionCodec, String dimension,
+            String worldName, long hashedSeed, int maxPlayers, int viewDistance,
+            int simulationDistance, boolean reducedDebug, boolean enableRespawnScreen,
+            boolean isDebug, boolean isFlat, boolean hasDeath, String deathDimension,
+            long deathLocation) {
+    }
+    /** 757の Respawn（SpawnInfo）の中身。dimension は DimensionType の値そのもの（NBT）。previousGameMode は u8（Join Game の i8 とは違う。protocol.json で確認）。 */
+    public record SpawnInfo757(Tag dimension, String worldName, long hashedSeed, int gameMode,
+            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata) {
+    }
+    /** 759の Respawn（SpawnInfo）の中身。dimension は ResourceKey（文字列）。death は lastDeathLocation。 */
+    public record SpawnInfo759(String dimension, String worldName, long hashedSeed, int gameMode,
+            int previousGameMode, boolean isDebug, boolean isFlat, boolean copyMetadata,
+            boolean hasDeath, String deathDimension, long deathLocation) {
+    }
+    /** 1.18の Chat の position（i8）を1.19の System Chat の type（varint）に直す。0=chat、1=system、2=game_info。範囲外は chat（0）。 */
+    private static int chatPositionToChatType(int position) {
+        if (position < 0 || position > 2) {
+            LOG.warning("Chat の position が範囲外のため chat（0）にします: " + position);
+            return 0;
+        }
+        return position;
+    }
+    /** 1.19の System Chat の type（varint）を1.18の Chat の position（i8）に直す。0=chat、1=system、2=game_info。3〜7（say_command 等）は1.18に無いため chat（0）扱いにする。範囲外も chat（0）。 */
+    private static int chatTypeToChatPosition(int type) {
+        if (type < 0 || type > 7) {
+            LOG.warning("System Chat の type が範囲外のため chat（0）にします: " + type);
+            return 0;
+        }
+        return type <= 2 ? type : 0;
+    }
+    /** Player Info の action が範囲内か（0=add_player、1=update_game_mode、2=update_latency、3=update_display_name、4=remove_player）。 */
+    private static void checkPlayerInfoAction(int action) {
+        if (action < 0 || action > 4) {
+            throw new IllegalArgumentException("Player Info の action が範囲外です: " + action);
+        }
+    }
+    /** 759のエンティティ種別 id が living（LivingEntity）かどうか。範囲外の id は living 扱いしない（汎用パケットへ回す）。 */
+    public static boolean isLivingEntityType759(int type759) {
+        if (type759 < 0 || type759 > 117) {
+            return false;
+        }
+        return java.util.Arrays.binarySearch(NON_LIVING_ENTITY_759_IDS, type759) < 0;
+    }
+    /** ブロック座標 (x, y, z) を position（i64 packed）に直す。 */
+    private static long packBlockPosition(int x, int y, int z) {
+        return ((long) (x & 0x3FFFFFF) << 38) | ((long) (z & 0x3FFFFFF) << 12) | (y & 0xFFF);
+    }
+    /** 方向の3D data value（DOWN=0、UP=1、NORTH=2、SOUTH=3、WEST=4、EAST=5）を絵画の yaw（i8）に直す。SOUTH=0、WEST=64、NORTH=-128、EAST=-64。上下は絵画に無いため SOUTH（0）扱い。 */
+    private static int paintingDirectionToYaw(int direction) {
+        return switch (direction) {
+            case 4 -> 64; // WEST：90度
+            case 2 -> -128; // NORTH：180度
+            case 5 -> -64; // EAST：270度
+            default -> 0; // SOUTH（3）・上下（0／1）・範囲外
+        };
+    }
+    /** Player Info 1エントリ分を読む。hasCryptoField が true の場合（759）は add_player の crypto も読む。 */
+    private static PlayerInfo757Entry readPlayerInfo757Entry(Reader reader, int action, boolean hasCryptoField) {
+        UUID uuid = reader.readUuid();
+        String name = null;
+        List<PlayerInfo757Property> properties = List.of();
+        int gameMode = 0;
+        int ping = 0;
+        boolean hasDisplayName = false;
+        String displayName = null;
+        boolean hasCrypto = false;
+        long cryptoTimestamp = 0;
+        byte[] cryptoPublicKey = null;
+        byte[] cryptoSignature = null;
+        switch (action) {
+            case 0 -> {
+                name = reader.readString();
+                int propertyCount = reader.readVarInt();
+                if (propertyCount < 0) {
+                    throw new IllegalArgumentException(
+                            "Player Info のプロパティ件数が負です: " + propertyCount);
+                }
+                List<PlayerInfo757Property> props = new ArrayList<>(propertyCount);
+                for (int i = 0; i < propertyCount; i++) {
+                    String propertyName = reader.readString();
+                    String propertyValue = reader.readString();
+                    boolean hasSignature = reader.readBoolean();
+                    String signature = hasSignature ? reader.readString() : null;
+                    props.add(new PlayerInfo757Property(propertyName, propertyValue, hasSignature, signature));
+                }
+                properties = props;
+                gameMode = reader.readVarInt();
+                ping = reader.readVarInt();
+                hasDisplayName = reader.readBoolean();
+                displayName = hasDisplayName ? reader.readString() : null;
+                if (hasCryptoField) {
+                    hasCrypto = reader.readBoolean();
+                    if (hasCrypto) {
+                        cryptoTimestamp = reader.readLong();
+                        cryptoPublicKey = reader.readByteArray();
+                        cryptoSignature = reader.readByteArray();
+                    }
+                }
+            }
+            case 1 -> gameMode = reader.readVarInt();
+            case 2 -> ping = reader.readVarInt();
+            case 3 -> {
+                hasDisplayName = reader.readBoolean();
+                displayName = hasDisplayName ? reader.readString() : null;
+            }
+            case 4 -> {
+                // remove_player：UUID だけ
+            }
+            default -> throw new IllegalArgumentException("Player Info の action が範囲外です: " + action);
+        }
+        return new PlayerInfo757Entry(uuid, name, properties, gameMode, ping,
+                hasDisplayName, displayName, hasCrypto, cryptoTimestamp, cryptoPublicKey, cryptoSignature);
+    }
+    /**
+     * 757の dimensionCodec を759形式にする。dimension_type・biome を並べ替え、
+     * dimension_type の element を759既定値に置き換え、chat_type 8件を既定値で補う。
+     * biome の element はそのまま引き継ぐ（757の element にある category は
+     * 759の codec では未知のフィールドとして無視される）。757に無い
+     * mangrove_swamp・deep_dark の2件には759の既定の element を補う。
+     * codec のキーの並びは759の実バニラ通り（chat_type、dimension_type、worldgen/biome）。
+     */
+    public static Tag.CompoundTag translateDimensionCodec757To759(Tag.CompoundTag codec757) {
+        Map<String, Tag.CompoundTag> reordered = reorderRegistries(
+                registriesFromCodec(codec757), ProtocolVersion.V1_18, ProtocolVersion.V1_19);
+        Map<String, Tag> codec = new LinkedHashMap<>();
+        List<Tag> chatEntries = new ArrayList<>();
+        for (int i = 0; i < CHAT_TYPE_759_NAMES.length; i++) {
+            chatEntries.add(new Tag.CompoundTag(Map.of(
+                    "name", new Tag.StringTag(CHAT_TYPE_759_NAMES[i]),
+                    "id", new Tag.IntTag(i),
+                    "element", CHAT_TYPE_759_ELEMENTS.get(CHAT_TYPE_759_NAMES[i]))));
+        }
+        Map<String, Tag> chatCodec = new LinkedHashMap<>();
+        chatCodec.put("type", new Tag.StringTag("minecraft:chat_type"));
+        chatCodec.put("value", new Tag.ListTag(Nbt.COMPOUND, chatEntries));
+        codec.put("minecraft:chat_type", new Tag.CompoundTag(chatCodec));
+        Tag.CompoundTag dimensionRegistry = reordered.get("minecraft:dimension_type");
+        if (dimensionRegistry != null) {
+            List<Tag> entries = substituteDimensionTypeElements(
+                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
+                    ProtocolVersion.V1_19);
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
+        }
+        Tag.CompoundTag biomeRegistry = reordered.get("minecraft:worldgen/biome");
+        if (biomeRegistry != null) {
+            List<Tag> entries = fillNewBiomeElements(
+                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
+        }
+        return new Tag.CompoundTag(codec);
+    }
+    /**
+     * 759の dimensionCodec を757形式にする。chat_type を落とし、dimension_type・biome を757順に並べ替え、
+     * dimension_type の element を757既定値に置き換える。biome の element に category が無ければ757の表から補う。
+     * codec のキーの並びは757の実バニラ通り（dimension_type、worldgen/biome）。
+     */
+    public static Tag.CompoundTag translateDimensionCodec759To757(Tag.CompoundTag codec759) {
+        Map<String, Tag.CompoundTag> reordered = reorderRegistries(
+                registriesFromCodec(codec759), ProtocolVersion.V1_19, ProtocolVersion.V1_18);
+        Map<String, Tag> codec = new LinkedHashMap<>();
+        Tag.CompoundTag dimensionRegistry = reordered.get("minecraft:dimension_type");
+        if (dimensionRegistry != null) {
+            List<Tag> entries = substituteDimensionTypeElements(
+                    dimensionRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()),
+                    ProtocolVersion.V1_18);
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:dimension_type"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:dimension_type", new Tag.CompoundTag(rebuilt));
+        }
+        Tag.CompoundTag biomeRegistry = reordered.get("minecraft:worldgen/biome");
+        if (biomeRegistry != null) {
+            List<Tag> entries = addBiomeCategories(
+                    biomeRegistry.getList("value").map(Tag.ListTag::value).orElse(List.of()));
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            rebuilt.put("type", new Tag.StringTag("minecraft:worldgen/biome"));
+            rebuilt.put("value", new Tag.ListTag(Nbt.COMPOUND, entries));
+            codec.put("minecraft:worldgen/biome", new Tag.CompoundTag(rebuilt));
+        }
+        return new Tag.CompoundTag(codec);
+    }
+    /** 759の Join Game を書く。 */
+    public static byte[] writeJoinGame759(JoinGame759 join) {
+        Writer writer = new Writer();
+        writer.writeInt(join.entityId());
+        writer.writeBoolean(join.hardcore());
+        writer.writeByte(join.gameMode());
+        writer.writeByte(join.previousGameMode());
+        PacketIO.writeStringList(writer, join.worldNames());
+        writer.writeNamedNbt("", join.dimensionCodec());
+        writer.writeString(join.dimension());
+        writer.writeString(join.worldName());
+        writer.writeLong(join.hashedSeed());
+        writer.writeVarInt(join.maxPlayers());
+        writer.writeVarInt(join.viewDistance());
+        writer.writeVarInt(join.simulationDistance());
+        writer.writeBoolean(join.reducedDebug());
+        writer.writeBoolean(join.enableRespawnScreen());
+        writer.writeBoolean(join.isDebug());
+        writer.writeBoolean(join.isFlat());
+        writer.writeBoolean(join.hasDeath());
+        if (join.hasDeath()) {
+            writer.writeString(join.deathDimension());
+            writer.writePositionRaw(join.deathLocation());
+        }
+        return writer.bytes();
+    }
+    /** 757の SpawnInfo を書く。 */
+    public static void writeSpawnInfo757(Writer writer, SpawnInfo757 info) {
+        writer.writeNamedNbt("", info.dimension());
+        writer.writeString(info.worldName());
+        writer.writeLong(info.hashedSeed());
+        writer.writeByte(info.gameMode());
+        writer.writeByte(info.previousGameMode());
+        writer.writeBoolean(info.isDebug());
+        writer.writeBoolean(info.isFlat());
+        writer.writeBoolean(info.copyMetadata());
+    }
+    /** 759の SpawnInfo を書く。 */
+    public static void writeSpawnInfo759(Writer writer, SpawnInfo759 info) {
+        writer.writeString(info.dimension());
+        writer.writeString(info.worldName());
+        writer.writeLong(info.hashedSeed());
+        writer.writeByte(info.gameMode());
+        writer.writeByte(info.previousGameMode());
+        writer.writeBoolean(info.isDebug());
+        writer.writeBoolean(info.isFlat());
+        writer.writeBoolean(info.copyMetadata());
+        writer.writeBoolean(info.hasDeath());
+        if (info.hasDeath()) {
+            writer.writeString(info.deathDimension());
+            writer.writePositionRaw(info.deathLocation());
+        }
+    }
+    /** Player Info 1エントリ分（crypto は759の add_player にだけある）。 */
+    private record PlayerInfo757Entry(UUID uuid, String name, List<PlayerInfo757Property> properties,
+            int gameMode, int ping, boolean hasDisplayName, String displayName,
+            boolean hasCrypto, long cryptoTimestamp, byte[] cryptoPublicKey,
+            byte[] cryptoSignature) {
+    }
+    /** biome のエントリ列の element に category が無ければ757の表から補う（1.18の Biome codec は category を要する。759の element には category が無い）。 */
+    private static List<Tag> addBiomeCategories(List<Tag> entries) {
+        List<Tag> out = new ArrayList<>(entries.size());
+        for (Tag entry : entries) {
+            if (!(entry instanceof Tag.CompoundTag compound)) {
+                out.add(entry);
+                continue;
+            }
+            int id = compound.get("id")
+                    .filter(t -> t instanceof Tag.IntTag)
+                    .map(t -> ((Tag.IntTag) t).value())
+                    .orElse(-1);
+            if (id < 0 || id >= BIOME_757_CATEGORIES.length) {
+                out.add(entry);
+                continue;
+            }
+            Tag element = compound.get("element").orElse(null);
+            if (!(element instanceof Tag.CompoundTag elementCompound)
+                    || elementCompound.get("category").isPresent()) {
+                out.add(entry);
+                continue;
+            }
+            Map<String, Tag> rebuiltElement = new LinkedHashMap<>(elementCompound.value());
+            rebuiltElement.put("category", new Tag.StringTag(BIOME_757_CATEGORIES[id]));
+            Map<String, Tag> rebuilt = new LinkedHashMap<>();
+            compound.value().forEach((k, v) -> {
+                rebuilt.put(k, k.equals("element") ? new Tag.CompoundTag(rebuiltElement) : v);
+            });
+            out.add(new Tag.CompoundTag(rebuilt));
+        }
+        return out;
+    }
+    /**
+     * biome のエントリ列のうち element が無いものに、759の既定の element を補う。
+     * 対象は757に無い mangrove_swamp と deep_dark の2件（reorderRegistries が
+     * 名前だけのエントリで埋めたもの）。759のクライアントは biome の element
+     * （色・音など）を要するため、名前だけでは不十分。element は実バニラ1.19の
+     * Join Game codec から取ったもの。
+     */
+    private static List<Tag> fillNewBiomeElements(List<Tag> entries) {
+        List<Tag> out = new ArrayList<>(entries.size());
+        for (Tag entry : entries) {
+            if (!(entry instanceof Tag.CompoundTag compound)) {
+                out.add(entry);
+                continue;
+            }
+            if (compound.get("element").isPresent()) {
+                out.add(entry);
+                continue;
+            }
+            String name = compound.getString("name").orElse(null);
+            Tag.CompoundTag element = name == null ? null : BIOME_759_NEW_ELEMENTS.get(name);
+            if (element == null) {
+                out.add(entry);
+                continue;
+            }
+            Map<String, Tag> rebuilt = new LinkedHashMap<>(compound.value());
+            rebuilt.put("element", element);
+            out.add(new Tag.CompoundTag(rebuilt));
+        }
+        return out;
+    }
+    /** Player Info 1エントリ分を書く。writeCrypto が true の場合（759）は add_player の crypto も書く（無ければ absent）。 */
+    private static void writePlayerInfo757Entry(Writer writer, PlayerInfo757Entry entry, int action, boolean writeCrypto) {
+        writer.writeUuid(entry.uuid());
+        switch (action) {
+            case 0 -> {
+                writer.writeString(entry.name());
+                writer.writeVarInt(entry.properties().size());
+                for (PlayerInfo757Property property : entry.properties()) {
+                    writer.writeString(property.name());
+                    writer.writeString(property.value());
+                    writer.writeBoolean(property.hasSignature());
+                    if (property.hasSignature()) {
+                        writer.writeString(property.signature());
+                    }
+                }
+                writer.writeVarInt(entry.gameMode());
+                writer.writeVarInt(entry.ping());
+                writer.writeBoolean(entry.hasDisplayName());
+                if (entry.hasDisplayName()) {
+                    writer.writeString(entry.displayName());
+                }
+                if (writeCrypto) {
+                    writer.writeBoolean(entry.hasCrypto());
+                    if (entry.hasCrypto()) {
+                        writer.writeLong(entry.cryptoTimestamp());
+                        writer.writeByteArray(entry.cryptoPublicKey());
+                        writer.writeByteArray(entry.cryptoSignature());
+                    }
+                }
+            }
+            case 1 -> writer.writeVarInt(entry.gameMode());
+            case 2 -> writer.writeVarInt(entry.ping());
+            case 3 -> {
+                writer.writeBoolean(entry.hasDisplayName());
+                if (entry.hasDisplayName()) {
+                    writer.writeString(entry.displayName());
+                }
+            }
+            case 4 -> {
+                // remove_player：UUID だけ
+            }
+            default -> throw new IllegalArgumentException("Player Info の action が範囲外です: " + action);
+        }
+    }
+    /** Player Info のプロパティ1件（signature は option）。 */
+    private record PlayerInfo757Property(String name, String value, boolean hasSignature, String signature) {
+    }
+    private static int mapDimensionType757To759(int id) {
+        return switch (id) {
+            case 0 -> 0;
+            case 1 -> 3;
+            case 2 -> 1;
+            case 3 -> 2;
+            default -> 0; // 範囲外は overworld
+        };
+    }
+
+    private static int mapDimensionType759To757(int id) {
+        return switch (id) {
+            case 0 -> 0;
+            case 1 -> 2;
+            case 2 -> 3;
+            case 3 -> 1;
+            default -> 0; // 範囲外は overworld
+        };
+    }
+
+    private static int readOptionalEffect(Reader reader) {
+        if (!reader.readBoolean()) {
+            return -1;
+        }
+        return reader.readVarInt();
+    }
+
+    public static byte[] translateAttack775ToUseEntity757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int target = reader.readVarInt();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Attack に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(target);
+            writer.writeVarInt(1); // mouse：attack
+            writer.writeBoolean(false); // sneaking：775の attack には無いため false
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateBlockDig757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int status = reader.readVarInt();
+            long location = reader.readPositionRaw();
+            int face = reader.readByte();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Block Dig に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(status);
+            writer.writePositionRaw(location);
+            writer.writeByte(face);
+            writer.writeVarInt(0); // sequence：757には無いため 0 を補う
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateBlockDig763To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int status = reader.readVarInt();
+            long location = reader.readPositionRaw();
+            int face = reader.readByte();
+            reader.readVarInt(); // sequence：757には無いため落とす
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Block Dig に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(status);
+            writer.writePositionRaw(location);
+            writer.writeByte(face);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateBlockPlace757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int hand = reader.readVarInt();
+            long location = reader.readPositionRaw();
+            int direction = reader.readVarInt();
+            float cursorX = reader.readFloat();
+            float cursorY = reader.readFloat();
+            float cursorZ = reader.readFloat();
+            boolean insideBlock = reader.readBoolean();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Block Place に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(hand);
+            writer.writePositionRaw(location);
+            writer.writeVarInt(direction);
+            writer.writeFloat(cursorX);
+            writer.writeFloat(cursorY);
+            writer.writeFloat(cursorZ);
+            writer.writeBoolean(insideBlock);
+            writer.writeVarInt(0); // sequence：757には無いため 0 を補う
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateBlockPlace763To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int hand = reader.readVarInt();
+            long location = reader.readPositionRaw();
+            int direction = reader.readVarInt();
+            float cursorX = reader.readFloat();
+            float cursorY = reader.readFloat();
+            float cursorZ = reader.readFloat();
+            boolean insideBlock = reader.readBoolean();
+            reader.readVarInt(); // sequence：757には無いため落とす
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Block Place に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(hand);
+            writer.writePositionRaw(location);
+            writer.writeVarInt(direction);
+            writer.writeFloat(cursorX);
+            writer.writeFloat(cursorY);
+            writer.writeFloat(cursorZ);
+            writer.writeBoolean(insideBlock);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateChatCommand763To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String command = reader.readString();
+            reader.readLong(); // timestamp
+            reader.readLong(); // salt
+            int count = reader.readVarInt();
+            for (int i = 0; i < count; i++) {
+                reader.readString(); // argumentName
+                reader.readBytes(256); // signature
+            }
+            reader.readVarInt(); // messageCount
+            reader.readBytes(3); // acknowledged
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Chat Command に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString("/" + command);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateChatCommand775To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String command = reader.readString();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Chat Command に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString("/" + command);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateChatCommandSigned775To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String command = reader.readString();
+            reader.readLong(); // timestamp
+            reader.readLong(); // salt
+            int count = reader.readVarInt();
+            for (int i = 0; i < count; i++) {
+                reader.readString(); // argumentName
+                reader.readBytes(256); // signature
+            }
+            reader.readVarInt(); // messageCount
+            reader.readBytes(3); // acknowledged
+            reader.readByte(); // checksum
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Chat Command Signed に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString("/" + command);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateChatMessage763To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            reader.readLong(); // timestamp
+            reader.readLong(); // salt
+            if (reader.readBoolean()) { // signature option
+                reader.readBytes(256);
+            }
+            reader.readVarInt(); // offset
+            reader.readBytes(3); // acknowledged
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Chat Message に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString(message);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateChatMessage775To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String message = reader.readString();
+            reader.readLong(); // timestamp
+            reader.readLong(); // salt
+            if (reader.readBoolean()) { // signature option
+                reader.readBytes(256);
+            }
+            reader.readVarInt(); // offset
+            reader.readBytes(3); // acknowledged
+            reader.readByte(); // checksum
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Chat Message に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString(message);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateHeldItemChange757To759(byte[] payload) {
         return payload;
     }
 
-    /**
-     * Ping（736 0x12 → 735 0x12）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は {@link #translatePing735To736(byte[])} と同じ。
-     */
-    public static byte[] translatePing736To735(byte[] payload) {
+    public static byte[] translateHeldItemChange759To757(byte[] payload) {
         return payload;
     }
 
-    /**
-     * Pong（735 0x07 → 736 0x07）。恒等写像：入力ペイロードをそのまま返す。
-     * 両版とも transaction 形式（ServerboundContainerAckPacket。
-     * {windowId i8, actionNumber i16, accepted bool}。javap rh が両jarで同一）。
-     * 736⇔751で落としていたのは751側が {id i32} の pong だったためで、
-     * 735⇔736では両側が同じ形式のため落とさない。
-     */
-    public static byte[] translatePong735To736(byte[] payload) {
+    public static byte[] translateLoginStart757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String username = reader.readString();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Login Start に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString(username);
+            writer.writeBoolean(false); // signature 無し
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateLoginStart759To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            String username = reader.readString();
+            if (reader.readBoolean()) { // signature option
+                reader.readLong(); // timestamp
+                reader.readByteArray(); // publicKey
+                reader.readByteArray(); // signature
+            }
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Login Start に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeString(username);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateSetBeaconEffect757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int primary = reader.readVarInt();
+            int secondary = reader.readVarInt();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Set Beacon Effect に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writeOptionalEffect(writer, primary);
+            writeOptionalEffect(writer, secondary);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateSetBeaconEffect763To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int primary = readOptionalEffect(reader);
+            int secondary = readOptionalEffect(reader);
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Set Beacon Effect に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(primary);
+            writer.writeVarInt(secondary);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateSetHeldItem757To759(byte[] payload) {
         return payload;
     }
 
-    /**
-     * Pong（736 0x07 → 735 0x07）。恒等写像：入力ペイロードをそのまま返す。
-     * 根拠は {@link #translatePong735To736(byte[])} と同じ。
-     */
-    public static byte[] translatePong736To735(byte[] payload) {
+    public static byte[] translateSetHeldItem759To757(byte[] payload) {
         return payload;
+    }
+
+    public static byte[] translateUpdateStructureBlock757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long location = reader.readPositionRaw();
+            int action = reader.readVarInt();
+            int mode = reader.readVarInt();
+            String name = reader.readString();
+            int offsetX = reader.readByte();
+            int offsetY = reader.readByte();
+            int offsetZ = reader.readByte();
+            int sizeX = reader.readByte();
+            int sizeY = reader.readByte();
+            int sizeZ = reader.readByte();
+            int mirror = reader.readVarInt();
+            int rotation = reader.readVarInt();
+            String metadata = reader.readString();
+            float integrity = reader.readFloat();
+            long seed = reader.readVarLong();
+            int flags = reader.readUnsignedByte();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Update Structure Block に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writePositionRaw(location);
+            writer.writeVarInt(action);
+            writer.writeVarInt(mode);
+            writer.writeString(name);
+            writer.writeByte(offsetX);
+            writer.writeByte(offsetY);
+            writer.writeByte(offsetZ);
+            writer.writeByte(sizeX);
+            writer.writeByte(sizeY);
+            writer.writeByte(sizeZ);
+            writer.writeVarInt(mirror);
+            writer.writeVarInt(rotation);
+            writer.writeString(metadata);
+            writer.writeFloat(integrity);
+            writer.writeVarInt((int) seed);
+            writer.writeUnsignedByte(flags);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateUpdateStructureBlock763To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            long location = reader.readPositionRaw();
+            int action = reader.readVarInt();
+            int mode = reader.readVarInt();
+            String name = reader.readString();
+            int offsetX = reader.readByte();
+            int offsetY = reader.readByte();
+            int offsetZ = reader.readByte();
+            int sizeX = reader.readByte();
+            int sizeY = reader.readByte();
+            int sizeZ = reader.readByte();
+            int mirror = reader.readVarInt();
+            int rotation = reader.readVarInt();
+            String metadata = reader.readString();
+            float integrity = reader.readFloat();
+            int seed = reader.readVarInt();
+            int flags = reader.readUnsignedByte();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Update Structure Block に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writePositionRaw(location);
+            writer.writeVarInt(action);
+            writer.writeVarInt(mode);
+            writer.writeString(name);
+            writer.writeByte(offsetX);
+            writer.writeByte(offsetY);
+            writer.writeByte(offsetZ);
+            writer.writeByte(sizeX);
+            writer.writeByte(sizeY);
+            writer.writeByte(sizeZ);
+            writer.writeVarInt(mirror);
+            writer.writeVarInt(rotation);
+            writer.writeString(metadata);
+            writer.writeFloat(integrity);
+            writer.writeVarLong(seed);
+            writer.writeUnsignedByte(flags);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateUseEntity775To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int target = reader.readVarInt();
+            int hand = reader.readVarInt();
+            float x = reader.readFloat();
+            float y = reader.readFloat();
+            float z = reader.readFloat();
+            boolean sneaking = reader.readBoolean();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Use Entity に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(target);
+            writer.writeVarInt(2); // mouse：interact_at
+            writer.writeFloat(x);
+            writer.writeFloat(y);
+            writer.writeFloat(z);
+            writer.writeVarInt(hand);
+            writer.writeBoolean(sneaking);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateUseItem757To759(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int hand = reader.readVarInt();
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Use Item に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(hand);
+            writer.writeVarInt(0); // sequence：757には無いため 0 を補う
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateUseItem763To757(byte[] payload) {
+        try {
+            Reader reader = new Reader(payload);
+            int hand = reader.readVarInt();
+            reader.readVarInt(); // sequence：757には無いため落とす
+            if (reader.remaining() != 0) {
+                throw new IllegalArgumentException(
+                        "Use Item に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+            }
+            Writer writer = new Writer();
+            writer.writeVarInt(hand);
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            return payload;
+        }
+    }
+
+    public static byte[] translateVehicleMove757To759(byte[] payload) {
+        return payload;
+    }
+
+    public static byte[] translateVehicleMove759To757(byte[] payload) {
+        return payload;
+    }
+
+    private static void writeOptionalEffect(Writer writer, int effect) {
+        if (effect < 0) {
+            writer.writeBoolean(false);
+        } else {
+            writer.writeBoolean(true);
+            writer.writeVarInt(effect);
+        }
     }
 
 }
