@@ -25,6 +25,97 @@ class AdapterDiscoveryTest {
     }
 
     @Test
+    void discoversThe19Adapter() {
+        boolean found = StreamSupport.stream(
+                        ServiceLoader.load(VersionAdapter.class).spliterator(), false)
+                .anyMatch(adapter -> adapter.minecraftVersion().equals("1.9")
+                        && adapter.protocolVersion() == 107);
+        assertTrue(found, "Expected a 1.9 adapter on the test classpath");
+
+        VersionAdapter adapter = DetergentServer.selectAdapter("1.9");
+        assertEquals("1.9", adapter.minecraftVersion());
+        assertEquals(107, adapter.protocolVersion());
+    }
+
+    @Test
+    void discoversThe191Adapter() {
+        boolean found = StreamSupport.stream(
+                        ServiceLoader.load(VersionAdapter.class).spliterator(), false)
+                .anyMatch(adapter -> adapter.minecraftVersion().equals("1.9.1")
+                        && adapter.protocolVersion() == 108);
+        assertTrue(found, "Expected a 1.9.1 adapter on the test classpath");
+
+        VersionAdapter adapter = DetergentServer.selectAdapter("1.9.1");
+        assertEquals("1.9.1", adapter.minecraftVersion());
+        assertEquals(108, adapter.protocolVersion());
+    }
+
+    @Test
+    void discoversThe192Adapter() {
+        boolean found = StreamSupport.stream(
+                        ServiceLoader.load(VersionAdapter.class).spliterator(), false)
+                .anyMatch(adapter -> adapter.minecraftVersion().equals("1.9.2")
+                        && adapter.protocolVersion() == 109);
+        assertTrue(found, "Expected a 1.9.2 adapter on the test classpath");
+
+        VersionAdapter adapter = DetergentServer.selectAdapter("1.9.2");
+        assertEquals("1.9.2", adapter.minecraftVersion());
+        assertEquals(109, adapter.protocolVersion());
+    }
+
+    @Test
+    void discoversThe194Adapter() {
+        boolean found = StreamSupport.stream(
+                        ServiceLoader.load(VersionAdapter.class).spliterator(), false)
+                .anyMatch(adapter -> adapter.minecraftVersion().equals("1.9.4")
+                        && adapter.protocolVersion() == 110);
+        assertTrue(found, "Expected a 1.9.4 adapter on the test classpath");
+
+        VersionAdapter adapter = DetergentServer.selectAdapter("1.9.4");
+        assertEquals("1.9.4", adapter.minecraftVersion());
+        assertEquals(110, adapter.protocolVersion());
+    }
+
+    @Test
+    void discoversThe1102Adapter() {
+        boolean found = StreamSupport.stream(
+                        ServiceLoader.load(VersionAdapter.class).spliterator(), false)
+                .anyMatch(adapter -> adapter.minecraftVersion().equals("1.10.2")
+                        && adapter.protocolVersion() == 210);
+        assertTrue(found, "Expected a 1.10.2 adapter on the test classpath");
+
+        VersionAdapter adapter = DetergentServer.selectAdapter("1.10.2");
+        assertEquals("1.10.2", adapter.minecraftVersion());
+        assertEquals(210, adapter.protocolVersion());
+    }
+
+    @Test
+    void discoversThe111Adapter() {
+        boolean found = StreamSupport.stream(
+                        ServiceLoader.load(VersionAdapter.class).spliterator(), false)
+                .anyMatch(adapter -> adapter.minecraftVersion().equals("1.11")
+                        && adapter.protocolVersion() == 315);
+        assertTrue(found, "Expected a 1.11 adapter on the test classpath");
+
+        VersionAdapter adapter = DetergentServer.selectAdapter("1.11");
+        assertEquals("1.11", adapter.minecraftVersion());
+        assertEquals(315, adapter.protocolVersion());
+    }
+
+    @Test
+    void discoversThe1112Adapter() {
+        boolean found = StreamSupport.stream(
+                        ServiceLoader.load(VersionAdapter.class).spliterator(), false)
+                .anyMatch(adapter -> adapter.minecraftVersion().equals("1.11.2")
+                        && adapter.protocolVersion() == 316);
+        assertTrue(found, "Expected a 1.11.2 adapter on the test classpath");
+
+        VersionAdapter adapter = DetergentServer.selectAdapter("1.11.2");
+        assertEquals("1.11.2", adapter.minecraftVersion());
+        assertEquals(316, adapter.protocolVersion());
+    }
+
+    @Test
     void discoversThe112Adapter() {
         boolean found = StreamSupport.stream(
                         ServiceLoader.load(VersionAdapter.class).spliterator(), false)

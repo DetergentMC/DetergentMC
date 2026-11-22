@@ -64,14 +64,14 @@ class ClientAdapterCrossVersionTest {
 
     @Test
     void decideRejectsOutOfRange() {
-        assertFalse(ClientAdapter.decide(757, 765).accepted());
+        assertFalse(ClientAdapter.decide(734, 765).accepted());
         assertFalse(ClientAdapter.decide(777, 765).accepted());
-        assertFalse(ClientAdapter.decide(757, 764).accepted());
+        assertFalse(ClientAdapter.decide(734, 764).accepted());
         assertFalse(ClientAdapter.decide(777, 764).accepted());
         assertFalse(ClientAdapter.decide(777, 766).accepted());
-        assertFalse(ClientAdapter.decide(757, 766).accepted());
+        assertFalse(ClientAdapter.decide(734, 766).accepted());
         assertFalse(ClientAdapter.decide(777, 768).accepted());
-        assertFalse(ClientAdapter.decide(757, 768).accepted());
+        assertFalse(ClientAdapter.decide(734, 768).accepted());
         assertTrue(ClientAdapter.decide(768, 765).accepted());
         assertTrue(ClientAdapter.decide(768, 764).accepted());
         assertTrue(ClientAdapter.decide(768, 766).accepted());

@@ -154,6 +154,31 @@ public final class ClientJoinFlow {
                 || clientProtocol == ProtocolVersion.V1_19_3
                 || clientProtocol == ProtocolVersion.V1_19_1
                 || clientProtocol == ProtocolVersion.V1_19
+                || clientProtocol == ProtocolVersion.V1_18_2
+                || clientProtocol == ProtocolVersion.V1_15_2
+                || clientProtocol == ProtocolVersion.V1_15_1
+                || clientProtocol == ProtocolVersion.V1_15
+                || clientProtocol == ProtocolVersion.V1_14_4
+                || clientProtocol == ProtocolVersion.V1_14_3
+                || clientProtocol == ProtocolVersion.V1_14_2
+                || clientProtocol == ProtocolVersion.V1_14_1
+                || clientProtocol == ProtocolVersion.V1_14
+                || clientProtocol == ProtocolVersion.V1_13_2
+                || clientProtocol == ProtocolVersion.V1_13_1
+                || clientProtocol == ProtocolVersion.V1_13
+                || clientProtocol == ProtocolVersion.V1_12_2
+                || clientProtocol == ProtocolVersion.V1_12_1
+                || clientProtocol == ProtocolVersion.V1_12
+                || clientProtocol == ProtocolVersion.V1_7_2
+                || clientProtocol == ProtocolVersion.V1_7_10
+                || clientProtocol == ProtocolVersion.V1_8
+                || clientProtocol == ProtocolVersion.V1_9
+                || clientProtocol == ProtocolVersion.V1_9_1
+                || clientProtocol == ProtocolVersion.V1_9_2
+                || clientProtocol == ProtocolVersion.V1_9_4
+                || clientProtocol == ProtocolVersion.V1_10_2
+                || clientProtocol == ProtocolVersion.V1_11
+                || clientProtocol == ProtocolVersion.V1_11_2
                 || clientProtocol == ProtocolVersion.V1_18
                 || clientProtocol == ProtocolVersion.V1_17_1
                 || clientProtocol == ProtocolVersion.V1_17

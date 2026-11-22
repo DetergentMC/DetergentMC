@@ -16,10 +16,54 @@ public final class ProtocolVersion {
     private ProtocolVersion() {
     }
 
+    /** Minecraft 1.7.2 - 1.7.5（4版ともプロトコル4） */
+    public static final int V1_7_2 = 4;
+    /** Minecraft 1.7.6 - 1.7.10（5版ともプロトコル5） */
+    public static final int V1_7_10 = 5;
     /** Minecraft 1.8 - 1.8.9 */
     public static final int V1_8 = 47;
-    /** Minecraft 1.12 - 1.12.2 */
+    /** Minecraft 1.9 */
+    public static final int V1_9 = 107;
+    /** Minecraft 1.9.1 */
+    public static final int V1_9_1 = 108;
+    /** Minecraft 1.9.2 */
+    public static final int V1_9_2 = 109;
+    /** Minecraft 1.9.3 - 1.9.4（両版ともプロトコル110） */
+    public static final int V1_9_4 = 110;
+    /** Minecraft 1.10 - 1.10.2（3版ともプロトコル210） */
+    public static final int V1_10_2 = 210;
+    /** Minecraft 1.11 */
+    public static final int V1_11 = 315;
+    /** Minecraft 1.11.1 - 1.11.2（両版ともプロトコル316） */
+    public static final int V1_11_2 = 316;
+    /** Minecraft 1.12 */
+    public static final int V1_12 = 335;
+    /** Minecraft 1.12.1 */
+    public static final int V1_12_1 = 338;
+    /** Minecraft 1.12.2 */
     public static final int V1_12_2 = 340;
+    /** Minecraft 1.13 */
+    public static final int V1_13 = 393;
+    /** Minecraft 1.13.1 */
+    public static final int V1_13_1 = 401;
+    /** Minecraft 1.13.2 */
+    public static final int V1_13_2 = 404;
+    /** Minecraft 1.14 */
+    public static final int V1_14 = 477;
+    /** Minecraft 1.14.1 */
+    public static final int V1_14_1 = 480;
+    /** Minecraft 1.14.2 */
+    public static final int V1_14_2 = 485;
+    /** Minecraft 1.14.3 */
+    public static final int V1_14_3 = 490;
+    /** Minecraft 1.14.4 */
+    public static final int V1_14_4 = 498;
+    /** Minecraft 1.15 */
+    public static final int V1_15 = 573;
+    /** Minecraft 1.15.1 */
+    public static final int V1_15_1 = 575;
+    /** Minecraft 1.15.2 */
+    public static final int V1_15_2 = 578;
     /** Minecraft 1.16 */
     public static final int V1_16 = 735;
     /** Minecraft 1.16.1 */
@@ -36,6 +80,8 @@ public final class ProtocolVersion {
     public static final int V1_17_1 = 756;
     /** Minecraft 1.18 - 1.18.1 */
     public static final int V1_18 = 757;
+    /** Minecraft 1.18 - 1.18.2 */
+    public static final int V1_18_2 = 758;
     /** Minecraft 1.19 */
     public static final int V1_19 = 759;
     /** Minecraft 1.19.1 - 1.19.2 */
@@ -70,9 +116,11 @@ public final class ProtocolVersion {
     public static final int V1_21_11 = 774;
     /** Minecraft 26.1 - 26.1.2 ("Tiny Takeover") */
     public static final int V26_1 = 775;
+    /** Minecraft 26.2 ("Chaos Cubed") */
+    public static final int V26_2 = 776;
 
     /** The newest protocol this skeleton knows about. */
-    public static final int LATEST_KNOWN = V26_1;
+    public static final int LATEST_KNOWN = V26_2;
 
     /**
      * The Minecraft version DetergentMC runs when {@code detergentmc.yml}
@@ -99,6 +147,54 @@ public final class ProtocolVersion {
      * assuming 765:
      *
      * <ul>
+     *   <li>{@code "1.7.2"} 〜 {@code "1.7.5"} → {@link #V1_7_2} (4);
+     *       1.7.2〜1.7.5 の全4リリースがプロトコル 4 を共有する
+     *       （全4版の実バニラの status 応答で確認済み。1.7.3 も
+     *       実在する製品版で 4 に属す。代表は 1.7.2 の jar を
+     *       内部サーバーに使う。1.7.6〜1.7.10 はプロトコル 5）</li>
+     *   <li>{@code "1.7.6"} 〜 {@code "1.7.10"} → {@link #V1_7_10} (5);
+     *       1.7.6〜1.7.10 の全5リリースがプロトコル 5 を共有する
+     *       （全5版の実バニラの status 応答で確認済み。代表は
+     *       1.7.10 の jar を内部サーバーに使う）</li>
+     *   <li>{@code "1.8"} 〜 {@code "1.8.9"} → {@link #V1_8} (47);
+     *       1.8 系の全10リリースがプロトコル 47 を共有する
+     *       （全10版の実バニラの status 応答で確認済み。代表は
+     *       1.8.9 の jar を内部サーバーに使う）</li>
+     *   <li>{@code "1.9"} → {@link #V1_9} (107);
+     *       verified against a real vanilla 1.9 server: its status
+     *       response reports 107</li>
+     *   <li>{@code "1.9.1"} → {@link #V1_9_1} (108);
+     *       verified against a real vanilla 1.9.1 server: its status
+     *       response reports 108</li>
+     *   <li>{@code "1.9.2"} → {@link #V1_9_2} (109);
+     *       verified against a real vanilla 1.9.2 server: its status
+     *       response reports 109</li>
+     *   <li>{@code "1.9.3"} or {@code "1.9.4"} → {@link #V1_9_4} (110);
+     *       1.9.3 and 1.9.4 share protocol 110 (verified against real
+     *       vanilla servers: each status response reports 110)</li>
+     *   <li>{@code "1.10"} or {@code "1.10.1"} or {@code "1.10.2"} → {@link #V1_10_2} (210);
+     *       1.10, 1.10.1 and 1.10.2 share protocol 210 (verified against
+     *       real vanilla servers: each status response reports 210.
+     *       There is no release protocol 201)</li>
+     *   <li>{@code "1.11"} → {@link #V1_11} (315)</li>
+     *   <li>{@code "1.11.1"} or {@code "1.11.2"} → {@link #V1_11_2} (316);
+     *       1.11.1 and 1.11.2 share protocol 316 (verified against a real
+     *       1.11.1 vanilla server: its status response reports 316, and
+     *       its handshake handler compares the client protocol to 316)</li>
+     *   <li>{@code "1.12"} → {@link #V1_12} (335)</li>
+     *   <li>{@code "1.12.1"} → {@link #V1_12_1} (338)</li>
+     *   <li>{@code "1.12.2"} → {@link #V1_12_2} (340)</li>
+     *   <li>{@code "1.13"} → {@link #V1_13} (393)</li>
+     *   <li>{@code "1.13.1"} → {@link #V1_13_1} (401)</li>
+ *   <li>{@code "1.13.2"} → {@link #V1_13_2} (404)</li>
+ *   <li>{@code "1.14"} → {@link #V1_14} (477)</li>
+     *   <li>{@code "1.14.1"} → {@link #V1_14_1} (480)</li>
+     *   <li>{@code "1.14.2"} → {@link #V1_14_2} (485)</li>
+     *   <li>{@code "1.14.3"} → {@link #V1_14_3} (490)</li>
+     *   <li>{@code "1.14.4"} → {@link #V1_14_4} (498)</li>
+     *   <li>{@code "1.15"} → {@link #V1_15} (573)</li>
+     *   <li>{@code "1.15.1"} → {@link #V1_15_1} (575)</li>
+     *   <li>{@code "1.15.2"} → {@link #V1_15_2} (578)</li>
      *   <li>{@code "1.16"} → {@link #V1_16} (735)</li>
      *   <li>{@code "1.16.1"} → {@link #V1_16_1} (736)</li>
      *   <li>{@code "1.16.2"} → {@link #V1_16_2} (751)</li>
@@ -109,6 +205,7 @@ public final class ProtocolVersion {
      *   <li>{@code "1.17.1"} → {@link #V1_17_1} (756)</li>
      *   <li>{@code "1.18"} or {@code "1.18.1"} → {@link #V1_18} (757);
      *       1.18 and 1.18.1 share protocol 757</li>
+     *   <li>{@code "1.18.2"} → {@link #V1_18_2} (758)</li>
      *   <li>{@code "1.19"} → {@link #V1_19} (759)</li>
      *   <li>{@code "1.19.1"} or {@code "1.19.2"} → {@link #V1_19_1} (760);
      *       1.19.1 and 1.19.2 share protocol 760</li>
@@ -138,6 +235,8 @@ public final class ProtocolVersion {
      *   <li>{@code "1.21.11"} → {@link #V1_21_11} (774)</li>
      *   <li>{@code "26.1"} or {@code "26.1.1"} or {@code "26.1.2"} → {@link #V26_1} (775);
      *       26.1, 26.1.1 and 26.1.2 share protocol 775</li>
+     *   <li>{@code "26.2"} → {@link #V26_2} (776);
+     *       26.2 has no hotfix releases (piston-meta lists only the 26.2 release)</li>
      *   <li>anything else (including {@code null} or blank) → 765, with a
      *       warning logged. The server never refuses to start over an
      *       unknown version string here; the version adapter lookup in
@@ -148,9 +247,81 @@ public final class ProtocolVersion {
      * @param minecraftVersion the {@code minecraft-version} value from the
      *                         config, e.g. {@code "1.20.2"} or
      *                         {@code "1.20.4"}
-     * @return the internal server protocol number (735, 736, 751, 753, 754, 755, 756, 757, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774 or 775)
+     * @return the internal server protocol number (4, 5, 47, 107, 108, 109, 110, 210, 315, 316, 335, 338, 340, 393, 401, 404, 477, 480, 485, 490, 498, 573, 575, 578, 735, 736, 751, 753, 754, 755, 756, 757, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775 or 776)
      */
     public static int serverProtocolFor(String minecraftVersion) {
+        if ("1.7.2".equals(minecraftVersion) || "1.7.3".equals(minecraftVersion) || "1.7.4".equals(minecraftVersion) || "1.7.5".equals(minecraftVersion)) {
+            return V1_7_2;
+        }
+        if ("1.7.6".equals(minecraftVersion) || "1.7.7".equals(minecraftVersion) || "1.7.8".equals(minecraftVersion) || "1.7.9".equals(minecraftVersion) || "1.7.10".equals(minecraftVersion)) {
+            return V1_7_10;
+        }
+        if ("1.8".equals(minecraftVersion) || "1.8.1".equals(minecraftVersion) || "1.8.2".equals(minecraftVersion) || "1.8.3".equals(minecraftVersion) || "1.8.4".equals(minecraftVersion) || "1.8.5".equals(minecraftVersion) || "1.8.6".equals(minecraftVersion) || "1.8.7".equals(minecraftVersion) || "1.8.8".equals(minecraftVersion) || "1.8.9".equals(minecraftVersion)) {
+            return V1_8;
+        }
+        if ("1.9".equals(minecraftVersion)) {
+            return V1_9;
+        }
+        if ("1.9.1".equals(minecraftVersion)) {
+            return V1_9_1;
+        }
+        if ("1.9.2".equals(minecraftVersion)) {
+            return V1_9_2;
+        }
+        if ("1.9.3".equals(minecraftVersion) || "1.9.4".equals(minecraftVersion)) {
+            return V1_9_4;
+        }
+        if ("1.10".equals(minecraftVersion) || "1.10.1".equals(minecraftVersion) || "1.10.2".equals(minecraftVersion)) {
+            return V1_10_2;
+        }
+        if ("1.11".equals(minecraftVersion)) {
+            return V1_11;
+        }
+        if ("1.11.1".equals(minecraftVersion) || "1.11.2".equals(minecraftVersion)) {
+            return V1_11_2;
+        }
+        if ("1.12".equals(minecraftVersion)) {
+            return V1_12;
+        }
+        if ("1.12.1".equals(minecraftVersion)) {
+            return V1_12_1;
+        }
+        if ("1.12.2".equals(minecraftVersion)) {
+            return V1_12_2;
+        }
+        if ("1.13".equals(minecraftVersion)) {
+            return V1_13;
+        }
+        if ("1.13.1".equals(minecraftVersion)) {
+            return V1_13_1;
+        }
+        if ("1.13.2".equals(minecraftVersion)) {
+            return V1_13_2;
+        }
+        if ("1.14".equals(minecraftVersion)) {
+            return V1_14;
+        }
+        if ("1.14.1".equals(minecraftVersion)) {
+            return V1_14_1;
+        }
+        if ("1.14.2".equals(minecraftVersion)) {
+            return V1_14_2;
+        }
+        if ("1.14.3".equals(minecraftVersion)) {
+            return V1_14_3;
+        }
+        if ("1.14.4".equals(minecraftVersion)) {
+            return V1_14_4;
+        }
+        if ("1.15".equals(minecraftVersion)) {
+            return V1_15;
+        }
+        if ("1.15.1".equals(minecraftVersion)) {
+            return V1_15_1;
+        }
+        if ("1.15.2".equals(minecraftVersion)) {
+            return V1_15_2;
+        }
         if ("1.16".equals(minecraftVersion)) {
             return V1_16;
         }
@@ -174,6 +345,9 @@ public final class ProtocolVersion {
         }
         if ("1.18".equals(minecraftVersion) || "1.18.1".equals(minecraftVersion)) {
             return V1_18;
+        }
+        if ("1.18.2".equals(minecraftVersion)) {
+            return V1_18_2;
         }
         if ("1.19".equals(minecraftVersion)) {
             return V1_19;
@@ -226,11 +400,14 @@ public final class ProtocolVersion {
         if ("26.1".equals(minecraftVersion) || "26.1.1".equals(minecraftVersion) || "26.1.2".equals(minecraftVersion)) {
             return V26_1;
         }
+        if ("26.2".equals(minecraftVersion)) {
+            return V26_2;
+        }
         LOG.warning(() -> "Unknown minecraft-version \"" + minecraftVersion
                 + "\"; falling back to the 1.20.4 server protocol (765). "
-                + "Supported server versions: 1.16, 1.16.1, 1.16.2, 1.16.3, 1.16.4, 1.16.5, 1.17, 1.17.1, 1.18, 1.18.1, 1.19, 1.19.1, 1.19.2, 1.19.3, 1.19.4, 1.20, 1.20.1, 1.20.2, 1.20.3, 1.20.4, "
+                + "Supported server versions: 1.9, 1.9.1, 1.9.2, 1.10, 1.10.1, 1.10.2, 1.11, 1.11.2, 1.12, 1.12.1, 1.12.2, 1.13, 1.13.1, 1.13.2, 1.14, 1.14.1, 1.14.2, 1.14.3, 1.14.4, 1.15, 1.15.1, 1.15.2, 1.16, 1.16.1, 1.16.2, 1.16.3, 1.16.4, 1.16.5, 1.17, 1.17.1, 1.18, 1.18.1, 1.18.2, 1.19, 1.19.1, 1.19.2, 1.19.3, 1.19.4, 1.20, 1.20.1, 1.20.2, 1.20.3, 1.20.4, "
                 + "1.20.5, 1.20.6, 1.21, 1.21.1, 1.21.2, 1.21.3, 1.21.4, 1.21.5, 1.21.6, "
-                + "1.21.7, 1.21.8, 1.21.9, 1.21.10, 1.21.11, 26.1, 26.1.1, 26.1.2.");
+                + "1.21.7, 1.21.8, 1.21.9, 1.21.10, 1.21.11, 26.1, 26.1.1, 26.1.2, 26.2.");
         return V1_20_4;
     }
 

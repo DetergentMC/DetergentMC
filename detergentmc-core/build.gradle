@@ -5,12 +5,20 @@ dependencies {
     implementation project(':detergentmc-api')
     implementation project(':detergentmc-protocol')
     implementation project(':detergentmc-bedrock')
+    implementation project(':detergentmc-legacy-frontend')
     implementation project(':detergentmc-content')
     implementation 'org.yaml:snakeyaml:2.2'
 
     // Version adapters are runtime-only: the core picks one by the
     // minecraft-version in detergentmc.yml.
     // 1.18.2 is protocol 758 and lives in one module.
+    runtimeOnly project(':detergentmc-adapter-v1_9')
+    runtimeOnly project(':detergentmc-adapter-v1_9_1')
+    runtimeOnly project(':detergentmc-adapter-v1_9_2')
+    runtimeOnly project(':detergentmc-adapter-v1_9_4')
+    runtimeOnly project(':detergentmc-adapter-v1_10_2')
+    runtimeOnly project(':detergentmc-adapter-v1_11')
+    runtimeOnly project(':detergentmc-adapter-v1_11_2')
     runtimeOnly project(':detergentmc-adapter-v1_12')
     runtimeOnly project(':detergentmc-adapter-v1_12_1')
     runtimeOnly project(':detergentmc-adapter-v1_12_2')
@@ -25,6 +33,10 @@ dependencies {
     runtimeOnly project(':detergentmc-adapter-v1_15')
     runtimeOnly project(':detergentmc-adapter-v1_15_1')
     runtimeOnly project(':detergentmc-adapter-v1_15_2')
+    // 1.7.10（プロトコル5）と 1.8.9（プロトコル47）。v1_8 は 47 の
+    // Stage D で宣言が漏れていたため、ここで一緒に補う。
+    runtimeOnly project(':detergentmc-adapter-v1_7')
+    runtimeOnly project(':detergentmc-adapter-v1_8')
     runtimeOnly project(':detergentmc-adapter-v1_18_2')
     // 1.19 is protocol 759 and lives in one module.
     runtimeOnly project(':detergentmc-adapter-v1_19')
@@ -64,6 +76,13 @@ dependencies {
     testImplementation project(':detergentmc-adapter-v1_20_4')
     testRuntimeOnly project(':detergentmc-adapter-v1_20_4')
     // And the 1.18.2 adapter (protocol 758, one module).
+    testImplementation project(':detergentmc-adapter-v1_9')
+    testImplementation project(':detergentmc-adapter-v1_9_1')
+    testImplementation project(':detergentmc-adapter-v1_9_2')
+    testImplementation project(':detergentmc-adapter-v1_9_4')
+    testImplementation project(':detergentmc-adapter-v1_10_2')
+    testImplementation project(':detergentmc-adapter-v1_11')
+    testImplementation project(':detergentmc-adapter-v1_11_2')
     testImplementation project(':detergentmc-adapter-v1_12')
     testImplementation project(':detergentmc-adapter-v1_12_1')
     testImplementation project(':detergentmc-adapter-v1_12_2')
@@ -79,6 +98,13 @@ dependencies {
     testImplementation project(':detergentmc-adapter-v1_15_1')
     testImplementation project(':detergentmc-adapter-v1_15_2')
     testImplementation project(':detergentmc-adapter-v1_18_2')
+    testRuntimeOnly project(':detergentmc-adapter-v1_9')
+    testRuntimeOnly project(':detergentmc-adapter-v1_9_1')
+    testRuntimeOnly project(':detergentmc-adapter-v1_9_2')
+    testRuntimeOnly project(':detergentmc-adapter-v1_9_4')
+    testRuntimeOnly project(':detergentmc-adapter-v1_10_2')
+    testRuntimeOnly project(':detergentmc-adapter-v1_11')
+    testRuntimeOnly project(':detergentmc-adapter-v1_11_2')
     testRuntimeOnly project(':detergentmc-adapter-v1_12')
     testRuntimeOnly project(':detergentmc-adapter-v1_12_1')
     testRuntimeOnly project(':detergentmc-adapter-v1_12_2')
@@ -285,7 +311,11 @@ tasks.register('versionedJars') {
     }
     def buildNumberFor = { mcVersion -> buildNumbers.getProperty(mcVersion, '1') }
     def versions = [
-        '1.12', '1.12.1', '1.12.2',
+        '1.0.0', '1.1', '1.2.1', '1.2.2', '1.2.3', '1.2.4',
+        '1.2.5', '1.3.1', '1.3.2', '1.4.2', '1.4.4', '1.4.5', '1.4.6', '1.4.7', '1.5', '1.5.1', '1.5.2', '1.6.1', '1.6.2', '1.6.4',
+        '1.7.2', '1.7.10',
+        '1.8.9',
+        '1.9', '1.9.1', '1.9.2', '1.9.4', '1.10.2', '1.11', '1.11.2', '1.12', '1.12.1', '1.12.2',
         '1.13', '1.13.1', '1.13.2',
         '1.14', '1.14.1', '1.14.2', '1.14.3', '1.14.4',
         '1.15', '1.15.1', '1.15.2',
