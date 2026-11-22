@@ -360,6 +360,42 @@
   理由付きLogin Disconnectで切断する。くわしくは `docs/PROXY-1.20.1.md` の
   「1.20.1クライアント（763、online-mode）」を参照。
 
+### Surfactant転送の受け口（バッチ4）
+
+DetergentMCをSurfactantプロキシの後ろに置く場合、Surfactantが保証した
+プレイヤーの素性をそのまま採用できる（Velocityのモダン転送と同じ
+考え方。ワイヤ形式はSurfactant独自のv1形式で、Velocityとは
+バイト互換ではない）。
+
+- **設定**：`detergentmc.yml` の `forwarding.secret` に、Surfactant側の
+  バックエンド設定（`forwarding-secret`、または全体の
+  `forwarding.secret`）と同じ共有シークレットを設定する。空（既定）
+  なら転送は無効で、従来通りの直接接続になる。
+- **流れ**：シークレット設定時は、ログインのハンドシェイクを預かり、
+  Login Start の代わりに転送確認（Login Plugin Request、チャンネル
+  `surfactant:forwarding`）を返す。Surfactantからの応答を
+  HMAC-SHA256署名で検証し（`ForwardingData`）、**検証が通るまで
+  内部バニラへは何も送らない**。検証が通れば、転送された素性
+  （UUID・名前・接続元IP・プロパティ）がこのセッションの認証済み
+  プロフィールになり、内部バニラへの Login Start には本物のUUIDが
+  入る。転送された名前が Login Start の名前と違う場合も拒否する。
+- **失敗時**：署名が合わない・応答が「理解できない」・名前が違う場合は、
+  理由（Surfactant経由で接続する旨の案内）付きの Login Disconnect で
+  切断する。シークレット設定中は、Surfactantを経由しない直接接続は
+  すべて拒否される点に注意。
+- **採用の範囲（正直に）**：採用されるのはDetergentMC層の素性まで。
+  内部バニラ（offline-mode）は Login Start のUUIDを使わず名前から
+  offline UUID を割り当てるため、クライアントへ返る Login Success の
+  UUIDと、バニラの usercache の鍵は offline UUID のままになる
+  （プロパティだけは転送されたものに差し替わる）。本物のUUIDは
+  DetergentMC層のプロフィールと接続元IP（`forwardedAddress`）として
+  保持されるが、バニラ自身の記録には残らない。
+- **検証**：`ForwardingDataTest`（形式と署名）、
+  `ClientProxyForwardingTest`（採用・改ざん・未理解・名前不一致）、
+  実バニラ1.20.4での `ProxyForwardingIntegrationTest`（参加可否と
+  usercache の記録）で確認済み。本物のMojangセッションサーバーでの
+  認証、本物のゲームクライアントでの確認は未実施。
+
 ## 今後のマイルストーン（優先順）
 
 1. バニラ結合：公式マッピングを使い、1.20.4アダプターを本物のNMS呼び出しに繋げる。
