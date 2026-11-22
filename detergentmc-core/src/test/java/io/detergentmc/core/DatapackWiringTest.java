@@ -53,6 +53,41 @@ class DatapackWiringTest {
     }
 
     @Test
+    void generateDatapackFor1182UsesFormat9() throws Exception {
+        // Real vanilla 1.18.2 server jar version.json: pack_version.data 9.
+        DetergentServer server = serverWith(Map.of("minecraft-version", "1.18.2"));
+        Path file = server.generateDatapack();
+        assertNotNull(file);
+        try (ZipFile zip = new ZipFile(file.toFile())) {
+            var entry = zip.getEntry("pack.mcmeta");
+            assertNotNull(entry);
+            String mcmeta = new String(
+                    zip.getInputStream(entry).readAllBytes(),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            assertEquals("{\"pack\":{\"pack_format\":9,\"description\":\"DetergentMC\"}}",
+                    mcmeta, "datapack format for 1.18.2");
+        }
+    }
+
+    @Test
+    void generateDatapackFor119UsesFormat10() throws Exception {
+        // Minecraft Wiki (Template:Data pack format): 10 = 1.19–1.19.3.
+        // "1.19" had no case in packFormatFor and fell back to 26 until Stage D.
+        DetergentServer server = serverWith(Map.of("minecraft-version", "1.19"));
+        Path file = server.generateDatapack();
+        assertNotNull(file);
+        try (ZipFile zip = new ZipFile(file.toFile())) {
+            var entry = zip.getEntry("pack.mcmeta");
+            assertNotNull(entry);
+            String mcmeta = new String(
+                    zip.getInputStream(entry).readAllBytes(),
+                    java.nio.charset.StandardCharsets.UTF_8);
+            assertEquals("{\"pack\":{\"pack_format\":10,\"description\":\"DetergentMC\"}}",
+                    mcmeta, "datapack format for 1.19");
+        }
+    }
+
+    @Test
     void generateDatapackFor1193UsesFormat10() throws Exception {
         // Minecraft Wiki (Template:Data pack format): 10 = 1.19–1.19.3.
         DetergentServer server = serverWith(Map.of("minecraft-version", "1.19.3"));
