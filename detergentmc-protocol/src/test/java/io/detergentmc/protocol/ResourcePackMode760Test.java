@@ -39,7 +39,7 @@ class ResourcePackMode760Test {
     void valid760UrlAndSha1YieldPack760() {
         ResourcePackMode.Decision decision = ResourcePackMode.decide(
                 URL, VALID_SHA1, URL_761, VALID_SHA1_761, URL_762, VALID_SHA1_762, URL_763, VALID_SHA1_763,
-                "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", URL_760, VALID_SHA1_760,
+                "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", URL_760, VALID_SHA1_760,
                 false, "");
         assertEquals(ResourcePackMode.Kind.EXTERNAL, decision.kind());
         assertNull(decision.problem());
@@ -67,7 +67,7 @@ class ResourcePackMode760Test {
     void empty760UrlMeansNoPack760AndNoProblem() {
         ResourcePackMode.Decision decision = ResourcePackMode.decide(
                 URL, VALID_SHA1, URL_761, VALID_SHA1_761, URL_762, VALID_SHA1_762, URL_763, VALID_SHA1_763,
-                "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+                "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
                 false, "");
         assertEquals(ResourcePackMode.Kind.EXTERNAL, decision.kind());
         assertNull(decision.problem());
@@ -82,7 +82,7 @@ class ResourcePackMode760Test {
     void invalid760Sha1WarnsAndFallsBackTo761Pack() {
         ResourcePackMode.Decision decision = ResourcePackMode.decide(
                 URL, VALID_SHA1, URL_761, VALID_SHA1_761, URL_762, VALID_SHA1_762, URL_763, VALID_SHA1_763,
-                "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", URL_760, "not-a-sha1",
+                "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", URL_760, "not-a-sha1",
                 false, "");
         assertEquals(ResourcePackMode.Kind.EXTERNAL, decision.kind());
         // The primary pack is unaffected; only the 760 pack is dropped.
@@ -99,7 +99,7 @@ class ResourcePackMode760Test {
     void nonHttps760UrlWarnsAndFallsBackTo761Pack() {
         ResourcePackMode.Decision decision = ResourcePackMode.decide(
                 URL, VALID_SHA1, URL_761, VALID_SHA1_761, URL_762, VALID_SHA1_762, URL_763, VALID_SHA1_763,
-                "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
+                "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "",
                 "http://example.invalid/packs/detergentmc-pack-1.19.1.zip",
                 VALID_SHA1_760, false, "");
         assertEquals(ResourcePackMode.Kind.EXTERNAL, decision.kind());

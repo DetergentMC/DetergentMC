@@ -163,7 +163,7 @@ public final class VanillaServerHost {
      * given Minecraft version.
      *
      * <p>Minecraft 1.20.5 / 1.20.6, 1.21 / 1.21.1, 1.21.2 / 1.21.3,
-     * 1.21.4, 1.21.5, 1.21.6, 1.21.7, 1.21.8, 1.21.9, 1.21.10 and 1.21.11 require Java 21, while DetergentMC itself (and 1.19.1–1.20.4)
+     * 1.21.4, 1.21.5, 1.21.6, 1.21.7, 1.21.8, 1.21.9, 1.21.10 and 1.21.11 require Java 21, while DetergentMC itself (and 1.18.2 and 1.19.1–1.20.4)
      * runs on Java 17. When the Gradle process runs on Java 17,
      * launching a 1.20.5 / 1.20.6, 1.21 / 1.21.1, 1.21.2 / 1.21.3,
      * 1.21.4, 1.21.5, 1.21.6, 1.21.7, 1.21.8, 1.21.9, 1.21.10 or 1.21.11 vanilla server with the current {@code java.home} would fail at
@@ -178,18 +178,39 @@ public final class VanillaServerHost {
      *       the vanilla server will refuse to start, and the log will
      *       say Java 21 is required (see the warning below).</li>
      * </ol>
-     * Minecraft 26.1 / 26.1.1 / 26.1.2 require Java 25. For those versions
+     * Minecraft 26.1 / 26.1.1 / 26.1.2 / 26.2 require Java 25. For those versions
      * this method prefers a Java 25 installation, in the same order
      * ({@code detergentmc.java25.home} → {@code DETERGENTMC_JAVA25_HOME}
      * → current {@code java.home} when it is already Java 25 or newer).
-     * For 1.19.1–1.20.4 the current {@code java.home} is always used.
+     * For 1.18.2 and 1.19.1–1.20.4 the current {@code java.home} is always used.
      *
      * <p>Package-private for tests.
      */
     static String javaBinaryFor(String minecraftVersion) {
         String javaHome = System.getProperty("java.home");
+        if ("1.15.2".equals(minecraftVersion) || "1.15.1".equals(minecraftVersion) || "1.15".equals(minecraftVersion) || "1.14.4".equals(minecraftVersion) || "1.14.3".equals(minecraftVersion) || "1.14.2".equals(minecraftVersion) || "1.14.1".equals(minecraftVersion) || "1.14".equals(minecraftVersion) || "1.13.2".equals(minecraftVersion) || "1.13.1".equals(minecraftVersion) || "1.13".equals(minecraftVersion) || "1.12.2".equals(minecraftVersion) || "1.12.1".equals(minecraftVersion) || "1.12".equals(minecraftVersion)) {
+            // Minecraft 1.15.x は Java 8 世代（version.json の javaVersion は
+            // jre-legacy）。Java 17 以降では起動できないため、Java 8 を探す。
+            String java8Home = System.getProperty("detergentmc.java8.home");
+            if (java8Home == null || java8Home.isBlank()) {
+                java8Home = System.getenv("DETERGENTMC_JAVA8_HOME");
+            }
+            if (java8Home != null && !java8Home.isBlank()) {
+                return Path.of(java8Home.strip(), "bin", "java").toString();
+            }
+            if (Runtime.version().feature() == 8) {
+                return Path.of(javaHome, "bin", "java").toString();
+            }
+            LOG.warning(() -> "Minecraft " + minecraftVersion + " needs Java 8, but no "
+                    + "Java 8 installation was configured (set the "
+                    + "detergentmc.java8.home system property or the "
+                    + "DETERGENTMC_JAVA8_HOME environment variable). Falling back "
+                    + "to the current Java (" + javaHome + "); the vanilla server "
+                    + "will refuse to start.");
+            return Path.of(javaHome, "bin", "java").toString();
+        }
         if ("26.1".equals(minecraftVersion) || "26.1.1".equals(minecraftVersion)
-                || "26.1.2".equals(minecraftVersion)) {
+                || "26.1.2".equals(minecraftVersion) || "26.2".equals(minecraftVersion)) {
             String java25Home = System.getProperty("detergentmc.java25.home");
             if (java25Home == null || java25Home.isBlank()) {
                 java25Home = System.getenv("DETERGENTMC_JAVA25_HOME");
@@ -278,17 +299,30 @@ public final class VanillaServerHost {
                 current.destroy();
                 if (!current.waitFor(5, TimeUnit.SECONDS)) {
                     current.destroyForcibly();
+                    // destroyForcibly() は即座に返るため、exitValue() を呼ぶ前に
+                    // プロセスの終了を待つ。待たないと負荷時にプロセスがまだ生きていて
+                    // IllegalThreadStateException になり、テストが失敗する
+                    // （776の再実行で発覚。stop() 自体は775以前から同じ形）。
+                    current.waitFor(10, TimeUnit.SECONDS);
                 }
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             current.destroyForcibly();
+            try {
+                current.waitFor(5, TimeUnit.SECONDS);
+            } catch (InterruptedException e2) {
+                Thread.currentThread().interrupt();
+            }
         } finally {
             closeQuietly(processInput);
             process = null;
             processInput = null;
         }
-        LOG.info(() -> "Vanilla server stopped (exit code " + current.exitValue() + ")");
+        // プロセスがまだ生きている場合は exitValue() を呼ばない
+        // （IllegalThreadStateException になるため）。
+        LOG.info(() -> "Vanilla server stopped (exit code "
+                + (current.isAlive() ? "still running" : current.exitValue()) + ")");
     }
 
     public boolean isRunning() {
