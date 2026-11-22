@@ -8187,6 +8187,280 @@ public final class PlayTranslator {
         return out;
     }
 
+    // ------------------------------------------------------------------
+    // 404（1.13.2）対応
+    // ------------------------------------------------------------------
+
+    /** 404 の Join Game の1件（dimension は数値、difficulty があり viewDistance は無い）。 */
+    public record JoinGame404(int entityId, int gameMode, int dimension,
+            int difficulty, int maxPlayers, String levelType,
+            boolean reducedDebug) {
+    }
+
+    /**
+     * 404 の Join Game（0x25）を読む。498 との違い：maxPlayers の前に
+     * difficulty（u8）が入り、viewDistance が無い。実バニラ 1.13.2 の
+     * パケットをプローブで実測して確定した並び。
+     */
+    public static JoinGame404 parseJoinGame404(byte[] payload) {
+        Reader reader = new Reader(payload);
+        int entityId = reader.readInt();
+        int gameMode = reader.readUnsignedByte();
+        int dimension = reader.readInt();
+        int difficulty = reader.readUnsignedByte();
+        int maxPlayers = reader.readUnsignedByte();
+        String levelType = reader.readString();
+        boolean reducedDebug = reader.readBoolean();
+        if (reader.remaining() != 0) {
+            throw new IllegalArgumentException(
+                    "Join Game に余分なバイトがあります（残り=" + reader.remaining() + "）。");
+        }
+        return new JoinGame404(entityId, gameMode, dimension, difficulty,
+                maxPlayers, levelType, reducedDebug);
+    }
+
+    /**
+     * Join Game（758 0x26 → 404 0x25）。498 版から viewDistance を落とし、
+     * difficulty を足した形。758 には difficulty が無いため 2（normal）を
+     * 補う（実際の難易度は Server Difficulty の変換で追随する）。
+     * dimension は codec 内の dimension_type から名前へ変換し、404 の数値にする。
+     */
+    public static byte[] translateJoinGame758To404(byte[] payload) {
+        try {
+            JoinGame758 join = parseJoinGame758(payload);
+            String worldType = dimensionNameForElement(join.codec(), join.dimension());
+            if (worldType == null) {
+                worldType = "minecraft:overworld";
+            }
+            Writer writer = new Writer();
+            writer.writeInt(join.entityId());
+            writer.writeByte(join.gameMode() | (join.hardcore() ? 8 : 0));
+            writer.writeInt(dimensionId578ForName(worldType));
+            writer.writeByte(2); // difficulty（758 には無いため normal を補う）
+            writer.writeByte(Math.min(join.maxPlayers(), 255));
+            writer.writeString(join.isFlat() ? "flat" : "default");
+            writer.writeBoolean(join.reducedDebug());
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Join Game（404 0x25 → 758 0x26）。codec は 404 に無いため、バニラ
+     * 1.18.2 の既定 codec（{@link #defaultCodec758()}）を補う。
+     * hashedSeed は 0、enableRespawnScreen は true、viewDistance と
+     * simulationDistance は 10（バニラ既定）を補う（404 には無い）。
+     * difficulty は 758 に無いため落とす。
+     */
+    public static byte[] translateJoinGame404To758(byte[] payload) {
+        try {
+            JoinGame404 join = parseJoinGame404(payload);
+            Tag.CompoundTag codec = defaultCodec758();
+            String worldType = dimensionNameForId578(join.dimension());
+            Tag dimension = dimensionElementForName(codec, worldType);
+            if (dimension == null) {
+                throw new IllegalArgumentException(
+                        "Join Game の dimension 要素が既定 codec にありません: " + worldType);
+            }
+            Writer writer = new Writer();
+            writer.writeInt(join.entityId());
+            writer.writeBoolean((join.gameMode() & 8) != 0); // hardcore
+            writer.writeByte(join.gameMode() & 7);
+            writer.writeByte(-1); // previousGameMode（404 には無い）
+            PacketIO.writeStringList(writer, List.of(worldType));
+            writer.writeNamedNbt("", codec);
+            writer.writeNamedNbt("", dimension);
+            writer.writeString(worldType); // worldName
+            writer.writeLong(0L); // hashedSeed（404 には無い）
+            writer.writeVarInt(join.maxPlayers());
+            writer.writeVarInt(10); // viewDistance（404 には無いため既定値）
+            writer.writeVarInt(10); // simulationDistance
+            writer.writeBoolean(join.reducedDebug());
+            writer.writeBoolean(true); // enableRespawnScreen（404 には無い）
+            writer.writeBoolean(false); // isDebug
+            writer.writeBoolean("flat".equals(join.levelType())); // isFlat
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Join Game を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Respawn（758 → 404）。404 の Respawn は dimension 数値＋difficulty＋
+     * gamemode＋levelType。difficulty は 758 に無いため 2（normal）を補う。
+     */
+    public static byte[] translateRespawn758To404(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        try {
+            Reader reader = new Reader(payload);
+            Tag dimension = reader.readNamedNbt().tag();
+            reader.readString(); // worldName（404 には無い）
+            reader.readLong(); // hashedSeed（404 には無い）
+            int gameMode = reader.readUnsignedByte();
+            reader.readByte(); // previousGameMode（404 には無い）
+            boolean isDebug = reader.readBoolean();
+            boolean isFlat = reader.readBoolean();
+            reader.readBoolean(); // copyMetadata（404 には無い）
+            requireEnd(reader);
+            Tag.CompoundTag codec = registries == null ? defaultCodec758()
+                    : buildJoinGameCodec(registries);
+            String worldType = dimensionNameForElement(codec, dimension);
+            if (worldType == null) {
+                worldType = dimensionNameForElement(defaultCodec758(), dimension);
+            }
+            if (worldType == null) {
+                worldType = "minecraft:overworld";
+            }
+            Writer writer = new Writer();
+            writer.writeInt(dimensionId578ForName(worldType));
+            writer.writeByte(2); // difficulty（758 には無いため normal を補う）
+            writer.writeByte(gameMode);
+            writer.writeString(isFlat ? "flat" : "default");
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    /**
+     * Respawn（404 → 758）。difficulty は 758 に無いため落とす。
+     * hashedSeed は 0 を補う。それ以外は 498 版と同じ。
+     */
+    public static byte[] translateRespawn404To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        try {
+            Reader reader = new Reader(payload);
+            int dimension = reader.readInt();
+            reader.readUnsignedByte(); // difficulty（758 には無い）
+            int gameMode = reader.readUnsignedByte();
+            String levelType = reader.readString();
+            requireEnd(reader);
+            String worldType = dimensionNameForId578(dimension);
+            Tag.CompoundTag codec = registries == null ? defaultCodec758()
+                    : buildJoinGameCodec(registries);
+            Tag element = dimensionElementForName(codec, worldType);
+            if (element == null) {
+                element = dimensionElementForName(defaultCodec758(), worldType);
+            }
+            if (element == null) {
+                throw new IllegalArgumentException(
+                        "Respawn の dimension 要素が codec にありません: " + worldType);
+            }
+            Writer writer = new Writer();
+            writer.writeNamedNbt("", element);
+            writer.writeString(worldType); // worldName
+            writer.writeLong(0L); // hashedSeed（404 には無い）
+            writer.writeByte(gameMode);
+            writer.writeByte(-1); // previousGameMode
+            writer.writeBoolean(false); // isDebug
+            writer.writeBoolean("flat".equals(levelType)); // isFlat
+            writer.writeBoolean(false); // copyMetadata
+            return writer.bytes();
+        } catch (IllegalArgumentException e) {
+            LOG.warning("Respawn を変換できなかったため素通しします: " + e.getMessage());
+            return payload;
+        }
+    }
+
+    // ------------------------------------------------------------------
+    // 393（1.13）対応
+    //
+    // Join Game / Respawn のワイヤ形式は 404 と完全一致する
+    // （protocol.json 平坦化比較で確認。レジストリ番号を含まない
+    // パケットのためサンゴまわりの差分も影響しない）。404 の実装へ
+    // そのまま委譲する。
+    // ------------------------------------------------------------------
+
+    /** 393 の Join Game の1件（形式は 404 と同一。dimension は数値、difficulty があり viewDistance は無い）。 */
+    public record JoinGame393(int entityId, int gameMode, int dimension,
+            int difficulty, int maxPlayers, String levelType,
+            boolean reducedDebug) {
+    }
+
+    /** 393 の Join Game を読む（形式は 404 と同一のため 404 の解析を流用する）。 */
+    public static JoinGame393 parseJoinGame393(byte[] payload) {
+        JoinGame404 join = parseJoinGame404(payload);
+        if (join == null) {
+            return null;
+        }
+        return new JoinGame393(join.entityId(), join.gameMode(), join.dimension(),
+                join.difficulty(), join.maxPlayers(), join.levelType(),
+                join.reducedDebug());
+    }
+
+    /** Join Game（758 → 393）。形式は 404 と同一。 */
+    public static byte[] translateJoinGame758To393(byte[] payload) {
+        return translateJoinGame758To404(payload);
+    }
+
+    /** Join Game（393 → 758）。形式は 404 と同一。 */
+    public static byte[] translateJoinGame393To758(byte[] payload) {
+        return translateJoinGame404To758(payload);
+    }
+
+    /** Respawn（758 → 393）。形式は 404 と同一。 */
+    public static byte[] translateRespawn758To393(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn758To404(payload, registries);
+    }
+
+    /** Respawn（393 → 758）。形式は 404 と同一。 */
+    public static byte[] translateRespawn393To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn404To758(payload, registries);
+    }
+
+    // ------------------------------------------------------------------
+    // 340（1.12.2）対応
+    //
+    // Join Game / Respawn のワイヤ形式は 393 と完全一致する
+    // （実バニラ 1.12.2 の Join Game 採取と protocol.json で確認済み）。
+    // 393 の実装へそのまま委譲する。
+    // ------------------------------------------------------------------
+
+    /** 340 の Join Game の1件（形式は 393 と同一）。 */
+    public record JoinGame340(int entityId, int gameMode, int dimension,
+            int difficulty, int maxPlayers, String levelType,
+            boolean reducedDebug) {
+    }
+
+    /** 340 の Join Game を読む（形式は 393 と同一のため 393 の解析を流用する）。 */
+    public static JoinGame340 parseJoinGame340(byte[] payload) {
+        JoinGame393 join = parseJoinGame393(payload);
+        if (join == null) {
+            return null;
+        }
+        return new JoinGame340(join.entityId(), join.gameMode(), join.dimension(),
+                join.difficulty(), join.maxPlayers(), join.levelType(),
+                join.reducedDebug());
+    }
+
+    /** Join Game（758 → 340）。形式は 393 と同一。 */
+    public static byte[] translateJoinGame758To340(byte[] payload) {
+        return translateJoinGame758To393(payload);
+    }
+
+    /** Join Game（340 → 758）。形式は 393 と同一。 */
+    public static byte[] translateJoinGame340To758(byte[] payload) {
+        return translateJoinGame393To758(payload);
+    }
+
+    /** Respawn（758 → 340）。形式は 393 と同一。 */
+    public static byte[] translateRespawn758To340(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn758To393(payload, registries);
+    }
+
+    /** Respawn（340 → 758）。形式は 393 と同一。 */
+    public static byte[] translateRespawn340To758(byte[] payload,
+            Map<String, Tag.CompoundTag> registries) {
+        return translateRespawn393To758(payload, registries);
+    }
+
     /**
      * 757の dimensionCodec を759形式にする。dimension_type・biome を並べ替え、
      * dimension_type の element を759既定値に置き換え、chat_type 8件を既定値で補う。
