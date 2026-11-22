@@ -22,7 +22,7 @@ class ResourcePackServer759Test {
     Path tempDir;
 
     @Test
-    void servesAllSeventeenPacksOnTheSamePort() throws Exception {
+    void servesAllEighteenPacksOnTheSamePort() throws Exception {
         ResourcePackBuilder builder = new ResourcePackBuilder();
         ResourcePackBuilder.BuiltPack built = builder.build(tempDir.resolve("765"));
         ResourcePackBuilder.BuiltPack built759 = builder.build759(tempDir.resolve("759"));
@@ -41,9 +41,10 @@ class ResourcePackServer759Test {
         ResourcePackBuilder.BuiltPack built773 = builder.build773(tempDir.resolve("773"));
         ResourcePackBuilder.BuiltPack built774 = builder.build774(tempDir.resolve("774"));
         ResourcePackBuilder.BuiltPack built775 = builder.build775(tempDir.resolve("775"));
+        ResourcePackBuilder.BuiltPack built776 = builder.build776(tempDir.resolve("776"));
         ResourcePackServer server = new ResourcePackServer(
                 built, built759, built760, built761, built762, built763, built764, built766, built767, built768,
-                built769, built770, built771, built772, built773, built774, built775, 0, false);
+                built769, built770, built771, built772, built773, built774, built775, built776, 0, false);
         try {
             ResourcePack pack = server.start();
             assertTrue(server.isRunning());
@@ -62,7 +63,7 @@ class ResourcePackServer759Test {
             assertEquals(built760.sha1(), pack760.sha1());
             assertTrue(pack760.url().endsWith(ResourcePackServer.PACK_PATH_760),
                     pack760.url());
-            // All seventeen share one port, but have different paths.
+            // All eighteen share one port, but have different paths.
             assertEquals(server.port(), URI.create(pack759.url()).getPort());
             assertEquals(server.port(), URI.create(server.pack774().url()).getPort());
             assertEquals(server.port(), URI.create(server.pack775().url()).getPort());
@@ -86,11 +87,22 @@ class ResourcePackServer759Test {
             assertFalse(pack775.url().equals(server.pack774().url()));
             assertFalse(pack775.sha1().equals(server.pack774().sha1()));
 
+            // The 26.2 pack (pack_format 88) serves 776 clients
+            // from its own file on the same port.
+            ResourcePack pack776 = server.pack776();
+            assertNotNull(pack776);
+            assertEquals(built776.sha1(), pack776.sha1());
+            assertTrue(pack776.url().endsWith(ResourcePackServer.PACK_PATH_776),
+                    pack776.url());
+            assertFalse(pack776.url().equals(server.pack775().url()));
+            assertFalse(pack776.sha1().equals(server.pack775().sha1()));
+
             // packForProtocol picks the 759 pack for 759 clients.
             assertEquals(pack759.url(), server.packForProtocol(759).url());
             assertEquals(pack760.url(), server.packForProtocol(760).url());
             assertEquals(pack.url(), server.packForProtocol(765).url());
             assertEquals(pack775.url(), server.packForProtocol(775).url());
+            assertEquals(pack776.url(), server.packForProtocol(776).url());
 
             // The 759 pack is actually downloadable over HTTP.
             HttpURLConnection connection = (HttpURLConnection)

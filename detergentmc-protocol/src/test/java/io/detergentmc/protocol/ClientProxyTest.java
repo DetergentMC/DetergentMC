@@ -492,12 +492,12 @@ class ClientProxyTest {
             proxy.start();
             try (FakeClient client = new FakeClient(proxyPort)) {
                 vanilla.accept();
-                // 775は対応済みのため、拒否されるのは776（26.2以降の未対応番号）。
-                client.sendPacket(new MinecraftPacket(0x00, handshakePayload(776, 2)));
+                // 776は対応済みのため、拒否されるのは777（26.3以降の未対応番号）。
+                client.sendPacket(new MinecraftPacket(0x00, handshakePayload(777, 2)));
                 MinecraftPacket disconnect = client.readPacket();
                 assertEquals(0x00, disconnect.id());
                 String reason = new Reader(disconnect.payload()).readString();
-                assertTrue(reason.contains("776"), reason);
+                assertTrue(reason.contains("777"), reason);
             } finally {
                 proxy.stop();
             }
@@ -510,7 +510,7 @@ class ClientProxyTest {
      * 成立する。ProxySession 側は以前から内部763（設定フェーズの合成）を
      * 扱えたが、ClientProxy のコンストラクタだけが763を拒否していた。
      * 他の内部プロトコル（764・765・766）と同様に、763も拒否されないこと。
-     * 759も760も拒否されないこと（1.19／1.19.1／1.19.2対応）。759より古いもの（758など）は今も拒否される。
+     * 759も760も758も拒否されないこと（1.18.2／1.19／1.19.1／1.19.2対応）。758より古いもの（757など）は今も拒否される。
      */
     @Test
     void internalProtocol763IsAccepted() throws Exception {
@@ -529,12 +529,15 @@ class ClientProxyTest {
         ClientProxy proxy759 = new ClientProxy(freePort(), "127.0.0.1", freePort(), false,
                 null, null, null, ProxyAuthConfig.defaults(), null, null, 759);
         assertEquals(759, proxy759.internalProtocol());
+        ClientProxy proxy758 = new ClientProxy(freePort(), "127.0.0.1", freePort(), false,
+                null, null, null, ProxyAuthConfig.defaults(), null, null, 758);
+        assertEquals(758, proxy758.internalProtocol());
         try {
             new ClientProxy(freePort(), "127.0.0.1", freePort(), false,
-                    null, null, null, ProxyAuthConfig.defaults(), null, null, 758);
-            throw new AssertionError("expected IllegalArgumentException for 758");
+                    null, null, null, ProxyAuthConfig.defaults(), null, null, 757);
+            throw new AssertionError("expected IllegalArgumentException for 757");
         } catch (IllegalArgumentException expected) {
-            assertTrue(expected.getMessage().contains("759"), expected.getMessage());
+            assertTrue(expected.getMessage().contains("758"), expected.getMessage());
         }
     }
 
