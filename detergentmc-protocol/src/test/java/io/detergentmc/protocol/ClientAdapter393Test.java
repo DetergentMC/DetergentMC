@@ -24,7 +24,7 @@ class ClientAdapter393Test {
 
     @Test
     void decide393AgainstAllServerProtocols() {
-        for (int server : new int[]{393, 401, 404, 477, 480, 485, 490, 498, 573, 575, 578, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776}) {
+        for (int server : new int[]{393, 401, 404, 477, 480, 485, 490, 498, 573, 575, 578, 735, 736, 751, 753, 754, 755, 756, 757, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776}) {
             Handshake handshake = ClientAdapter.decide(393, server);
             assertTrue(handshake.accepted(), "server=" + server);
             if (server == 393) {
@@ -58,16 +58,25 @@ class ClientAdapter393Test {
         // 最古は 340 へ移ったが、393・401・404 が一覧から脱落していない
         // こと（404 のときに 477 で踏んだ地雷の回帰確認。393 は OLDEST の
         // 差し替えで脱落しやすいため明示を固定する）。
-        assertEquals(335, ClientAdapter.OLDEST_SUPPORTED_CLIENT_PROTOCOL);
+        assertEquals(4, ClientAdapter.OLDEST_SUPPORTED_CLIENT_PROTOCOL);
         List<Integer> supported = ClientAdapter.supportedClientProtocols();
-        assertEquals(335, supported.get(0), supported.toString());
-        assertEquals(338, supported.get(1), supported.toString());
-        assertEquals(340, supported.get(2), supported.toString());
-        assertEquals(393, supported.get(3), supported.toString());
-        assertEquals(401, supported.get(4), supported.toString());
-        assertEquals(404, supported.get(5), supported.toString());
-        assertEquals(477, supported.get(6), supported.toString());
-        assertEquals(33, supported.size(), supported.toString());
+        assertEquals(4, supported.get(0), supported.toString());
+        assertEquals(5, supported.get(1), supported.toString());
+        assertEquals(47, supported.get(2), supported.toString());
+        assertEquals(107, supported.get(3), supported.toString());
+        assertEquals(108, supported.get(4), supported.toString());
+        assertEquals(109, supported.get(5), supported.toString());
+        assertEquals(110, supported.get(6), supported.toString());
+        assertEquals(210, supported.get(7), supported.toString());
+        assertEquals(315, supported.get(8), supported.toString());
+        assertEquals(316, supported.get(9), supported.toString());
+        assertEquals(335, supported.get(10), supported.toString());
+        assertEquals(338, supported.get(11), supported.toString());
+        assertEquals(393, supported.get(13), supported.toString());
+        assertEquals(401, supported.get(14), supported.toString());
+        assertEquals(404, supported.get(15), supported.toString());
+        assertEquals(477, supported.get(16), supported.toString());
+        assertEquals(51, supported.size(), supported.toString());
         assertTrue(supported.contains(401), supported.toString());
         assertTrue(supported.contains(404), supported.toString());
         assertTrue(supported.contains(758), supported.toString());

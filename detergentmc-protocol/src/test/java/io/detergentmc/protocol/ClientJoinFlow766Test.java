@@ -51,7 +51,6 @@ class ClientJoinFlow766Test {
 
     @Test
     void unsupportedProtocolsAreStillRejected() {
-        assertThrows(IllegalArgumentException.class, () -> new ClientJoinFlow(757));
         assertThrows(IllegalArgumentException.class, () -> new ClientJoinFlow(777));
     }
 }

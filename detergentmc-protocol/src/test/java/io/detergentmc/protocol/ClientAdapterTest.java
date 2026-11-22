@@ -36,7 +36,7 @@ class ClientAdapterTest {
 
     @Test
     void rejectsOlderClients() {
-        for (int protocol : List.of(47, 340, 752)) {
+        for (int protocol : List.of(3, 339, 752)) {
             Handshake handshake = ClientAdapter.decide(protocol);
             assertEquals(Decision.REJECT_OUTDATED, handshake.decision(),
                     "protocol " + protocol + " should be rejected as outdated");
@@ -46,7 +46,7 @@ class ClientAdapterTest {
 
     @Test
     void rejectsNewerClients() {
-        Handshake handshake = ClientAdapter.decide(776);
+        Handshake handshake = ClientAdapter.decide(777);
         assertEquals(Decision.REJECT_TOO_NEW, handshake.decision());
         assertFalse(handshake.accepted());
     }
@@ -61,7 +61,7 @@ class ClientAdapterTest {
 
     @Test
     void supportedProtocolsAre1201And1202And1204() {
-        assertEquals(List.of(735, 736, 751, 753, 754, 755, 756, 757, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775), ClientAdapter.supportedClientProtocols());
+        assertEquals(List.of(4, 5, 47, 107, 108, 109, 110, 210, 315, 316, 335, 338, 340, 393, 401, 404, 477, 480, 485, 490, 498, 573, 575, 578, 735, 736, 751, 753, 754, 755, 756, 757, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776), ClientAdapter.supportedClientProtocols());
     }
 
     @Test
@@ -89,7 +89,7 @@ class ClientAdapterTest {
 
     @Test
     void differencesForUnsupportedProtocolSaySo() {
-        List<Difference> differences = ClientAdapter.differences(340);
+        List<Difference> differences = ClientAdapter.differences(339);
         assertEquals(1, differences.size());
         assertEquals(Handling.NOT_SUPPORTED, differences.get(0).handling());
     }
@@ -101,7 +101,7 @@ class ClientAdapterTest {
                 protocol.decideHandshake(763).decision());
         assertEquals(ClientJoinFlow.Stage.HANDSHAKE,
                 protocol.joinFlow(763).current());
-        assertThrows(IllegalArgumentException.class, () -> protocol.joinFlow(340));
+        assertThrows(IllegalArgumentException.class, () -> protocol.joinFlow(339));
     }
 
     private static boolean has(List<Difference> differences, String area, Handling handling) {

@@ -1,0 +1,19 @@
+// Legacy frontend (pre-Netty generations), built into DetergentMC.
+//
+// This module speaks the pre-1.7.2 wire framing (no length prefix, no
+// VarInt, UTF-16BE strings, one shared bidirectional packet-ID space) to
+// old clients and to old vanilla backends, and translates to/from the
+// modern internal form used by the rest of DetergentMC.
+//
+// It contains NO Mojang code and NO Paper code. The protocol facts here
+// were measured from the real vanilla 1.6.4 server jar (bytecode of the
+// packet classes) and from live wire captures against that jar; see
+// docs/PROXY-1.6.4.md.
+//
+// Legacy protocol numbers live ONLY in this module (see LegacyProtocol):
+// they must never be added to io.detergentmc.protocol.ProtocolVersion or
+// PacketIds, whose numbers belong to the Netty generation.
+dependencies {
+    implementation project(':detergentmc-api')
+    implementation project(':detergentmc-protocol')
+}

@@ -40,7 +40,7 @@ class ClientAdapter768Test {
         }
         // 777より新しい／757より古いは断る。
         assertFalse(ClientAdapter.decide(777, 768).accepted());
-        assertFalse(ClientAdapter.decide(757, 768).accepted());
+        assertFalse(ClientAdapter.decide(734, 768).accepted());
     }
 
     @Test
