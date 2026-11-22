@@ -54,9 +54,9 @@ class ProtocolVersion767Test {
 
     @Test
     void latestKnownIsNow772AndDefaultIsUnchanged() {
-        // 775対応後、LATEST_KNOWN は 775（26.1）になった。
-        assertEquals(775, ProtocolVersion.LATEST_KNOWN);
-        assertEquals(ProtocolVersion.V26_1, ProtocolVersion.LATEST_KNOWN);
+        // 776対応後、LATEST_KNOWN は 776（26.2）になった。
+        assertEquals(776, ProtocolVersion.LATEST_KNOWN);
+        assertEquals(ProtocolVersion.V26_2, ProtocolVersion.LATEST_KNOWN);
         // The default server version stays 1.20.4 (765): 1.21 is opt-in
         // via minecraft-version, not the new default.
         assertEquals("1.20.4", ProtocolVersion.DEFAULT_MINECRAFT_VERSION);
@@ -67,9 +67,9 @@ class ProtocolVersion767Test {
 
     @Test
     void unknownVersionStillFallsBackTo765() {
-        // 26.2 (776) is not known yet: it falls back to 765 with a
+        // 26.3 (777) is not known yet: it falls back to 765 with a
         // warning, the same as any other unknown version.
-        assertEquals(765, ProtocolVersion.serverProtocolFor("26.2"));
+        assertEquals(765, ProtocolVersion.serverProtocolFor("26.3"));
         assertEquals(765, ProtocolVersion.serverProtocolFor("1.99.9"));
     }
 }
