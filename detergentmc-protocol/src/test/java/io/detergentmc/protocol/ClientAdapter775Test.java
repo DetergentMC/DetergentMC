@@ -28,7 +28,7 @@ class ClientAdapter775Test {
     @Test
     void decide775AgainstAllServerProtocols() {
         for (int server : new int[]{759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771,
-                772, 773, 774, 775}) {
+                772, 773, 774, 775, 776}) {
             Handshake handshake = ClientAdapter.decide(775, server);
             assertTrue(handshake.accepted(), "server=" + server);
             if (server == 775) {
@@ -39,9 +39,9 @@ class ClientAdapter775Test {
                 assertTrue(handshake.needsTranslation());
             }
         }
-        // 776より新しい／758より古いは断る。
-        assertFalse(ClientAdapter.decide(776, 775).accepted());
-        assertFalse(ClientAdapter.decide(758, 775).accepted());
+        // 777より新しい／757より古いは断る。
+        assertFalse(ClientAdapter.decide(777, 775).accepted());
+        assertFalse(ClientAdapter.decide(757, 775).accepted());
     }
 
     @Test
