@@ -1265,6 +1265,28 @@ UP_775_FALLBACKS = {
 UP_775_CORRECTIONS = {}
 ATTRIBUTE_RENAME_775 = {}
 
+# 775→776 は改名・削除が無い（ViaVersion mapping-26.2.json で確認。
+# 新規は硫黄・辰砂（cinnabar）系のブロック28件・アイテム31件・
+# ブロック状態2,493件、硫黄キューブ1種、音66件、パーティクル8件、
+# 属性5件。775 のエントリで 776 に無いものは7種とも0件）。
+# blockentities だけは例外：776 の BuiltInRegistries では bed が
+# 消え potent_sulfur が末尾に追加されている（jar のダンプで確認）。
+# 数値の表は作らないためここでは扱わない（docs/PROXY-26.2.md 参照）。
+RENAME_776 = {}
+SOUND_FALLBACK_776 = {}
+PARTICLE_FALLBACK_776 = {}
+ENTITY_FALLBACK_776 = {}
+BLOCK_FALLBACK_776 = dict(BLOCK_FALLBACK)
+# 776→775 の反転表の代替先（775 側の値。up776_map() の invert() で
+# 使う）。ブタは 775 では 100、石の破壊音は 775 では 1592、
+# パーティクルは 775 の entity_effect=21。
+UP_776_FALLBACKS = {
+    "blockstates": 1, "items": 1, "entities": 100, "sounds": 1592,
+    "particles": 21, "blocks": 1, "menus": 12,
+}
+UP_776_CORRECTIONS = {}
+ATTRIBUTE_RENAME_776 = {}
+
 
 # 769→768 の反転表の代替先（768 側の値。up769_map() の invert() で
 # 使う）。769 側の代替先（ブタ 94・石の破壊音 1401）とは別物なので
@@ -1356,6 +1378,14 @@ def up775_map(maps775, kind, vv775):
     ranges, overrides = compress(forward, len(forward))
     return invert_java(ranges, overrides, len(forward), len(vv775[kind]),
                        UP_775_FALLBACKS[kind], UP_775_CORRECTIONS.get(kind))
+
+
+def up776_map(maps776, kind, vv776):
+    """776→775 の反転表（invert＋代替先埋め。補正は無い）。"""
+    forward = maps776[kind]
+    ranges, overrides = compress(forward, len(forward))
+    return invert_java(ranges, overrides, len(forward), len(vv776[kind]),
+                       UP_776_FALLBACKS[kind], UP_776_CORRECTIONS.get(kind))
 
 
 def emit_composed_769(out, tag, maps_a_to_768, maps_768_to_a, vv_a,
@@ -1860,6 +1890,75 @@ def emit_composed_775(out, tag, maps_a_to_774, maps_774_to_a, vv_a,
     return composed
 
 
+def emit_composed_776(out, tag, maps_a_to_775, maps_775_to_a, vv_a,
+                      maps776, vv776, vv775, direction):
+    """775→776 の合成で作る、離れた組み合わせ（763↔776、764↔776、
+    765↔776、766↔776、767↔776、768↔776、769↔776、770↔776、771↔776、772↔776、
+    773↔776、774↔776、775↔776）の
+    合成表を Java の表として出す。emit_composed_775 と同じ方針で、
+    中間を 775 に置き換えたもの。実行時は合成済みの1つの表を直接引く
+    （二段変換はしない）。
+
+    tag は "763_TO_776"／"776_TO_763"／…／"774_TO_776"／"776_TO_774"／
+    "775_TO_776"／"776_TO_775"。
+    maps_a_to_775 は A→775 の表（763〜774 は emit_composed_775 で作った
+    合成表、775 は恒等写像）、maps_775_to_a は 775→A の表、vv_a は A 側の
+    ViaVersion mapping、maps776 は 775→776 の表、vv776 は 776 側の mapping、
+    vv775 は 775 側の mapping。direction が "up"（A→776）の場合：A→775→776。
+    "down"（776→A）の場合：776→775（反転）→A。アイテムだけは名前から
+    作った逆変換表（maps776 の "reverse_items"）で合成する。戻り値は
+    合成表の dict（kind → {source id: target id}）。
+    """
+    kinds = ["blockstates", "items", "entities", "sounds",
+             "particles", "blocks", "menus"]
+    java_names = {"blockstates": "BLOCK_STATE", "items": "ITEM",
+                  "entities": "ENTITY_TYPE", "sounds": "SOUND",
+                  "particles": "PARTICLE", "blocks": "BLOCK", "menus": "MENU"}
+    # 代替先は名前から引く（776 の block.stone.break は 775 の 1592
+    # から +4 ずれて 1596 になる、といったずれを手計算しないため）。
+    def fallbacks(vv):
+        return {"blockstates": 1, "items": 1,
+                "entities": vv["entities"].index("pig"),
+                "sounds": vv["sounds"].index("block.stone.break"),
+                "particles": vv["particles"].index("entity_effect"),
+                "blocks": 1,
+                "menus": vv["menus"].index("crafting")}
+    fb776 = fallbacks(vv776)
+    fb775 = fallbacks(vv775)
+    composed = {}
+    for kind in kinds:
+        if kind == "items":
+            if direction == "up":
+                first = maps_a_to_775[kind]
+                second = maps776[kind]
+                table = compose_maps(first, second, fb776[kind])
+                size = len(vv_a[kind])
+            else:
+                first = maps776["reverse_items"]
+                second = maps_775_to_a[kind]
+                table = compose_maps(first, second, 1)
+                size = len(vv776[kind])
+        elif direction == "up":
+            first = maps_a_to_775[kind]
+            second = maps776[kind]
+            table = compose_maps(first, second, fb776[kind])
+            size = len(vv_a[kind])
+        else:
+            first_list = up776_map(maps776, kind, vv776)
+            second_list = [maps_775_to_a[kind].get(i, fb775[kind])
+                           for i in range(len(vv775[kind]))]
+            table = {i: v for i, v in enumerate(
+                compose_list(first_list, second_list, fb775[kind]))}
+            size = len(vv776[kind])
+        iv, ov = compress(table, size)
+        name = java_names[kind] + "_" + tag
+        out.append(java_int3(name + "_RANGES", iv))
+        out.append(java_int2(name + "_OVERRIDES", ov))
+        out.append(f"    // {name}: entries={size} ranges={len(iv)} overrides={len(ov)}")
+        composed[kind] = table
+    return composed
+
+
 def emit_composed_767(out, tag, maps_a_to_766, maps_766_to_a, vv_a,
                       maps767, vv767, vv766, direction):
     """766→767 の合成で作る、離れた組み合わせ（763↔767、764↔767、
@@ -2133,7 +2232,7 @@ def main():
                         help="ダウンロードした JSON の置き場（既定: detergentmc-protocol/build/remap-data）")
     parser.add_argument("--out", type=Path, default=None,
                         help="Java の表の出力先（既定: 標準出力）")
-    parser.add_argument("--target", choices=["763", "764", "766", "767", "768", "769", "770", "771", "772", "773", "774", "775", "both"], default="both",
+    parser.add_argument("--target", choices=["763", "764", "766", "767", "768", "769", "770", "771", "772", "773", "774", "775", "776", "both"], default="both",
                         help="生成する対応表（既定: 両方。766 は 763／764 の表も"
                              "内部で作るが、出力に含まれるのは 766 の表だけ。"
                              "767 は 763／764／765→766 の表も内部で作るが、"
@@ -4872,6 +4971,333 @@ def main():
             out.append(f"    // ENCHANTMENT_REVERSE_775: 775 entries={len(ench775)} "
                        f"ranges={len(iv)} overrides={len(ov)}")
             print(f"[775] enchantments: 774={len(ench774)} 775={len(ench775)} identity")
+
+    if args.target == "776":
+        # 775 の成果物（--target 775 の実行結果。maps775.json・
+        # map_items_rev775.json・maps_composed_775.json）を読み、
+        # 775→776 の隣接表と 763〜775↔776 の合成表を作る。
+        # これらが無い場合は --target 775 を先に実行すること
+        # （--target 775 の再実行は gen775.txt を再生成するだけ）。
+        for fname in ("maps775.json", "map_items_rev775.json",
+                      "maps_composed_775.json"):
+            if not (data_dir / fname).exists():
+                print(f"無い: {data_dir / fname}（先に --target 775 を実行すること）",
+                      file=sys.stderr)
+                failures.append(("missing-775-artifact", fname))
+        if not failures:
+            def load_int_map(raw):
+                return {int(k): v for k, v in raw.items()}
+
+            kinds = ["blockstates", "items", "entities", "sounds",
+                     "particles", "blocks", "menus"]
+            a775 = load(data_dir / "vv-26.1.json")    # 775
+            a774 = load(data_dir / "vv-1.21.11.json")    # 774
+            a773 = load(data_dir / "vv-1.21.9.json")    # 773
+            a772 = load(data_dir / "vv-1.21.7.json")    # 772
+            a771 = load(data_dir / "vv-1.21.6.json")    # 771
+            a770 = load(data_dir / "vv-1.21.5.json")    # 770
+            a776 = load(data_dir / "vv-26.2.json")    # 776
+            blocks_262 = load(data_dir / "26.2_blocks.json")
+            maps775_raw = load(data_dir / "maps775.json")
+            maps775 = {k: (load_int_map(v) if isinstance(v, dict)
+                           and k != "sound_fallback_names" else v)
+                       for k, v in maps775_raw.items()}
+            rev775 = load_int_map(load(data_dir / "map_items_rev775.json"))
+            comp775_raw = load(data_dir / "maps_composed_775.json")
+            comp775 = {tag: {kind: load_int_map(table)
+                             for kind, table in kind_tables.items()}
+                       for tag, kind_tables in comp775_raw.items()}
+
+            maps776, out776, fail776, rev776 = build_pair(
+                "776", a776, a775, blocks_262, data_dir,
+                rename=RENAME_776, sound_fallbacks=SOUND_FALLBACK_776,
+                particle_fallbacks=PARTICLE_FALLBACK_776,
+                reverse_fallback=1, entity_fallbacks=ENTITY_FALLBACK_776,
+                block_fallbacks=BLOCK_FALLBACK_776)
+            failures += fail776
+            out += out776
+            with open(data_dir / "maps776.json", "w", encoding="utf-8") as f:
+                json.dump(maps776, f)
+            with open(data_dir / "map_items_rev776.json", "w", encoding="utf-8") as f:
+                json.dump({str(k): v for k, v in rev776.items()}, f)
+
+            # 776→775 の反転表（775↔776 の合成の材料）。776→775 は
+            # 補正が無い（UP_776_CORRECTIONS は空）ため、ここで同じ計算を
+            # するだけでよい（--target 776 のブロックと同じ）。
+            up775 = {}
+            for kind in ("blockstates", "entities", "sounds", "particles",
+                         "blocks", "menus"):
+                up775[kind] = {i: v for i, v in enumerate(
+                    up775_map(maps775, kind, a775))}
+            up775["items"] = rev775
+
+            identity775 = {kind: {i: i for i in range(len(a775[kind]))}
+                           for kind in kinds}
+            # A→775／775→A（A は 763〜775）。763〜774 は合成表
+            # （maps_composed_775.json)、775 は恒等写像。
+            maps_to_775 = {}
+            maps_from_775 = {}
+            vv_by_tag = {}
+            for tag, vv_a, up_tag, down_tag in (
+                    ("763", load(data_dir / "vv-1.20.json"),
+                     "763_TO_775", "775_TO_763"),
+                    ("764", load(data_dir / "vv-1.20.2.json"),
+                     "764_TO_775", "775_TO_764"),
+                    ("765", b, "765_TO_775", "775_TO_765"),
+                    ("766", load(data_dir / "vv-1.20.5.json"),
+                     "766_TO_775", "775_TO_766"),
+                    ("767", load(data_dir / "vv-1.21.json"),
+                     "767_TO_775", "775_TO_767"),
+                    ("768", load(data_dir / "vv-1.21.2.json"),
+                     "768_TO_775", "775_TO_768"),
+                    ("769", load(data_dir / "vv-1.21.4.json"),
+                     "769_TO_775", "775_TO_769"),
+                    ("770", a770,
+                     "770_TO_775", "775_TO_770"),
+                    ("771", a771, "771_TO_775", "775_TO_771"),
+                    ("772", a772, "772_TO_775", "775_TO_772"),
+                    ("773", a773, "773_TO_775", "775_TO_773"),
+                    ("774", a774, "774_TO_775", "775_TO_774")):
+                maps_to_775[tag] = comp775[up_tag]
+                maps_from_775[tag] = comp775[down_tag]
+                vv_by_tag[tag] = vv_a
+            maps_to_775["775"] = identity775
+            maps_from_775["775"] = identity775
+            vv_by_tag["775"] = a775
+            # 774→775 は隣接表（maps775）、775→774 はその反転（up775）。
+            # （comp775 の 774_TO_775／775_TO_774 も同じ内容だが、
+            #  775 ブロックと同じく隣接表を直接使う。）
+            maps_to_775["774"] = maps775
+            maps_from_775["774"] = up775
+            vv_by_tag["774"] = a774
+
+            # 776 の音の名前の表（Stop Sound 用）。
+            # 775→776 は改名・削除無し（RENAME_776 は空）、
+            # 新規は硫黄・辰砂関連の 66 件のため、順向きの代替表は空である。
+            lines = ["    private static final String[][] SOUND_NAME_FALLBACKS_776 = {"]
+            for k, v in sorted(SOUND_FALLBACK_776.items()):
+                lines.append(f'            {{"{k}", "{v}"}},')
+            lines.append("    };")
+            out.append("\n".join(lines))
+            lines = ["    private static final String[][] SOUND_NAME_FALLBACKS_775_TO_776 = {"]
+            for k, v in sorted(SOUND_FALLBACK_776.items()):
+                lines.append(f'            {{"{k}", "{v}"}},')
+            lines.append("    };")
+            out.append("\n".join(lines))
+            # 776→775：数値の表（776→775 の反転）と一致させる。
+            # 776 の新音 66 件は 775 に無いため、石の破壊音
+            # （775 の 1592）へ落とす。
+            table_776_to_775 = sound_name_table_mid_to_target(
+                maps776, {"sounds": {i: i for i in range(len(a775["sounds"]))}},
+                a776, a775, UP_776_CORRECTIONS.get("sounds"), 1592)
+            lines = ["    private static final String[][] SOUND_NAME_FALLBACKS_776_TO_775 = {"]
+            for k, v in sorted(table_776_to_775.items()):
+                lines.append(f'            {{"{k}", "{v}"}},')
+            lines.append("    };")
+            out.append("\n".join(lines))
+            print(f"[776] sound name table 776->775: {len(table_776_to_775)} entries")
+            # 776→774／773／772／771／770／769／768／767／766／765／764／763：数値の表と一致させる
+            # （776→775 の反転＋775→target）。
+            for tag, maps_775_to_a, vv_target in (
+                    ("774", up775, a774),
+                    ("773", maps_from_775["773"], vv_by_tag["773"]),
+                    ("772", maps_from_775["772"], vv_by_tag["772"]),
+                    ("771", maps_from_775["771"], vv_by_tag["771"]),
+                    ("770", maps_from_775["770"], vv_by_tag["770"]),
+                    ("769", maps_from_775["769"], vv_by_tag["769"]),
+                    ("768", maps_from_775["768"], vv_by_tag["768"]),
+                    ("767", maps_from_775["767"], vv_by_tag["767"]),
+                    ("766", maps_from_775["766"], vv_by_tag["766"]),
+                    ("765", maps_from_775["765"], b),
+                    ("763", maps_from_775["763"], vv_by_tag["763"]),
+                    ("764", maps_from_775["764"], vv_by_tag["764"])):
+                table = sound_name_table_mid_to_target(
+                    maps776, {"sounds": maps_775_to_a["sounds"]}, a776,
+                    vv_target, UP_776_CORRECTIONS.get("sounds"), 1592)
+                lines = [f"    private static final String[][] SOUND_NAME_FALLBACKS_776_TO_{tag} = {{"]
+                for k, v in sorted(table.items()):
+                    lines.append(f'            {{"{k}", "{v}"}},')
+                lines.append("    };")
+                out.append("\n".join(lines))
+                print(f"[776] sound name table 776->{tag}: {len(table)} entries")
+            # 774→776：775・776 とも改名・削除が無いため代替は空。
+            # （SOUND_FALLBACK_775 と SOUND_FALLBACK_776）。
+            table_774_to_776 = dict(SOUND_FALLBACK_775)
+            table_774_to_776.update(SOUND_FALLBACK_776)
+            lines = ["    private static final String[][] SOUND_NAME_FALLBACKS_774_TO_776 = {"]
+            for k, v in sorted(table_774_to_776.items()):
+                lines.append(f'            {{"{k}", "{v}"}},')
+            lines.append("    };")
+            out.append("\n".join(lines))
+            # 773→776：774・775・776 とも改名・削除が無いため代替は空。
+            # （SOUND_FALLBACK_774 と table_774_to_776）。
+            table_773_to_776 = dict(SOUND_FALLBACK_774)
+            table_773_to_776.update(table_774_to_776)
+            lines = ["    private static final String[][] SOUND_NAME_FALLBACKS_773_TO_776 = {"]
+            for k, v in sorted(table_773_to_776.items()):
+                lines.append(f'            {{"{k}", "{v}"}},')
+            lines.append("    };")
+            out.append("\n".join(lines))
+            # 772→776：773・774・775・776 とも改名・削除が無いため代替は空。
+            # （SOUND_FALLBACK_773 と table_773_to_776）。
+            table_772_to_776 = dict(SOUND_FALLBACK_773)
+            table_772_to_776.update(table_773_to_776)
+            lines = ["    private static final String[][] SOUND_NAME_FALLBACKS_772_TO_776 = {"]
+            for k, v in sorted(table_772_to_776.items()):
+                lines.append(f'            {{"{k}", "{v}"}},')
+            lines.append("    };")
+            out.append("\n".join(lines))
+            # 771→776：772で削除されたものは無く、代替は空
+            # （SOUND_FALLBACK_772 は空）。
+            table_771_to_776 = dict(SOUND_FALLBACK_772)
+            table_771_to_776.update(table_772_to_776)
+            lines = ["    private static final String[][] SOUND_NAME_FALLBACKS_771_TO_776 = {"]
+            for k, v in sorted(table_771_to_776.items()):
+                lines.append(f'            {{"{k}", "{v}"}},')
+            lines.append("    };")
+            out.append("\n".join(lines))
+            # 770→776：771で改名された 4件の代替の合成
+            # （SOUND_FALLBACK_771 と table_771_to_776）。
+            table_770_to_776 = dict(SOUND_FALLBACK_771)
+            table_770_to_776.update(table_771_to_776)
+            lines = ["    private static final String[][] SOUND_NAME_FALLBACKS_770_TO_776 = {"]
+            for k, v in sorted(table_770_to_776.items()):
+                lines.append(f'            {{"{k}", "{v}"}},')
+            lines.append("    };")
+            out.append("\n".join(lines))
+            # 769→776：770で削除された wolf.howl の代替と table_770_to_776 の合成
+            # （SOUND_FALLBACK_770 と table_770_to_776）。
+            table_769_to_776 = dict(SOUND_FALLBACK_770)
+            table_769_to_776.update(table_770_to_776)
+            lines = ["    private static final String[][] SOUND_NAME_FALLBACKS_769_TO_776 = {"]
+            for k, v in sorted(table_769_to_776.items()):
+                lines.append(f'            {{"{k}", "{v}"}},')
+            lines.append("    };")
+            out.append("\n".join(lines))
+            # 768→776：767→768 の改名（ヤギの角笛の音2件）も合成。
+            table_768_to_776 = dict(SOUND_FALLBACK_768)
+            table_768_to_776.update(table_769_to_776)
+            lines = ["    private static final String[][] SOUND_NAME_FALLBACKS_768_TO_776 = {"]
+            for k, v in sorted(table_768_to_776.items()):
+                lines.append(f'            {{"{k}", "{v}"}},')
+            lines.append("    };")
+            out.append("\n".join(lines))
+            # 767→776：768→776 と同じ和集合。
+            lines = ["    private static final String[][] SOUND_NAME_FALLBACKS_767_TO_776 = {"]
+            for k, v in sorted(table_768_to_776.items()):
+                lines.append(f'            {{"{k}", "{v}"}},')
+            lines.append("    };")
+            out.append("\n".join(lines))
+
+            # 離れた組み合わせの合成表（763↔776、764↔776、765↔776、766↔776、767↔776、768↔776、769↔776、770↔776、771↔776、772↔776、773↔776、774↔776、775↔776）。
+            composed_all = {}
+            for tag, maps_a_to_775, maps_775_to_a, vv_a, direction in (
+                    ("763_TO_776", maps_to_775["763"], maps_from_775["763"], vv_by_tag["763"], "up"),
+                    ("776_TO_763", maps_to_775["763"], maps_from_775["763"], vv_by_tag["763"], "down"),
+                    ("764_TO_776", maps_to_775["764"], maps_from_775["764"], vv_by_tag["764"], "up"),
+                    ("776_TO_764", maps_to_775["764"], maps_from_775["764"], vv_by_tag["764"], "down"),
+                    ("765_TO_776", maps_to_775["765"], maps_from_775["765"], b, "up"),
+                    ("776_TO_765", maps_to_775["765"], maps_from_775["765"], b, "down"),
+                    ("766_TO_776", maps_to_775["766"], maps_from_775["766"], vv_by_tag["766"], "up"),
+                    ("776_TO_766", maps_to_775["766"], maps_from_775["766"], vv_by_tag["766"], "down"),
+                    ("767_TO_776", maps_to_775["767"], maps_from_775["767"], vv_by_tag["767"], "up"),
+                    ("776_TO_767", maps_to_775["767"], maps_from_775["767"], vv_by_tag["767"], "down"),
+                    ("768_TO_776", maps_to_775["768"], maps_from_775["768"], vv_by_tag["768"], "up"),
+                    ("776_TO_768", maps_to_775["768"], maps_from_775["768"], vv_by_tag["768"], "down"),
+                    ("769_TO_776", maps_to_775["769"], maps_from_775["769"], vv_by_tag["769"], "up"),
+                    ("776_TO_769", maps_to_775["769"], maps_from_775["769"], vv_by_tag["769"], "down"),
+                    ("770_TO_776", maps_to_775["770"], maps_from_775["770"], a770, "up"),
+                    ("776_TO_770", maps_to_775["770"], maps_from_775["770"], a770, "down"),
+                    ("771_TO_776", maps_to_775["771"], maps_from_775["771"], a771, "up"),
+                    ("776_TO_771", maps_to_775["771"], maps_from_775["771"], a771, "down"),
+                    ("772_TO_776", maps_to_775["772"], maps_from_775["772"], a772, "up"),
+                    ("776_TO_772", maps_to_775["772"], maps_from_775["772"], a772, "down"),
+                    ("773_TO_776", maps_to_775["773"], maps_from_775["773"], vv_by_tag["773"], "up"),
+                    ("776_TO_773", maps_to_775["773"], maps_from_775["773"], vv_by_tag["773"], "down"),
+                    ("774_TO_776", maps_to_775["774"], maps_from_775["774"], a774, "up"),
+                    ("776_TO_774", maps_to_775["774"], maps_from_775["774"], a774, "down"),
+                    ("775_TO_776", identity775, identity775, a775, "up"),
+                    ("776_TO_775", identity775, identity775, a775, "down")):
+                composed_all[tag] = emit_composed_776(
+                    out, tag, maps_a_to_775, maps_775_to_a, vv_a,
+                    maps776, a776, a775, direction)
+                print(f"[776] composed {tag}: "
+                      + ", ".join(f"{k}={len(v)}" for k, v in composed_all[tag].items()))
+            with open(data_dir / "maps_composed_776.json", "w", encoding="utf-8") as f:
+                json.dump({tag: {kind: {str(k): v for k, v in table.items()}
+                                 for kind, table in comp.items()}
+                           for tag, comp in composed_all.items()}, f)
+
+            # 属性の表（protocol.json の Update Attributes の key mapper
+            # から名前順で作る。775 は35件、776 は40件。新規は
+            # air_drag_modifier・below_name_distance・bounciness・
+            # friction_modifier・name_tag_distance の5件。改名は無い）。
+            proto775 = load(data_dir / "mc-26.1-protocol.json")
+            proto776 = load(data_dir / "mc-26.2-protocol.json")
+            attrs775 = attribute_names(proto775)
+            attrs776 = attribute_names(proto776)
+            renamed = {n for n in attrs775 if n not in attrs776
+                       and ATTRIBUTE_RENAME_776.get(n) not in attrs776}
+            if renamed:
+                print(f"[776] attributes: unexpected renames: {sorted(renamed)}",
+                      file=sys.stderr)
+                failures.append(("attributes-rename", sorted(renamed)))
+            attr_775_to_776 = {}
+            for i, n in enumerate(attrs775):
+                target = ATTRIBUTE_RENAME_776.get(n, n)
+                attr_775_to_776[i] = attrs776.index(target) if target in attrs776 else -1
+            attr_776_to_775 = {}
+            for i, n in enumerate(attrs776):
+                src = None
+                for k, v in ATTRIBUTE_RENAME_776.items():
+                    if v == n:
+                        src = k
+                        break
+                if src is None:
+                    src = n
+                attr_776_to_775[i] = attrs775.index(src) if src in attrs775 else -1
+            iv, ov = compress(attr_775_to_776, len(attrs775))
+            out.append(java_int3("ATTRIBUTE_776_RANGES", iv))
+            out.append(java_int2("ATTRIBUTE_776_OVERRIDES", ov))
+            out.append(f"    // ATTRIBUTE_776: 775 entries={len(attrs775)} "
+                       f"ranges={len(iv)} overrides={len(ov)}")
+            iv, ov = compress(attr_776_to_775, len(attrs776))
+            out.append(java_int3("ATTRIBUTE_REVERSE_776_RANGES", iv))
+            out.append(java_int2("ATTRIBUTE_REVERSE_776_OVERRIDES", ov))
+            out.append(f"    // ATTRIBUTE_REVERSE_776: 776 entries={len(attrs776)} "
+                       f"ranges={len(iv)} overrides={len(ov)}")
+            out.append(java_string_array("ATTRIBUTE_776_NAMES", attrs776))
+            print(f"[776] attributes: 775={len(attrs775)} 776={len(attrs776)} "
+                  f"new={[n for n in attrs776 if n not in attrs775]}")
+
+            # エンチャントの表（minecraft-data の enchantments.json。
+            # 775 は 43件、776 は 43件で並びは同一（26.2 の datapack
+            # でも確認）。差分（削除・改名・別位置の挿入）があれば
+            # 失敗させる。実機の Registry Data での順序は統合テストで
+            # 確認すること）。
+            ench775 = [e["name"] for e in load(data_dir / "enchantments-26.1.json")]
+            ench776 = [e["name"] for e in load(data_dir / "enchantments-26.2.json")]
+            unexpected = ([n for n in ench775 if n not in ench776]
+                          + [n for n in ench776 if n not in ench775])
+            if unexpected:
+                print(f"[776] enchantments: 775 と 776 で想定外の差分: {unexpected}",
+                      file=sys.stderr)
+                failures.append(("enchantments", (ench775, ench776)))
+            ench_775_to_776 = {i: ench776.index(n) for i, n in enumerate(ench775)}
+            # 775 に無いエンチャントは無いため DROP は発生しない。
+            ench_776_to_775 = {i: (ench775.index(n) if n in ench775 else -1)
+                               for i, n in enumerate(ench776)}
+            iv, ov = compress(ench_775_to_776, len(ench775))
+            out.append(java_int3("ENCHANTMENT_776_RANGES", iv))
+            out.append(java_int2("ENCHANTMENT_776_OVERRIDES", ov))
+            out.append(f"    // ENCHANTMENT_776: 775 entries={len(ench775)} "
+                       f"ranges={len(iv)} overrides={len(ov)}")
+            iv, ov = compress(ench_776_to_775, len(ench776))
+            out.append(java_int3("ENCHANTMENT_REVERSE_776_RANGES", iv))
+            out.append(java_int2("ENCHANTMENT_REVERSE_776_OVERRIDES", ov))
+            out.append(f"    // ENCHANTMENT_REVERSE_776: 776 entries={len(ench776)} "
+                       f"ranges={len(iv)} overrides={len(ov)}")
+            print(f"[776] enchantments: 775={len(ench775)} 776={len(ench776)} identity")
 
 
     if failures:
