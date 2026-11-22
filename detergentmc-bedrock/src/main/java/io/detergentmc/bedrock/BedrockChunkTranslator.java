@@ -84,41 +84,211 @@ public final class BedrockChunkTranslator {
      * Java のブロック状態IDを 765 に正規化する（Bedrock 変換の共通の入口）。
      * 765 はそのまま、764／766 は RegistryRemapper の上向き表、767 は
      * 767→765 表、768 は 768→765 表、769 は 769→765 表、770 は 770→765 表、
-     * 771 は 771→765 表、772 は 772→765 表、773 は 773→765 表、774 は 774→765 表、775 は 775→765 表、757 は
-     * 757→759→760→761→762→763→765 の連鎖（mapBlockState757To765 は
-     * RegistryRemapper に無いため、このクラスで既存の隣接表と 763→765 の
-     * 逆引き表を繋いで作る。RegistryRemapper には追加しない）、756 は
-     * 756→757→759→760→761→762→763→765 の連鎖（mapBlockState756To765。
-     * 756・757 のブロック状態は 20,342 件・同一順序のため 756→757 は恒等写像。
-     * Stage A §11.1 実測）、755 は
-     * 755→756→757→759→760→761→762→763→765 の連鎖（mapBlockState755To765。
-     * 755・756 のブロック状態は 20,342 件・同一順序のため 755→756 は恒等写像。
-     * Stage A §11.1 実測）、754 は
-     * 754→755→756→757→759→760→761→762→763→765 の連鎖（mapBlockState754To765。
-     * 754・755 のブロック状態は 17,112 件／20,342 件で、754→755 は
-     * RegistryTables754 の表（Stage A §11.1 実測）。オークの丸太は
-     * 754 の axis=y が 74、755 では 77）、753 は
-     * 753→754→755→756→757→759→760→761→762→763→765 の連鎖（mapBlockState753To765。
-     * 753→754 は恒等写像（RegistryTables753。17,112 件。Stage A §11.1・Stage B §14.4 実測）
-     * のため 754 の連鎖にそのまま繋ぐ）、751 は
-     * 751→753→754→755→756→757→759→760→761→762→763→765 の連鎖（mapBlockState751To765。
-     * 751→753 は恒等写像（RegistryTables751。17,112 件。Stage A §11.1・Stage B §14.4 実測）
-     * のため 753 の連鎖にそのまま繋ぐ）、736 は
-     * 736→751→753→754→755→756→757→759→760→761→762→763→765 の連鎖（mapBlockState736To765。
-     * 736→751 は非恒等写像（RegistryTables736。17,104 件。736→751 の順向き非恒等 12,373 件。
-     * Stage A §11.1・Stage B §14.4 実測。chain 4731→4735、lantern 14890→14898、
-     * cauldron 5145→5149、grass_path 9227→9231、17103→17111）のため
-     * 751 の連鎖に表で繋ぐ）、735 は
-     * 735→736→751→753→754→755→756→757→759→760→761→762→763→765 の連鎖（mapBlockState735To765。
-     * 735→736 は恒等写像（RegistryTables735。17,104 件・全件同一順序。Stage A §11.1・Stage B §14.4 実測。
-     * 実バニラ 1.16 の blocks レポートは 1.16.1 版とバイト同一）のため
-     * 736 の連鎖にそのまま繋ぐ）、763 は
+     * 771 は 771→765 表、772 は 772→765 表、773 は 773→765 表、774 は 774→765 表、775 は 775→765 表、776 は 776→765 表、763 は
      * 765→763 表の逆引き。
-     * 範囲外は石（765 の 1）。757 の 20,342 状態は 759 で全件カバーされる
-     * （Stage A §11.1 実測）ため、連鎖で石に落ちるのは範囲外の番号だけ。
+     * 範囲外は石（765 の 1）。
      */
     public static int normalizeBlockState(int stateId, int serverProtocol) {
         return switch (serverProtocol) {
+            case RegistryRemapper.PROTOCOL_47 -> {
+                // 47 → 758 → 759 → 760 → 761 → 762 → 763 と段階表を合成し、
+                // 最後に 763 の逆引きで 765 へ。47 の値は (数値ID<<4)|
+                // メタデータで、意味対応表（mapBlockState47To758）が担う。
+                int s = RegistryRemapper.mapBlockState47To758(stateId);
+                s = RegistryRemapper.mapBlockState758To759(s);
+                s = RegistryRemapper.mapBlockState759To760(s);
+                s = RegistryRemapper.mapBlockState760To761(s);
+                s = RegistryRemapper.mapBlockState761To762(s);
+                s = RegistryRemapper.mapBlockState762To763(s);
+                if (s < 0 || s >= BLOCK_STATE_763_TO_765.length) {
+                    yield 1;
+                }
+                int mapped = BLOCK_STATE_763_TO_765[s];
+                yield mapped < 0 ? 1 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_5, RegistryRemapper.PROTOCOL_4 -> {
+                // 5 → 758 → 759 → 760 → 761 → 762 → 763 と段階表を合成し、
+                // 最後に 763 の逆引きで 765 へ。5 の値は (数値ID<<4)|
+                // メタデータで、意味対応表（mapBlockState5To758）が担う。
+                int s = RegistryRemapper.mapBlockState5To758(stateId);
+                s = RegistryRemapper.mapBlockState758To759(s);
+                s = RegistryRemapper.mapBlockState759To760(s);
+                s = RegistryRemapper.mapBlockState760To761(s);
+                s = RegistryRemapper.mapBlockState761To762(s);
+                s = RegistryRemapper.mapBlockState762To763(s);
+                if (s < 0 || s >= BLOCK_STATE_763_TO_765.length) {
+                    yield 1;
+                }
+                int mapped = BLOCK_STATE_763_TO_765[s];
+                yield mapped < 0 ? 1 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_107, RegistryRemapper.PROTOCOL_108, RegistryRemapper.PROTOCOL_109, RegistryRemapper.PROTOCOL_110, RegistryRemapper.PROTOCOL_210, RegistryRemapper.PROTOCOL_315, RegistryRemapper.PROTOCOL_316, RegistryRemapper.PROTOCOL_335, RegistryRemapper.PROTOCOL_338, RegistryRemapper.PROTOCOL_340 -> {
+                // 340 → 758 → 759 → 760 → 761 → 762 → 763 と段階表を合成し、
+                // 最後に 763 の逆引きで 765 へ。340 の値は (数値ID<<4)|
+                // メタデータで、意味対応表（mapBlockState340To758）が担う。
+                int s = RegistryRemapper.mapBlockState340To758(stateId);
+                s = RegistryRemapper.mapBlockState758To759(s);
+                s = RegistryRemapper.mapBlockState759To760(s);
+                s = RegistryRemapper.mapBlockState760To761(s);
+                s = RegistryRemapper.mapBlockState761To762(s);
+                s = RegistryRemapper.mapBlockState762To763(s);
+                if (s < 0 || s >= BLOCK_STATE_763_TO_765.length) {
+                    yield 1;
+                }
+                int mapped = BLOCK_STATE_763_TO_765[s];
+                yield mapped < 0 ? 1 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_393 -> {
+                // 393 → 758 → 759 → 760 → 761 → 762 → 763 と段階表を合成し、
+                // 最後に 763 の逆引きで 765 へ。393 のレジストリは 404 と
+                // 異なる（サンゴまわり）ため、専用表を使う。
+                int s = RegistryRemapper.mapBlockState393To758(stateId);
+                s = RegistryRemapper.mapBlockState758To759(s);
+                s = RegistryRemapper.mapBlockState759To760(s);
+                s = RegistryRemapper.mapBlockState760To761(s);
+                s = RegistryRemapper.mapBlockState761To762(s);
+                s = RegistryRemapper.mapBlockState762To763(s);
+                if (s < 0 || s >= BLOCK_STATE_763_TO_765.length) {
+                    yield 1;
+                }
+                int mapped = BLOCK_STATE_763_TO_765[s];
+                yield mapped < 0 ? 1 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_404, 401 -> {
+                // 404 → 758 → 759 → 760 → 761 → 762 → 763 と段階表を合成し、
+                // 最後に 763 の逆引きで 765 へ。
+                int s = RegistryRemapper.mapBlockState404To758(stateId);
+                s = RegistryRemapper.mapBlockState758To759(s);
+                s = RegistryRemapper.mapBlockState759To760(s);
+                s = RegistryRemapper.mapBlockState760To761(s);
+                s = RegistryRemapper.mapBlockState761To762(s);
+                s = RegistryRemapper.mapBlockState762To763(s);
+                if (s < 0 || s >= BLOCK_STATE_763_TO_765.length) {
+                    yield 1;
+                }
+                int mapped = BLOCK_STATE_763_TO_765[s];
+                yield mapped < 0 ? 1 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_477 -> {
+                // 477 → 758 → 759 → 760 → 761 → 762 → 763 と段階表を合成し、
+                // 最後に 763 の逆引きで 765 へ。
+                int s = RegistryRemapper.mapBlockState477To758(stateId);
+                s = RegistryRemapper.mapBlockState758To759(s);
+                s = RegistryRemapper.mapBlockState759To760(s);
+                s = RegistryRemapper.mapBlockState760To761(s);
+                s = RegistryRemapper.mapBlockState761To762(s);
+                s = RegistryRemapper.mapBlockState762To763(s);
+                if (s < 0 || s >= BLOCK_STATE_763_TO_765.length) {
+                    yield 1;
+                }
+                int mapped = BLOCK_STATE_763_TO_765[s];
+                yield mapped < 0 ? 1 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_480 -> {
+                // 480 → 758 → 759 → 760 → 761 → 762 → 763 と段階表を合成し、
+                // 最後に 763 の逆引きで 765 へ。
+                int s = RegistryRemapper.mapBlockState480To758(stateId);
+                s = RegistryRemapper.mapBlockState758To759(s);
+                s = RegistryRemapper.mapBlockState759To760(s);
+                s = RegistryRemapper.mapBlockState760To761(s);
+                s = RegistryRemapper.mapBlockState761To762(s);
+                s = RegistryRemapper.mapBlockState762To763(s);
+                if (s < 0 || s >= BLOCK_STATE_763_TO_765.length) {
+                    yield 1;
+                }
+                int mapped = BLOCK_STATE_763_TO_765[s];
+                yield mapped < 0 ? 1 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_485 -> {
+                // 485 → 758 → 759 → 760 → 761 → 762 → 763 と段階表を合成し、
+                // 最後に 763 の逆引きで 765 へ。
+                int s = RegistryRemapper.mapBlockState485To758(stateId);
+                s = RegistryRemapper.mapBlockState758To759(s);
+                s = RegistryRemapper.mapBlockState759To760(s);
+                s = RegistryRemapper.mapBlockState760To761(s);
+                s = RegistryRemapper.mapBlockState761To762(s);
+                s = RegistryRemapper.mapBlockState762To763(s);
+                if (s < 0 || s >= BLOCK_STATE_763_TO_765.length) {
+                    yield 1;
+                }
+                int mapped = BLOCK_STATE_763_TO_765[s];
+                yield mapped < 0 ? 1 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_498 -> {
+                // 498 → 758 → 759 → 760 → 761 → 762 → 763 と段階表を合成し、
+                // 最後に 763 の逆引きで 765 へ。
+                int s = RegistryRemapper.mapBlockState498To758(stateId);
+                s = RegistryRemapper.mapBlockState758To759(s);
+                s = RegistryRemapper.mapBlockState759To760(s);
+                s = RegistryRemapper.mapBlockState760To761(s);
+                s = RegistryRemapper.mapBlockState761To762(s);
+                s = RegistryRemapper.mapBlockState762To763(s);
+                if (s < 0 || s >= BLOCK_STATE_763_TO_765.length) {
+                    yield 1;
+                }
+                int mapped = BLOCK_STATE_763_TO_765[s];
+                yield mapped < 0 ? 1 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_490 -> {
+                // 490 → 758 → 759 → 760 → 761 → 762 → 763 と段階表を合成し、
+                // 最後に 763 の逆引きで 765 へ。
+                int s = RegistryRemapper.mapBlockState490To758(stateId);
+                s = RegistryRemapper.mapBlockState758To759(s);
+                s = RegistryRemapper.mapBlockState759To760(s);
+                s = RegistryRemapper.mapBlockState760To761(s);
+                s = RegistryRemapper.mapBlockState761To762(s);
+                s = RegistryRemapper.mapBlockState762To763(s);
+                if (s < 0 || s >= BLOCK_STATE_763_TO_765.length) {
+                    yield 1;
+                }
+                int mapped = BLOCK_STATE_763_TO_765[s];
+                yield mapped < 0 ? 1 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_573 -> {
+                // 573 → 758 → 759 → 760 → 761 → 762 → 763 と段階表を合成し、
+                // 最後に 763 の逆引きで 765 へ。
+                int s = RegistryRemapper.mapBlockState573To758(stateId);
+                s = RegistryRemapper.mapBlockState758To759(s);
+                s = RegistryRemapper.mapBlockState759To760(s);
+                s = RegistryRemapper.mapBlockState760To761(s);
+                s = RegistryRemapper.mapBlockState761To762(s);
+                s = RegistryRemapper.mapBlockState762To763(s);
+                if (s < 0 || s >= BLOCK_STATE_763_TO_765.length) {
+                    yield 1;
+                }
+                int mapped = BLOCK_STATE_763_TO_765[s];
+                yield mapped < 0 ? 1 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_575 -> {
+                // 575 → 758 → 759 → 760 → 761 → 762 → 763 と段階表を合成し、
+                // 最後に 763 の逆引きで 765 へ。
+                int s = RegistryRemapper.mapBlockState575To758(stateId);
+                s = RegistryRemapper.mapBlockState758To759(s);
+                s = RegistryRemapper.mapBlockState759To760(s);
+                s = RegistryRemapper.mapBlockState760To761(s);
+                s = RegistryRemapper.mapBlockState761To762(s);
+                s = RegistryRemapper.mapBlockState762To763(s);
+                if (s < 0 || s >= BLOCK_STATE_763_TO_765.length) {
+                    yield 1;
+                }
+                int mapped = BLOCK_STATE_763_TO_765[s];
+                yield mapped < 0 ? 1 : mapped;
+            }
+            case RegistryRemapper.PROTOCOL_578 -> {
+                // 578 → 758 → 759 → 760 → 761 → 762 → 763 と段階表を合成し、
+                // 最後に 763 の逆引きで 765 へ。
+                int s = RegistryRemapper.mapBlockState578To758(stateId);
+                s = RegistryRemapper.mapBlockState758To759(s);
+                s = RegistryRemapper.mapBlockState759To760(s);
+                s = RegistryRemapper.mapBlockState760To761(s);
+                s = RegistryRemapper.mapBlockState761To762(s);
+                s = RegistryRemapper.mapBlockState762To763(s);
+                if (s < 0 || s >= BLOCK_STATE_763_TO_765.length) {
+                    yield 1;
+                }
+                int mapped = BLOCK_STATE_763_TO_765[s];
+                yield mapped < 0 ? 1 : mapped;
+            }
             case RegistryRemapper.PROTOCOL_763 -> {
                 if (stateId < 0 || stateId >= BLOCK_STATE_763_TO_765.length) {
                     yield 1;
@@ -137,117 +307,10 @@ public final class BedrockChunkTranslator {
             case RegistryRemapper.PROTOCOL_773 -> RegistryRemapper.mapBlockState773To765(stateId);
             case RegistryRemapper.PROTOCOL_774 -> RegistryRemapper.mapBlockState774To765(stateId);
             case RegistryRemapper.PROTOCOL_775 -> RegistryRemapper.mapBlockState775To765(stateId);
-            case RegistryRemapper.PROTOCOL_757 -> mapBlockState757To765(stateId);
-            case RegistryRemapper.PROTOCOL_756 -> mapBlockState756To765(stateId);
-            case RegistryRemapper.PROTOCOL_755 -> mapBlockState755To765(stateId);
-            case RegistryRemapper.PROTOCOL_751 -> mapBlockState751To765(stateId);
-            case RegistryRemapper.PROTOCOL_736 -> mapBlockState736To765(stateId);
-            case RegistryRemapper.PROTOCOL_735 -> mapBlockState735To765(stateId);
-            case RegistryRemapper.PROTOCOL_753 -> mapBlockState753To765(stateId);
-            case RegistryRemapper.PROTOCOL_754 -> mapBlockState754To765(stateId);
+            case RegistryRemapper.PROTOCOL_776 -> RegistryRemapper.mapBlockState776To765(stateId);
             default -> stateId;
         };
     }
-
-    /**
-     * 757 のブロック状態IDを 765 に正規化する。RegistryRemapper に
-     * mapBlockState757To765 は無いため、既存の隣接表の連鎖
-     * 757→759→760→761→762→763 と、763→765 の逆引き表
-     * （{@link #BLOCK_STATE_763_TO_765}）を繋ぐ。各段で範囲外は石に
-     * 落ちる（隣接表の代替）。757 の 20,342 状態は 759 で全件カバーされる
-     * （Stage A §11.1 実測）ため、連鎖で石に落ちるのは範囲外の番号だけ。
-     */
-    static int mapBlockState757To765(int stateId) {
-        int id759 = RegistryRemapper.mapBlockState757To759(stateId);
-        int id760 = RegistryRemapper.mapBlockState759To760(id759);
-        int id761 = RegistryRemapper.mapBlockState760To761(id760);
-        int id762 = RegistryRemapper.mapBlockState761To762(id761);
-        int id763 = RegistryRemapper.mapBlockState762To763(id762);
-        if (id763 < 0 || id763 >= BLOCK_STATE_763_TO_765.length) {
-            return 1;
-        }
-        int mapped = BLOCK_STATE_763_TO_765[id763];
-        return mapped < 0 ? 1 : mapped;
-    }
-
-    /**
-     * 756 のブロック状態IDを 765 に正規化する。756→757 は恒等写像
-     * （20,342 件・同一順序。Stage A §11.1 実測）のため、757 の連鎖
-     * （{@link #mapBlockState757To765}）にそのまま繋ぐ。
-     * RegistryRemapper には追加しない。
-     */
-    static int mapBlockState756To765(int stateId) {
-        return mapBlockState757To765(RegistryRemapper.mapBlockState756To757(stateId));
-    }
-
-    /**
-     * 755 のブロック状態IDを 765 に正規化する。755→756 は恒等写像
-     * （20,342 件・同一順序。Stage A §11.1 実測）のため、756 の連鎖
-     * （{@link #mapBlockState756To765}）にそのまま繋ぐ。
-     * RegistryRemapper には追加しない。
-     */
-    static int mapBlockState755To765(int stateId) {
-        return mapBlockState756To765(RegistryRemapper.mapBlockState755To756(stateId));
-    }
-
-    /**
-     * 754 のブロック状態IDを 765 に正規化する。754→755 は RegistryTables754 の
-     * 表（Stage A §11.1 実測。17,112 件。オークの丸太 axis=y は 754 が 74、
-     * 755 が 77）のため、755 の連鎖（{@link #mapBlockState755To765}）に
-     * そのまま繋ぐ。RegistryRemapper には追加しない。
-     */
-    static int mapBlockState754To765(int stateId) {
-        return mapBlockState755To765(RegistryRemapper.mapBlockState754To755(stateId));
-    }
-
-    /**
-     * 753 のブロック状態IDを 765 に正規化する。753→754 は恒等写像
-     * （RegistryTables753。17,112 件・全件同一順序。Stage A §11.1・Stage B §14.4 実測。
-     * 実バニラ 1.16.3 の blocks レポート（3,477,609 バイト）は 1.16.5 版とバイト同一）のため、
-     * 754 の連鎖（{@link #mapBlockState754To765}）にそのまま繋ぐ。
-     * RegistryRemapper には追加しない。
-     */
-    static int mapBlockState753To765(int stateId) {
-        return mapBlockState754To765(RegistryRemapper.mapBlockState753To754(stateId));
-    }
-
-    /**
-     * 751 のブロック状態IDを 765 に正規化する。751→753 は恒等写像
-     * （RegistryTables751。17,112 件・全件同一順序。Stage A §11.1・Stage B §14.4 実測。
-     * 実バニラ 1.16.2 の blocks レポート（3,477,609 バイト）は 1.16.3 版とバイト同一）のため、
-     * 753 の連鎖（{@link #mapBlockState753To765}）にそのまま繋ぐ。
-     * RegistryRemapper には追加しない。
-     */
-    static int mapBlockState751To765(int stateId) {
-        return mapBlockState753To765(RegistryRemapper.mapBlockState751To753(stateId));
-    }
-
-    /**
-     * 736 のブロック状態IDを 765 に正規化する。736→751 は非恒等写像
-     * （RegistryTables736。17,104 件。736→751 の順向き非恒等 12,373 件。Stage A §11.1・Stage B §14.4 実測。
-     * chain 4731→4735、lantern 14890→14898、cauldron 5145→5149、grass_path 9227→9231、
-     * 17103→17111。4731 未満は 751 と同一のため、石 1・草 9・土 10・水 34・丸太 74 は
-     * 751 と同じ値になる）のため、751 の連鎖（{@link #mapBlockState751To765}）に
-     * 表で繋ぐ。RegistryRemapper には追加しない。
-     * 注意：Stage A §12.4 のアンカー（chain 4731→4729 等）は 751→736 の向きの値で、
-     * 736→751 の向きでは 4731→4735 になる（プロパティ落としで潰れる 8 件のうちの 1 件。
-     * 736→751→736 の往復では 4731→4729 に潰れる）。向きを混同しないこと。
-     */
-    static int mapBlockState736To765(int stateId) {
-        return mapBlockState751To765(RegistryRemapper.mapBlockState736To751(stateId));
-    }
-
-    /**
-     * 735 のブロック状態IDを 765 に正規化する。735→736 は恒等写像
-     * （RegistryTables735。17,104 件・全件同一順序。Stage A §11.1・Stage B §14.4 実測。
-     * 実バニラ 1.16 の blocks レポートは 1.16.1 版とバイト同一）のため、
-     * 736 の連鎖（{@link #mapBlockState736To765}）にそのまま繋ぐ。
-     * RegistryRemapper には追加しない。
-     */
-    static int mapBlockState735To765(int stateId) {
-        return mapBlockState736To765(RegistryRemapper.mapBlockState735To736(stateId));
-    }
-
 
     /** Java のブロック状態ID（そのままのプロトコル番号）-> Bedrock のランタイムID。 */
     public static int runtimeIdFor(int stateId, int serverProtocol) {
@@ -266,189 +329,91 @@ public final class BedrockChunkTranslator {
      * Java の Chunk Data ペイロードを Bedrock の LevelChunk ペイロードへ翻訳する。
      * Java 側のチャンクは必ず全列（full chunk）であることが前提。読めない場合は
      * IllegalArgumentException を投げる（呼び出し側で落とすか空気で代用する）。
-     *
-     * <p>756 の形式（Stage B §14.4 の実測。protocol.json＋実バニラ 1.17.1
-     * 生キャプチャ＋両 jar の javap）：
-     * {x i32, z i32, bitMap varint[i64], heightmaps 名前付き NBT,
-     * biomes varint[1024], chunkData buffer, blockEntities varint[NBT]}。
-     * セクションは 16 個（y 0〜15）で、chunkData には bitMap に立っている
-     * セクションだけが入る（無いセクションは空気として補完するが、バイオームは
-     * int[1024] の値をそのまま使う）。セクション内部は [blockCount i16]
-     * ＋ブロックのパレット付きコンテナだけで、バイオームコンテナは無い。
-     * バイオームは配列の [64s, 64s+64) がセクション s に対応する。
-     * BitStorage は non-straddling（BPE 5 の Data Array 長は 342。
-     * 実バニラ 1.17.1 の生キャプチャ cap756-chunk-21-17.bin で確認。
-     * straddling 式だと 320）。光は 756 の Chunk Data には無く、別パケットの
-     * Update Light で送られる。Bedrock 側は光をクライアントが計算するため、
-     * ここでは光を送らない（757 のチャンク内包の光も同じく読まずに捨てている）。
-     * ブロックエンティティは読まない（757 と同じく送らない）。
-     *
-     * <p>755 の形式は 756 と完全同一（Stage B §14.4 の実測。packet_map_chunk は
-     * protocol.json で完全一致し、実バニラ 1.17／1.17.1 の Chunk Data クラス
-     * qw はフィールド同一で javap -c の差分は難読化クラス名の付け替えのみ。
-     * レジストリ差分も 0 件）。そのため 755 は下の 756 分岐をそのまま使う。
-     * 1.17.1 の生キャプチャ cap756-chunk-21-17.bin は 755 形式のチャンク
-     * でもある（Stage B §14.4）。
-     *
-     * <p>754 の形式（Stage B §14.4 の実測。mc-1.16-protocol.json（pc/1.16.2）の
-     * packet_map_chunk＋実バニラ 1.16.5 の生キャプチャ
-     * cap754-chunk-x-15-z-7.bin（チャンク -15,-7、10,633 バイト、groundUp=true、
-     * bitMap 0x000f、biomes 1024 件全て 50＝deep_frozen_ocean）＋両 jar の javap）：
-     * {x i32, z i32, groundUp bool, bitMap varint, heightmaps 名前付き NBT,
-     * biomes varint[1024]（groundUp のときだけ）, chunkData buffer,
-     * blockEntities varint[NBT]}。16 セクション（y 0〜15）で、chunkData には
-     * bitMap に立っているセクションだけが入る（無いセクションは空気として補完するが、
-     * バイオームは int[1024] の値をそのまま使う。755／756 と同じ扱い）。
-     * groundUp=false のときバイオーム配列は無く、平原（1）で補う
-     * （ChunkTranslator.translateChunkData754To755 と同じ補完）。
-     * セクション内部は [blockCount i16]＋ブロックのパレット付きコンテナだけで、
-     * バイオームコンテナは無い。バイオームは配列の [64s, 64s+64) がセクション s
-     * に対応する。BitStorage は non-straddling（BPE 5 の Data Array 長は 342。
-     * 実バニラ 1.16.5 の生キャプチャで確認。straddling 式だと 320）。光は
-     * 754 の Chunk Data には無く、別パケットの Update Light で送られる。
-     * ブロックエンティティは読まない（757 と同じく送らない）。
-     *
-     * <p>753 の形式は 754 と完全同一（Stage A §11.1・Stage B §14.4 の実測。
-     * mc-1.16.3-protocol.json は mc-1.16-protocol.json とバイト同一（152,123 バイト）で
-     * packet_map_chunk のフィールドも同一。レジストリ差分も 0 件（実バニラ 1.16.3 の
-     * blocks レポート・registries.json は 1.16.5 版とバイト同一。ブロック状態 17,112・
-     * ブロック 763・アイテム 976・バイオーム 79）。Join Game も実バニラ生キャプチャで
-     * 30,847 バイト・1.16.5 と同一。そのため 753 は下の 754 分岐をそのまま使う。
-     * 実バニラ 1.16.5 の生キャプチャ cap754-chunk-x-15-z-7.bin（10,633 バイト）は
-     * 753 形式のバイトでもある（Stage B §14.4）。
-     *
-     * <p>751 の形式は 753 と完全同一（Stage A §11.1・Stage B §14.4 の実測。
-     * mc-1.16.2-protocol.json は mc-1.16.3-protocol.json とバイト同一（152,123 バイト）で
-     * packet_map_chunk のフィールドも同一。レジストリ差分も 0 件（実バニラ 1.16.2 の
-     * blocks レポート・registries.json は 1.16.3 版とバイト同一。ブロック状態 17,112・
-     * ブロック 763・アイテム 976・バイオーム 79）。Join Game も実バニラ生キャプチャで
-     * 30,847 バイト・1.16.3 と同一。そのため 751 は下の 753／754 分岐をそのまま使う。
-     * 実バニラ 1.16.5 の生キャプチャ cap754-chunk-x-15-z-7.bin（10,633 バイト）は
-     * 751 形式のバイトでもある（Stage D §15.2。751 の実チャンクキャプチャは
-     * .tmp-751/registry/ に無いため流用する）。
-     *
-     * <p>736 の形式は 751 と頭部が違う（Stage A §11.1・Stage B §14.4 の実測。
-     * mc-1.16.1-protocol.json（pc/1.16.1）の packet_map_chunk＋実バニラ 1.16.1 の
-     * 生キャプチャ cap736-chunk-x--17-z--23.bin（チャンク -17,-23、15,083 バイト、
-     * groundUp=true、ignoreOldData=true、bitMap 0x001f、biomes 1024 件全て 1＝平原）＋
-     * ChunkTranslator.translateChunkData736To751）：
-     * {x i32, z i32, groundUp bool, ignoreOldData bool, bitMap varint,
-     * heightmaps 名前付き NBT, biomes i32[1024]（groundUp のときだけ・件数接頭辞なし）,
-     * chunkData buffer, blockEntities varint[NBT]}。751／753／754 との違いは
-     * ignoreOldData が 1 個増えることと、バイオーム配列に件数 varint が無く
-     * i32 を 1024 個そのまま読むこと（751 は [count varint][varint×1024]）。
-     * 16 セクション（y 0〜15）で、chunkData には bitMap に立っているセクションだけが
-     * 入る（無いセクションは空気として補完するが、バイオームは int[1024] の値をそのまま使う。
-     * 751／753／754 と同じ扱い）。groundUp=false のときバイオーム配列は無く、
-     * 平原（1）で補う（ChunkTranslator.translateChunkData751To736 と同じ補完の向き。
-     * 751→736 は biomes を書かない）。セクション内部は [blockCount i16]＋
-     * ブロックのパレット付きコンテナだけで、バイオームコンテナは無い。バイオームは
-     * 配列の [64s, 64s+64) がセクション s に対応する。BitStorage は
-     * non-straddling（BPE 5 の Data Array 長は 342。実バニラ 1.16.1 の生キャプチャ
-     * cap736-chunk-x--17-z--23.bin の -17,-22／-21 で確認。straddling 式だと 320。
-     * Stage B §14.4）。光は 736 の Chunk Data には無く、別パケットの Update Light
-     * で送られる。ブロックエンティティは読まない（757 と同じく送らない）。
-     * バイオームは 736 と 751 で同一（79 件・同じ id・同じ名前。Stage A §11.1 実測）のため、
-     * バイオーム番号は 751 と同じ扱い。ブロック状態は 736→751 が非恒等写像のため
-     * mapBlockState736To765 で表引きする（normalizeBlockState 参照）。
-     *
-     * <p>735 の形式は 736 と完全同一（Stage A §11.1・Stage B §14.4 の実測。
-     * 736⇔735 はパケットID・レジストリとも差分 0 件。実バニラ 1.16 の
-     * 生キャプチャ cap735-chunk-x--3-z--15.bin（チャンク -3,-15、13,011 バイト、
-     * groundUp=true、ignoreOldData=true、bitMap 0x000f、biomes 1024 件全て 24＝deep_ocean）＋
-     * ChunkTranslator.translateChunkData735To736（恒等写像））：
-     * {x i32, z i32, groundUp bool, ignoreOldData bool, bitMap varint,
-     * heightmaps 名前付き NBT, biomes i32[1024]（groundUp のときだけ・件数接頭辞なし）,
-     * chunkData buffer, blockEntities varint[NBT]}。そのため 735 は下の 736 分岐をそのまま使う。
-     * BitStorage は non-straddling（BPE 5 の Data Array 長は 342。実バニラ 1.16 の生キャプチャで確認。
-     * Stage D §15.2）。光は 735 の Chunk Data には無く、別パケットの Update Light
-     * で送られる。ブロックエンティティは読まない（757 と同じく送らない）。
-     * バイオームは 735 と 736 で同一（79 件・同じ id・同じ名前。Stage A §11.1 実測）のため、
-     * バイオーム番号は 736 と同じ扱い。ブロック状態は 735→736 が恒等写像のため
-     * mapBlockState735To765 で表引きする（normalizeBlockState 参照）。
-     *
      */
     public static TranslatedChunk translate(ChunkInput input) {
+        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_5
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_4) {
+            // 5 のチャンクは zlib 圧縮＋種類別グループ化レイアウトで
+            // 47 とも別形式。47 形式へ詰め替えてから 47 の経路へ流す
+            // （値は (数値ID<<4)|メタデータで 47 と同じ番号空間）。
+            return translate5(input);
+        }
+        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_47) {
+            // 47 のチャンクはパレット無しの固定詰め（2バイトLE の
+            // (数値ID<<4)|メタデータ ×4096＋光 2048×2）、bitMap は
+            // u16、バイオームは末尾の u8×256。パースは専用にする。
+            return translate47(input);
+        }
+        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_340
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_338
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_335
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_316
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_315
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_210
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_110
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_109
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_108
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_107) {
+            // 340／338 のチャンクは骨格が 404 と同じだが、パレット値は
+            // (数値ID<<4)|メタデータ、直接パレットは13ビット、
+            // バイオームは末尾の u8×256。パースは専用にする
+            // （338 のチャンク形式は 340 と完全同一）。
+            return translate340(input);
+        }
+        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_393) {
+            // 393 のチャンク形式は 404 と同一（パースは共用できる）。
+            // ブロック状態の正規化は writeSubChunk が
+            // input.serverProtocol() で振り分けるため、393 専用表が使われる。
+            return translate404(input);
+        }
+        if (input.serverProtocol() == 401) {
+            // 401 のチャンク形式は 404 と同一（スロット形式だけが違う
+            // 世代で、チャンクにスロットは含まれない）。
+            return translate404(input);
+        }
+        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_404) {
+            // 404 のチャンク形式は 498 と別世代（heightmap 無し、光は
+            // セクション内蔵、詰め方はロング境界をまたがない旧方式、
+            // バイオームはバッファ末尾の 256 件 i32）。
+            return translate404(input);
+        }
+        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_477) {
+            // チャンク形式は 480 と同一（バイオームは末尾の256件）。
+            return translate498(input);
+        }
+        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_480) {
+            // チャンク形式は 485 と同一（バイオームは末尾の256件）。
+            return translate498(input);
+        }
+        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_485) {
+            // チャンク形式は 490 と同一（バイオームは末尾の256件）。
+            return translate498(input);
+        }
+        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_490) {
+            // チャンク形式は 498 と同一（バイオームは末尾の256件）。
+            return translate498(input);
+        }
+        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_498) {
+            return translate498(input);
+        }
+        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_578
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_575
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_573) {
+            return translate578(input);
+        }
         PacketIO.Reader reader = new PacketIO.Reader(input.javaChunkPayload());
         int chunkX = reader.readInt();
         int chunkZ = reader.readInt();
-        long[] bitmask756 = null;
-        int[] biomes756 = null;
-        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_735
-                || input.serverProtocol() == RegistryRemapper.PROTOCOL_736) {
-            // 735／736 だけの頭部：groundUp＋ignoreOldData＋bitMap（varint の 16 ビット）＋
-            // heightmaps（名前付き）＋groundUp のときだけバイオーム i32[1024]（件数接頭辞なし）。
-            // 751／753／754 は ignoreOldData が無く、バイオームは [count varint][varint×1024]。
-            boolean groundUp = reader.readBoolean();
-            reader.readBoolean(); // ignoreOldData（全チャンク送出で true。751 には無いため捨てる）
-            int bitMap = reader.readVarInt();
-            reader.readNamedNbt(); // heightmaps（名前付き。ルート名は空文字）
-            if (groundUp) {
-                biomes756 = new int[1024];
-                for (int i = 0; i < 1024; i++) {
-                    biomes756[i] = reader.readInt();
-                }
-            } else {
-                // groundUp=false のときバイオーム配列は無い。平原（1）で補う。
-                biomes756 = new int[1024];
-                Arrays.fill(biomes756, 1);
-            }
-            bitmask756 = new long[]{bitMap & 0xFFFFL};
-        } else if (input.serverProtocol() == RegistryRemapper.PROTOCOL_751
-                    || input.serverProtocol() == RegistryRemapper.PROTOCOL_753
-                    || input.serverProtocol() == RegistryRemapper.PROTOCOL_754) {
-            // 751／753／754 だけの頭部：groundUp＋bitMap（varint の 16 ビット）＋
-            // heightmaps（名前付き）＋groundUp のときだけバイオーム int[1024]。
-            boolean groundUp = reader.readBoolean();
-            int bitMap = reader.readVarInt();
-            reader.readNamedNbt(); // heightmaps（名前付き。ルート名は空文字）
-            if (groundUp) {
-                int biomeCount = reader.readVarInt();
-                if (biomeCount != 1024) {
-                    throw new IllegalArgumentException(
-                    "751／753／754 のバイオーム配列の件数が 1024 ではありません: " + biomeCount);
-                }
-                biomes756 = new int[1024];
-                for (int i = 0; i < 1024; i++) {
-                    biomes756[i] = reader.readVarInt();
-                }
-            } else {
-                // groundUp=false のときバイオーム配列は無い。平原（1）で補う。
-                biomes756 = new int[1024];
-                Arrays.fill(biomes756, 1);
-            }
-            bitmask756 = new long[]{bitMap & 0xFFFFL};
-        } else if (input.serverProtocol() == RegistryRemapper.PROTOCOL_756
-                || input.serverProtocol() == RegistryRemapper.PROTOCOL_755) {
-            // 755／756 だけの頭部：bitMap＋heightmaps（名前付き）＋バイオーム int[1024]。
-            int maskCount = reader.readVarInt();
-            if (maskCount < 0 || maskCount > 4) {
-                throw new IllegalArgumentException("755／756 の bitMap の long 数が不正です: "
-                        + maskCount);
-            }
-            bitmask756 = new long[maskCount];
-            for (int i = 0; i < maskCount; i++) {
-                bitmask756[i] = reader.readLong();
-            }
-            reader.readNamedNbt(); // heightmaps（名前付き。ルート名は空文字）
-            int biomeCount = reader.readVarInt();
-            if (biomeCount != 1024) {
-                throw new IllegalArgumentException(
-                        "755／756 のバイオーム配列の件数が 1024 ではありません: " + biomeCount);
-            }
-            biomes756 = new int[1024];
-            for (int i = 0; i < 1024; i++) {
-                biomes756[i] = reader.readVarInt();
-            }
-        } else if (input.serverProtocol() == RegistryRemapper.PROTOCOL_763) {
+        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_763) {
             reader.readNamedNbt();
         } else if (input.serverProtocol() == RegistryRemapper.PROTOCOL_770
                 || input.serverProtocol() == RegistryRemapper.PROTOCOL_771
                 || input.serverProtocol() == RegistryRemapper.PROTOCOL_772
                 || input.serverProtocol() == RegistryRemapper.PROTOCOL_773
                 || input.serverProtocol() == RegistryRemapper.PROTOCOL_774
-                || input.serverProtocol() == RegistryRemapper.PROTOCOL_775) {
-            // 770／771／772／773／774／775 の heightmap は NBT ではなく配列（varint 個数 ×
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_775
+                || input.serverProtocol() == RegistryRemapper.PROTOCOL_776) {
+            // 770／771／772／773／774／775／776 の heightmap は NBT ではなく配列（varint 個数 ×
             // {type varint, data long[] }）。NBT として読むと壊れるため
             // 配列として読み飛ばす（高さの情報自体は Bedrock 変換では使わない）。
             int heightmapCount = reader.readVarInt();
@@ -466,9 +431,6 @@ public final class BedrockChunkTranslator {
                 reader.readBytes(dataLength * 8);
             }
         } else {
-            // 757／759／764／765／766／767／768／769 の heightmap は NBT。
-            // 757 は実バニラ 1.18 の ClientboundLevelChunkPacketData.write の
-            // バイトコードで確認（2026-11-15：heightmaps を NBT で書く）。
             reader.readAnonymousNbt();
         }
         int dataLength = reader.readVarInt();
@@ -482,48 +444,20 @@ public final class BedrockChunkTranslator {
         List<int[]> blockSections = new ArrayList<>(sectionCount);
         List<int[]> biomeSections = new ArrayList<>(sectionCount);
         PacketIO.Reader sections = new PacketIO.Reader(sectionBytes);
-        if (input.serverProtocol() == RegistryRemapper.PROTOCOL_735
-                || input.serverProtocol() == RegistryRemapper.PROTOCOL_736
-                || input.serverProtocol() == RegistryRemapper.PROTOCOL_751
-                || input.serverProtocol() == RegistryRemapper.PROTOCOL_753
-                || input.serverProtocol() == RegistryRemapper.PROTOCOL_754
-                || input.serverProtocol() == RegistryRemapper.PROTOCOL_756
-                || input.serverProtocol() == RegistryRemapper.PROTOCOL_755) {
-            // 735／736／751／753／754／755／756：16 セクション（y 0〜15）。chunkData には bitMap に立っている
-            // セクションだけが入る。無いセクションはブロックだけ空気で補完し、
-            // バイオームは int[1024] の値をそのまま使う（Stage B §14.4 の
-            // ChunkTranslator.translateChunkData756To757 と同じ扱い）。
-            // セクション内部は [blockCount i16]＋ブロックコンテナだけで、
-            // バイオームコンテナは無い。バイオームは配列の [64s, 64s+64)。
-            int sectionsToRead = Math.min(sectionCount, 16);
-            for (int s = 0; s < sectionsToRead; s++) {
-                if (bitmaskHas(bitmask756, s) && sections.remaining() > 0) {
-                    sections.readShort(); // blockCount（使わない）
-                    blockSections.add(readPalettedContainer(sections, true,
-                            input.serverProtocol()));
-                } else {
-                    blockSections.add(airBlocks());
-                }
-                int[] sectionBiomes = new int[SECTION_BIOMES];
-                for (int i = 0; i < SECTION_BIOMES; i++) {
-                    sectionBiomes[i] = biomes756[s * 64 + i];
-                }
-                biomeSections.add(sectionBiomes);
+        for (int i = 0; i < sectionCount && sections.remaining() > 0; i++) {
+            int blockCount = sections.readShort(); // blockCount（使わない）
+            if (input.serverProtocol() == RegistryRemapper.PROTOCOL_775
+                    || input.serverProtocol() == RegistryRemapper.PROTOCOL_776) {
+                // 26.1（775）／26.2（776）では blockCount の後に 2 バイトの追加
+                // フィールドがある（実バニラ 26.1／26.2 のチャンクで確認。値は
+                // 変わる：26.2 のセクション 0 で 14。内容は未確認のため読み飛ばす。
+                // 770〜774 には無い）。
+                sections.readShort();
             }
-        } else {
-            for (int i = 0; i < sectionCount && sections.remaining() > 0; i++) {
-                // 757 はセクション先頭の short が 1 個（blockCount）で正しい。
-                // 実バニラ 1.18 の LevelChunkSection.write のバイトコードで確認
-                // （2026-11-15：nonEmptyBlockCount の次に 2 つのコンテナが続く。
-                // fluidCount は 1.18 には無い）。770〜775 もここでは 1 short
-                // しか読まないが、実バニラ 26.1 では fluidCount があるため疑わしい。
-                // 770〜775 はここでは触らない（判断待ち）。
-                int blockCount = sections.readShort(); // blockCount（使わない）
-                blockSections.add(readPalettedContainer(sections, true,
-                        input.serverProtocol()));
-                biomeSections.add(readPalettedContainer(sections, false,
-                        input.serverProtocol()));
-            }
+            blockSections.add(readPalettedContainer(sections, true,
+                    input.serverProtocol()));
+            biomeSections.add(readPalettedContainer(sections, false,
+                    input.serverProtocol()));
         }
         while (blockSections.size() < sectionCount) {
             blockSections.add(airBlocks());
@@ -546,37 +480,643 @@ public final class BedrockChunkTranslator {
         return new TranslatedChunk(chunkX, chunkZ, out.bytes(), sectionCount);
     }
 
+    /**
+     * 578（1.15.2）のチャンクを読む。形式は 758 以降と別世代：x, z, groundUp,
+     * セクションビットマスク（varint）, heightmaps（名前付き NBT）, バイオーム
+     * 1024 個の int 配列（groundUp のとき）, データ長, セクション列（マスクの
+     * ビット順）, ブロックエンティティ NBT 列。セクションのビット詰めは
+     * ロング境界をまたぐ旧方式（実バニラ 1.15.2 の heightmap 36 ロングで確認）。
+     * セクションは常に 16 個（高さ 256、minY 0）。ブロック状態は 578 の ID の
+     * まま保持し、書き出し時に {@link #normalizeBlockState} で 765 へ寄せる。
+     */
+    /**
+     * 498 の Chunk Data を読む。578 との違い：バイオームは別フィールド
+     * （1024件）ではなく、データバッファの末尾に列ごと256件が入る。
+     * セクションの読み方は 578 と同じ（境界またぎ詰め）。
+     */
+    /**
+     * 404（1.13.2）のチャンクを読む。498 との違い：heightmaps NBT が無く、
+     * セクションがブロックライト 2048 バイト（＋スカイライト 2048 バイト、
+     * 空光のある次元のみ）を内蔵し、ビット詰めはロング境界をまたがない
+     * 旧方式。バイオームはデータバッファ末尾の 256 件 i32（498 と同じ位置）。
+     * スカイライトの有無は次元で決まるが入力に無いため、あり→なしの順に
+     * 試し、末尾の残量がバイオーム分と一致した方を採用する。
+     */
+    private static TranslatedChunk translate404(ChunkInput input) {
+        PacketIO.Reader reader = new PacketIO.Reader(input.javaChunkPayload());
+        int chunkX = reader.readInt();
+        int chunkZ = reader.readInt();
+        boolean groundUp = reader.readBoolean();
+        int mask = reader.readVarInt();
+        int size = reader.readVarInt();
+        if (size < 0 || size > reader.remaining()) {
+            throw new IllegalArgumentException("404 チャンクのデータ長が不正です: " + size);
+        }
+        byte[] buffer = reader.readBytes(size);
+        List<int[]> blockSections = null;
+        int[] biomes = null;
+        for (boolean sky : new boolean[]{true, false}) {
+            try {
+                PacketIO.Reader sections = new PacketIO.Reader(buffer);
+                List<int[]> parsed = new ArrayList<>(16);
+                for (int s = 0; s < 16; s++) {
+                    if ((mask & (1 << s)) == 0) {
+                        parsed.add(airBlocks());
+                        continue;
+                    }
+                    // 404 のセクションに blockCount は無い（1.14 から追加。実バニラで確認済み）。
+                    int bits = sections.readUnsignedByte();
+                    int[] palette = null;
+                    if (bits <= 8) {
+                        int paletteLength = sections.readVarInt();
+                        palette = new int[paletteLength];
+                        for (int i = 0; i < paletteLength; i++) {
+                            palette[i] = sections.readVarInt();
+                        }
+                    }
+                    int dataLength = sections.readVarInt();
+                    long[] longs = new long[dataLength];
+                    for (int i = 0; i < dataLength; i++) {
+                        longs[i] = sections.readLong();
+                    }
+                    sections.readBytes(2048); // ブロックライト（Bedrock 変換では使わない）
+                    if (sky) {
+                        sections.readBytes(2048); // スカイライト
+                    }
+                    int[] states = new int[SECTION_BLOCKS];
+                    if (bits == 0) {
+                        int only = palette != null && palette.length > 0 ? palette[0] : 0;
+                        java.util.Arrays.fill(states, only);
+                    } else {
+                        // 詰め方は 1.15 以前の旧式 BitArray（long 境界をまたぐ
+                        // crossing）。実バニラ 1.13.2 の bits=5 セクション
+                        // （320 long＝4096×5/64）で確認した。
+                        int valueBits = palette != null ? bits : 14;
+                        long valueMask = (1L << valueBits) - 1;
+                        int bitPos = 0;
+                        for (int i = 0; i < SECTION_BLOCKS; i++) {
+                            int li = bitPos >> 6;
+                            int off = bitPos & 63;
+                            long raw = (longs[li] >>> off) & valueMask;
+                            if (off + valueBits > 64 && li + 1 < longs.length) {
+                                raw |= (longs[li + 1] << (64 - off)) & valueMask;
+                            }
+                            int rawInt = (int) (raw & valueMask);
+                            states[i] = palette != null
+                                    ? (rawInt < palette.length ? palette[rawInt] : 0) : rawInt;
+                            bitPos += valueBits;
+                        }
+                    }
+                    parsed.add(states);
+                }
+                int[] parsedBiomes = null;
+                if (groundUp) {
+                    if (sections.remaining() != 1024) {
+                        throw new IllegalArgumentException("404 チャンクの末尾が合いません");
+                    }
+                    parsedBiomes = new int[256];
+                    for (int i = 0; i < 256; i++) {
+                        parsedBiomes[i] = sections.readInt();
+                    }
+                } else if (sections.remaining() != 0) {
+                    throw new IllegalArgumentException("404 チャンクの末尾が合いません");
+                }
+                blockSections = parsed;
+                biomes = parsedBiomes;
+                break;
+            } catch (RuntimeException e) {
+                if (!sky) {
+                    throw e;
+                }
+            }
+        }
+        List<int[]> biomeSections = new ArrayList<>(16);
+        for (int s = 0; s < 16; s++) {
+            int[] biomeSection = new int[SECTION_BIOMES];
+            for (int qy = 0; qy < 4; qy++) {
+                for (int qz = 0; qz < 4; qz++) {
+                    for (int qx = 0; qx < 4; qx++) {
+                        int value = biomes == null ? 1
+                                : biomes[(qz * 4) * 16 + qx * 4];
+                        biomeSection[(qy << 4) | (qz << 2) | qx] = value;
+                    }
+                }
+            }
+            biomeSections.add(biomeSection);
+        }
+        BedrockVarInt.ByteWriter out = new BedrockVarInt.ByteWriter();
+        for (int i = 0; i < 16; i++) {
+            writeSubChunk(out, blockSections.get(i), i, input.serverProtocol());
+        }
+        for (int i = 0; i < 16; i++) {
+            writeBiomeStorage(out, biomeSections.get(i), input.biomeNames());
+        }
+        BedrockVarInt.writeUnsignedVarInt(out, 0);
+        BedrockVarInt.writeUnsignedVarInt(out, 0);
+        return new TranslatedChunk(chunkX, chunkZ, out.bytes(), 16);
+    }
+
+    /**
+     * 47（1.8.x）のチャンクを読む。セクションは固定長 12,288 バイト
+     * （ブロック 4096×u16 LE＋ブロックライト 2048＋スカイライト 2048）。
+     * スカイライトの有無は次元依存でペイロードからは分からないため、
+     * 340 と同じく有り→無しの2回試行で確定させる。
+     */
+    /**
+     * 5（1.7.x）のチャンクを読む。ペイロードは
+     * {chunkX, chunkZ, groundUp, primaryBitMap u16, addBitMap u16,
+     * compressedSize varint, zlib データ} で、展開後は種類別に
+     * グループ化されている（全セクションの ID 配列→メタ nibble→
+     * ブロックライト→スカイライト→add nibble→バイオーム）。
+     * 47 の固定詰めレイアウトへ詰め替えた合成ペイロードを作り、
+     * translate47 へ委譲する（ブロック値は 47 と同じ番号空間）。
+     * スカイライトの有無は展開後の長さから厳密に決める。
+     */
+    private static TranslatedChunk translate5(ChunkInput input) {
+        PacketIO.Reader reader = new PacketIO.Reader(input.javaChunkPayload());
+        int chunkX = reader.readInt();
+        int chunkZ = reader.readInt();
+        boolean groundUp = reader.readBoolean();
+        int mask = reader.readUnsignedShort();
+        reader.readUnsignedShort(); // addBitMap（ID は最大175で実質0）
+        int compressedSize = reader.readVarInt();
+        if (compressedSize < 0 || compressedSize > reader.remaining()) {
+            throw new IllegalArgumentException("5 チャンクの圧縮長が不正です: " + compressedSize);
+        }
+        byte[] compressed = reader.readBytes(compressedSize);
+        byte[] data;
+        try {
+            java.util.zip.Inflater inflater = new java.util.zip.Inflater();
+            inflater.setInput(compressed);
+            java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
+            byte[] tmp = new byte[8192];
+            while (!inflater.finished()) {
+                int n = inflater.inflate(tmp);
+                if (n == 0 && (inflater.needsInput() || inflater.needsDictionary())) {
+                    throw new IllegalArgumentException("5 チャンクの zlib が途中で終わりました");
+                }
+                bos.write(tmp, 0, n);
+            }
+            inflater.end();
+            data = bos.toByteArray();
+        } catch (java.util.zip.DataFormatException e) {
+            throw new IllegalArgumentException("5 チャンクの zlib 展開に失敗しました", e);
+        }
+        int sections = Integer.bitCount(mask);
+        int biomeBytes = groundUp ? 256 : 0;
+        boolean sky;
+        if (data.length == sections * 12288 + biomeBytes) {
+            sky = true;
+        } else if (data.length == sections * 10240 + biomeBytes) {
+            sky = false;
+        } else {
+            throw new IllegalArgumentException("5 チャンクの展開長が合いません: " + data.length);
+        }
+        int idsOff = 0;
+        int metaOff = sections * 4096;
+        int blockLightOff = metaOff + sections * 2048;
+        int skyLightOff = blockLightOff + sections * 2048;
+        int addOff = skyLightOff + (sky ? sections * 2048 : 0);
+        PacketIO.Writer out = new PacketIO.Writer();
+        int sectionIndex = 0;
+        java.io.ByteArrayOutputStream body = new java.io.ByteArrayOutputStream();
+        for (int sec = 0; sec < 16; sec++) {
+            if ((mask & (1 << sec)) == 0) {
+                continue;
+            }
+            int s = sectionIndex++;
+            for (int i = 0; i < 4096; i++) {
+                int id = data[idsOff + s * 4096 + i] & 0xFF;
+                int metaByte = data[metaOff + s * 2048 + (i >> 1)] & 0xFF;
+                int meta = (i & 1) == 0 ? metaByte & 0xF : (metaByte >> 4) & 0xF;
+                int addByte = data[addOff + s * 2048 + (i >> 1)] & 0xFF;
+                int add = (i & 1) == 0 ? addByte & 0xF : (addByte >> 4) & 0xF;
+                int value = ((id | (add << 8)) << 4) | meta;
+                body.write(value & 0xFF);
+                body.write((value >> 8) & 0xFF);
+            }
+            body.write(data, blockLightOff + s * 2048, 2048);
+            if (sky) {
+                body.write(data, skyLightOff + s * 2048, 2048);
+            }
+        }
+        if (groundUp) {
+            body.write(data, addOff + sections * 2048, 256);
+        }
+        byte[] bodyBytes = body.toByteArray();
+        out.writeInt(chunkX);
+        out.writeInt(chunkZ);
+        out.writeBoolean(groundUp);
+        out.writeShort((short) mask);
+        out.writeVarInt(bodyBytes.length);
+        out.writeBytes(bodyBytes);
+        return translate47(new ChunkInput(chunkX, chunkZ, out.bytes(),
+                RegistryRemapper.PROTOCOL_47, input.minY(), input.height(),
+                input.biomeNames()));
+    }
+
+    private static TranslatedChunk translate47(ChunkInput input) {
+        PacketIO.Reader reader = new PacketIO.Reader(input.javaChunkPayload());
+        int chunkX = reader.readInt();
+        int chunkZ = reader.readInt();
+        boolean groundUp = reader.readBoolean();
+        int mask = reader.readUnsignedShort();
+        int size = reader.readVarInt();
+        if (size < 0 || size > reader.remaining()) {
+            throw new IllegalArgumentException("47 チャンクのデータ長が不正です: " + size);
+        }
+        byte[] buffer = reader.readBytes(size);
+        List<int[]> blockSections = null;
+        int[] biomes = null;
+        for (boolean sky : new boolean[]{true, false}) {
+            try {
+                PacketIO.Reader sections = new PacketIO.Reader(buffer);
+                List<int[]> parsed = new ArrayList<>(16);
+                for (int s = 0; s < 16; s++) {
+                    if ((mask & (1 << s)) == 0) {
+                        parsed.add(airBlocks());
+                        continue;
+                    }
+                    int[] states = new int[SECTION_BLOCKS];
+                    for (int i = 0; i < SECTION_BLOCKS; i++) {
+                        int lo = sections.readUnsignedByte();
+                        int hi = sections.readUnsignedByte();
+                        states[i] = lo | (hi << 8);
+                    }
+                    sections.readBytes(2048); // ブロックライト（使わない）
+                    if (sky) {
+                        sections.readBytes(2048); // スカイライト
+                    }
+                    parsed.add(states);
+                }
+                int[] parsedBiomes = null;
+                if (groundUp) {
+                    if (sections.remaining() < 256) {
+                        throw new IllegalArgumentException("47 チャンクの末尾が合いません");
+                    }
+                    parsedBiomes = new int[256];
+                    for (int i = 0; i < 256; i++) {
+                        parsedBiomes[i] = sections.readUnsignedByte();
+                    }
+                }
+                if (sections.remaining() != 0) {
+                    throw new IllegalArgumentException("47 チャンクの末尾が合いません");
+                }
+                blockSections = parsed;
+                biomes = parsedBiomes;
+                break;
+            } catch (RuntimeException e) {
+                if (!sky) {
+                    throw e;
+                }
+            }
+        }
+        List<int[]> biomeSections = new ArrayList<>(16);
+        for (int s = 0; s < 16; s++) {
+            int[] biomeSection = new int[SECTION_BIOMES];
+            for (int qy = 0; qy < 4; qy++) {
+                for (int qz = 0; qz < 4; qz++) {
+                    for (int qx = 0; qx < 4; qx++) {
+                        int value = biomes == null ? 1
+                                : biomes[(qz * 4) * 16 + qx * 4];
+                        biomeSection[(qy << 4) | (qz << 2) | qx] = value;
+                    }
+                }
+            }
+            biomeSections.add(biomeSection);
+        }
+        BedrockVarInt.ByteWriter out = new BedrockVarInt.ByteWriter();
+        for (int i = 0; i < 16; i++) {
+            writeSubChunk(out, blockSections.get(i), i, input.serverProtocol());
+        }
+        for (int i = 0; i < 16; i++) {
+            writeBiomeStorage(out, biomeSections.get(i), input.biomeNames());
+        }
+        BedrockVarInt.writeUnsignedVarInt(out, 0);
+        BedrockVarInt.writeUnsignedVarInt(out, 0);
+        return new TranslatedChunk(chunkX, chunkZ, out.bytes(), 16);
+    }
+
+    /**
+     * セクション本体の後ろに残ったバイトを検証する。通常は0バイトで
+     * なければならないが、107（1.9）のチャンクは dataLen の内側に
+     * 大きなゼロ埋めを含む癖があるため（Stage A 実測：153,600バイト
+     * 等が全部ゼロ）、107 の場合だけ「残りが全部ゼロ」を条件に
+     * 読み捨てる。他プロトコルの末尾検証は従来どおり厳密に行う。
+     */
+    private static void requireZeroPaddedTail(PacketIO.Reader sections, ChunkInput input) {
+        if (sections.remaining() == 0) {
+            return;
+        }
+        if (input.serverProtocol() != RegistryRemapper.PROTOCOL_107) {
+            throw new IllegalArgumentException("340 チャンクの末尾が合いません");
+        }
+        while (sections.remaining() > 0) {
+            if (sections.readUnsignedByte() != 0) {
+                throw new IllegalArgumentException("107 チャンクの末尾のゼロ埋めが崩れています");
+            }
+        }
+    }
+
+    private static TranslatedChunk translate340(ChunkInput input) {
+        PacketIO.Reader reader = new PacketIO.Reader(input.javaChunkPayload());
+        int chunkX = reader.readInt();
+        int chunkZ = reader.readInt();
+        boolean groundUp = reader.readBoolean();
+        int mask = reader.readVarInt();
+        int size = reader.readVarInt();
+        if (size < 0 || size > reader.remaining()) {
+            throw new IllegalArgumentException("340 チャンクのデータ長が不正です: " + size);
+        }
+        byte[] buffer = reader.readBytes(size);
+        List<int[]> blockSections = null;
+        int[] biomes = null;
+        for (boolean sky : new boolean[]{true, false}) {
+            try {
+                PacketIO.Reader sections = new PacketIO.Reader(buffer);
+                List<int[]> parsed = new ArrayList<>(16);
+                for (int s = 0; s < 16; s++) {
+                    if ((mask & (1 << s)) == 0) {
+                        parsed.add(airBlocks());
+                        continue;
+                    }
+                    // 340 のセクションに blockCount は無い（404 と同じ）。
+                    int bits = sections.readUnsignedByte();
+                    int[] palette = null;
+                    if (bits <= 8) {
+                        int paletteLength = sections.readVarInt();
+                        palette = new int[paletteLength];
+                        for (int i = 0; i < paletteLength; i++) {
+                            palette[i] = sections.readVarInt();
+                        }
+                    }
+                    int dataLength = sections.readVarInt();
+                    long[] longs = new long[dataLength];
+                    for (int i = 0; i < dataLength; i++) {
+                        longs[i] = sections.readLong();
+                    }
+                    sections.readBytes(2048); // ブロックライト（Bedrock 変換では使わない）
+                    if (sky) {
+                        sections.readBytes(2048); // スカイライト
+                    }
+                    int[] states = new int[SECTION_BLOCKS];
+                    if (bits == 0) {
+                        int only = palette != null && palette.length > 0 ? palette[0] : 0;
+                        java.util.Arrays.fill(states, only);
+                    } else {
+                        // 詰め方は 1.15 以前の旧式 BitArray（long 境界をまたぐ
+                        // crossing）。実バニラ 1.13.2 の bits=5 セクション
+                        // （320 long＝4096×5/64）で確認した。
+                        int valueBits = palette != null ? bits : 13;
+                        long valueMask = (1L << valueBits) - 1;
+                        int bitPos = 0;
+                        for (int i = 0; i < SECTION_BLOCKS; i++) {
+                            int li = bitPos >> 6;
+                            int off = bitPos & 63;
+                            long raw = (longs[li] >>> off) & valueMask;
+                            if (off + valueBits > 64 && li + 1 < longs.length) {
+                                raw |= (longs[li + 1] << (64 - off)) & valueMask;
+                            }
+                            int rawInt = (int) (raw & valueMask);
+                            states[i] = palette != null
+                                    ? (rawInt < palette.length ? palette[rawInt] : 0) : rawInt;
+                            bitPos += valueBits;
+                        }
+                    }
+                    parsed.add(states);
+                }
+                int[] parsedBiomes = null;
+                if (groundUp) {
+                    if (sections.remaining() < 256) {
+                        throw new IllegalArgumentException("340 チャンクの末尾が合いません");
+                    }
+                    parsedBiomes = new int[256];
+                    for (int i = 0; i < 256; i++) {
+                        parsedBiomes[i] = sections.readUnsignedByte();
+                    }
+                    requireZeroPaddedTail(sections, input);
+                } else {
+                    requireZeroPaddedTail(sections, input);
+                }
+                blockSections = parsed;
+                biomes = parsedBiomes;
+                break;
+            } catch (RuntimeException e) {
+                if (!sky) {
+                    throw e;
+                }
+            }
+        }
+        List<int[]> biomeSections = new ArrayList<>(16);
+        for (int s = 0; s < 16; s++) {
+            int[] biomeSection = new int[SECTION_BIOMES];
+            for (int qy = 0; qy < 4; qy++) {
+                for (int qz = 0; qz < 4; qz++) {
+                    for (int qx = 0; qx < 4; qx++) {
+                        int value = biomes == null ? 1
+                                : biomes[(qz * 4) * 16 + qx * 4];
+                        biomeSection[(qy << 4) | (qz << 2) | qx] = value;
+                    }
+                }
+            }
+            biomeSections.add(biomeSection);
+        }
+        BedrockVarInt.ByteWriter out = new BedrockVarInt.ByteWriter();
+        for (int i = 0; i < 16; i++) {
+            writeSubChunk(out, blockSections.get(i), i, input.serverProtocol());
+        }
+        for (int i = 0; i < 16; i++) {
+            writeBiomeStorage(out, biomeSections.get(i), input.biomeNames());
+        }
+        BedrockVarInt.writeUnsignedVarInt(out, 0);
+        BedrockVarInt.writeUnsignedVarInt(out, 0);
+        return new TranslatedChunk(chunkX, chunkZ, out.bytes(), 16);
+    }
+
+    private static TranslatedChunk translate498(ChunkInput input) {
+        PacketIO.Reader reader = new PacketIO.Reader(input.javaChunkPayload());
+        int chunkX = reader.readInt();
+        int chunkZ = reader.readInt();
+        boolean groundUp = reader.readBoolean();
+        int mask = reader.readVarInt();
+        reader.readNamedNbt(); // heightmaps（Bedrock 変換では使わない）
+        int size = reader.readVarInt();
+        if (size < 0 || size > reader.remaining()) {
+            throw new IllegalArgumentException("498 チャンクのデータ長が不正です: " + size);
+        }
+        PacketIO.Reader sections = new PacketIO.Reader(reader.readBytes(size));
+        List<int[]> blockSections = new ArrayList<>(16);
+        for (int s = 0; s < 16; s++) {
+            if ((mask & (1 << s)) == 0) {
+                blockSections.add(airBlocks());
+            } else {
+                sections.readShort(); // blockCount（使わない）
+                int bits = sections.readUnsignedByte();
+                int[] palette = null;
+                if (bits <= 8) {
+                    int paletteLength = sections.readVarInt();
+                    palette = new int[paletteLength];
+                    for (int i = 0; i < paletteLength; i++) {
+                        palette[i] = sections.readVarInt();
+                    }
+                }
+                int dataLength = sections.readVarInt();
+                long[] longs = new long[dataLength];
+                for (int i = 0; i < dataLength; i++) {
+                    longs[i] = sections.readLong();
+                }
+                int[] states = new int[SECTION_BLOCKS];
+                if (bits == 0) {
+                    int only = palette != null && palette.length > 0 ? palette[0] : 0;
+                    java.util.Arrays.fill(states, only);
+                } else {
+                    int valueBits = palette != null ? bits : 14;
+                    for (int i = 0; i < SECTION_BLOCKS; i++) {
+                        long bitPos = (long) i * valueBits;
+                        int li = (int) (bitPos >>> 6);
+                        int off = (int) (bitPos & 63);
+                        long v;
+                        if (off + valueBits <= 64) {
+                            v = (longs[li] >>> off) & ((1L << valueBits) - 1);
+                        } else {
+                            int rem = 64 - off;
+                            v = ((longs[li] >>> off) | (longs[li + 1] << rem))
+                                    & ((1L << valueBits) - 1);
+                        }
+                        int raw = (int) v;
+                        states[i] = palette != null
+                                ? (raw < palette.length ? palette[raw] : 0) : raw;
+                    }
+                }
+                blockSections.add(states);
+            }
+        }
+        int[] biomes = null;
+        if (groundUp) {
+            biomes = new int[256];
+            for (int i = 0; i < 256; i++) {
+                biomes[i] = sections.readInt();
+            }
+        }
+        List<int[]> biomeSections = new ArrayList<>(16);
+        for (int s = 0; s < 16; s++) {
+            int[] biomeSection = new int[SECTION_BIOMES];
+            for (int qy = 0; qy < 4; qy++) {
+                for (int qz = 0; qz < 4; qz++) {
+                    for (int qx = 0; qx < 4; qx++) {
+                        int value = biomes == null ? 1
+                                : biomes[(qz * 4) * 16 + qx * 4];
+                        biomeSection[(qy << 4) | (qz << 2) | qx] = value;
+                    }
+                }
+            }
+            biomeSections.add(biomeSection);
+        }
+        BedrockVarInt.ByteWriter out = new BedrockVarInt.ByteWriter();
+        for (int i = 0; i < 16; i++) {
+            writeSubChunk(out, blockSections.get(i), i, input.serverProtocol());
+        }
+        for (int i = 0; i < 16; i++) {
+            writeBiomeStorage(out, biomeSections.get(i), input.biomeNames());
+        }
+        BedrockVarInt.writeUnsignedVarInt(out, 0);
+        BedrockVarInt.writeUnsignedVarInt(out, 0);
+        return new TranslatedChunk(chunkX, chunkZ, out.bytes(), 16);
+    }
+
+    private static TranslatedChunk translate578(ChunkInput input) {
+        PacketIO.Reader reader = new PacketIO.Reader(input.javaChunkPayload());
+        int chunkX = reader.readInt();
+        int chunkZ = reader.readInt();
+        boolean groundUp = reader.readBoolean();
+        int mask = reader.readVarInt();
+        reader.readNamedNbt(); // heightmaps（Bedrock 変換では使わない）
+        int[] biomes = null;
+        if (groundUp) {
+            biomes = new int[1024];
+            for (int i = 0; i < 1024; i++) {
+                biomes[i] = reader.readInt();
+            }
+        }
+        int size = reader.readVarInt();
+        if (size < 0 || size > reader.remaining()) {
+            throw new IllegalArgumentException("578 チャンクのデータ長が不正です: " + size);
+        }
+        PacketIO.Reader sections = new PacketIO.Reader(reader.readBytes(size));
+        List<int[]> blockSections = new ArrayList<>(16);
+        List<int[]> biomeSections = new ArrayList<>(16);
+        for (int s = 0; s < 16; s++) {
+            if ((mask & (1 << s)) == 0) {
+                blockSections.add(airBlocks());
+            } else {
+                sections.readShort(); // blockCount（使わない）
+                int bits = sections.readUnsignedByte();
+                int[] palette = null;
+                if (bits <= 8) {
+                    int paletteLength = sections.readVarInt();
+                    palette = new int[paletteLength];
+                    for (int i = 0; i < paletteLength; i++) {
+                        palette[i] = sections.readVarInt();
+                    }
+                }
+                int dataLength = sections.readVarInt();
+                long[] longs = new long[dataLength];
+                for (int i = 0; i < dataLength; i++) {
+                    longs[i] = sections.readLong();
+                }
+                int[] states = new int[SECTION_BLOCKS];
+                if (bits == 0) {
+                    int only = palette != null && palette.length > 0 ? palette[0] : 0;
+                    java.util.Arrays.fill(states, only);
+                } else {
+                    int valueBits = palette != null ? bits : 14;
+                    for (int i = 0; i < SECTION_BLOCKS; i++) {
+                        long bitPos = (long) i * valueBits;
+                        int li = (int) (bitPos >>> 6);
+                        int off = (int) (bitPos & 63);
+                        long v;
+                        if (off + valueBits <= 64) {
+                            v = (longs[li] >>> off) & ((1L << valueBits) - 1);
+                        } else {
+                            int rem = 64 - off;
+                            v = ((longs[li] >>> off) | (longs[li + 1] << rem))
+                                    & ((1L << valueBits) - 1);
+                        }
+                        int raw = (int) v;
+                        states[i] = palette != null
+                                ? (raw < palette.length ? palette[raw] : 0) : raw;
+                    }
+                }
+                blockSections.add(states);
+            }
+            int[] biomeSection = new int[SECTION_BIOMES];
+            for (int qy = 0; qy < 4; qy++) {
+                for (int qz = 0; qz < 4; qz++) {
+                    for (int qx = 0; qx < 4; qx++) {
+                        int value = biomes == null ? 1
+                                : biomes[((s * 4 + qy) << 4) | (qz << 2) | qx];
+                        biomeSection[(qy << 4) | (qz << 2) | qx] = value;
+                    }
+                }
+            }
+            biomeSections.add(biomeSection);
+        }
+        BedrockVarInt.ByteWriter out = new BedrockVarInt.ByteWriter();
+        for (int i = 0; i < 16; i++) {
+            writeSubChunk(out, blockSections.get(i), i, input.serverProtocol());
+        }
+        for (int i = 0; i < 16; i++) {
+            writeBiomeStorage(out, biomeSections.get(i), input.biomeNames());
+        }
+        BedrockVarInt.writeUnsignedVarInt(out, 0);
+        BedrockVarInt.writeUnsignedVarInt(out, 0);
+        return new TranslatedChunk(chunkX, chunkZ, out.bytes(), 16);
+    }
+
     private static int[] airBlocks() {
-        // Java の空気（状態 0）で埋める。writeSubChunk 側が 765 化＋ランタイム ID 化
-        // するため、ここで AIR_RUNTIME_ID（11881）を入れると二重変換になる
-        // （11881 を Java 状態として読むと 4229 になり、waterlogged 扱いで 2 層になる）。
         int[] blocks = new int[SECTION_BLOCKS];
-        Arrays.fill(blocks, 0);
+        Arrays.fill(blocks, BedrockBlockRuntimeIds.AIR_RUNTIME_ID);
         return blocks;
-    }
-
-/** 755／756 のビットマスク（long 列）のビットが立っているか。735／736／751／753／754 も bitMap を long[1] に直して同じ判定を使う。 */
-    private static boolean bitmaskHas(long[] bitmask, int section) {
-        if (bitmask == null) {
-            return false;
-        }
-        int index = section / 64;
-        if (index < 0 || index >= bitmask.length) {
-            return false;
-        }
-        return (bitmask[index] & (1L << (section % 64))) != 0;
-    }
-
-    /** BitStorage が long の境界をまたがない詰め（non-straddling）か。735・736・751・753・754・755・756・757 が該当。 */
-    private static boolean isNonStraddling(int serverProtocol) {
-        return serverProtocol == RegistryRemapper.PROTOCOL_735
-                || serverProtocol == RegistryRemapper.PROTOCOL_736
-                || serverProtocol == RegistryRemapper.PROTOCOL_751
-                || serverProtocol == RegistryRemapper.PROTOCOL_753
-                || serverProtocol == RegistryRemapper.PROTOCOL_754
-                || serverProtocol == RegistryRemapper.PROTOCOL_755
-                || serverProtocol == RegistryRemapper.PROTOCOL_756
-                || serverProtocol == RegistryRemapper.PROTOCOL_757;
     }
 
     private static int[] plainsBiomes() {
@@ -608,13 +1148,14 @@ public final class BedrockChunkTranslator {
                     && serverProtocol != RegistryRemapper.PROTOCOL_772
                     && serverProtocol != RegistryRemapper.PROTOCOL_773
                     && serverProtocol != RegistryRemapper.PROTOCOL_774
-                    && serverProtocol != RegistryRemapper.PROTOCOL_775) {
+                    && serverProtocol != RegistryRemapper.PROTOCOL_775
+                    && serverProtocol != RegistryRemapper.PROTOCOL_776) {
                 int dataLength = reader.readVarInt();
                 if (dataLength != 0) {
                     throw new IllegalArgumentException("シングルパレットの Data Array 長が 0 ではありません。");
                 }
             }
-            // 770／771／772／773／774／775では Data Array の長さ接頭辞が無いため、シングルパレットは
+            // 770／771／772／773／774／775／776では Data Array の長さ接頭辞が無いため、シングルパレットは
             // 値の直後が次のフィールドになる。
             int[] values = new int[entryCount];
             Arrays.fill(values, value);
@@ -634,51 +1175,46 @@ public final class BedrockChunkTranslator {
         } else {
             palette = null;
         }
-        // 751・753・754・755・756・757 のみ例外：実バニラ 1.16.2／1.16.3／1.16.5／1.17／1.17.1／1.18 の SimpleBitStorage の
-        // バイトコードで確認したところ、751・753・754・755・756・757 の BitStorage は long の境界を
-        // またがない（1 long あたり floor(64 / bits) 個。long 数は
-        // (entryCount + valuesPerLong - 1) / valuesPerLong）。
-        // Data Array には長さの varint 接頭辞がある（FriendlyByteBuf.writeLongArray
-        // が長さを varint で書く。PalettedContainer$Data.write のバイトコードで確認）。
-        // 756 は実バニラ 1.17.1 の生キャプチャでも裏付ける（2026-11-16：
-        // cap756-chunk-21-17.bin で BPE 5 の dataLen は 342。straddling 式だと 320）。
-        // 755 は 756 と Chunk Data が完全同一のため同じ詰め（Stage B §14.4）。
-        // 754 も実バニラ 1.16.5 の生キャプチャで裏付ける（2026-11-16：
-        // cap754-chunk-x-15-z-7.bin で BPE 5 の dataLen は 342。Stage B §14.4）。
-        // 753 は 754 と形式・レジストリとも同一（Stage A §11.1・Stage B §14.4）のため同じ詰め。
-        // cap754-chunk-x-15-z-7.bin は 753 形式のバイトでもある。
-        // 751 は 753 と形式・レジストリとも同一（Stage A §11.1・Stage B §14.4）のため同じ詰め。
-        // cap754-chunk-x-15-z-7.bin は 751 形式のバイトでもある。
-        // （2026-11-15、server-1.18.jar の javap で確認。生キャプチャでも裏付ける。）
-        int expected;
-        if (isNonStraddling(serverProtocol)) {
-            int valuesPerLong = 64 / bitsPerEntry;
-            expected = (entryCount + valuesPerLong - 1) / valuesPerLong;
-        } else {
-            // 770〜775 以外の既存の前提：エントリを long の境界をまたいで連続して
-            // 詰めるため、long 数は (entryCount * bitsPerEntry + 63) / 64。
-            // （2026-11-14 のコメントの通り。ただし実バニラ 1.18／26.1 の
-            // SimpleBitStorage はまたがないため、この前提は 757 とは別に
-            // 770〜775 についても疑わしい。770〜775 はここでは触らない。）
-            expected = (entryCount * bitsPerEntry + 63) / 64;
-        }
+        // バニラの BitStorage は 1 long あたり 64 / bits 個のエントリを詰め、
+        // long の境界をまたがない。long 数は
+        //   oldExpected = (entryCount + perLong - 1) / perLong
+        // （perLong = 64 / bitsPerEntry）である。
+        // 2026-11-14 に「連続詰め（(entryCount * bits + 63) / 64）」に変えたが、
+        // それは誤診だった。実バニラ 1.20.1（763）のワイヤを測るとブロック
+        // コンテナ b=5 で dataLength=342（=旧式。連続詰めなら 320）であり、
+        // 26.1 のバイオーム観測（3 ビットで 4 long 読んだ）は、ブロック
+        // コンテナを 320 long しか読まず 22 long 足りなかったために
+        // バイオームがずれて見えただけだった（2026-11-15、Bedrock マトリクス
+        // 15 件中 9 件失敗の調査で判明。770〜775 も旧式でなければ通らない）。
+        // 接頭辞あり（758〜769）ではワイヤの長さを見て両方式に対応する。
+        int perLong = 64 / bitsPerEntry;
+        int oldExpected = (entryCount + perLong - 1) / perLong;
+        int newExpected = (entryCount * bitsPerEntry + 63) / 64;
         int dataLength;
+        boolean crossBoundary;
         if (serverProtocol == RegistryRemapper.PROTOCOL_770
                 || serverProtocol == RegistryRemapper.PROTOCOL_771
                 || serverProtocol == RegistryRemapper.PROTOCOL_772
                 || serverProtocol == RegistryRemapper.PROTOCOL_773
                 || serverProtocol == RegistryRemapper.PROTOCOL_774
-                || serverProtocol == RegistryRemapper.PROTOCOL_775) {
-            // 1.21.5（770）／1.21.6（771）／1.21.7／1.21.8（772）／1.21.9／1.21.10（773）／1.21.11（774）／26.1（775）ではパレット付きコンテナの Data Array に長さの
+                || serverProtocol == RegistryRemapper.PROTOCOL_775
+                || serverProtocol == RegistryRemapper.PROTOCOL_776) {
+            // 1.21.5（770）／1.21.6（771）／1.21.7／1.21.8（772）／1.21.9／1.21.10（773）／1.21.11（774）／26.1（775）／26.2（776）ではパレット付きコンテナの Data Array に長さの
             // varint 接頭辞が無い。長さは bitsPerEntry とエントリ数から計算する。
             // （実バニラ1.21.5のチャンクで確認：長さ varint を読むと 0x33=51 が
             //  dataLength になってしまい、その後のバイオームが壊れる。）
-            dataLength = expected;
+            dataLength = oldExpected;
+            crossBoundary = false;
         } else {
             dataLength = reader.readVarInt();
-            if (dataLength != expected) {
+            if (dataLength == oldExpected) {
+                crossBoundary = false;
+            } else if (dataLength == newExpected) {
+                crossBoundary = true;
+            } else {
                 throw new IllegalArgumentException("Data Array 長が想定と違います: "
-                        + dataLength + "（想定=" + expected + "）。");
+                        + dataLength + "（旧式=" + oldExpected
+                        + "、連続詰め=" + newExpected + "）。");
             }
         }
         long[] longs = new long[dataLength];
@@ -687,42 +1223,33 @@ public final class BedrockChunkTranslator {
         }
         int[] values = new int[entryCount];
         long mask = (1L << bitsPerEntry) - 1;
-        if (isNonStraddling(serverProtocol)) {
-            // 751・753・754・755・756・757 の BitStorage は long の境界をまたがない（SimpleBitStorage.get：
-            // cellIndex = index / valuesPerLong、bitIndex = (index % valuesPerLong) * bits）。
-            // 実バニラ 1.16.5／1.17.1／1.18 のバイトコードで確認（2026-11-15／2026-11-16）。
-            // 755 は 756 と Chunk Data が完全同一のため同じ詰め（Stage B §14.4）。
-            // 754 は実バニラ 1.16.5 の生キャプチャで確認（Stage B §14.4）。
-            // 753 は 754 と同一形式のため同じ詰め。
-            // 751 は 753 と同一形式のため同じ詰め。
-            int valuesPerLong = 64 / bitsPerEntry;
+        if (crossBoundary) {
+            // 連続詰め（long の境界をまたぐ）で読む。接頭辞ありでワイヤが
+            // 新式の長さだった場合のみ。
+            int bitPos = 0;
             for (int index = 0; index < entryCount; index++) {
-                int cellIndex = index / valuesPerLong;
-                int bitIndex = (index % valuesPerLong) * bitsPerEntry;
+                int cellIndex = bitPos >> 6;
+                int bitIndex = bitPos & 63;
+                long low = longs[cellIndex];
+                int entry;
+                if (bitIndex + bitsPerEntry <= 64) {
+                    entry = (int) ((low >>> bitIndex) & mask);
+                } else {
+                    int lowBits = 64 - bitIndex;
+                    long high = cellIndex + 1 < longs.length ? longs[cellIndex + 1] : 0L;
+                    entry = (int) (((low >>> bitIndex) | (high << lowBits)) & mask);
+                }
+                values[index] = indirect ? palette[entry] : entry;
+                bitPos += bitsPerEntry;
+            }
+        } else {
+            // 旧式（1 long あたり perLong 個を先頭から読む）。実バニラの詰め方。
+            for (int index = 0; index < entryCount; index++) {
+                int cellIndex = index / perLong;
+                int bitIndex = (index % perLong) * bitsPerEntry;
                 int entry = (int) ((longs[cellIndex] >>> bitIndex) & mask);
                 values[index] = indirect ? palette[entry] : entry;
             }
-            return values;
-        }
-        // エントリは long の境界をまたぐことがある（bits が 64 を割り切らないとき）。
-        // BitStorage.get と同じく、またぐ分は次の long の下位ビットから取る。
-        // 旧式の「1 long あたり perLong 個を先頭から読む」は、またぐエントリの
-        // 上位ビットを落として誤った値を返していた。
-        int bitPos = 0;
-        for (int index = 0; index < entryCount; index++) {
-            int cellIndex = bitPos >> 6;
-            int bitIndex = bitPos & 63;
-            long low = longs[cellIndex];
-            int entry;
-            if (bitIndex + bitsPerEntry <= 64) {
-                entry = (int) ((low >>> bitIndex) & mask);
-            } else {
-                int lowBits = 64 - bitIndex;
-                long high = cellIndex + 1 < longs.length ? longs[cellIndex + 1] : 0L;
-                entry = (int) (((low >>> bitIndex) | (high << lowBits)) & mask);
-            }
-            values[index] = indirect ? palette[entry] : entry;
-            bitPos += bitsPerEntry;
         }
         return values;
     }
@@ -876,4 +1403,26 @@ public final class BedrockChunkTranslator {
         }
         return inverse;
     }
+    private static boolean bitmaskHas(long[] bitmask, int section) {
+        if (bitmask == null) {
+            return false;
+        }
+        int index = section / 64;
+        if (index < 0 || index >= bitmask.length) {
+            return false;
+        }
+        return (bitmask[index] & (1L << (section % 64))) != 0;
+    }
+
+    private static boolean isNonStraddling(int serverProtocol) {
+        return serverProtocol == RegistryRemapper.PROTOCOL_735
+                || serverProtocol == RegistryRemapper.PROTOCOL_736
+                || serverProtocol == RegistryRemapper.PROTOCOL_751
+                || serverProtocol == RegistryRemapper.PROTOCOL_753
+                || serverProtocol == RegistryRemapper.PROTOCOL_754
+                || serverProtocol == RegistryRemapper.PROTOCOL_755
+                || serverProtocol == RegistryRemapper.PROTOCOL_756
+                || serverProtocol == RegistryRemapper.PROTOCOL_757;
+    }
+
 }
