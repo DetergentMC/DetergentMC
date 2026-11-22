@@ -57,6 +57,27 @@ server:
   # サーバーリストに表示される MOTD。
   motd: "DetergentMC 1.20.4"
 
+# Surfactant forwarding / Surfactant からの転送
+# When this DetergentMC sits behind the Surfactant proxy, set the same
+# shared secret here that the Surfactant backend entry uses
+# (forwarding-secret in surfactant.yml, or the global forwarding.secret
+# there). Surfactant then forwards each player's verified identity
+# (UUID, name, IP address, profile properties) with an HMAC signature
+# during login, and DetergentMC adopts it as the player's identity.
+# Surfactant の後ろに置く場合は、Surfactant 側のバックエンド設定
+# （forwarding-secret、または全体の forwarding.secret）と同じ秘密を
+# ここにも設定してください。ログインのたびに Surfactant が署名付きで
+# プレイヤーの素性（UUID・名前・IP・プロパティ）を転送し、
+# DetergentMC はそれをそのプレイヤーの素性として採用します。
+# WARNING: while a secret is set, EVERY login must come through
+# Surfactant and pass verification. Direct connections are rejected.
+# 注意：秘密を設定している間は、ログインはすべて Surfactant 経由で
+# 検証を通る必要があります。直接の接続は拒否されます。
+# Empty (default) disables forwarding; direct connections work as usual.
+# 空（既定）なら転送は無効で、従来通りに直接接続できます。
+forwarding:
+  secret: ""
+
 # Vanilla server settings / バニラサーバーの設定
 vanilla:
   # Maximum heap for the vanilla server process, in megabytes.
@@ -106,6 +127,26 @@ resource-pack:
   # 違う場合、クライアント側でパックが拒否されます。ファイルを
   # 差し替えたらこの値も一緒に更新してください。
   sha1: ""
+  # 1.18.2 pack for 758 clients (optional; external mode only).
+  # When the 1.18.2 variant of the pack (pack_format 8) is hosted
+  # separately, write its https:// URL and SHA-1 here and the proxy
+  # offers it to 1.18.2 clients instead of the 1.19 pack below.
+  # Leave both empty to offer the 1.19 pack (when configured),
+  # the 1.19.1 / 1.19.2 pack (when configured), the 1.19.3 pack
+  # (when configured), the 1.19.4 pack (when configured),
+  # the 1.20.1 pack (when configured) or the 1.20.4 pack to 758 clients.
+  # In loopback mode these two
+  # are ignored: all variants are generated and served locally.
+  # 758クライアント向けの1.18.2用パック（任意・外部配信時のみ）。
+  # pack_format 8 のパックを別途ホストした場合は、その https:// URL
+  # とSHA-1をここに書くと、プロキシが1.18.2クライアントにこちらを
+  # 出します。空のままなら758クライアントには1.19用パック
+  # （設定時のみ）、1.19.1／1.19.2用パック（設定時のみ）、1.19.3用パック
+  # （設定時のみ）、1.19.4用パック（設定時のみ）、1.20.1用パック
+  # （設定時のみ）または1.20.4用パックを出します。
+  # ループバック配信では無視されます（全バリアントを自動生成・配信します）。
+  url-758: ""
+  sha1-758: ""
   # 1.19.3 pack for 761 clients (optional; external mode only).
   # 1.19 pack for 759 clients (optional; external mode only).
   # When the 1.19 variant of the pack (pack_format 9) is hosted
@@ -610,3 +651,31 @@ floodgate:
   # Prefix for Bedrock players' Java names (e.g. ".Steve").
   # Bedrock プレイヤーの Java 名の先頭に付ける文字（例：".Steve"）。
   prefix: "."
+
+# Legacy (pre-Netty) clients: Minecraft 1.6.4 (legacy protocol 78).
+# A separate frontend listens on its own TCP port and translates the
+# old wire protocol (no length prefix, RSA + AES/CFB8 login even in
+# offline mode). Legacy clients can only authenticate offline: the old
+# Mojang auth endpoints no longer exist, so enabling this means running
+# the server in offline mode. When minecraft-version is 1.6.4 the
+# frontend starts automatically in direct mode and modern clients
+# cannot join. See docs/PROXY-1.6.4.md.
+# レガシー（Netty 以前）クライアント：Minecraft 1.6.4（レガシー
+# プロトコル78）。専用フロントエンドが別ポートで待ち受け、旧ワイヤ
+# （長さ接頭辞なし、offline でも RSA＋AES/CFB8 のログイン）を変換
+# します。旧クライアントの認証は offline しか成立しないため（旧
+# Mojang 認証は廃止済み）、有効化は offline モード運用が前提です。
+# minecraft-version が 1.6.4 の場合は自動でダイレクトモードで
+# 起動し、現代クライアントは参加できません。docs/PROXY-1.6.4.md 参照。
+legacy:
+  # Whether to accept legacy clients (bridge mode). Ignored when
+  # minecraft-version is 1.6.4 (the frontend always starts then).
+  # レガシークライアントを受け入れるかどうか（ブリッジモード）。
+  # minecraft-version が 1.6.4 のときは無効で、常時起動します。
+  enabled: false
+  # TCP port legacy clients connect to (default 25568).
+  # レガシークライアントが接続する TCP ポート（既定 25568）。
+  port: 25568
+  # MOTD shown in the legacy server list. Empty means server.motd.
+  # レガシーのサーバーリストに表示する MOTD。空なら server.motd。
+  motd: ""
